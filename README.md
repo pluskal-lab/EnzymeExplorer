@@ -23,6 +23,20 @@ Furthermore, our research unveiled a new TPS structural domain and identified di
 This repository provides access to the source codes of our approach. We invite researchers to explore and contribute, advancing the field of enzymatic research through computational approaches.
 
 
+## Computing Environment Setup
 
+```bash
+git clone https://github.com/SamusRam/TPS_ML_Discovery.git
+cd TPS_ML_Discovery
+. utils/setup_env.sh
+```
+
+## Data Preparation
+### 1 - Raw Data Preprocessing
+
+```bash
+cd TPS_ML_Discovery
+jupyter notebook
+```
 
 
