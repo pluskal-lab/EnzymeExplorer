@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Create env and install required packages
-conda create -n tps_ml_discovery python==3.10 scikit-learn pandas numpy scipy jupyter seaborn pytorch pytorch-cuda pymol pymol-psico tmalign -c pytorch -c nvidia -c schrodinger -c speleo3 -c conda-forge -y
+conda create -n tps_ml_discovery python==3.10.0 scikit-learn pandas numpy scipy jupyter seaborn pytorch pytorch-cuda pymol pymol-psico tmalign -c pytorch -c nvidia -c schrodinger -c speleo3 -c conda-forge -y
 conda activate tps_ml_discovery
 pip install epam.indigo
 pip install openpyxl
