@@ -11,5 +11,7 @@ pip install tqdm
 conda install -c bioconda mafft -y
 conda install -c bioconda iqtree -y
 conda install -c conda-forge biopython -y
+conda install -c schrodinger pymol-psico -y
+pip install py3Dmol
 
 
