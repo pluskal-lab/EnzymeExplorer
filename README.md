@@ -177,4 +177,9 @@ cd TPS_ML_Discovery
 
 jupyter notebook
 ```
-And then execute the notebook `notebooks/notebook_2_domain_detections.ipynb`.
+And then execute the notebook `notebooks/notebook_2_domain_detections.ipynb`. 
+
+You can check an interactive visualization of the TPS-domain segmentations for a randomly picked UniProt accession in [the notebook HTML version](https://html-preview.github.io/?url=https://github.com/SamusRam/TPS_ML_Discovery/blob/main/notebooks/notebook_2_domain_detections.htmll#tps_random_id_segmentation).
+
+### 2 - Pairwise comparison of the detected domains
+
