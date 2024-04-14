@@ -36,7 +36,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install black[jupyter] flake8 isort pylint mypy
+          pip install black[jupyter]==22.3.0 flake8 isort pylint mypy
       - name: Run black
         run:
           black --check .
