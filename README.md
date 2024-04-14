@@ -13,13 +13,13 @@
 
 Did you know that Terpene Synthases (TPSs) are responsible for the most natural scents human have ever experienced? [[1]](https://pubmed.ncbi.nlm.nih.gov/21114471/)
 
-Welcome to the GitHub repository showcasing state-of-the-art methods for Terpene Synthase (TPS) discovery and characterization. 
+Welcome to the GitHub repository showcasing state-of-the-art computational methods for Terpene Synthase (TPS) discovery and characterization. 
 
 
 TPSs generate the scaffolds of the largest class of natural products (more than 96.000 compounds), including several first-line medicines [[2]](https://pubs.acs.org/doi/pdf/10.1021/acs.accounts.1c00296?casa_token=OzB4p1Y4nLoAAAAA:h85bm9CC10o33CQCMnhF1Th63mVD23YnnOGau7qhTjVhR7233XPV2-GS0LBDbIeQg-_LqjCS7ciCi7g). 
 Our research, outlined in **[the accompanying paper](https://www.biorxiv.org/content/10.1101/2024.01.29.577750)**, addresses the challenge of accurately detecting TPS activity in sequence databases.
 
-Our approach significantly outperforms existing methods for TPS detection and substrate prediction. Using it, we identified and experimentally confirmed activity of seven previously unknown TPS enzymes undetected by state-of-the-art protein signatures. 
+Our approach significantly outperforms existing methods for TPS detection and substrate prediction. Using it, we identified and experimentally confirmed activity of seven previously unknown TPS enzymes undetected by all state-of-the-art protein signatures integrated into InterProScan. 
 
 Notably, our method is the first to reveal functional terpene cyclization in the Archaea, one of the major domains of life [[3]](https://www.nature.com/articles/nrmicro.2017.133).
 Before our work, it was believed that Archaea can form prenyl monomers but cannot perform terpene cyclisation [[4]](https://academic.oup.com/femsre/article/47/2/fuad008/7081307). Exactly thanks to the cyclisation, terpenoids are the largest and most diverse class of natural products. Our predictive pipeline shed light on the ancient history of TPS biosynthesis which "is deeply intertwined with the establishment of biochemistry in its present form" [[4]](https://academic.oup.com/femsre/article/47/2/fuad008/7081307).
@@ -47,7 +47,7 @@ cd TPS_ML_Discovery
 
 jupyter notebook
 ```
-And then execute the notebook `notebooks/step_1_data_cleaning_from_raw_TPS_table.ipynb`.
+And then execute the notebook `notebooks/notebook_1_data_cleaning_from_raw_TPS_table.ipynb`.
 
 ### 2 - Sampling negative examples from Swiss-Prot
 We sample negative (non-TPS) sequences from [Swiss-Prot](https://www.expasy.org/resources/uniprotkb-swiss-prot), the expertly curated UniProtKB component produced by the UniProt consortium. 
@@ -160,7 +160,7 @@ Store the structures into the `data/alphafold_structs` folder. For the remaining
 one of the easiest ways to run AF2 is by using [ColabFold](https://github.com/sokrypton/ColabFold) [[5]](https://www.nature.com/articles/s41592-022-01488-1) by Mirdita M, Schütze K, Moriwaki Y, Heo L, Ovchinnikov S and Steinegger M.).
 
 For illustration purposes, we store AF2 predictions for the archaeal TPSs we discovered in the folder `data/alphafold_structs`. 
-We also put there a randomly selected  TPS with UniProt accession B9GSM9.
+We also put there a randomly selected TPS with UniProt accession B9GSM9, and PDBe structures we used for domain standards.
 ### 1 - Segmentation of a TPS structure into TPS-specific domains
 
 A high-level overview of our pipeline for TPS structure segmentation into domains is depicted in the following figure:
@@ -169,3 +169,12 @@ A high-level overview of our pipeline for TPS structure segmentation into domain
 ![](data/readme_figures/fig_segmentation_into_domains.png)
 
 </div>
+
+Implementation of our structural algorithms is in `utils/structural_algorithms.py`. 
+To use the algorithms for segmenting AF2 structures into TPS-specific domains, run
+```bash
+cd TPS_ML_Discovery
+
+jupyter notebook
+```
+And then execute the notebook `notebooks/notebook_2_domain_detections.ipynb`.

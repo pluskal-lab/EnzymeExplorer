@@ -13,7 +13,8 @@ from uuid import uuid4
 
 import matplotlib.pyplot as plt  # type: ignore
 import numpy as np  # type: ignore
-from pymol import CmdException, cmd, stored, tmalign  # type: ignore
+from psico.fitting import tmalign  # type: ignore
+from pymol import CmdException, cmd, stored  # type: ignore
 from scipy.spatial import KDTree  # type: ignore
 from tqdm.auto import tqdm  # type: ignore
 
@@ -220,7 +221,7 @@ def get_super_res_alignment(
             pymol_cmd.delete(larger_obj)
         if larger_obj in file_2_all_residues:
             del file_2_all_residues[larger_obj]
-        return float("inf"), {}
+        return -float("inf"), {}
 
     if not exists_in_pymol(pymol_cmd, larger_obj):
         if not os.path.exists(f"{larger_obj}.pdb"):
@@ -265,7 +266,7 @@ def get_super_res_alignment(
             pymol_cmd.load(f"{domain_obj}.pdb")
             loaded_new_domain_obj = True
     aln_name, domain_obj_secondary_structure, larger_obj_secondary_structure = [
-        uuid4() for _ in range(3)
+        str(uuid4()) for _ in range(3)
     ]
     needs_clone = (
         pymol_cmd.get_object_list(domain_obj)[0]
@@ -283,7 +284,7 @@ def get_super_res_alignment(
     pymol_cmd.select(domain_obj_secondary_structure, f"{domain_obj} & ss H+S")
     pymol_cmd.select(larger_obj_secondary_structure, f"{larger_obj} & ss H+S")
     try:
-        tmscore: float = tmalign.tmalign(
+        tmscore: float = tmalign(
             domain_obj_secondary_structure,
             larger_obj_secondary_structure,
             object=aln_name,
@@ -308,7 +309,7 @@ def get_super_res_alignment(
             pymol_cmd.delete(domain_obj)
             if domain_obj in file_2_all_residues:
                 del file_2_all_residues[domain_obj]
-        return float("inf"), {}
+        return -float("inf"), {}
     raw_aln = pymol_cmd.get_raw_alignment(aln_name)
     idx2resi: dict = {}
     pymol_cmd.iterate(
@@ -322,7 +323,7 @@ def get_super_res_alignment(
     if len(residues_mapping) < min_domain_fraction * len(
         file_2_all_residues[domain_obj]
     ):
-        tmscore, residues_mapping_full = float("inf"), {}
+        tmscore, residues_mapping_full = -float("inf"), {}
     else:
         residues_mapping_full = compute_full_mapping(
             domain_obj,
@@ -432,7 +433,7 @@ def get_pairwise_tmscore(
     """
     filename_1, region_1 = module_1
     filename_2, region_2 = module_2
-    selection_1_id, selection_2_id = uuid4(), uuid4()
+    selection_1_id, selection_2_id = str(uuid4()), str(uuid4())
     for filename in [filename_1, filename_2]:
         if not exists_in_pymol(pymol_cmd, filename):
             if not os.path.exists(f"{filename}.pdb"):
@@ -461,7 +462,7 @@ def get_pairwise_tmscore(
             pymol_cmd.delete(f"{filename_1}_{selection_1_id}")
         if f"{filename_1}_{selection_1_id}" in file_2_all_residues:
             del file_2_all_residues[f"{filename_1}_{selection_1_id}"]
-        return float("inf")
+        return -float("inf")
     file_2_all_residues[f"{filename_2}_{selection_2_id}"] = set(
         map(str, region_residues_2)
     )
