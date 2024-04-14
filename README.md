@@ -33,7 +33,9 @@ This repository provides access to the source codes of our approach. We invite r
 
 ```bash
 git clone https://github.com/SamusRam/TPS_ML_Discovery.git
+
 cd TPS_ML_Discovery
+
 . utils/setup_env.sh
 ```
 
@@ -42,6 +44,7 @@ cd TPS_ML_Discovery
 
 ```bash
 cd TPS_ML_Discovery
+
 jupyter notebook
 ```
 And then execute the notebook `notebooks/step_1_data_cleaning_from_raw_TPS_table.ipynb`.
@@ -54,19 +57,21 @@ If you want to sample Swiss-Prot entries on your own, download Swiss-Prot `.fast
 
 ```bash
 cd TPS_ML_Discovery
-if [ ! -f data/sampled_id_2_seq.pkl ]
-then
-  python -m utils.data_prep_scripts.get_uniprot_sample --uniprot-fasta-path data/uniprot_sprot.fasta --sample-size 10000 > outputs/logs/swissprot_sampling.log 2>&1
+
+if [ ! -f data/sampled_id_2_seq.pkl ]; then
+    python -m utils.data_prep_scripts.get_uniprot_sample \
+        --uniprot-fasta-path data/uniprot_sprot.fasta \
+        --sample-size 10000 > outputs/logs/swissprot_sampling.log 2>&1
 else
-  echo "data/sampled_id_2_seq.pkl exists already. You might want to stash it before re-writing the file by the sampling script."
+    echo "data/sampled_id_2_seq.pkl exists already. You might want to stash it before re-writing the file by the sampling script."
 fi
 ```
 
 ### 3 - Computing a phylogenetic tree and clade-based sequence groups
-In order to check generalization of our models to novel TPS sequences, 
+In order to check the generalization of our models to novel TPS sequences, 
 we need to ensure that groups of similar sequences always stay either in train or in test fold. 
-To compute groups of similar sequences, we construct a phylogenetic tree of our cleaned TPS dataset. 
-Clades of the tree define the groups of similar sequences. E.g., in the following visualization of our TPS phylogenetic subtree the clade-based groups have the same color:
+We construct a phylogenetic tree of our cleaned TPS dataset to compute groups of similar sequences. 
+Clades of the tree define the groups of similar sequences. E.g., in the following visualization of our TPS phylogenetic subtree, the clade-based groups have the same color:
 
 <div align="center">
 
@@ -76,13 +81,75 @@ Clades of the tree define the groups of similar sequences. E.g., in the followin
 
 For reproducibility, we share the computed phylogenetic groups in `data/phylogenetic_clusters.pkl`. 
 
-To compute clade-based sequence group on your own, run
+To compute a clade-based sequence group on your own, run
 ```bash
 cd TPS_ML_Discovery
-if [ ! -f data/phylogenetic_clusters.pkl ]
-then
-  python -m utils.data_prep_scripts.get_phylogeny_based_clusters --negative-samples-path data/sampled_id_2_seq.pkl --tps-cleaned-csv-path data/TPS-Nov19_2023_verified_all_reactions.csv --n-workers 64 > outputs/logs/phylogenetic_clusters.log 2>&1
+
+if [ ! -f data/phylogenetic_clusters.pkl ]; then
+    python -m utils.data_prep_scripts.get_phylogeny_based_clusters \
+        --tps-cleaned-csv-path data/TPS-Nov19_2023_verified_all_reactions.csv \
+        --n-workers 64 > outputs/logs/phylogenetic_clusters.log 2>&1
 else
-  echo "data/phylogenetic_clusters.pkl exists already. You might want to stash it before re-writing the file by the script for phylogenetic-tree based sequence clustering."
+    echo "data/phylogenetic_clusters.pkl exists already. You might want to stash it before re-writing the file using the script for phylogenetic-tree-based sequence clustering."
 fi
+```
+
+### 4 - Preparing validation schema
+
+We use 5-fold cross-validation (CV) for performance assessment. As described above, we ensure that similar sequences end up 
+the same fold. Technically, we validate via group 5-fold CV. In order to ensure stable validation scores across folds, 
+we stratify based on the TPS substrate. As default `StratifiedGroupKFold` implementation from `sklearn.model_selection` 
+can result in class imbalance, we implement an iterative splitting procedure by varying random seeds and selecting the one with the best correspondence of class proportions between folds (the proportion correspondence is compared using Jensen–Shannon divergence).
+
+
+<div align="center">
+
+![](data/fig_stratification.png)
+
+</div>
+
+For reproducibility, we share the computed folds in `data/tps_folds_nov2023.h5`. 
+
+To compute the folds on your own, run
+```bash
+cd TPS_ML_Discovery
+
+if [ ! -f data/tps_folds_nov2023.h5 ]; then
+    python -m utils.data_prep_scripts.get_balanced_stratified_group_kfolds \
+        --negative-samples-path data/sampled_id_2_seq.pkl \
+        --tps-cleaned-csv-path data/TPS-Nov19_2023_verified.csv \
+        --n-folds 5 \
+        --split-description stratified_phylogeny_based_split \
+        > outputs/logs/kfold.log 2>&1
+
+    python -m utils.data_prep_scripts.get_balanced_stratified_group_kfolds \
+        --negative-samples-path data/sampled_id_2_seq.pkl \
+        --tps-cleaned-csv-path data/TPS-Nov19_2023_verified_all_reactions.csv \
+        --n-folds 5 \
+        --split-description stratified_phylogeny_based_split_with_minor_products \
+        > outputs/logs/kfold_with_minors.log 2>&1
+else
+    echo "data/tps_folds_nov2023.h5 exists already. You might want to stash it before re-writing the file using the script for stratified group k-fold computation."
+fi
+
+```
+
+Then, to store the folds in corresponding CSVs, run
+
+```bash
+cd TPS_ML_Discovery
+
+python -m utils.data_prep_scripts.store_folds_into_csv \
+    --negative-samples-path data/sampled_id_2_seq.pkl \
+    --tps-cleaned-csv-path data/TPS-Nov19_2023_verified.csv \
+    --kfolds-path data/tps_folds_nov2023.h5 \
+    --split-description stratified_phylogeny_based_split \
+    > outputs/logs/kfold_to_csv.log 2>&1
+
+python -m utils.data_prep_scripts.store_folds_into_csv \
+    --negative-samples-path data/sampled_id_2_seq.pkl \
+    --tps-cleaned-csv-path data/TPS-Nov19_2023_verified_all_reactions.csv \
+    --kfolds-path data/tps_folds_nov2023.h5 \
+    --split-description stratified_phylogeny_based_split_with_minor_products \
+    > outputs/logs/kfold_with_minors_to_csv.log 2>&1
 ```
