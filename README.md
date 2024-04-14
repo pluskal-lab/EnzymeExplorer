@@ -6,7 +6,7 @@
 # Discovery and Characterization of Terpene Synthases Powered by Machine Learning
 
 
-![](data/fig_overview.png)
+![](data/readme_figures/fig_overview.png)
 </div>
 
 ## Introduction
@@ -75,7 +75,7 @@ Clades of the tree define the groups of similar sequences. E.g., in the followin
 
 <div align="center">
 
-![](data/fig_phylogenetic_tree.png)
+![](data/readme_figures/fig_phylogenetic_tree.png)
 
 </div>
 
@@ -104,7 +104,7 @@ can result in class imbalance, we implement an iterative splitting procedure by 
 
 <div align="center">
 
-![](data/fig_stratification.png)
+![](data/readme_figures/fig_stratification.png)
 
 </div>
 
@@ -153,3 +153,19 @@ python -m utils.data_prep_scripts.store_folds_into_csv \
     --split-description stratified_phylogeny_based_split_with_minor_products \
     > outputs/logs/kfold_with_minors_to_csv.log 2>&1
 ```
+
+## Structural analysis
+For the majority of proteins, AlphaFold2(AF2)-predicted structures can be downloaded using [the following script](https://github.com/SamusRam/ProFun/blob/main/profun/utils/alphafold_struct_downloader.py) from our [ProFun library](https://github.com/SamusRam/ProFun). 
+Store the structures into the `data/alphafold_structs` folder. For the remaining few without precomputed AF2 prediction, 
+one of the easiest ways to run AF2 is by using [ColabFold](https://github.com/sokrypton/ColabFold) [[5]](https://www.nature.com/articles/s41592-022-01488-1) by Mirdita M, Schütze K, Moriwaki Y, Heo L, Ovchinnikov S and Steinegger M.).
+
+For illustration purposes, we store AF2 predictions for the archaeal TPSs we discovered in the folder `data/alphafold_structs`. 
+We also put there a randomly selected  TPS with UniProt accession B9GSM9.
+### 1 - Segmentation of a TPS structure into TPS-specific domains
+
+A high-level overview of our pipeline for TPS structure segmentation into domains is depicted in the following figure:
+<div align="center">
+
+![](data/readme_figures/fig_segmentation_into_domains.png)
+
+</div>
