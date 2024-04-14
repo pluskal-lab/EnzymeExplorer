@@ -82,7 +82,7 @@ def get_train_val_per_fold(
     fold_i: Union[int, str],
     path: str = "data/tps_folds.h5",
     split_desc: str = "all",
-    filter_val_terzyme: bool = True,
+    filter_val_terzyme: bool = False,
 ) -> Tuple[np.ndarray, np.ndarray]:
     """
     This function returns train and validation indices for the selected validation fold
@@ -94,7 +94,9 @@ def get_train_val_per_fold(
     """
     val_np = get_fold(fold_i, path, split_desc=split_desc)
 
-    if filter_val_terzyme:
+    if (
+        filter_val_terzyme
+    ):  # deprecated as we re-train profileHMM on our richer data to get a stronger baseline
         terzyme_whole_df = pd.read_csv("data/terzyme_data_whole.csv")
         uniprot_ids_terzyme = set(terzyme_whole_df["Uniprot ID"].values)
         val_np = np.array(

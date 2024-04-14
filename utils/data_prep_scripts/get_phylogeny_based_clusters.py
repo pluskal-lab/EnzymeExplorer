@@ -23,9 +23,6 @@ def parse_args() -> argparse.Namespace:
     """
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--negative-samples-path", type=str, default="data/sampled_id_2_seq.pkl"
-    )
-    parser.add_argument(
         "--tps-cleaned-csv-path",
         type=str,
         default="data/TPS-Nov19_2023_verified_all_reactions.csv",

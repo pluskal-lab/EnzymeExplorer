@@ -4,7 +4,7 @@ import argparse
 import logging
 import pickle
 from random import sample
-from typing import Generator, Union, Optional
+from typing import Generator, Optional, Union
 
 import esm  # type: ignore
 import pandas as pd  # type: ignore
