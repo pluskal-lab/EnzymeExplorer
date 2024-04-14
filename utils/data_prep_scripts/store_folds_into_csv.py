@@ -1,7 +1,11 @@
 """ This is the hello-world script iterating over the folds """
 
 import argparse
+import logging
 import pickle
+
+from tqdm.auto import tqdm  # type: ignore
+from tqdm.contrib.logging import logging_redirect_tqdm  # type: ignore
 
 from utils.data import (
     get_folds,
@@ -10,9 +14,6 @@ from utils.data import (
     get_train_val_per_fold,
     get_unsplittable_targets,
 )
-from tqdm.auto import tqdm
-from tqdm.contrib.logging import logging_redirect_tqdm
-import logging
 
 logger = logging.getLogger(__file__)
 logging.basicConfig(level=logging.INFO)
