@@ -183,3 +183,18 @@ You can check an interactive visualization of the TPS-domain segmentations for a
 
 ### 2 - Pairwise comparison of the detected domains
 
+In order to perform pairwise comparison of the detected domains with the use of the same alignment-based 
+algorithms from `utils/structural_algorithms.py`, run 
+
+```bash
+cd TPS_ML_Discovery
+
+python -m utils.compute_pairwise_similarities_of_domains \
+    --name all \
+    --n-jobs 64
+```
+
+If you have access to more servers, 
+you might want to load-balance the pairwise comparison computation across your machines as shown
+in the last cell of the notebook `notebooks/notebook_2_domain_detections.ipynb`. 
+For convenience, we share all the raw pairwise comparison results in `data/tps_domains_and_comparisons.zip`, which are subsequently used for domain clustering.

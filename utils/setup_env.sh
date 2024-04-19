@@ -13,5 +13,6 @@ conda install -c bioconda iqtree -y
 conda install -c conda-forge biopython -y
 conda install -c schrodinger pymol-psico -y
 pip install py3Dmol
-
-
+pip install hdbscan
+pip install scikit-learn-extra
+pip install plotly
