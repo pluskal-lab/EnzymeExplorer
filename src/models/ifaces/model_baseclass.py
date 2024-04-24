@@ -128,7 +128,7 @@ class BaseModel(ABC, BaseEstimator):
         """
         for attribute_name, value in kwargs.items():
             if attribute_name not in {"class_name", "per_class"}:
-                self.__setattr__(attribute_name, value if value != "None" else None)
+                setattr(self, attribute_name, value if value != "None" else None)
 
     def optimize_hyperparameters(
         self,

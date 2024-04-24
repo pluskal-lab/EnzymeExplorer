@@ -87,7 +87,7 @@ def compute_embeddings(
     encodings_batch = []
     encoding_seqs_batch = []
     for i, embs_per_tokens in enumerate(embeddings_batch_raw):
-        embs_per_tokens = embeddings_batch_raw[i][masks[i]]
+        embs_per_tokens = embs_per_tokens[masks[i]]
         encodings_batch.append(embs_per_tokens.mean(0))
         encoding_seqs_batch.append(embs_per_tokens)
     encodings_np_batch = np.array(encodings_batch)
