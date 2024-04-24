@@ -128,12 +128,12 @@ def run_experiment(experiment_info: ExperimentInfo):
             )
             trn_df[config.target_col_name] = trn_df[config.target_col_name].map(
                 lambda x: x
-                if (x == {"Unknown"} or x == {"precursor substr"})
+                if len(x.intersection({"Unknown", "precursor substr"}))
                 else x.union({"is_TPS"})
             )
             test_df[config.target_col_name] = test_df[config.target_col_name].map(
                 lambda x: x
-                if (x == {"Unknown"} or x == {"precursor substr"})
+                if len(x.intersection({"Unknown", "precursor substr"}))
                 else x.union({"is_TPS"})
             )
 
