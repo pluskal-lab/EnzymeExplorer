@@ -1,7 +1,7 @@
 """A class for XGBoost predictive models on top of protein language model (PLM) embeddings"""
 from typing import Type
 
-from xgboost import XGBClassifier
+from xgboost import XGBClassifier  # type: ignore
 
 from src.models.ifaces import EmbsSklearnModel, EmbsXGbConfig
 
