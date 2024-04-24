@@ -2,7 +2,7 @@
 import logging
 from typing import Type
 
-from xgboost import XGBClassifier
+from xgboost import XGBClassifier  # type: ignore
 
 from src.models.ifaces import DomainsSklearnModel, FeaturesXGbConfig
 
