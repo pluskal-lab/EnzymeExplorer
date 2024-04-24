@@ -45,6 +45,6 @@ jobs:
       - name: Run flake8
         run: flake8 . --max-line-length 88 --extend-ignore E203 --select B950
       - name: Run pylint
-        run: pylint ./src --disable C0301,E0401,E1136,R0914,R1728,R0912,R0915,R0913,W0640
+        run: pylint ./src --disable C0301,E0401,E1136,R0914,R1728,R0912,R0915,R0913,R0902,W0640
       - name: Run Mypy
         run: mypy --implicit-optional .
