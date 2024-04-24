@@ -1,12 +1,10 @@
 """This module implements metrics-related utils"""
 
 import numpy as np  # type: ignore
-import pandas as pd
-from sklearn.metrics import average_precision_score  # type: ignore
-from mcc_f1 import mcc_f1_curve
+from mcc_f1 import mcc_f1_curve  # type: ignore
 
 
-def summary_mccf1(y_true: np.array, y_pred: np.array, bins: int = 100):
+def summary_mccf1(y_true: np.ndarray, y_pred: np.ndarray, bins: int = 100):
     """
     MCC-F1 curve based metric
     """
@@ -64,28 +62,3 @@ def summary_mccf1(y_true: np.array, y_pred: np.array, bins: int = 100):
     mccf1_result = {"mccf1_metric": mccf1_metric, "best_threshold": best_threshold}
 
     return mccf1_result
-
-
-def compute_map_from_pred_df(
-    predictions_df_with_gt: pd.DataFrame, class_names: list[str], target_col: str
-):
-    """
-
-    :param predictions_df_with_gt: pandas Dataframe containing both predictions and groud truth
-    :param class_names: selected class names
-    :param target_col:
-    :return: mean average precision
-    """
-    ap_scores = []
-    for class_i, class_name in enumerate(class_names):
-        if sum(predictions_df_with_gt[target_col] == class_name) == 0:
-            continue
-
-        y_true = predictions_df_with_gt[target_col] == class_name
-        if f"pred_{class_name}" in predictions_df_with_gt.columns:
-            y_pred = predictions_df_with_gt[f"pred_{class_name}"]
-        else:
-            y_pred = np.zeros_like(y_true)
-
-        ap_scores.append(average_precision_score(y_true, y_pred))
-    return np.mean(ap_scores)

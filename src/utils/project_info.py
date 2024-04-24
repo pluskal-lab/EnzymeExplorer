@@ -22,10 +22,12 @@ class ExperimentInfo:
 
     @property
     def fold(self):
+        """Fold variable getter"""
         return self._fold
 
     @fold.setter
     def fold(self, value: str):
+        """Fold variable setter"""
         self._fold = value
 
     def get_experiment_name(self):

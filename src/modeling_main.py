@@ -2,22 +2,13 @@
 
 import argparse
 
-# import os
-# import multiprocessing as mp
-#
-# os.environ["MKL_THREADING_LAYER"] = "GNU"
-# os.environ["NUMEXPR_MAX_THREADS"] = str(mp.cpu_count())
-
 from src.evaluation import evaluate_selected_experiments
 from src.experiments_orchestration.experiment_runner import run_experiment
 from src.experiments_orchestration.experiment_selector import (
     collect_single_experiment_arguments,
     discover_experiments_from_configs,
 )
-from src.utils.project_info import (
-    ExperimentInfo,
-    get_config_root,
-)
+from src.utils.project_info import ExperimentInfo, get_config_root
 
 
 def parse_args() -> argparse.Namespace:
@@ -52,11 +43,6 @@ def parse_args() -> argparse.Namespace:
             "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",
             "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O.CC(=C)CCOP(O)(=O)OP(O)(O)=O",
         ],
-    )
-    parser_eval.add_argument(
-        "--exclude-other-tps",
-        help="A flag to ignore other tps detection during eval",
-        action="store_true",
     )
     parser_eval.add_argument(
         "--minimal-count-to-eval",

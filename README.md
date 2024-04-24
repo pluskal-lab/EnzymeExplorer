@@ -38,51 +38,6 @@ cd TPS_ML_Discovery
 
 . utils/setup_env.sh
 ```
-## TL;DR: Usages
-
-### Extracting numerical embeddings
-If you need numerical representations of your TPS sequences, run the following commands to extract embeddings:
-```bash
-cd TPS_ML_Discovery
-conda activate tps_ml_discovery
-
-# specify a path to CSV containing your sequences
-input_csv_path=data/TPS-Nov19_2023_verified_with_neg_latest.csv
-# specify column names for sequence ID's and amino acid sequences
-id_column_name="Uniprot ID"
-sequence_column_name="Amino acid sequence"
-# specify number of available GPU's
-num_gpus=1
-
-# specify TPS language model(s)
-# depending on your GPU memory, you might wanna modify the second parameter which is a batch size
-model_parameters=(
-    "ankh_tps 16 -1"
-    "esm-1v-finetuned 8 33"
-)
-
-# loop over each model and extract embeddings
-for model_param in "${model_parameters[@]}"; do
-    read -r model_name batch_size model_representations_layer <<< "$model_param"
-    output_root_path="outputs/embeddings_${model_name}"
-
-    src/embeddings_extraction/extract_plm_embeddings.sh \
-        "$model_name" \
-        "$batch_size" \
-        "$num_gpus" \
-        "$model_representations_layer" \
-        "$input_csv_path" \
-        "$id_column_name" \
-        "$sequence_column_name" \
-        "$output_root_path"
-done
-```
-The extracted embeddings would then be stored in the `data` folder and you can read them in Python as follows:
-```python
-import pandas as pd
-df_tps_ankh_embeddings = pd.read_hdf("gathered_embs_ankh_tps_embs_avg.h5")
-df_tps_esm1v_embeddings = pd.read_hdf("gathered_embs_esm-1v_embs_avg.h5")
-```
 
 ## Workflow
 ### Data Preparation
@@ -255,3 +210,20 @@ cd TPS_ML_Discovery
 conda activate tps_ml_discovery
 . src/embeddings_extraction/extract_all_embeddings.sh > outputs/logs/embeddings_extraction.log 2>&1
 ```
+
+#### 2 - Training all models with hyperparameter optimization
+
+```bash
+cd TPS_ML_Discovery
+conda activate tps_ml_discovery
+python -m src.modeling_main run > outputs/logs/models_training.log 2>&1
+```
+
+#### 3 - Evaluating performance
+
+```bash
+cd TPS_ML_Discovery
+conda activate tps_ml_discovery
+python -m src.modeling_main evaluate
+```
+ 

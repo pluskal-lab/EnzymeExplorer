@@ -2,7 +2,12 @@
 
 from .config_baseclasses import (
     BaseConfig,
+    EmbRandomForestConfig,
+    EmbsXGbConfig,
+    FeaturesRandomForestConfig,
+    FeaturesXGbConfig,
     SklearnBaseConfig,
 )
+from .domains_sklearn_model import DomainsSklearnModel
 from .embeddings_sklearn_model import EmbsSklearnModel
 from .model_baseclass import BaseModel

@@ -1,26 +1,27 @@
 """This module defines an abstract class for models"""
 import inspect
 import json
+import logging
 import os
 import pickle
 from abc import ABC, abstractmethod
 from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
-from typing import Type
+from typing import Optional, Type
 
 import numpy as np  # type: ignore
 import pandas as pd  # type: ignore
-from sklearn.base import BaseEstimator
-from sklearn.metrics import average_precision_score
-from sklearn.model_selection import KFold, cross_val_score, StratifiedKFold  # type: ignore
+import sklearn.base  # type: ignore
+from sklearn.base import BaseEstimator  # type: ignore
+from sklearn.metrics import average_precision_score  # type: ignore
+from sklearn.model_selection import StratifiedKFold  # type: ignore
 from skopt import gp_minimize  # type: ignore
 from skopt.space import Categorical, Integer, Real  # type: ignore
 from skopt.utils import use_named_args  # type: ignore
 
 from src.models.ifaces.config_baseclasses import BaseConfig
 from src.utils.project_info import get_output_root
-import logging
 
 logger = logging.getLogger(__file__)
 logging.basicConfig(level=logging.INFO)
@@ -43,7 +44,7 @@ class BaseModel(ABC, BaseEstimator):
             / config.experiment_info._timestamp.strftime("%Y%m%d-%H%M%S")
         )
         self.output_root.mkdir(exist_ok=True, parents=True)
-        self.classifier_class = None
+        self.classifier_class: sklearn.base.BaseEstimator
 
     @abstractmethod
     def fit_core(self, train_df: pd.DataFrame, class_name: str = None):
@@ -55,7 +56,7 @@ class BaseModel(ABC, BaseEstimator):
         raise NotImplementedError
 
     @abstractmethod
-    def save(self):
+    def save(self, experiment_output_folder: Optional[Path | str] = None):
         """
         Function for model persistence
         """
@@ -72,14 +73,6 @@ class BaseModel(ABC, BaseEstimator):
             per_class_optimization = False
         if self.config.optimize_hyperparams:
             try:
-                n_fold_splits = self.config.n_fold_splits
-            except AttributeError:
-                n_fold_splits = 5
-            try:
-                use_cross_validation = self.config.use_cross_validation
-            except AttributeError:
-                use_cross_validation = True
-            try:
                 reuse_existing_partial_results = (
                     self.config.reuse_existing_partial_results
                 )
@@ -90,29 +83,27 @@ class BaseModel(ABC, BaseEstimator):
                 train_df,
                 n_calls=self.config.n_calls_hyperparams_opt,
                 per_class_optimization=per_class_optimization,
-                n_fold_splits=n_fold_splits,
-                use_cross_validation=use_cross_validation,
+                n_fold_splits=5,
+                use_cross_validation=True,
                 reuse_existing_partial_results=reuse_existing_partial_results,
                 **self.config.hyperparam_dimensions,
             )
         try:
             load_per_class_params_from = self.config.load_per_class_params_from
-            if load_per_class_params_from is None:
-                load_per_class_params_from = False
         except AttributeError:
-            load_per_class_params_from = False
+            load_per_class_params_from = None
         if load_per_class_params_from:
-            load_per_class_params_from = Path(load_per_class_params_from)
             previous_results = list(
-                load_per_class_params_from.glob(
-                    f"*/hyperparameters_optimization/best_params_*.json"
+                Path(load_per_class_params_from).glob(
+                    "*/hyperparameters_optimization/best_params_*.json"
                 )
             )
-            assert len(
-                previous_results
-            ), f"Requested to load per-class parameters from {load_per_class_params_from}, but no parameters in json are found"
-            logger.info(f"Loading hyper parameters from: {previous_results[0]}")
-            with open(previous_results[0], "r") as file:
+            assert previous_results, (
+                f"Requested to load per-class parameters from {load_per_class_params_from},"
+                "but no parameters in json are found"
+            )
+            logger.info("Loading hyper parameters from: %s", previous_results[0])
+            with open(previous_results[0], "r", encoding="utf-8") as file:
                 best_params = json.load(file)
             self.set_params(**best_params)
 
@@ -166,9 +157,11 @@ class BaseModel(ABC, BaseEstimator):
                         f"../*/hyperparameters_optimization/optimization_results_detailed_{prefix}*.pkl"
                     )
                 )
-                if len(previous_results):
+                if previous_results:
                     logger.info(
-                        f"found previous results for class {class_name}: {previous_results}"
+                        "Found previous results for class %s: %s",
+                        class_name,
+                        previous_results,
                     )
                     with open(previous_results[0], "rb") as file:
                         best_params, _, _ = pickle.load(file)
@@ -191,7 +184,7 @@ class BaseModel(ABC, BaseEstimator):
                 if classifier_attributes is not None:
                     classifier_attributes.update(initial_instance_parameters)
                     initial_instance_parameters = classifier_attributes
-            x0 = []
+            hyperparam_combinations = []
             for name, characteristics in dimension_params.items():
                 if characteristics["type"] != "categorical":
                     next_dims = type_2_skopt_class[characteristics["type"]](
@@ -205,15 +198,16 @@ class BaseModel(ABC, BaseEstimator):
                 assert (
                     name in initial_instance_parameters
                 ), f"Hyperparameter {name} does not seem to be a model attribute"
-                x0.append(initial_instance_parameters[name])
+                hyperparam_combinations.append(initial_instance_parameters[name])
             run_timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
 
+            params_output_root = self.output_root / "hyperparameters_optimization"
             logger.info(
                 "Hyperparam optimization results will be stored in %s",
-                str(self.output_root / "hyperparameters_optimization"),
+                str(params_output_root),
             )
-            if not (self.output_root / "hyperparameters_optimization").exists():
-                (self.output_root / "hyperparameters_optimization").mkdir(exist_ok=True)
+            if not params_output_root.exists():
+                params_output_root.mkdir(exist_ok=True, parents=True)
 
             # The objective function to be minimized
             def make_objective(train_df, space, cross_validation):
@@ -275,15 +269,11 @@ class BaseModel(ABC, BaseEstimator):
                     #     logger.error(e)
                     #     score = 1.0
 
-                    ckpts = list(
-                        (self.output_root / "hyperparameters_optimization").glob(
-                            "*_params.json"
-                        )
-                    )
+                    ckpts = list(params_output_root.glob("*_params.json"))
                     if len(ckpts) > 0:
                         past_performances = sorted(
                             [
-                                float(str(ckpt_name.stem).split("_")[0])
+                                float(str(ckpt_name.stem).split("_", maxsplit=1)[0])
                                 for ckpt_name in ckpts
                             ]
                         )
@@ -291,9 +281,8 @@ class BaseModel(ABC, BaseEstimator):
                         for ckpt in ckpts:
                             os.remove(ckpt)
                         with open(
-                            self.output_root
-                            / "hyperparameters_optimization"
-                            / f"{score:.5f}_params_{run_timestamp}.json",
+                            params_output_root
+                            / f"{100 - 100*score:.0f}_params_{run_timestamp}.json",
                             "w",
                             encoding="utf8",
                         ) as file:
@@ -329,7 +318,7 @@ class BaseModel(ABC, BaseEstimator):
                 n_initial_points=min(10, n_calls // 5),
                 random_state=42,
                 verbose=True,
-                x0=x0,
+                x0=hyperparam_combinations,
             )
             best_params = {
                 f"{prefix}{dimensions[i].name}": param_value
@@ -338,12 +327,13 @@ class BaseModel(ABC, BaseEstimator):
             self.set_params(**best_params)
 
             with open(
-                self.output_root
-                / "hyperparameters_optimization"
+                params_output_root
                 / f"optimization_results_detailed_{prefix}{run_timestamp}.pkl",
                 "wb",
-            ) as file:
-                pickle.dump((best_params, gp_round.x_iters, gp_round.func_vals), file)
+            ) as file_writer:
+                pickle.dump(
+                    (best_params, gp_round.x_iters, gp_round.func_vals), file_writer
+                )
 
         def _jsonify_value(value):
             if isinstance(value, np.int64):
@@ -360,13 +350,14 @@ class BaseModel(ABC, BaseEstimator):
             / "hyperparameters_optimization"
             / f"best_params_{datetime.now().strftime('%Y%m%d-%H%M%S')}.json",
             "w",
-        ) as file:
+            encoding="utf-8",
+        ) as file_text_io:
             json.dump(
                 {
                     param: _jsonify_value(val)
                     for param, val in self.get_model_specific_params().items()
                 },
-                file,
+                file_text_io,
             )
 
     @classmethod
@@ -378,6 +369,9 @@ class BaseModel(ABC, BaseEstimator):
         raise NotImplementedError
 
     def get_params(self, deep: bool = True):
+        """
+        Function retrieving parameters
+        """
         return {
             "config": (
                 deepcopy(self.__dict__["config"]) if deep else self.__dict__["config"]
@@ -385,13 +379,19 @@ class BaseModel(ABC, BaseEstimator):
         }
 
     def get_model_specific_params(self, class_name: str = None):
+        """
+        method inspecting parameters and retrieving ones related to the model object
+        """
         initial_instance_parameters = self.__dict__
         try:
             classifier_args = inspect.getfullargspec(self.classifier_class)
-            classifier_attributes = set(classifier_args.kwonlydefaults.keys())
-            classifier_attributes.update(
-                {arg for arg in classifier_args.args if arg != "self"}
-            )
+            if isinstance(classifier_args.kwonlydefaults, dict):
+                classifier_attributes = set(classifier_args.kwonlydefaults.keys())
+                classifier_attributes.update(
+                    {arg for arg in classifier_args.args if arg != "self"}
+                )
+            else:
+                raise AttributeError("No kwonlydefaults")
         except AttributeError:  # sometimes everything is being hidden in **kwargs
             # (e.g. it's the case for sklearn wrapper of xgboost),
             # then fallback to default constructor
@@ -403,7 +403,7 @@ class BaseModel(ABC, BaseEstimator):
             if key in classifier_attributes
             or (
                 "_".join(key.split("_")[1:]) in classifier_attributes
-                and (class_name is None or key.split("_")[0] == class_name)
+                and (class_name is None or key.split("_", maxsplit=1)[0] == class_name)
             )
         }
 
@@ -426,7 +426,7 @@ def eval_model_mean_average_precision_neg(
         ):
             y_true = val_df[model.config.target_col_name].map(lambda x: class_name in x)
             if sum(y_true) >= min_number_of_positive_cases:
-                ap = average_precision_score(y_true, y_pred[:, class_i])
-                average_precisions.append(ap)
+                average_precision = average_precision_score(y_true, y_pred[:, class_i])
+                average_precisions.append(average_precision)
 
     return 1 - np.mean(average_precisions)

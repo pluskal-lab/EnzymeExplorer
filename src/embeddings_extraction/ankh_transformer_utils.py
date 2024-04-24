@@ -1,7 +1,7 @@
 """This script contains utils for Ankh embeddings extraction"""
+import ankh  # type: ignore
 import numpy as np  # type: ignore
 import torch  # type: ignore
-import ankh  # type: ignore
 
 
 def get_model_and_tokenizer(
@@ -86,7 +86,7 @@ def compute_embeddings(
     masks = outputs["attention_mask"].cpu().numpy().astype(bool)
     encodings_batch = []
     encoding_seqs_batch = []
-    for i, tokens_len in enumerate(embeddings_batch_raw):
+    for i, embs_per_tokens in enumerate(embeddings_batch_raw):
         embs_per_tokens = embeddings_batch_raw[i][masks[i]]
         encodings_batch.append(embs_per_tokens.mean(0))
         encoding_seqs_batch.append(embs_per_tokens)

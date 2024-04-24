@@ -165,7 +165,7 @@ def collect_single_experiment_arguments(
     else:
         args["model_type"] = _select_out_of_options(
             available_models,
-            f'For validation schema \'{args["validation_schema"]}\'\nSelect a model type: ',
+            "Select a model type: ",
         )
 
     split_model_config_df = configs_df[configs_df["model_type"] == args["model_type"]]

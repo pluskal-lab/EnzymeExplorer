@@ -8,19 +8,12 @@ import os.path
 import pickle
 
 from tqdm.auto import tqdm  # type: ignore
-from tqdm.contrib.logging import logging_redirect_tqdm
+from tqdm.contrib.logging import logging_redirect_tqdm  # type: ignore
 
 from src import models
 from src.models.ifaces import BaseConfig, BaseModel
-from src.utils.data import (
-    get_tps_df,
-    get_folds,
-)
-from src.utils.project_info import (
-    ExperimentInfo,
-    get_config_root,
-    get_experiments_output,
-)
+from src.utils.data import get_folds, get_tps_df
+from src.utils.project_info import ExperimentInfo, get_config_root
 
 logger = logging.getLogger(__file__)
 logging.basicConfig(level=logging.INFO)
@@ -73,8 +66,6 @@ def run_experiment(experiment_info: ExperimentInfo):
         experiment_info.model_type,
     )
 
-    # determining fold to run
-    fold_to_run = -1
     if hasattr(config, "gpu_id"):
         os.environ["CUDA_VISIBLE_DEVICES"] = str(config.gpu_id)
 
@@ -90,14 +81,10 @@ def run_experiment(experiment_info: ExperimentInfo):
         differentiate_substrates_of_isoprenyl_diphosphate_synthase=False,
     )
 
-    experiment_output_folder = (
-        get_experiments_output()
-        / experiment_info.model_type
-        / experiment_info.model_version
-    )
-    if not experiment_output_folder.exists():
-        experiment_output_folder.mkdir(parents=True)
-
+    try:
+        save_trained_model = config.save_trained_model
+    except AttributeError:
+        save_trained_model = False
     # iterating over folds
     with logging_redirect_tqdm([logger]):
         for test_fold in tqdm(
@@ -108,7 +95,17 @@ def run_experiment(experiment_info: ExperimentInfo):
         ):
             logger.info("Fold: %s", test_fold)
             model.config.experiment_info.fold = test_fold
-            trn_folds = [f"fold_{i}" for i in range(5) if i not in {test_fold}]
+            trn_folds = [
+                f"fold_{i}"
+                for i in range(
+                    len(
+                        get_folds(
+                            split_desc=config.split_col_name,
+                        )
+                    )
+                )
+                if i != test_fold
+            ]
             trn_df = tps_df[tps_df[config.split_col_name].isin(set(trn_folds))]
             test_df = tps_df[tps_df[config.split_col_name] == f"fold_{test_fold}"]
             trn_df.loc[
@@ -129,6 +126,16 @@ def run_experiment(experiment_info: ExperimentInfo):
                 .agg(set)
                 .reset_index()
             )
+            trn_df[config.target_col_name] = trn_df[config.target_col_name].map(
+                lambda x: x
+                if (x == {"Unknown"} or x == {"precursor substr"})
+                else x.union({"is_TPS"})
+            )
+            test_df[config.target_col_name] = test_df[config.target_col_name].map(
+                lambda x: x
+                if (x == {"Unknown"} or x == {"precursor substr"})
+                else x.union({"is_TPS"})
+            )
 
             # fitting the model
             model.fit(trn_df)
@@ -138,10 +145,11 @@ def run_experiment(experiment_info: ExperimentInfo):
                 experiment_info.model_version,
                 test_fold,
             )
-            model.save()
+            if save_trained_model:
+                model.save()
 
             val_proba_np = model.predict_proba(test_df)
             with open(
-                experiment_output_folder / f"{test_fold}_results.pkl", "rb"
+                model.output_root / f"fold_{test_fold}_results.pkl", "wb"
             ) as file:
                 pickle.dump((val_proba_np, model.config.class_names, test_df), file)
