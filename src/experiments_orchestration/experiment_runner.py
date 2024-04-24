@@ -13,7 +13,7 @@ from tqdm.contrib.logging import logging_redirect_tqdm  # type: ignore
 
 from src import models
 from src.models.ifaces import BaseConfig, BaseModel
-from src.utils.data import get_folds, get_tps_df
+from src.utils.data import get_folds
 from src.utils.project_info import ExperimentInfo, get_config_root
 
 logger = logging.getLogger(__file__)
