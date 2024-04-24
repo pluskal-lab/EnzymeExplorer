@@ -3,7 +3,7 @@
 [![Checks for coding standard, code smells and typing](https://github.com/samusram/tps_ml_discovery/actions/workflows/ci.yml/badge.svg)](https://github.com/samusram/tps_ml_discovery/actions/workflows/ci.yml)
 <div align="center">
 
-# Discovery and Characterization of Terpene Synthases Powered by Machine Learning
+# Highly accurate discovery of terpene synthases powered by machine learning
 
 
 ![](data/readme_figures/fig_overview.png)
@@ -17,7 +17,7 @@ Welcome to the GitHub repository showcasing state-of-the-art computational metho
 
 
 TPSs generate the scaffolds of the largest class of natural products (more than 96.000 compounds), including several first-line medicines [[2]](https://pubs.acs.org/doi/pdf/10.1021/acs.accounts.1c00296?casa_token=OzB4p1Y4nLoAAAAA:h85bm9CC10o33CQCMnhF1Th63mVD23YnnOGau7qhTjVhR7233XPV2-GS0LBDbIeQg-_LqjCS7ciCi7g). 
-Our research, outlined in **[the accompanying paper](https://www.biorxiv.org/content/10.1101/2024.01.29.577750)**, addresses the challenge of accurately detecting TPS activity in sequence databases.
+Our research, outlined in **[the accompanying paper *Highly accurate discovery of terpene synthases powered by machine learning reveals functional terpene cyclization in Archaea*](https://www.biorxiv.org/content/10.1101/2024.01.29.577750)**, addresses the challenge of accurately detecting TPS activity in sequence databases.
 
 Our approach significantly outperforms existing methods for TPS detection and substrate prediction. Using it, we identified and experimentally confirmed activity of seven previously unknown TPS enzymes undetected by all state-of-the-art protein signatures integrated into InterProScan. 
 
@@ -39,17 +39,18 @@ cd TPS_ML_Discovery
 . utils/setup_env.sh
 ```
 
-## Data Preparation
-### 1 - Raw Data Preprocessing
+## Workflow
+### Data Preparation
+#### 1 - Raw Data Preprocessing
 
 ```bash
 cd TPS_ML_Discovery
-
+conda activate tps_ml_discovery
 jupyter notebook
 ```
 And then execute the notebook `notebooks/notebook_1_data_cleaning_from_raw_TPS_table.ipynb`.
 
-### 2 - Sampling negative examples from Swiss-Prot
+#### 2 - Sampling negative examples from Swiss-Prot
 We sample negative (non-TPS) sequences from [Swiss-Prot](https://www.expasy.org/resources/uniprotkb-swiss-prot), the expertly curated UniProtKB component produced by the UniProt consortium. 
 For reproducibility, we share the sampled sequences in `data/sampled_id_2_seq.pkl`. 
 
@@ -57,9 +58,9 @@ If you want to sample Swiss-Prot entries on your own, download Swiss-Prot `.fast
 
 ```bash
 cd TPS_ML_Discovery
-
+conda activate tps_ml_discovery
 if [ ! -f data/sampled_id_2_seq.pkl ]; then
-    python -m utils.data_prep_scripts.get_uniprot_sample \
+    python -m src.data_preparation.get_uniprot_sample \
         --uniprot-fasta-path data/uniprot_sprot.fasta \
         --sample-size 10000 > outputs/logs/swissprot_sampling.log 2>&1
 else
@@ -67,7 +68,7 @@ else
 fi
 ```
 
-### 3 - Computing a phylogenetic tree and clade-based sequence groups
+#### 3 - Computing a phylogenetic tree and clade-based sequence groups
 In order to check the generalization of our models to novel TPS sequences, 
 we need to ensure that groups of similar sequences always stay either in train or in test fold. 
 We construct a phylogenetic tree of our cleaned TPS dataset to compute groups of similar sequences. 
@@ -84,9 +85,9 @@ For reproducibility, we share the computed phylogenetic groups in `data/phylogen
 To compute a clade-based sequence group on your own, run
 ```bash
 cd TPS_ML_Discovery
-
+conda activate tps_ml_discovery
 if [ ! -f data/phylogenetic_clusters.pkl ]; then
-    python -m utils.data_prep_scripts.get_phylogeny_based_clusters \
+    python -m src.data_preparation.get_phylogeny_based_clusters \
         --tps-cleaned-csv-path data/TPS-Nov19_2023_verified_all_reactions.csv \
         --n-workers 64 > outputs/logs/phylogenetic_clusters.log 2>&1
 else
@@ -94,7 +95,7 @@ else
 fi
 ```
 
-### 4 - Preparing validation schema
+#### 4 - Preparing validation schema
 
 We use 5-fold cross-validation (CV) for performance assessment. As described above, we ensure that similar sequences end up 
 the same fold. Technically, we validate via group 5-fold CV. In order to ensure stable validation scores across folds, 
@@ -113,16 +114,16 @@ For reproducibility, we share the computed folds in `data/tps_folds_nov2023.h5`.
 To compute the folds on your own, run
 ```bash
 cd TPS_ML_Discovery
-
+conda activate tps_ml_discovery
 if [ ! -f data/tps_folds_nov2023.h5 ]; then
-    python -m utils.data_prep_scripts.get_balanced_stratified_group_kfolds \
+    python -m src.data_preparation.get_balanced_stratified_group_kfolds \
         --negative-samples-path data/sampled_id_2_seq.pkl \
         --tps-cleaned-csv-path data/TPS-Nov19_2023_verified.csv \
         --n-folds 5 \
         --split-description stratified_phylogeny_based_split \
         > outputs/logs/kfold.log 2>&1
 
-    python -m utils.data_prep_scripts.get_balanced_stratified_group_kfolds \
+    python -m src.data_preparation.get_balanced_stratified_group_kfolds \
         --negative-samples-path data/sampled_id_2_seq.pkl \
         --tps-cleaned-csv-path data/TPS-Nov19_2023_verified_all_reactions.csv \
         --n-folds 5 \
@@ -138,15 +139,15 @@ Then, to store the folds in corresponding CSVs, run
 
 ```bash
 cd TPS_ML_Discovery
-
-python -m utils.data_prep_scripts.store_folds_into_csv \
+conda activate tps_ml_discovery
+python -m src.data_preparation.store_folds_into_csv \
     --negative-samples-path data/sampled_id_2_seq.pkl \
     --tps-cleaned-csv-path data/TPS-Nov19_2023_verified.csv \
     --kfolds-path data/tps_folds_nov2023.h5 \
     --split-description stratified_phylogeny_based_split \
     > outputs/logs/kfold_to_csv.log 2>&1
 
-python -m utils.data_prep_scripts.store_folds_into_csv \
+python -m src.data_preparation.store_folds_into_csv \
     --negative-samples-path data/sampled_id_2_seq.pkl \
     --tps-cleaned-csv-path data/TPS-Nov19_2023_verified_all_reactions.csv \
     --kfolds-path data/tps_folds_nov2023.h5 \
@@ -154,14 +155,15 @@ python -m utils.data_prep_scripts.store_folds_into_csv \
     > outputs/logs/kfold_with_minors_to_csv.log 2>&1
 ```
 
-## Structural analysis
+
+### Structural analysis
 For the majority of proteins, AlphaFold2(AF2)-predicted structures can be downloaded using [the following script](https://github.com/SamusRam/ProFun/blob/main/profun/utils/alphafold_struct_downloader.py) from our [ProFun library](https://github.com/SamusRam/ProFun). 
 Store the structures into the `data/alphafold_structs` folder. For the remaining few without precomputed AF2 prediction, 
 one of the easiest ways to run AF2 is by using [ColabFold](https://github.com/sokrypton/ColabFold) [[5]](https://www.nature.com/articles/s41592-022-01488-1) by Mirdita M, Schütze K, Moriwaki Y, Heo L, Ovchinnikov S and Steinegger M.).
 
 For illustration purposes, we store AF2 predictions for the archaeal TPSs we discovered in the folder `data/alphafold_structs`. 
 We also put there a randomly selected TPS with UniProt accession B9GSM9, and PDBe structures we used for domain standards.
-### 1 - Segmentation of a TPS structure into TPS-specific domains
+#### 1 - Segmentation of a TPS structure into TPS-specific domains
 
 A high-level overview of our pipeline for TPS structure segmentation into domains is depicted in the following figure:
 <div align="center">
@@ -174,12 +176,54 @@ Implementation of our structural algorithms is in `utils/structural_algorithms.p
 To use the algorithms for segmenting AF2 structures into TPS-specific domains, run
 ```bash
 cd TPS_ML_Discovery
-
 jupyter notebook
 ```
 And then execute the notebook `notebooks/notebook_2_domain_detections.ipynb`. 
 
 You can check an interactive visualization of the TPS-domain segmentations for a randomly picked UniProt accession in [the notebook HTML version](https://html-preview.github.io/?url=https://github.com/SamusRam/TPS_ML_Discovery/blob/main/notebooks/notebook_2_domain_detections.htmll#tps_random_id_segmentation).
 
-### 2 - Pairwise comparison of the detected domains
+#### 2 - Pairwise comparison of the detected domains
 
+In order to perform pairwise comparison of the detected domains with the use of the same alignment-based 
+algorithms from `utils/structural_algorithms.py`, run 
+
+```bash
+cd TPS_ML_Discovery
+
+python -m src.utils.compute_pairwise_similarities_of_domains \
+    --name all \
+    --n-jobs 64
+```
+
+If you have access to more servers, 
+you might want to load-balance the pairwise comparison computation across your machines as shown
+in the last cell of the notebook `notebooks/notebook_2_domain_detections.ipynb`. 
+For convenience, we share all the raw pairwise comparison results in `data/tps_domains_and_comparisons.zip`, which are subsequently used for domain clustering.
+
+
+### Predictive Modeling
+#### 1 - Extracting numerical embeddings
+First, we extract protein-language-model's (PLM's) embeddings.
+
+```bash
+cd TPS_ML_Discovery
+conda activate tps_ml_discovery
+. src/embeddings_extraction/extract_all_embeddings.sh > outputs/logs/embeddings_extraction.log 2>&1
+```
+
+#### 2 - Training all models with hyperparameter optimization
+
+```bash
+cd TPS_ML_Discovery
+conda activate tps_ml_discovery
+python -m src.modeling_main run > outputs/logs/models_training.log 2>&1
+```
+
+#### 3 - Evaluating performance
+
+```bash
+cd TPS_ML_Discovery
+conda activate tps_ml_discovery
+python -m src.modeling_main evaluate
+```
+ 
