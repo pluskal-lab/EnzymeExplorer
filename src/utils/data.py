@@ -121,7 +121,6 @@ def get_tps_df(
     path_to_sampled_negatives: str,
     remove_fragments: bool = True,
     max_seq_len: int = 2000,
-    differentiate_substrates_of_isoprenyl_diphosphate_synthase: bool = True,
 ) -> pd.DataFrame:
     """
     This function prepares pre-processed terpene synthases dataset as a pandas dataframe
@@ -129,7 +128,6 @@ def get_tps_df(
     :param path_to_sampled_negatives: path to a pickle file containing negative sequences sampled from Swiss-Prot
     :param remove_fragments: flag requesting removal of sequences which are not full
     :param max_seq_len: max allowed length of the sequence (to filter too long negatives)
-    :param differentiate_substrates_of_isoprenyl_diphosphate_synthase: a flag to keep individual smiles of IDS substrates
     :return: pre-processed terpene synthases dataset as a pandas dataframe
     """
     tps_df = pd.read_csv(path_to_file)
