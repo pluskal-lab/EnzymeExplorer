@@ -7,12 +7,13 @@ import logging
 import os.path
 import pickle
 
+import pandas as pd  # type: ignore
 from tqdm.auto import tqdm  # type: ignore
 from tqdm.contrib.logging import logging_redirect_tqdm  # type: ignore
 
 from src import models
 from src.models.ifaces import BaseConfig, BaseModel
-from src.utils.data import get_folds, get_tps_df
+from src.utils.data import get_folds
 from src.utils.project_info import ExperimentInfo, get_config_root
 
 logger = logging.getLogger(__file__)
@@ -75,11 +76,13 @@ def run_experiment(experiment_info: ExperimentInfo):
         "Instantiated the model %s", model.config.experiment_info.get_experiment_name()
     )
 
-    tps_df = get_tps_df(
-        path_to_file=config.tps_cleaned_csv_path,
-        path_to_sampled_negatives=config.negatives_sample_path,
-        differentiate_substrates_of_isoprenyl_diphosphate_synthase=False,
-    )
+    tps_df = pd.read_csv(config.tps_cleaned_csv_path)
+    tps_df.loc[
+        tps_df["Type (mono, sesq, di, …)"].isin(
+            {"ggpps", "fpps", "gpps", "gfpps", "hsqs"}
+        ),
+        "SMILES_substrate_canonical_no_stereo",
+    ] = "precursor substr"
 
     try:
         save_trained_model = config.save_trained_model
