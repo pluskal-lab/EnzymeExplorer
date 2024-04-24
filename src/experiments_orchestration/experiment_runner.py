@@ -7,7 +7,7 @@ import logging
 import os.path
 import pickle
 
-import pandas as pd
+import pandas as pd  # type: ignore
 from tqdm.auto import tqdm  # type: ignore
 from tqdm.contrib.logging import logging_redirect_tqdm  # type: ignore
 
