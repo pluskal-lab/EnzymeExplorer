@@ -180,7 +180,9 @@ jupyter notebook
 ```
 And then execute the notebook `notebooks/notebook_2_domain_detections.ipynb`. 
 
-You can check an interactive visualization of the TPS-domain segmentations for a randomly picked UniProt accession in [the notebook HTML version](https://html-preview.github.io/?url=https://github.com/SamusRam/TPS_ML_Discovery/blob/main/notebooks/notebook_2_domain_detections.htmll#tps_random_id_segmentation).
+There you can check an interactive visualization of the TPS-domain segmentations for a randomly picked UniProt accession. 
+![](data/readme_figures/domains_detection_notebook.gif)
+If not running locally, see [the notebook HTML version](https://html-preview.github.io/?url=https://github.com/SamusRam/TPS_ML_Discovery/blob/main/notebooks/notebook_2_domain_detections.htmll#tps_random_id_segmentation).
 
 #### 2 - Pairwise comparison of the detected domains
 
@@ -199,6 +201,15 @@ If you have access to more servers,
 you might want to load-balance the pairwise comparison computation across your machines as shown
 in the last cell of the notebook `notebooks/notebook_2_domain_detections.ipynb`. 
 For convenience, we share all the raw pairwise comparison results in `data/tps_domains_and_comparisons.zip`, which are subsequently used for domain clustering.
+
+#### 3 - Clustering of the detected domains
+For clustering, run
+
+```bash
+cd TPS_ML_Discovery
+jupyter notebook
+```
+And then execute the notebook `notebooks/notebook_3_clustering_domains.ipynb`. 
 
 
 ### Predictive Modeling
