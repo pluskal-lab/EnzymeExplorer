@@ -36,7 +36,7 @@ git clone https://github.com/SamusRam/TPS_ML_Discovery.git
 
 cd TPS_ML_Discovery
 
-. utils/setup_env.sh
+. src/setup_env.sh
 ```
 
 ## Workflow
@@ -212,12 +212,26 @@ conda activate tps_ml_discovery
 ```
 
 #### 2 - Training all models with hyperparameter optimization
-
+Parameters of the models and/or hyperparameter search can be modified in `configs`.
 ```bash
 cd TPS_ML_Discovery
 conda activate tps_ml_discovery
 python -m src.modeling_main run > outputs/logs/models_training.log 2>&1
 ```
+This command will automatically retrieve all models specified in the `configs` folder.
+If you want to exclude some model, put `.ignore` suffix to the corresponding folder in `configs`.
+
+If you want to run a single model, run
+```bash
+cd TPS_ML_Discovery
+conda activate tps_ml_discovery
+python -m src.modeling_main --select-single-experiment run
+```
+On headless servers, you would be prompt to select on of the available configs via the command line:
+![](data/readme_figures/cli_modeling_demo.gif)
+Otherwise, you can select a model via a simple GUI.
+![](data/readme_figures/gui_demo.gif)
+
 
 #### 3 - Evaluating performance
 
@@ -227,3 +241,10 @@ conda activate tps_ml_discovery
 python -m src.modeling_main evaluate
 ```
  
+Again, if you want to evaluate a single model, run
+```bash
+cd TPS_ML_Discovery
+conda activate tps_ml_discovery
+python -m src.modeling_main --select-single-experiment evaluate
+```
+and select the experiment you are interested in.

@@ -173,14 +173,6 @@ def get_tps_df(
 
     tps_df = tps_df[tps_df["Amino acid sequence"].map(len) <= max_seq_len]
 
-    if not differentiate_substrates_of_isoprenyl_diphosphate_synthase:
-        tps_df.loc[
-            tps_df["Type (mono, sesq, di, …)"].isin(
-                {"ggpps", "fpps", "gpps", "gfpps", "hsqs"}
-            ),
-            "SMILES_substrate_canonical_no_stereo",
-        ] = "precursor substr"
-
     return tps_df
 
 
