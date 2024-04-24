@@ -40,8 +40,8 @@ jobs:
       - name: Run black
         run:
           black --check .
-      - name: Run isort
-        run: isort --profile black .
+      # - name: Run isort
+      #   run: isort --profile black .
       - name: Run flake8
         run: flake8 . --max-line-length 88 --extend-ignore E203 --select B950
       - name: Run pylint
