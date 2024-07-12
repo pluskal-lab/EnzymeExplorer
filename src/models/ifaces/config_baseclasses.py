@@ -40,6 +40,9 @@ class BaseConfig:
         """
         with open(path_to_config, encoding="utf-8") as file:
             configs_dict = yaml.load(file, Loader=yaml.FullLoader)
+            configs_dict = {
+                key: val if val != "None" else None for key, val in configs_dict.items()
+            }
             if "include" in configs_dict:
                 included_file_path = configs_dict.pop("include")
                 with open(
@@ -50,7 +53,7 @@ class BaseConfig:
                     included_data = yaml.safe_load(included_file)
                     configs_dict.update(
                         {
-                            key: val
+                            key: val if val != "None" else None
                             for key, val in included_data.items()
                             if key not in configs_dict
                         }
@@ -86,7 +89,6 @@ class FeaturesXGbConfig(SklearnBaseConfig):
     booster: str
     n_jobs: int
     objective: str
-    fold_i: str
     reg_lambda: float
     gamma: float
     max_depth: int
@@ -107,7 +109,7 @@ class FeaturesRandomForestConfig(SklearnBaseConfig):
     n_jobs: int
     class_weight: str
     max_depth: int
-    fold_i: str
+    per_class_with_multilabel_regularization: int
 
 
 @dataclass
@@ -118,7 +120,32 @@ class EmbRandomForestConfig(EmbSklearnBaseConfig, FeaturesRandomForestConfig):
 
 
 @dataclass
-class EmbsXGbConfig(EmbSklearnBaseConfig, SklearnBaseConfig):
+class EmbsXGbConfig(EmbSklearnBaseConfig, FeaturesXGbConfig):
     """
     A data class to store the corresponding model attributes
     """
+
+
+@dataclass
+class EmbMLPConfig(EmbSklearnBaseConfig, SklearnBaseConfig):
+    """
+    A data class for MLP config
+    """
+
+    hidden_layer_sizes: int
+    alpha: float
+    max_iter: int
+
+
+@dataclass
+class EmbLogisticRegressionConfig(EmbSklearnBaseConfig, SklearnBaseConfig):
+    """
+    A data class for Logistic Regression config
+    """
+
+    penalty: str
+    tol: float
+    C: float
+    max_iter: int
+    solver: str
+    requires_multioutputwrapper_for_multilabel: bool

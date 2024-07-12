@@ -55,24 +55,28 @@ def get_random_sample(  # pylint: disable=R0913
     def _extract_seq_from_entry(entry: tuple) -> str:
         return entry[1]
 
+    with open("data/ids_neg_with_struct.pkl", "rb") as f:
+        ids_neg_with_structs = pickle.load(f)
+
     for i, uniprot_entry in tqdm(
         enumerate(generator),
         total=uniprot_size_to_check,
         desc="Sampling uniprot fasta",
     ):
         uniprot_id = _extract_id_from_entry(uniprot_entry)
-        if len(uniprot_ids_sampled) == subset_size or i >= uniprot_size_to_check:
-            break  # breaking instead of return to enable mypy check typing
-        if blacklisted_ids is not None and uniprot_id in blacklisted_ids:
-            append_next_suitable = (
-                selected_indices_set is not None and i in selected_indices_set
-            )
-            continue
-        if append_next_suitable:
-            uniprot_ids_sampled.append(uniprot_id)
-            uniprot_id_2_seq[uniprot_id] = _extract_seq_from_entry(uniprot_entry)
-            append_next_suitable = False
-        elif selected_indices_set is not None and i in selected_indices_set:
+        # if len(uniprot_ids_sampled) == subset_size or i >= uniprot_size_to_check:
+        #     break  # breaking instead of return to enable mypy check typing
+        # if blacklisted_ids is not None and uniprot_id in blacklisted_ids:
+        #     append_next_suitable = (
+        #         selected_indices_set is not None and i in selected_indices_set
+        #     )
+        #     continue
+        # if append_next_suitable:
+        #     uniprot_ids_sampled.append(uniprot_id)
+        #     uniprot_id_2_seq[uniprot_id] = _extract_seq_from_entry(uniprot_entry)
+        #     append_next_suitable = False
+        # elif selected_indices_set is not None and i in selected_indices_set:
+        if uniprot_id in ids_neg_with_structs:
             uniprot_ids_sampled.append(uniprot_id)
             uniprot_id_2_seq[uniprot_id] = _extract_seq_from_entry(uniprot_entry)
     return uniprot_ids_sampled, uniprot_id_2_seq

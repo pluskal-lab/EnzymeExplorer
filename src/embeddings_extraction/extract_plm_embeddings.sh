@@ -41,7 +41,7 @@ while [ $gpu_count -gt 0 ]
 do
   gpu_count=$((gpu_count-1))
   echo "gpu: $gpu_count, start index: $start_index, end index: $end_index (count: $((end_index-start_index)))"
-  python -m utils.embeddings_extraction.transformer_embs --start-index $start_index --end-index $end_index --gpu $gpu_count --model "$model_name" --model-repr-layer "$model_representations_layer" --batch-size $batch_size --csv-path "$csv_path" --id-column "$id_column_name" --seq-column "$sequence_column_name" --output-root-path "$output_root_path" &
+  python -m src.embeddings_extraction.transformer_embs --start-index $start_index --end-index $end_index --gpu $gpu_count --model "$model_name" --model-repr-layer "$model_representations_layer" --batch-size $batch_size --csv-path "$csv_path" --id-column "$id_column_name" --seq-column "$sequence_column_name" --output-root-path "$output_root_path" &
   pids+=($!)
   numbering_offset=$((numbering_offset+batches_per_epoch))
   start_index=$end_index
@@ -55,4 +55,4 @@ do
 done
 
 ############ computing number of all samples ############
-python -m utils.embeddings_extraction.gather_required_embs --input-root-path "$output_root_path/uniprot_embs_$model_name" --csv-path "$csv_path" --id-column "$id_column_name"
+python -m src.embeddings_extraction.gather_required_embs --input-root-path "$output_root_path/uniprot_embs_$model_name" --csv-path "$csv_path" --id-column "$id_column_name"

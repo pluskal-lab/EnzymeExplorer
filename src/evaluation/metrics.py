@@ -1,14 +1,19 @@
 """This module implements metrics-related utils"""
 
 import numpy as np  # type: ignore
-from mcc_f1 import mcc_f1_curve  # type: ignore
+
+# from mcc_f1 import mcc_f1_curve  # type: ignore
 
 
 def summary_mccf1(y_true: np.ndarray, y_pred: np.ndarray, bins: int = 100):
     """
     MCC-F1 curve based metric
     """
-    mcc_nor_truncated, f_truncated, thresholds = mcc_f1_curve(y_true, y_pred)
+    mcc_nor_truncated, f_truncated, thresholds = (
+        None,
+        None,
+        None,
+    )  # mcc_f1_curve(y_true, y_pred)
     index_of_max_mcc = np.argmax(mcc_nor_truncated)
 
     mcc_left = mcc_nor_truncated[: index_of_max_mcc + 1]

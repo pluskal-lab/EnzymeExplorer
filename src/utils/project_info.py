@@ -19,6 +19,7 @@ class ExperimentInfo:
         """Setting up an experiment timestamp and fold info"""
         self._timestamp = datetime.datetime.now()
         self._fold = "all_folds"
+        self._class_name = "all_classes"
 
     @property
     def fold(self):
@@ -30,13 +31,36 @@ class ExperimentInfo:
         """Fold variable setter"""
         self._fold = value
 
+    @property
+    def class_name(self):
+        """Class name variable getter"""
+        return self._class_name
+
+    @class_name.setter
+    def class_name(self, value: str):
+        """Class name variable setter"""
+        self._class_name = value
+
     def get_experiment_name(self):
         """Detailed experiment name getter"""
         experiment_name = (
-            f"{self.model_type}_{self.model_version}_fold_{self._fold}"
+            f"{self.model_type}_{self.model_version}_fold_{self.fold}_{self.class_name}_"
             f'{self._timestamp.strftime("%Y%m%d-%H%M%S")}'
         )
         return experiment_name
+
+    def __lt__(self, other):
+        if self.model_type != other.model_type:
+            return self.model_type < other.model_type
+        if self.model_version != other.model_version:
+            return self.model_version < other.model_version
+        if self.fold != other.fold:
+            return self.fold < other.fold
+        if self.class_name != other.class_name:
+            return self.class_name < other.class_name
+
+    def __str__(self):
+        return f"Experiment: {self.model_type}/{self.model_version}/fold {self.fold}/class {self.class_name}"
 
 
 def get_project_root() -> Path:

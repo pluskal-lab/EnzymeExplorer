@@ -12,13 +12,14 @@ import uuid
 from collections import defaultdict
 
 import h5py  # type: ignore
-import numpy as np  # type: ignore
-import pandas as pd  # type: ignore
+
 from scipy.spatial.distance import jensenshannon  # type: ignore
 from sklearn.model_selection import (  # type: ignore
     StratifiedGroupKFold,
     StratifiedKFold,
 )
+import numpy as np  # type: ignore
+import pandas as pd  # type: ignore
 
 from src.utils.data import get_major_classes_distribution, get_tps_df, triplets_dtype
 
@@ -53,7 +54,7 @@ def stratified_kfold_phylogeny_based(
     args: argparse.Namespace,
     target_col_name: str,
     major_classes: list[set[str]],
-    max_allowed_proportion_of_class_in_cc: float = 0.7,
+    max_allowed_proportion_of_class_in_cc: float = 0.5,
     phylogenetic_clusters_path: str = "data/phylogenetic_clusters.pkl",
     desc: Optional[str] = None,
 ):
@@ -77,6 +78,7 @@ def stratified_kfold_phylogeny_based(
 
     group_target_2_count: defaultdict[tuple, int] = defaultdict(int)
     id_2_targets = tps_df_pos.groupby("Uniprot ID")[target_col_name].agg(set)
+
     id_2_group = {
         uni_id: group
         for uni_id, group in id_2_group.items()
@@ -136,14 +138,14 @@ def stratified_kfold_phylogeny_based(
     )
 
     id_2_targets_df[target_col_name] = id_2_targets_df[target_col_name].map(
-        lambda x: x if isinstance(x, str) else "missing"
+        lambda x: x if len(x) else ["missing"]
     )
 
     id_2_targets_df[f"{target_col_name}_sorted_set"] = id_2_targets_df[
         target_col_name
     ].map(lambda targets: str(sorted(targets)))
 
-    for random_state in range(500):
+    for random_state in range(1000):
         _t = []
         kfold = StratifiedGroupKFold(
             n_splits=args.n_folds, shuffle=True, random_state=random_state
@@ -166,16 +168,17 @@ def stratified_kfold_phylogeny_based(
             _t.append(
                 jensenshannon(total_classes_distribution, fold_classes_distribution)
             )
-        max_jensenshannon = np.mean(_t)
-        if max_jensenshannon < min_max_jensenshannon_val:
-            min_max_jensenshannon_val = max_jensenshannon
+        mean_jensenshannon = np.mean(_t)
+        logger.info("Current mean_jensenshannon: %.3f", mean_jensenshannon)
+        if mean_jensenshannon < min_max_jensenshannon_val:
+            min_max_jensenshannon_val = mean_jensenshannon
             logger.info(
-                "Fond a better split with min_max_jensenshannon_val of %s",
+                "Fond a better split with min_max_jensenshannon_val of %.3f",
                 min_max_jensenshannon_val,
             )
             best_random_state = random_state
-        if max_jensenshannon > max_avg_jensenshannon_val:
-            max_avg_jensenshannon_val = max_jensenshannon
+        if mean_jensenshannon > max_avg_jensenshannon_val:
+            max_avg_jensenshannon_val = mean_jensenshannon
             worst_random_state = random_state
 
     with open(
@@ -251,6 +254,7 @@ def stratified_kfold_phylogeny_based(
                 "SMILES_product_canonical_no_stereo",
             ]
         ]
+        .fillna("__*missing*__")
         .apply(
             lambda row: (
                 row["Uniprot ID"],
@@ -327,7 +331,6 @@ if __name__ == "__main__":
             {
                 "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O.CC(=C)CCOP(O)(=O)OP(O)(O)=O"
             },
-            {"CC(C)=CCCC(C)=CCCC(C)=CCCC=C(C)CCC=C(C)CCC=C(C)C"},
             {"Negative"},
             {
                 "CC(C)=CCOP([O-])(=O)OP([O-])([O-])=O.CC(=C)CCOP(O)(=O)OP(O)(O)=O.CC(=C)CCOP(O)(=O)OP(O)(O)=O.CC(=C)CCOP(O)(=O)OP(O)(O)=O.CC(=C)CCOP(O)(=O)OP(O)(O)=O"

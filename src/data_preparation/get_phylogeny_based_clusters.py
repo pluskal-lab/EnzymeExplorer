@@ -29,7 +29,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--n-workers", type=int, default=64)
     parser.add_argument(
-        "--max-evolutionary-depth-for-cluster-root", type=float, default=1.25
+        "--max-evolutionary-depth-for-cluster-root", type=float, default=0.4
     )
     args = parser.parse_args()
     return args

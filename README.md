@@ -118,13 +118,6 @@ conda activate tps_ml_discovery
 if [ ! -f data/tps_folds_nov2023.h5 ]; then
     python -m src.data_preparation.get_balanced_stratified_group_kfolds \
         --negative-samples-path data/sampled_id_2_seq.pkl \
-        --tps-cleaned-csv-path data/TPS-Nov19_2023_verified.csv \
-        --n-folds 5 \
-        --split-description stratified_phylogeny_based_split \
-        > outputs/logs/kfold.log 2>&1
-
-    python -m src.data_preparation.get_balanced_stratified_group_kfolds \
-        --negative-samples-path data/sampled_id_2_seq.pkl \
         --tps-cleaned-csv-path data/TPS-Nov19_2023_verified_all_reactions.csv \
         --n-folds 5 \
         --split-description stratified_phylogeny_based_split_with_minor_products \
@@ -140,13 +133,6 @@ Then, to store the folds in corresponding CSVs, run
 ```bash
 cd TPS_ML_Discovery
 conda activate tps_ml_discovery
-python -m src.data_preparation.store_folds_into_csv \
-    --negative-samples-path data/sampled_id_2_seq.pkl \
-    --tps-cleaned-csv-path data/TPS-Nov19_2023_verified.csv \
-    --kfolds-path data/tps_folds_nov2023.h5 \
-    --split-description stratified_phylogeny_based_split \
-    > outputs/logs/kfold_to_csv.log 2>&1
-
 python -m src.data_preparation.store_folds_into_csv \
     --negative-samples-path data/sampled_id_2_seq.pkl \
     --tps-cleaned-csv-path data/TPS-Nov19_2023_verified_all_reactions.csv \

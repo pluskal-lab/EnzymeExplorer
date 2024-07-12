@@ -28,6 +28,13 @@ class FeaturesSklearnModel(BaseModel):
             self.per_class_optimization = self.config.per_class_optimization
             if self.per_class_optimization is None:
                 self.per_class_optimization = False
+            if self.per_class_optimization:
+                try:
+                    self.per_class_with_multilabel_regularization = (
+                        self.config.per_class_with_multilabel_regularization
+                    )
+                except AttributeError:
+                    self.per_class_with_multilabel_regularization = 0
         except AttributeError:
             self.per_class_optimization = False
         if self.per_class_optimization:
@@ -63,33 +70,39 @@ class FeaturesSklearnModel(BaseModel):
             train_df_neg = train_df_neg_all.sample(int(required_negs_count))
             train_df = pd.concat((train_df_pos, train_df_neg)).sample(frac=1.0)
 
+        logger.info("In fit(), features DF shape is: %d x %d", *self.features_df.shape)
+        logger.info(
+            "In fit(), features dimension is: %d",
+            self.features_df["Emb"].values[0].shape[0],
+        )
         train_data = train_df.merge(self.features_df, on=self.config.id_col_name)
 
         if not self.per_class_optimization:
-            # Multioutput version for global hyperparameters (the same for all classes)
-            self.classifier = self.classifier_class(**self.get_model_specific_params())
+            try:
+                requires_multioutputwrapper_for_multilabel = (
+                    self.config.requires_multioutputwrapper_for_multilabel
+                )
+            except AttributeError:
+                requires_multioutputwrapper_for_multilabel = False
+            if requires_multioutputwrapper_for_multilabel:
+                self.classifier = MultiOutputClassifier(
+                    self.classifier_class(**self.get_model_specific_params())
+                )
+            else:
+                self.classifier = self.classifier_class(
+                    **self.get_model_specific_params()
+                )
             label_binarizer = MultiLabelBinarizer(classes=self.config.class_names)
             logger.info("Preparing multi-labels...")
             target = label_binarizer.fit_transform(
                 train_data[self.config.target_col_name].values
             )
             logger.info("Fitting the model...")
-            try:
-                self.classifier.fit(
-                    np.stack(train_data["Emb"].values),
-                    target,
-                )
-            except ValueError:
-                logger.info("Fall back to MultiOutputClassifier wrapper...")
-                try:
-                    n_jobs = self.get_model_specific_params()["n_jobs"]
-                except KeyError:
-                    n_jobs = -1
-                self.classifier = MultiOutputClassifier(self.classifier, n_jobs=n_jobs)
-                self.classifier.fit(
-                    np.stack(train_data["Emb"].values),
-                    target,
-                )
+
+            self.classifier.fit(
+                np.stack(train_data["Emb"].values),
+                target,
+            )
             self.config.class_names = label_binarizer.classes_
         else:
             assert (
@@ -108,23 +121,65 @@ class FeaturesSklearnModel(BaseModel):
                     is_class_specific_param_present = True
                     break
             if is_class_specific_param_present:
-                classifiier = self.classifier_class(**model_params)
-                y_binary = train_data[self.config.target_col_name].map(
-                    lambda x: int(class_name in x)
-                )
-                if sum(y_binary):
-                    classifiier.fit(
-                        np.stack(train_data["Emb"].values),
-                        y_binary,
+                classifier = self.classifier_class(**model_params)
+                if self.per_class_with_multilabel_regularization:
+                    label_binarizer = MultiLabelBinarizer(
+                        classes=self.config.class_names
                     )
-                    self.class_2_classifier[class_name] = classifiier
+                    logger.info(
+                        "Preparing multi-labels during per class optimization..."
+                    )
+                    target = label_binarizer.fit_transform(
+                        train_data[self.config.target_col_name].values
+                    )
+                    logger.info(
+                        "Fitting the model (multi-label) for class %s...", class_name
+                    )
 
-    def predict_proba(self, val_df: pd.DataFrame | np.ndarray) -> np.ndarray:
+                    classifier.fit(
+                        np.stack(train_data["Emb"].values),
+                        target,
+                    )
+                    self.class_2_classifier[class_name] = classifier
+                    self.config.class_names = label_binarizer.classes_
+                else:
+                    y_binary = train_data[self.config.target_col_name].map(
+                        lambda x: int(class_name in x)
+                    )
+                    if sum(y_binary):
+                        logger.info(
+                            "Fitting the model (binary) for class %s...", class_name
+                        )
+                        classifier.fit(
+                            np.stack(train_data["Emb"].values),
+                            y_binary,
+                        )
+                        self.class_2_classifier[class_name] = classifier
+            else:
+                raise ValueError(
+                    "During per-class optimization class %s had no parameters specified.",
+                    class_name,
+                )
+
+    def predict_proba(
+        self,
+        val_df: pd.DataFrame | np.ndarray,
+        selected_class_name: Optional[str] = None,
+    ) -> np.ndarray:
         if isinstance(val_df, pd.DataFrame):  # local validation
             assert isinstance(self.features_df, pd.DataFrame)
             test_df = val_df.merge(
                 self.features_df, on=self.config.id_col_name, copy=False, how="left"
             ).set_index(self.config.id_col_name)
+            logger.info(
+                "In predict_proba(), features DF shape is: %d x %d",
+                *self.features_df.shape,
+            )
+            logger.info(
+                "In predict_proba(), features dimension is: %d",
+                self.features_df["Emb"].values[0].shape[0],
+            )
+
             average_emb = np.stack(self.features_df["Emb"].values).mean(axis=0)
             test_df["Emb"] = test_df["Emb"].map(
                 lambda x: x if isinstance(x, np.ndarray) else average_emb
@@ -158,11 +213,18 @@ class FeaturesSklearnModel(BaseModel):
                 )
         else:
             for class_i, class_name in enumerate(self.config.class_names):
-                if class_name in self.class_2_classifier:
-                    val_proba_np[:, class_i] = self.class_2_classifier[
-                        class_name
-                    ].predict_proba(test_embs_np)[:, 1]
-
+                if (
+                    selected_class_name is None or class_name == selected_class_name
+                ) and class_name in self.class_2_classifier:
+                    logger.info("Predicting proba for class %s...", class_name)
+                    y_pred_proba = self.class_2_classifier[class_name].predict_proba(
+                        test_embs_np
+                    )
+                    val_proba_np[:, class_i] = (
+                        y_pred_proba[class_i][:, -1]
+                        if isinstance(y_pred_proba, list)
+                        else y_pred_proba[:, 1]
+                    )
         return val_proba_np
 
     def save(self, experiment_output_folder: Optional[Path | str] = None):

@@ -7,6 +7,8 @@ from .config_baseclasses import (
     FeaturesRandomForestConfig,
     FeaturesXGbConfig,
     SklearnBaseConfig,
+    EmbMLPConfig,
+    EmbLogisticRegressionConfig,
 )
 from .domains_sklearn_model import DomainsSklearnModel
 from .embeddings_sklearn_model import EmbsSklearnModel
