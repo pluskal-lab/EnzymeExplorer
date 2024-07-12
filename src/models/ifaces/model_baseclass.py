@@ -127,9 +127,9 @@ class BaseModel(ABC, BaseEstimator):
         self,
         val_df: pd.DataFrame | np.ndarray,
         selected_class_name: Optional[str] = None,
-    ) -> np.ndarray:
+    ) -> np.ndarray:  # pylint: disable=R0801
         """
-        Model predict method
+        It's a function returning predicted probabilities per either all classes or only for the selected class
         """
         raise NotImplementedError
 
@@ -319,8 +319,8 @@ class BaseModel(ABC, BaseEstimator):
             k_fold = StratifiedGroupKFold(
                 n_splits=n_fold_splits, shuffle=True, random_state=42
             )
-            with open(phylogenetic_clusters_path, "rb") as f:
-                id_2_group, _ = pickle.load(f)
+            with open(phylogenetic_clusters_path, "rb") as file:
+                id_2_group, _ = pickle.load(file)
             train_df["seq_group"] = train_df[self.config.id_col_name].map(
                 lambda x: str(id_2_group[x])
                 if x in id_2_group

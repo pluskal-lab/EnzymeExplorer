@@ -22,6 +22,7 @@ def parse_args() -> argparse.Namespace:
     :return: current argparse.Namespace
     """
     parser = argparse.ArgumentParser()
+    # pylint: disable=R0801
     parser.add_argument(
         "--tps-cleaned-csv-path",
         type=str,

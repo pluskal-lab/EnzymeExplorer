@@ -4,10 +4,11 @@ from typing import Type
 
 from sklearn.linear_model import LogisticRegression  # type: ignore
 
-from src.models.ifaces import EmbLogisticRegressionConfig
+from src.models.config_classes import EmbLogisticRegressionConfig
 from src.models import PlmDomainsRandomForest
 
 
+# pylint: disable=R0903
 class PlmDomainsLogisticRegression(PlmDomainsRandomForest):
     """
     Random Forest on top of protein language model (PLM) embeddings
@@ -24,4 +25,8 @@ class PlmDomainsLogisticRegression(PlmDomainsRandomForest):
 
     @classmethod
     def config_class(cls) -> Type[EmbLogisticRegressionConfig]:
+        """
+        A getter of the model-specific config class
+        :return:  A dataclass for config storage
+        """
         return EmbLogisticRegressionConfig

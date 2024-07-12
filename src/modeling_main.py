@@ -109,7 +109,6 @@ def tune_hyperparameters(args: argparse.Namespace):
     and then it generates all possible hyperparameter tuning configuration, separately for each fold.
     :param args: parsed argparse name space
     """
-    pass
     config_root_path = get_config_root()
     all_enabled_experiments_df = discover_experiments_from_configs(config_root_path)
     all_experiments_to_run = []

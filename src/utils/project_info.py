@@ -58,6 +58,7 @@ class ExperimentInfo:
             return self.fold < other.fold
         if self.class_name != other.class_name:
             return self.class_name < other.class_name
+        return False
 
     def __str__(self):
         return f"Experiment: {self.model_type}/{self.model_version}/fold {self.fold}/class {self.class_name}"

@@ -4,12 +4,14 @@ from typing import Type
 
 from sklearn.ensemble import RandomForestClassifier  # type: ignore
 
-from src.models.ifaces import DomainsSklearnModel, FeaturesRandomForestConfig
+from src.models.ifaces import DomainsSklearnModel
+from src.models.config_classes import FeaturesRandomForestConfig
 
 logger = logging.getLogger(__file__)
 logging.basicConfig(level=logging.INFO)
 
 
+# pylint: disable=R0903
 class DomainsRandomForest(DomainsSklearnModel):
     """Random Forest on top of comparisons between structural domains"""
 
@@ -22,4 +24,8 @@ class DomainsRandomForest(DomainsSklearnModel):
 
     @classmethod
     def config_class(cls) -> Type[FeaturesRandomForestConfig]:
+        """
+        A getter of the model-specific config class
+        :return:  A dataclass for config storage
+        """
         return FeaturesRandomForestConfig

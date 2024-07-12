@@ -2,18 +2,20 @@
 import pickle
 from typing import Type
 
-import numpy as np
-import pandas as pd
-from sklearn.ensemble import RandomForestClassifier  # type: ignore
+import numpy as np  # type: ignore
+import pandas as pd  # type: ignore
 
-from src.models.ifaces import (
+from src.models.config_classes import (
     EmbRandomForestConfig,
     EmbMLPConfig,
     EmbLogisticRegressionConfig,
 )
 from src.models import PlmRandomForest
+from src.models.ifaces import BaseConfig
+from src.models.ifaces.domains_sklearn_model import compare_domains_to_known_instances
 
 
+# pylint: disable=R0903
 class PlmDomainsRandomForest(PlmRandomForest):
     """
     Random Forest on top of protein language model (PLM) embeddings
@@ -26,7 +28,7 @@ class PlmDomainsRandomForest(PlmRandomForest):
         super().__init__(
             config=config,
         )
-        self.classifier_class = RandomForestClassifier
+        # pylint: disable=R0801
         with open("data/clustering__domain_dist_based_features.pkl", "rb") as file:
             (
                 self.feats_dom_dists,
@@ -34,27 +36,27 @@ class PlmDomainsRandomForest(PlmRandomForest):
                 self.uniid_2_column_ids,
                 _,
             ) = pickle.load(file)
-        self.allowed_feat_indices = None
+        self.allowed_feat_indices: list[int] = None  # type: ignore
         self.features_df_plm = self.features_df.copy()
+        self.features_df = None
 
     def fit_core(self, train_df: pd.DataFrame, class_name: str = None):
+        """
+        Function for training model instance
+        :param train_df: pandas dataframe containing training data
+        :param class_name: name of a class for the separate model fitting for the class
+        """
         # comparisons to domains of trn proteins only to avoid leakage
-        trn_uni_ids = set(train_df["Uniprot ID"].values)
-        self.allowed_feat_indices = []
-        for trn_id in trn_uni_ids:
-            self.allowed_feat_indices.extend(self.uniid_2_column_ids[trn_id])
-        dom_features_df = pd.DataFrame(
-            {
-                "Uniprot ID": self.all_ids_list_dom,
-                "Emb_dom": [
-                    self.feats_dom_dists[i][self.allowed_feat_indices]
-                    for i in range(len(self.feats_dom_dists))
-                ],
-            }
-        )
+        (
+            self.allowed_feat_indices,
+            dom_features_df,
+        ) = compare_domains_to_known_instances(train_df, self)
+        dom_features_df["Emb_dom"] = dom_features_df["Emb"]
 
         self.features_df = self.features_df_plm.merge(
-            dom_features_df, on="Uniprot ID", how="left"
+            dom_features_df[[self.config.id_col_name, "Emb_dom"]],
+            on=self.config.id_col_name,
+            how="left",
         )
         missing_dist_feats_bool_idx = self.features_df["Emb_dom"].isnull()
         self.features_df.loc[missing_dist_feats_bool_idx, "Emb_dom"] = pd.Series(
@@ -73,5 +75,9 @@ class PlmDomainsRandomForest(PlmRandomForest):
         super().fit_core(train_df, class_name)
 
     @classmethod
-    def config_class(cls) -> Type[EmbRandomForestConfig]:
+    def config_class(cls) -> Type[BaseConfig]:
+        """
+        A getter of the model-specific config class
+        :return:  A dataclass for config storage
+        """
         return EmbRandomForestConfig

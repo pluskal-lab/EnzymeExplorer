@@ -6,25 +6,23 @@ import logging
 import pickle
 import warnings
 from typing import Optional
-
-warnings.simplefilter("ignore", UserWarning)
 import uuid
 from collections import defaultdict
 
 import h5py  # type: ignore
-
+import numpy as np  # type: ignore
+import pandas as pd  # type: ignore
 from scipy.spatial.distance import jensenshannon  # type: ignore
 from sklearn.model_selection import (  # type: ignore
     StratifiedGroupKFold,
     StratifiedKFold,
 )
-import numpy as np  # type: ignore
-import pandas as pd  # type: ignore
 
 from src.utils.data import get_major_classes_distribution, get_tps_df, triplets_dtype
 
 logger = logging.getLogger(__file__)
 logging.basicConfig(level=logging.INFO)
+warnings.simplefilter("ignore", UserWarning)
 
 
 def parse_args() -> argparse.Namespace:
@@ -33,6 +31,7 @@ def parse_args() -> argparse.Namespace:
     :return: current argparse.Namespace
     """
     parser = argparse.ArgumentParser()
+    # pylint: disable=R0801
     parser.add_argument(
         "--tps-cleaned-csv-path",
         type=str,
@@ -67,8 +66,8 @@ def stratified_kfold_phylogeny_based(
 
     kfold_neg = StratifiedKFold(n_splits=args.n_folds, shuffle=True, random_state=0)
 
-    with open(phylogenetic_clusters_path, "rb") as f:
-        id_2_group, _ = pickle.load(f)
+    with open(phylogenetic_clusters_path, "rb") as file:
+        id_2_group, _ = pickle.load(file)
 
     tps_df.loc[
         tps_df["Uniprot ID"].map(lambda x: x not in id_2_group), target_col_name
@@ -158,7 +157,7 @@ def stratified_kfold_phylogeny_based(
                 id_2_targets_df["cc_group"],
             )
         )
-        for trn_idx, val_idx in folds:
+        for _, val_idx in folds:
             val_df = id_2_targets_df.iloc[val_idx]
             fold_classes_distribution = get_major_classes_distribution(
                 val_df,
@@ -182,8 +181,7 @@ def stratified_kfold_phylogeny_based(
             worst_random_state = random_state
 
     with open(
-        "data/stratified_phylogeny_based_best_random_state.json",
-        "w",
+        "data/stratified_phylogeny_based_best_random_state.json", "w", encoding="utf-8"
     ) as file:
         json.dump(best_random_state, file)
 
@@ -270,7 +268,7 @@ def stratified_kfold_phylogeny_based(
     with h5py.File("data/tps_folds_nov2023.h5", "a") as h5_file:
         group = h5_file.create_group(desc)
 
-        if len(unsplittable_target_values):
+        if unsplittable_target_values:
             group.create_dataset(
                 name="unsplittable_target_values",
                 shape=(len(unsplittable_target_values), 1),

@@ -31,7 +31,7 @@ class FeaturesSklearnModel(BaseModel):
             if self.per_class_optimization:
                 try:
                     self.per_class_with_multilabel_regularization = (
-                        self.config.per_class_with_multilabel_regularization
+                        self.config.per_class_with_multilabel_regularization  # type: ignore
                     )
                 except AttributeError:
                     self.per_class_with_multilabel_regularization = 0
@@ -70,6 +70,9 @@ class FeaturesSklearnModel(BaseModel):
             train_df_neg = train_df_neg_all.sample(int(required_negs_count))
             train_df = pd.concat((train_df_pos, train_df_neg)).sample(frac=1.0)
 
+        assert (
+            self.features_df is not None
+        ), "self.features_df has not been initialized!"
         logger.info("In fit(), features DF shape is: %d x %d", *self.features_df.shape)
         logger.info(
             "In fit(), features dimension is: %d",
@@ -80,7 +83,7 @@ class FeaturesSklearnModel(BaseModel):
         if not self.per_class_optimization:
             try:
                 requires_multioutputwrapper_for_multilabel = (
-                    self.config.requires_multioutputwrapper_for_multilabel
+                    self.config.requires_multioutputwrapper_for_multilabel  # type: ignore
                 )
             except AttributeError:
                 requires_multioutputwrapper_for_multilabel = False
@@ -157,8 +160,7 @@ class FeaturesSklearnModel(BaseModel):
                         self.class_2_classifier[class_name] = classifier
             else:
                 raise ValueError(
-                    "During per-class optimization class %s had no parameters specified.",
-                    class_name,
+                    f"During per-class optimization class {class_name} had no parameters specified."
                 )
 
     def predict_proba(

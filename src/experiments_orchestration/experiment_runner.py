@@ -99,7 +99,7 @@ def run_experiment(experiment_info: ExperimentInfo):
             desc=f"Iterating over validation folds per {config.split_col_name}..",
         ):
             # selecting a single fold to run if specified
-            if experiment_info.fold == "all_folds" or experiment_info.fold == test_fold:
+            if experiment_info.fold in {"all_folds", test_fold}:
                 logger.info("Fold: %s", test_fold)
                 fold_needs_resetting = experiment_info.fold == "all_folds"
                 model.config.experiment_info.fold = test_fold
