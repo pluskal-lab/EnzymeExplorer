@@ -58,14 +58,16 @@ def run_experiment(experiment_info: ExperimentInfo):
         / "config.yaml"
     )
     config_dict = BaseConfig.load(config_path)
-    config_dict.update(
-        {"experiment_info": experiment_info, "fold_i": experiment_info.fold}
-    )
+    config_dict.update({"experiment_info": experiment_info})
     config = config_class(**config_dict)
     logger.info(
         "The config for %s has been loaded and instantiated",
         experiment_info.model_type,
     )
+
+    # accessing the configured class name, if present
+    if experiment_info.class_name != "all_classes":
+        config.class_name = experiment_info.class_name
 
     if hasattr(config, "gpu_id"):
         os.environ["CUDA_VISIBLE_DEVICES"] = str(config.gpu_id)
@@ -96,63 +98,64 @@ def run_experiment(experiment_info: ExperimentInfo):
             ),
             desc=f"Iterating over validation folds per {config.split_col_name}..",
         ):
-            logger.info("Fold: %s", test_fold)
-            model.config.experiment_info.fold = test_fold
-            trn_folds = [
-                f"fold_{i}"
-                for i in range(
-                    len(
-                        get_folds(
-                            split_desc=config.split_col_name,
-                        )
+            # selecting a single fold to run if specified
+            if experiment_info.fold in {"all_folds", test_fold}:
+                logger.info("Fold: %s", test_fold)
+                fold_needs_resetting = experiment_info.fold == "all_folds"
+                model.config.experiment_info.fold = test_fold
+                trn_folds = [
+                    f"fold_{fold_trn}"
+                    for fold_trn in get_folds(
+                        split_desc=config.split_col_name,
                     )
+                    if fold_trn != test_fold
+                ]
+                trn_df = tps_df[tps_df[config.split_col_name].isin(set(trn_folds))]
+                test_df = tps_df[tps_df[config.split_col_name] == f"fold_{test_fold}"]
+                trn_df.loc[
+                    trn_df[f"{config.split_col_name}_ignore_in_eval"] == 1,
+                    config.target_col_name,
+                ] = "other"
+                test_df.loc[
+                    test_df[f"{config.split_col_name}_ignore_in_eval"] == 1,
+                    config.target_col_name,
+                ] = "other"
+                trn_df = (
+                    trn_df.groupby(config.id_col_name)[config.target_col_name]
+                    .agg(set)
+                    .reset_index()
                 )
-                if i != test_fold
-            ]
-            trn_df = tps_df[tps_df[config.split_col_name].isin(set(trn_folds))]
-            test_df = tps_df[tps_df[config.split_col_name] == f"fold_{test_fold}"]
-            trn_df.loc[
-                trn_df[f"{config.split_col_name}_ignore_in_eval"] == 1,
-                config.target_col_name,
-            ] = "other"
-            test_df.loc[
-                test_df[f"{config.split_col_name}_ignore_in_eval"] == 1,
-                config.target_col_name,
-            ] = "other"
-            trn_df = (
-                trn_df.groupby(config.id_col_name)[config.target_col_name]
-                .agg(set)
-                .reset_index()
-            )
-            test_df = (
-                test_df.groupby(config.id_col_name)[config.target_col_name]
-                .agg(set)
-                .reset_index()
-            )
-            trn_df[config.target_col_name] = trn_df[config.target_col_name].map(
-                lambda x: x
-                if len(x.intersection({"Unknown", "precursor substr"}))
-                else x.union({"is_TPS"})
-            )
-            test_df[config.target_col_name] = test_df[config.target_col_name].map(
-                lambda x: x
-                if len(x.intersection({"Unknown", "precursor substr"}))
-                else x.union({"is_TPS"})
-            )
+                test_df = (
+                    test_df.groupby(config.id_col_name)[config.target_col_name]
+                    .agg(set)
+                    .reset_index()
+                )
+                trn_df[config.target_col_name] = trn_df[config.target_col_name].map(
+                    lambda x: x
+                    if len(x.intersection({"Unknown", "precursor substr"}))
+                    else x.union({"isTPS"})
+                )
+                test_df[config.target_col_name] = test_df[config.target_col_name].map(
+                    lambda x: x
+                    if len(x.intersection({"Unknown", "precursor substr"}))
+                    else x.union({"isTPS"})
+                )
 
-            # fitting the model
-            model.fit(trn_df)
-            logger.info(
-                "Trained model %s (%s), fold %s",
-                experiment_info.model_type,
-                experiment_info.model_version,
-                test_fold,
-            )
-            if save_trained_model:
-                model.save()
+                # fitting the model
+                model.fit(trn_df)
+                logger.info(
+                    "Trained model %s (%s), fold %s",
+                    experiment_info.model_type,
+                    experiment_info.model_version,
+                    test_fold,
+                )
+                if save_trained_model:
+                    model.save()
 
-            val_proba_np = model.predict_proba(test_df)
-            with open(
-                model.output_root / f"fold_{test_fold}_results.pkl", "wb"
-            ) as file:
-                pickle.dump((val_proba_np, model.config.class_names, test_df), file)
+                val_proba_np = model.predict_proba(test_df)
+                with open(
+                    model.output_root / f"fold_{test_fold}_results.pkl", "wb"
+                ) as file:
+                    pickle.dump((val_proba_np, model.config.class_names, test_df), file)
+                if fold_needs_resetting:
+                    experiment_info.fold = "all_folds"

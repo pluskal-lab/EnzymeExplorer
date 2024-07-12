@@ -41,8 +41,6 @@ def get_folds(split_desc: str, path: str = "data/tps_folds_nov2023.h5") -> list[
     :param path: path to stored splits into folds
     :return: list of fold names
     """
-    if "kingdom_split" in split_desc:
-        return ["trn"]
     with h5py.File(path, "r") as tps_folds_hf:
         return [
             fold_name
@@ -166,7 +164,6 @@ def get_tps_df(
     tps_df_new = tps_df_new[
         tps_df_new["Amino acid sequence"].map(lambda x: "U" not in x and "O" not in x)
     ]
-
     tps_df = pd.concat((tps_df, tps_df_new))
 
     tps_df = tps_df[tps_df["Amino acid sequence"].map(len) <= max_seq_len]
@@ -188,7 +185,6 @@ def get_major_classes_distribution(
     """
     counts_all = dataframe[target_col].value_counts()
     counts_all_major = counts_all[counts_all.index.isin(major_classes)]
-
     counts_all_major.index = counts_all_major.index.map(lambda x: x.copy().pop())
     for class_name in major_classes:
         class_name = class_name.copy().pop()

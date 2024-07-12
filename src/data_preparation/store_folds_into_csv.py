@@ -28,14 +28,14 @@ def parse_args() -> argparse.Namespace:
         description=" TPS folds iteration to store the splits-info into CSVs"
     )
     parser.add_argument(
+        "--negative-samples-path", type=str, default="data/sampled_id_2_seq.pkl"
+    )
+    parser.add_argument("--kfolds-path", type=str, default="data/tps_folds_nov2023.h5")
+    parser.add_argument(
         "--tps-cleaned-csv-path",
         type=str,
         default="data/TPS-Nov19_2023_verified_all_reactions.csv",
     )
-    parser.add_argument(
-        "--negative-samples-path", type=str, default="data/sampled_id_2_seq.pkl"
-    )
-    parser.add_argument("--kfolds-path", type=str, default="data/tps_folds_nov2023.h5")
     parser.add_argument(
         "--split-description",
         help="A name for the 5-fold data split",
@@ -122,7 +122,9 @@ if __name__ == "__main__":
                     drop=True
                 )
                 logger.info(
-                    f"The number of training samples is {len(train_df)}, and the number of validation datapoints is {len(val_df)}"
+                    "The number of training samples is %d, and the number of validation datapoints is %d",
+                    len(train_df),
+                    len(val_df),
                 )
             with open(f"{cli_args.split_description}", "wb") as file:
                 pickle.dump(kfold_ids, file)

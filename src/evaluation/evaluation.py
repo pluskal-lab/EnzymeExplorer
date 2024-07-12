@@ -76,7 +76,7 @@ def eval_experiment(
         class_2_mccf1_vals.append(domain_class_2_mccf1)
         class_2_rocauc_vals.append(domain_class_2_auc)
         map_fold = np.mean(
-            [val for key, val in class_2_ap_vals[-1].items() if key != "is_TPS"]
+            [val for key, val in class_2_ap_vals[-1].items() if key != "isTPS"]
         )
         map_vals.append(map_fold)
     logger.info(

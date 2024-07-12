@@ -4,12 +4,14 @@ from typing import Type
 
 from xgboost import XGBClassifier  # type: ignore
 
-from src.models.ifaces import DomainsSklearnModel, FeaturesXGbConfig
+from src.models.ifaces import DomainsSklearnModel
+from src.models.config_classes import FeaturesXGbConfig
 
 logger = logging.getLogger(__file__)
 logging.basicConfig(level=logging.INFO)
 
 
+# pylint: disable=R0903
 class DomainsXgb(DomainsSklearnModel):
     """
     XGBClassifier on top of comparisons between structural domains
@@ -25,4 +27,8 @@ class DomainsXgb(DomainsSklearnModel):
 
     @classmethod
     def config_class(cls) -> Type[FeaturesXGbConfig]:
+        """
+        A getter of the model-specific config class
+        :return:  A dataclass for config storage
+        """
         return FeaturesXGbConfig

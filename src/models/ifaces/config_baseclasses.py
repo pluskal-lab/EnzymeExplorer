@@ -1,4 +1,4 @@
-"""This module defines an abstract class for models"""
+"""This module defines an abstract class for model configs"""
 
 from dataclasses import dataclass
 from pathlib import Path
@@ -40,6 +40,9 @@ class BaseConfig:
         """
         with open(path_to_config, encoding="utf-8") as file:
             configs_dict = yaml.load(file, Loader=yaml.FullLoader)
+            configs_dict = {
+                key: val if val != "None" else None for key, val in configs_dict.items()
+            }
             if "include" in configs_dict:
                 included_file_path = configs_dict.pop("include")
                 with open(
@@ -50,7 +53,7 @@ class BaseConfig:
                     included_data = yaml.safe_load(included_file)
                     configs_dict.update(
                         {
-                            key: val
+                            key: val if val != "None" else None
                             for key, val in included_data.items()
                             if key not in configs_dict
                         }
@@ -75,50 +78,3 @@ class EmbSklearnBaseConfig(SklearnBaseConfig):
     """
 
     representations_path: str
-
-
-@dataclass
-class FeaturesXGbConfig(SklearnBaseConfig):
-    """
-    A data class to store some Xgb model attributes
-    """
-
-    booster: str
-    n_jobs: int
-    objective: str
-    fold_i: str
-    reg_lambda: float
-    gamma: float
-    max_depth: int
-    subsample: float
-    colsample_bytree: float
-    scale_pos_weight: float
-    min_child_weight: int
-    n_estimators: int
-
-
-@dataclass
-class FeaturesRandomForestConfig(SklearnBaseConfig):
-    """
-    A data class to store model attributes
-    """
-
-    n_estimators: int
-    n_jobs: int
-    class_weight: str
-    max_depth: int
-    fold_i: str
-
-
-@dataclass
-class EmbRandomForestConfig(EmbSklearnBaseConfig, FeaturesRandomForestConfig):
-    """
-    A data class to store the corresponding model attributes
-    """
-
-
-@dataclass
-class EmbsXGbConfig(EmbSklearnBaseConfig, SklearnBaseConfig):
-    """
-    A data class to store the corresponding model attributes
-    """

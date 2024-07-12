@@ -1,11 +1,11 @@
 """This script extracts PLM embeddings for UniProt proteins"""
+# pylint: disable=R0801
 import argparse  # type: ignore
 import logging  # type: ignore
 import os  # type: ignore
 import pickle  # type: ignore
 from functools import partial
 from pathlib import Path
-
 import pandas as pd  # type: ignore
 import torch  # type: ignore
 from tqdm.auto import trange  # type: ignore
@@ -43,7 +43,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--csv-path",
         type=str,
-        default="data/TPS-11JulyFixed1April2023_verified_non_minor_tps_with_negs.csv",
+        default="data/TPS-Nov19_2023_verified_all_reactions_with_neg_with_folds.csv",
     )
     parser.add_argument("--id-column", type=str, default="Uniprot ID")
     parser.add_argument("--seq-column", type=str, default="Amino acid sequence")

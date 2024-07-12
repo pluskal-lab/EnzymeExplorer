@@ -4,6 +4,7 @@ import json
 import logging
 import os
 import pickle
+import uuid
 from abc import ABC, abstractmethod
 from copy import deepcopy
 from datetime import datetime
@@ -15,7 +16,7 @@ import pandas as pd  # type: ignore
 import sklearn.base  # type: ignore
 from sklearn.base import BaseEstimator  # type: ignore
 from sklearn.metrics import average_precision_score  # type: ignore
-from sklearn.model_selection import StratifiedKFold  # type: ignore
+from sklearn.model_selection import StratifiedGroupKFold  # type: ignore
 from skopt import gp_minimize  # type: ignore
 from skopt.space import Categorical, Integer, Real  # type: ignore
 from skopt.utils import use_named_args  # type: ignore
@@ -41,6 +42,7 @@ class BaseModel(ABC, BaseEstimator):
             / config.experiment_info.model_type
             / config.experiment_info.model_version
             / config.experiment_info.fold
+            / config.experiment_info.class_name
             / config.experiment_info._timestamp.strftime("%Y%m%d-%H%M%S")
         )
         self.output_root.mkdir(exist_ok=True, parents=True)
@@ -84,8 +86,8 @@ class BaseModel(ABC, BaseEstimator):
                 n_calls=self.config.n_calls_hyperparams_opt,
                 per_class_optimization=per_class_optimization,
                 n_fold_splits=5,
-                use_cross_validation=True,
                 reuse_existing_partial_results=reuse_existing_partial_results,
+                phylogenetic_clusters_path="data/phylogenetic_clusters.pkl",
                 **self.config.hyperparam_dimensions,
             )
         try:
@@ -110,15 +112,24 @@ class BaseModel(ABC, BaseEstimator):
         if (
             self.config.optimize_hyperparams or load_per_class_params_from
         ) and per_class_optimization:
-            for class_name in self.config.class_names:
+            class_names = (
+                self.config.class_names
+                if not hasattr(self.config, "class_name")
+                else [self.config.class_name]
+            )
+            for class_name in class_names:
                 self.fit_core(train_df, class_name=class_name)
         else:
             self.fit_core(train_df)
 
     @abstractmethod
-    def predict_proba(self, val_df: pd.DataFrame | np.ndarray) -> np.ndarray:
+    def predict_proba(
+        self,
+        val_df: pd.DataFrame | np.ndarray,
+        selected_class_name: Optional[str] = None,
+    ) -> np.ndarray:  # pylint: disable=R0801
         """
-        Model predict method
+        It's a function returning predicted probabilities per either all classes or only for the selected class
         """
         raise NotImplementedError
 
@@ -136,8 +147,8 @@ class BaseModel(ABC, BaseEstimator):
         n_calls: int,
         per_class_optimization: bool,
         n_fold_splits: int,
-        use_cross_validation: bool,
         reuse_existing_partial_results: bool,
+        phylogenetic_clusters_path: str,
         **dimension_params,
     ):
         """
@@ -145,11 +156,15 @@ class BaseModel(ABC, BaseEstimator):
         """
         logger.info("Starting hyperparameter optimization...")
         if per_class_optimization:
-            class_names = self.config.class_names
+            class_names = (
+                self.config.class_names
+                if not hasattr(self.config, "class_name")
+                else [self.config.class_name]
+            )
         else:
             class_names = ["all_classes"]
         for class_name in class_names:
-            logger.info("Optimization hyperparameters for %s", class_name)
+            logger.info("Optimization of hyperparameters for %s", class_name)
             prefix = "" if class_name == "all_classes" else f"{class_name}_"
             if reuse_existing_partial_results:
                 previous_results = list(
@@ -198,7 +213,8 @@ class BaseModel(ABC, BaseEstimator):
                 assert (
                     name in initial_instance_parameters
                 ), f"Hyperparameter {name} does not seem to be a model attribute"
-                hyperparam_combinations.append(initial_instance_parameters[name])
+                val = initial_instance_parameters[name]
+                hyperparam_combinations.append(val if val is not None else "None")
             run_timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
 
             params_output_root = self.output_root / "hyperparameters_optimization"
@@ -221,6 +237,8 @@ class BaseModel(ABC, BaseEstimator):
                         prefix = f"{class_name}_"
                     params = {
                         f"{prefix}{param_name}": param_value
+                        if param_value != "None"
+                        else None
                         for param_name, param_value in params.items()
                     }
                     self.set_params(**params)
@@ -229,10 +247,9 @@ class BaseModel(ABC, BaseEstimator):
                     id_2_classes = train_df[
                         [self.config.id_col_name, self.config.target_col_name]
                     ].set_index(self.config.id_col_name)
-                    # try:
                     for trn_idx, val_idx in cross_validation.split(
                         available_ids,
-                        available_ids.map(
+                        y=available_ids.map(
                             lambda uniprot_id: str(sorted(id_2_classes.loc[uniprot_id]))
                         )
                         if not per_class_optimization
@@ -240,6 +257,7 @@ class BaseModel(ABC, BaseEstimator):
                             lambda uniprot_id: class_name
                             in id_2_classes.loc[uniprot_id]
                         ).astype(int),
+                        groups=train_df["seq_group"],
                     ):
                         trn_ids = set(available_ids.iloc[trn_idx].values)
                         val_ids = set(available_ids.iloc[val_idx].values)
@@ -249,25 +267,21 @@ class BaseModel(ABC, BaseEstimator):
                         vl_df = train_df[
                             train_df[self.config.id_col_name].isin(val_ids)
                         ]
+                        selected_class_name = (
+                            class_name if per_class_optimization else None
+                        )
                         self.fit_core(
                             trn_df,
-                            class_name=class_name if per_class_optimization else None,
+                            class_name=selected_class_name,
                         )
                         map_scores.append(
                             eval_model_mean_average_precision_neg(
                                 self,
                                 vl_df,
-                                selected_class_name=None
-                                if not per_class_optimization
-                                else class_name,
+                                selected_class_name=selected_class_name,
                             )
                         )
-                        if not use_cross_validation:
-                            break
-                    score = np.mean(map_scores)
-                    # except ValueError as e:
-                    #     logger.error(e)
-                    #     score = 1.0
+                    score = np.nanmean(map_scores)
 
                     ckpts = list(params_output_root.glob("*_params.json"))
                     if len(ckpts) > 0:
@@ -302,8 +316,15 @@ class BaseModel(ABC, BaseEstimator):
 
                 return objective_value
 
-            k_fold = StratifiedKFold(
+            k_fold = StratifiedGroupKFold(
                 n_splits=n_fold_splits, shuffle=True, random_state=42
+            )
+            with open(phylogenetic_clusters_path, "rb") as file:
+                id_2_group, _ = pickle.load(file)
+            train_df["seq_group"] = train_df[self.config.id_col_name].map(
+                lambda x: str(id_2_group[x])
+                if x in id_2_group
+                else (x if isinstance(x, str) else str(uuid.uuid4()))
             )
 
             objective = make_objective(
@@ -360,6 +381,8 @@ class BaseModel(ABC, BaseEstimator):
                 file_text_io,
             )
 
+        logger.info("Hyperparameter optimization finished!")
+
     @classmethod
     @abstractmethod
     def config_class(cls) -> Type[BaseConfig]:
@@ -412,21 +435,29 @@ def eval_model_mean_average_precision_neg(
     model: BaseModel,
     val_df: pd.DataFrame,
     selected_class_name: str = None,
-    min_number_of_positive_cases: int = 3,
+    min_number_of_positive_cases: int = 2,
 ):
     """
     Helper function for model evaluation
     """
-    y_pred = model.predict_proba(val_df)
+    y_pred = model.predict_proba(val_df, selected_class_name=selected_class_name)
 
     average_precisions = []
     for class_i, class_name in enumerate(model.config.class_names):
-        if class_name not in {model.config.neg_val, "is_TPS", "precursor substr"} and (
+        if class_name != model.config.neg_val and (
             selected_class_name is None or class_name == selected_class_name
         ):
             y_true = val_df[model.config.target_col_name].map(lambda x: class_name in x)
             if sum(y_true) >= min_number_of_positive_cases:
                 average_precision = average_precision_score(y_true, y_pred[:, class_i])
                 average_precisions.append(average_precision)
+                print(
+                    selected_class_name,
+                    class_name,
+                    " !!!: ",
+                    np.mean(y_true),
+                    np.mean(y_pred[:, class_i]),
+                    average_precision,
+                )
 
     return 1 - np.mean(average_precisions)

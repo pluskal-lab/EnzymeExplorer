@@ -361,6 +361,7 @@ def find_longest_continuous_segments(
     """
     res_continuous_candidates: list[list[int]] = [[]]
     prev_res = None
+    allowed_prev_residues = None
     for res in sorted(map(int, residues_subset)):
         if prev_res is not None:
             allowed_prev_residues = {prev_res + 1}.union(
@@ -368,6 +369,7 @@ def find_longest_continuous_segments(
             )
         if (
             prev_res is not None
+            and allowed_prev_residues is not None
             and res not in allowed_prev_residues
             and len(set(map(str, allowed_prev_residues)).intersection(all_residues))
         ):
