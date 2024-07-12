@@ -78,9 +78,9 @@ def mcc_f1_curve(
     true_negatives = fps[-1]  # No of negatives in ground truth
 
     if true_positives == 0:
-        raise ValueError("No positive samples in y_true, " "MCC and F1 are undefined.")
+        raise ValueError("No positive samples in y_true, MCC and F1 are undefined.")
     if true_negatives == 0:
-        raise ValueError("No negative samples in y_true, " "MCC is undefined.")
+        raise ValueError("No negative samples in y_true, MCC is undefined.")
 
     # Compute MCC
     with np.errstate(divide="ignore", invalid="ignore"):

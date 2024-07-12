@@ -127,7 +127,7 @@ def tune_hyperparameters(args: argparse.Namespace):
     all_experiments_to_run = sorted(all_experiments_to_run)
     # is_to_fix = []
     # for i, exper in enumerate(all_experiments_to_run):
-    #     if "PlmRandom" in exper.model_type:
+    #     if "MLP" in exper.model_type:
     #         is_to_fix.append(f"{i}")
     # print(",".join(is_to_fix))
     run_experiment(all_experiments_to_run[args.hyperparameter_combination_i])
