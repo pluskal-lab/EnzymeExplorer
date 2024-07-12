@@ -2,7 +2,7 @@
 import pickle
 from typing import Optional, Any
 
-import numpy as np
+import numpy as np  # type: ignore
 import pandas as pd  # type: ignore
 
 from .config_baseclasses import SklearnBaseConfig
