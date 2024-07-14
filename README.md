@@ -36,7 +36,7 @@ git clone https://github.com/SamusRam/TPS_ML_Discovery.git
 
 cd TPS_ML_Discovery
 
-. src/setup_env.sh
+. scripts/setup_env.sh
 ```
 
 ## Workflow
@@ -229,6 +229,13 @@ On headless servers, you would be prompt to select on of the available configs v
 Otherwise, you can select a model via a simple GUI.
 ![](data/readme_figures/gui_demo.gif)
 
+If you want to run hyperparameter optimization in parallel, you can use the following:
+```bash
+cd TPS_ML_Discovery
+conda activate tps_ml_discovery
+bash scripts/tps_tune.sh
+```
+
 
 #### 3 - Evaluating performance
 
@@ -245,3 +252,8 @@ conda activate tps_ml_discovery
 python -m src.modeling_main --select-single-experiment evaluate
 ```
 and select the experiment you are interested in.
+
+To evaluate only detection of the TPSs and isoprenyl diphosphate synthases, run
+```bash
+python -m src.modeling_main evaluate --classes "isTPS" "precursor substr" --output-filename tps_and_precursors
+```

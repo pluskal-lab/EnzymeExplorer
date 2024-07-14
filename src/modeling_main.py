@@ -20,9 +20,11 @@ def parse_args() -> argparse.Namespace:
         description="An entry point for Terpene synthases substrate prediction"
     )
     parser.add_argument("--select-single-experiment", action="store_true")
+
     subparsers = parser.add_subparsers()
     parser_run = subparsers.add_parser("run", help="Run experiment(s)")
     parser_run.set_defaults(cmd="run")
+
     parser_eval = subparsers.add_parser("evaluate", help="Evaluate experiment(s)")
     parser_eval.set_defaults(cmd="evaluate")
     parser_eval.add_argument(
@@ -47,6 +49,16 @@ def parse_args() -> argparse.Namespace:
         help="A minimal number of class representatives in the hold-out fold to include class during eval",
         default=3,
     )
+    parser_eval.add_argument(
+        "--n-folds", help="A number of folds used in CV", type=int, default=5
+    )
+    parser_eval.add_argument(
+        "--output-filename",
+        help="A file to save evaluation results",
+        type=str,
+        default="all_results",
+    )
+
     parser_tune = subparsers.add_parser(
         "tune", help="Run experiments with hyper-parameter tuning"
     )
@@ -60,7 +72,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser_tune.add_argument(
         "--classes",
-        help="A list of classes to use in evaluation",
+        help="A list of classes to hyper-tune parameters for",
         type=str,
         nargs="+",
         default=[
@@ -97,7 +109,6 @@ def run_selected_experiments(args: argparse.Namespace):
         run_experiment(experiment_info)
     else:
         all_enabled_experiments_df = discover_experiments_from_configs(config_root_path)
-        print("all_enabled_experiments_df: ", all_enabled_experiments_df)
         for _, experiment_info_row in all_enabled_experiments_df.iterrows():
             experiment_info = ExperimentInfo(**experiment_info_row.to_dict())
             run_experiment(experiment_info)
