@@ -279,7 +279,8 @@ sbatch --array=0-<number_of_workers> scripts/tps_screening.sh
 ```
 where `<number_of_workers>` is the number of workers estimated in the previous step. Please note, that you might have no slurm on your cluster,
 and you would need to set up the cluster environment yourself.
-=======
+
+-----------------------------------------
 
 # Reference
 
