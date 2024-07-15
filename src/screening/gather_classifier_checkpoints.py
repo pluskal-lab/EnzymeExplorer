@@ -78,5 +78,5 @@ if __name__ == "__main__":
             model = pickle.load(file)
         classifiers.append(model.classifier)
 
-    with open(args.output_path, "wb") as file:
-        pickle.dump(classifiers, file)
+    with open(args.output_path, "wb") as file_writer:
+        pickle.dump(classifiers, file_writer)
