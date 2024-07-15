@@ -40,7 +40,7 @@ def parse_args() -> argparse.Namespace:
     :return: current argparse.Namespace
     """
     parser = argparse.ArgumentParser()
-    parser.add_argument("--session", type=int, default=1)
+    parser.add_argument("--session-i", type=int, default=1)
     parser.add_argument("--batch-size", type=int, default=4)
     parser.add_argument("--clf-batch-size", type=int, default=4096)
     parser.add_argument("--max-len", type=int, default=1600)
@@ -53,7 +53,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output-root", type=str, default="detected_tps")
     parser.add_argument("--session-id", type=str, default="")
     parser.add_argument(
-        "--ckpt-root-path", type=str, default="data/ankh_random_forests.pkl"
+        "--ckpt-root-path", type=str, default="data/classifier_checkpoints.pkl"
     )
     parser.add_argument("--detection-threshold", type=float, default=0.2)
     return parser.parse_args()

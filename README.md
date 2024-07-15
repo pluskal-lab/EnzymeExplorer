@@ -257,3 +257,25 @@ To evaluate only detection of the TPSs and isoprenyl diphosphate synthases, run
 ```bash
 python -m src.modeling_main evaluate --classes "isTPS" "precursor substr" --output-filename tps_and_precursors
 ```
+
+#### 4 - Screening large databases
+Before screening large databases, you need to gather the trained models. To do so, run
+```bash
+cd TPS_ML_Discovery
+conda activate tps_ml_discovery
+python -m src.screening.gather_classifier_checkpoints --output-path data/classifier_checkpoints.pkl
+```
+Next, to estimate the required number of workers for the screening, run
+```bash
+cd TPS_ML_Discovery
+conda activate tps_ml_discovery
+python -m src.screening.estimate_number_of_workers --fasta-path data/uniprot_trembl.fasta --delta 40000 --n-gpus 8
+```
+Note that `delta` stands for the number of sequences to be processed by a single GPU on a worker.
+   
+To screen large databases, then run
+```bash
+sbatch --array=0-<number_of_workers> scripts/tps_screening.sh
+```
+where `<number_of_workers>` is the number of workers estimated in the previous step. Please note, that you might have no slurm on your cluster,
+and you would need to set up the cluster environment yourself.
