@@ -29,63 +29,102 @@ def eval_experiment(
     experiment_info: ExperimentInfo,
     target_col: str,
     min_sample_count_for_eval: int,
-) -> tuple[list, list, list, list]:
+    n_folds: int,
+    classes: list[str],
+) -> tuple[list, list, list]:
     """
     This function evaluates results of the specified experiment
     """
     # retrieve the model class
     experiment_output_folder_root = (
-        get_output_root()
-        / experiment_info.model_type
-        / experiment_info.model_version
-        / experiment_info.fold
+        get_output_root() / experiment_info.model_type / experiment_info.model_version
     )
     assert (
         experiment_output_folder_root.exists()
     ), f"Output folder {experiment_output_folder_root} for {experiment_info} does not exist"
-    try:
-        experiment_output_folder = sorted(experiment_output_folder_root.glob("*"))[-1]
-    except IndexError as index_error:
+    # discover available fold results
+    model_version_fold_folders = {
+        x.stem for x in experiment_output_folder_root.glob("*")
+    }
+    if (
+        len(model_version_fold_folders.intersection(set(map(str, range(n_folds)))))
+        == n_folds
+    ):
+        logger.info("Found %d fold results for %s", n_folds, str(experiment_info))
+        fold_2_root_dir = {
+            fold_i: experiment_output_folder_root / f"{fold_i}"
+            for fold_i in range(n_folds)
+        }
+    elif "all_folds" in model_version_fold_folders:
+        logger.info("Found all_folds results for %s", f"{experiment_info}")
+        fold_2_root_dir = {
+            fold_i: experiment_output_folder_root / "all_folds"
+            for fold_i in range(n_folds)
+        }
+    else:
         raise NotImplementedError(
-            f"Please run corresponding experiments ({experiment_info}) before evaluation"
-        ) from index_error
-
-    class_2_ap_vals, class_2_rocauc_vals, class_2_mccf1_vals, map_vals = [
-        [] for _ in range(4)
-    ]
-
-    for fold_path in experiment_output_folder.glob("fold_*_results.pkl"):
-        with open(fold_path, "rb") as file:
-            val_proba_np, class_names, test_df = pickle.load(file)
-        domain_class_2_ap = {}
-        domain_class_2_mccf1 = {}
-        domain_class_2_auc = {}
-        for class_i, class_name in enumerate(class_names):
-            if class_name not in {"Unknown", "other", "precursor substr"}:
-                y_true = test_df[target_col].map(lambda x: class_name in x)
-                y_pred = val_proba_np[:, class_i]
-
-                if y_true.sum() >= min_sample_count_for_eval:
-                    average_precision = average_precision_score(y_true, y_pred)
-                    mccf1 = summary_mccf1(y_true, y_pred)["mccf1_metric"]
-                    auc = roc_auc_score(y_true, y_pred)
-                    domain_class_2_mccf1[class_name] = mccf1
-                    domain_class_2_ap[class_name] = average_precision
-                    domain_class_2_auc[class_name] = auc
-        class_2_ap_vals.append(domain_class_2_ap)
-        class_2_mccf1_vals.append(domain_class_2_mccf1)
-        class_2_rocauc_vals.append(domain_class_2_auc)
-        map_fold = np.mean(
-            [val for key, val in class_2_ap_vals[-1].items() if key != "isTPS"]
+            f"Not all fold outputs found. Please run corresponding experiments ({experiment_info}) before evaluation"
         )
-        map_vals.append(map_fold)
-    logger.info(
-        "For experiment %s mAP: %.3f +/- %.3f')",
-        experiment_info,
-        np.mean(map_vals),
-        np.std(map_vals),
-    )
-    return class_2_ap_vals, class_2_rocauc_vals, class_2_mccf1_vals, map_vals
+
+    class_2_ap_vals, class_2_rocauc_vals, class_2_mccf1_vals = [[] for _ in range(3)]
+
+    for fold_i, fold_root_dir in fold_2_root_dir.items():
+        logger.info("Processing fold %d with root dir %s", fold_i, str(fold_root_dir))
+        class_2_ap = {}
+        class_2_mccf1 = {}
+        class_2_auc = {}
+        for class_name in classes:
+            if class_name not in {"Unknown", "other"}:
+                if (fold_root_dir / f"{class_name}").exists():
+                    fold_class_path = fold_root_dir / f"{class_name}"
+                elif (fold_root_dir / "all_classes").exists():
+                    fold_class_path = fold_root_dir / "all_classes"
+                else:
+                    fold_class_path = None
+                logger.info(
+                    "Processing class %s with path %s", class_name, str(fold_class_path)
+                )
+                if fold_class_path is not None:
+                    try:
+                        fold_class_latest_path = sorted(fold_class_path.glob("*"))[-1]
+                    except IndexError as index_error:
+                        raise NotImplementedError(
+                            f"Please run corresponding experiments ({experiment_info}) before evaluation"
+                        ) from index_error
+                    try:
+                        with open(
+                            fold_class_latest_path / f"fold_{fold_i}_results.pkl", "rb"
+                        ) as file:
+                            val_proba_np, class_names_in_fold, test_df = pickle.load(
+                                file
+                            )
+                            if not isinstance(class_names_in_fold, list):
+                                class_names_in_fold = list(class_names_in_fold)
+                            y_true = test_df[target_col].map(lambda x: class_name in x)
+                            y_pred = val_proba_np[
+                                :, class_names_in_fold.index(class_name)
+                            ]
+
+                            if y_true.sum() >= min_sample_count_for_eval:
+                                average_precision = average_precision_score(
+                                    y_true, y_pred
+                                )
+                                mccf1 = summary_mccf1(y_true, y_pred)["mccf1_metric"]
+                                auc = roc_auc_score(y_true, y_pred)
+                                class_2_mccf1[class_name] = mccf1
+                                class_2_ap[class_name] = average_precision
+                                class_2_auc[class_name] = auc
+                    except FileNotFoundError:
+                        logger.warning(
+                            "Fold %d results were not found for (%s)",
+                            fold_i,
+                            str(experiment_info),
+                        )
+
+        class_2_ap_vals.append(class_2_ap)
+        class_2_mccf1_vals.append(class_2_mccf1)
+        class_2_rocauc_vals.append(class_2_auc)
+    return class_2_ap_vals, class_2_rocauc_vals, class_2_mccf1_vals
 
 
 def evaluate_selected_experiments(args: argparse.Namespace):
@@ -115,11 +154,12 @@ def evaluate_selected_experiments(args: argparse.Namespace):
                 class_2_ap_vals,
                 class_2_rocauc_vals,
                 class_2_mccf1_vals,
-                _,
             ) = eval_experiment(
                 experiment_info,
                 target_col=config_dict["target_col_name"],
                 min_sample_count_for_eval=args.minimal_count_to_eval,
+                n_folds=args.n_folds,
+                classes=args.classes,
             )
         except AssertionError as error:
             raise NotImplementedError(
@@ -140,16 +180,22 @@ def evaluate_selected_experiments(args: argparse.Namespace):
                 / "config.yaml"
             )
             config_dict = BaseConfig.load(config_path)
+            logger.info(
+                "Evaluating %s/%s",
+                experiment_info.model_type,
+                experiment_info.model_version,
+            )
             try:
                 (
                     class_2_ap_vals,
                     class_2_rocauc_vals,
                     class_2_mccf1_vals,
-                    _,
                 ) = eval_experiment(
                     experiment_info,
                     target_col=config_dict["target_col_name"],
                     min_sample_count_for_eval=args.minimal_count_to_eval,
+                    n_folds=args.n_folds,
+                    classes=args.classes,
                 )
             except (AssertionError, NotImplementedError):
                 # raise NotImplementedError(
@@ -237,7 +283,7 @@ def evaluate_selected_experiments(args: argparse.Namespace):
             "Mean MCC-F1 summary + SEM": all_results_mean_mcc_f1_plus_se,
         }
     )
-    all_results_df.to_csv(eval_output_path / "all_results.csv", index=False)
+    all_results_df.to_csv(eval_output_path / f"{args.output_filename}.csv", index=False)
 
     per_class_results_df = pd.DataFrame(
         {
@@ -248,7 +294,9 @@ def evaluate_selected_experiments(args: argparse.Namespace):
             "MCC-F1 summary": class_results_mcc_f1,
         }
     )
-    per_class_results_df.to_csv(eval_output_path / "per_class_results.csv", index=False)
+    per_class_results_df.to_csv(
+        eval_output_path / f"per_class_{args.output_filename}.csv", index=False
+    )
 
 
 def compute_mean_and_standard_error(
@@ -258,21 +306,28 @@ def compute_mean_and_standard_error(
     :param model_2_class_2_vals: computed metrics values
     :return: model_2_mean_se, mapping from model name to mean and (mean - se, mean + se) interval
     """
-    model_fold_2_metric_mean_per_fold = defaultdict(list)
-    model_2_metric_macro_mean = defaultdict(list)
+    model_2_class_mean_and_variance = defaultdict(list)
     model_2_mean_se: dict = defaultdict()
 
     for model, class_2_vals in model_2_class_2_vals.items():
+        class_2_per_fold_vals = defaultdict(list)
         for class_2_val in class_2_vals:
-            model_fold_2_metric_mean_per_fold[model].append(
-                np.mean(list(class_2_val.values()))
+            for class_name, val in class_2_val.items():
+                class_2_per_fold_vals[class_name].append(val)
+        for class_name, vals in class_2_per_fold_vals.items():
+            metric_mean = np.mean(vals)
+            metric_variance = np.var(vals, ddof=1)
+            model_2_class_mean_and_variance[model].append(
+                (class_name, metric_mean, metric_variance)
             )
 
-    for model, fold_vals in model_fold_2_metric_mean_per_fold.items():
-        model_2_metric_macro_mean[model].append(np.mean(fold_vals))
-
-    for model, vals in model_2_metric_macro_mean.items():
-        metric_mean = np.mean(vals)
-        sem = np.std(vals, ddof=1) / np.sqrt(len(vals))
+    for model, values_per_class in model_2_class_mean_and_variance.items():
+        total_mean = 0
+        total_variance = 0
+        for class_name, mean, variance in values_per_class:
+            total_mean += mean
+            total_variance += variance
+        metric_mean = total_mean / len(values_per_class)
+        sem = np.sqrt(total_variance) / len(values_per_class)
         model_2_mean_se[model] = (metric_mean, sem)
     return model_2_mean_se
