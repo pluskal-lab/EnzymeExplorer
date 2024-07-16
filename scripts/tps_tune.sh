@@ -1,9 +1,9 @@
 #!/bin/bash
 
 #SBATCH --job-name=tps_hyperparams
-#SBATCH --time=20:00:0
-#SBATCH --mem 30GB
-#SBATCH --cpus-per-task 30
+#SBATCH --time=40:00:0
+#SBATCH --mem 50GB
+#SBATCH --cpus-per-task 50
 #SBATCH --partition small-g
 #SBATCH --account=project_465000660
 #SBATCH --gres=gpu:1

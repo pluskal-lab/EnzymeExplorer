@@ -8,6 +8,7 @@ from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
 import pandas as pd
+from tqdm import tqdm
 
 logger = logging.getLogger(__file__)
 logging.basicConfig(level=logging.INFO)
@@ -51,7 +52,8 @@ if __name__ == "__main__":
     predicted_class_2_vals = defaultdict(list)
 
     processed_files = []
-    for detected_file in screening_results_root.glob("*"):
+    all_files = [file for file in screening_results_root.glob("*") if file.is_file()]
+    for detected_file in tqdm(all_files, desc="Processing detection files"):
         if ".csv" not in detected_file.name:
             with open(detected_file, "r") as file:
                 content = json.load(file)

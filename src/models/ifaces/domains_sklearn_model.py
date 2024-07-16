@@ -10,12 +10,13 @@ from .features_sklearn_model import FeaturesSklearnModel
 
 
 def compare_domains_to_known_instances(
-    train_df: pd.DataFrame, model: Any
+    train_df: pd.DataFrame, model: Any, domain_indices_subset: Optional[set[int]] = None
 ) -> tuple[list[int], pd.DataFrame]:
     """
     A function storing comparisons to domains of trn proteins only to avoid leakage
     :param train_df: a training data
     :param model: predictive model
+    :param domain_indices_subset: a subset of domain indices to consider
     :return: a list of training data domains and a dataframe with comparisons to the selected training domains
     """
     trn_uni_ids = set(train_df[model.config.id_col_name].values)
@@ -30,6 +31,8 @@ def compare_domains_to_known_instances(
         ), f"Model {model} has no attribute '{required_model_attribute}'"
     for trn_id in trn_uni_ids:
         allowed_feat_indices.extend(model.uniid_2_column_ids[trn_id])
+    if domain_indices_subset is not None:
+        allowed_feat_indices = list(set(allowed_feat_indices) & domain_indices_subset)
     features_df_domain_detections = pd.DataFrame(
         {
             model.config.id_col_name: model.all_ids_list_dom,
