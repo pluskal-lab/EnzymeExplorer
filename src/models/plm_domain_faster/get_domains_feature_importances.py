@@ -43,6 +43,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--n-folds", help="A number of folds used in CV", type=int, default=5
     )
+    parser.add_argument(
+        "--tps-file-path",
+        help="A path to the TPS file",
+        type=str,
+        default="data/TPS-Nov19_2023_verified_all_reactions_with_neg_with_folds.csv",
+    )
     return parser.parse_args()
 
 
@@ -135,6 +141,18 @@ if __name__ == "__main__":
                 .index
             )
         )
+
+    terpene_synthases_df = pd.read_csv(args.tps_file_path)
+    ids_rare_set = set(
+        terpene_synthases_df.loc[
+            terpene_synthases_df["Type (mono, sesq, di, …)"].isin({"tetra", "sester"}),
+            "Uniprot ID",
+        ].unique()
+    )
+    for domain_id in domain_module_id_2_dist_matrix_index.keys():
+        uni_id = domain_id.split("_")[0]
+        if uni_id in ids_rare_set:
+            domains_subset.add(domain_id)
 
     with open(args.output_path, "wb") as file_write:
         pickle.dump((domains_subset, feat_indices_subset), file_write)
