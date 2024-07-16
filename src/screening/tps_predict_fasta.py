@@ -8,19 +8,6 @@ import pickle
 from functools import partial
 from pathlib import Path
 
-import esm  # type: ignore
-import numpy as np  # type: ignore
-from tqdm.auto import tqdm  # type: ignore
-import torch  # type: ignore
-
-from src.embeddings_extraction.esm_transformer_utils import (
-    compute_embeddings,
-    get_model_and_tokenizer,
-)
-
-torch.hub.set_dir("~")
-os.environ["TRANSFORMERS_CACHE"] = "~/cache/"
-
 
 def _extract_id_from_entry(entry: tuple) -> str:
     return entry[0]
@@ -40,22 +27,21 @@ def parse_args() -> argparse.Namespace:
     :return: current argparse.Namespace
     """
     parser = argparse.ArgumentParser()
-    parser.add_argument("--session-i", type=int, default=1)
     parser.add_argument("--batch-size", type=int, default=4)
     parser.add_argument("--clf-batch-size", type=int, default=4096)
-    parser.add_argument("--max-len", type=int, default=1600)
-    parser.add_argument("--model", type=str, default="ankh_tps")
+    parser.add_argument("--max-len", type=int, default=1022)
+    parser.add_argument("--model", type=str, default="esm-1v-finetuned-subseq")
     parser.add_argument("--fasta-path", type=str, default="data/uniref90.fasta")
     parser.add_argument("--starting-i", type=int, default=0)
     parser.add_argument("--end-i", type=int, default=700_000)
     parser.add_argument("--output-id", type=str, default="")
     parser.add_argument("--verbose", action="store_true")
     parser.add_argument("--output-root", type=str, default="detected_tps")
-    parser.add_argument("--session-id", type=str, default="")
     parser.add_argument(
         "--ckpt-root-path", type=str, default="data/classifier_checkpoints.pkl"
     )
     parser.add_argument("--detection-threshold", type=float, default=0.2)
+    parser.add_argument("--gpu", type=str, default="0")
     return parser.parse_args()
 
 
@@ -71,6 +57,21 @@ class PredictionResults:
 
 if __name__ == "__main__":
     args = parse_args()
+    os.environ["HIP_VISIBLE_DEVICES"] = args.gpu
+    import esm  # type: ignore
+    import numpy as np  # type: ignore
+    from tqdm.auto import tqdm  # type: ignore
+    import torch  # type: ignore
+
+    torch.hub.set_dir("/scratch/project_465000659/samusevi")
+    os.environ["TRANSFORMERS_CACHE"] = "/scratch/project_465000659/samusevi/cache"
+
+    from src.embeddings_extraction.esm_transformer_utils import (
+        compute_embeddings,
+        get_model_and_tokenizer,
+    )
+
+    os.environ["AMD_SERIALIZE_KERNEL"] = "3"
     model, batch_converter, alphabet = get_model_and_tokenizer(
         args.model, return_alphabet=True
     )
@@ -148,7 +149,7 @@ if __name__ == "__main__":
             (
                 enzyme_encodings_np_batch,
                 _,
-            ) = compute_embeddings_partial(batch_to_process)
+            ) = compute_embeddings_partial(input_seqs=batch_to_process)
             enzyme_encodings_list_to_process.extend(enzyme_encodings_np_batch)
             enzyme_ids_list_to_process.extend(batch_ids)
 
@@ -171,12 +172,14 @@ if __name__ == "__main__":
 
     enzyme_encodings_list: list[np.ndarray] = []
     enzyme_ids_list: list[str] = []
-    starting_i = (args.ciirc_session - 1) * args.delta
-    end_i = starting_i + args.delta
-    for i, uniprot_entry in tqdm(enumerate(uniprot_generator), total=end_i):
-        if i < starting_i:
+    for i, uniprot_entry in tqdm(
+        enumerate(uniprot_generator),
+        total=args.end_i,
+        desc=f"Processing sequences on GPU {args.gpu}",
+    ):
+        if i < args.starting_i:
             continue
-        if i == end_i:
+        if i == args.end_i:
             break
         uniprot_id = _extract_id_from_entry(uniprot_entry)
         seq = _extract_seq_from_entry(uniprot_entry)

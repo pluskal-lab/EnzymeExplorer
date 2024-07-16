@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --job-name=ANM_ATLAS_REFOLDED
+#SBATCH --job-name=uniprot_screening
 #SBATCH --time=44:00:0
 #SBATCH --mem 50GB
 #SBATCH --cpus-per-task 50

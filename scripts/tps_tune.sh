@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --job-name=ANM_ATLAS_REFOLDED
+#SBATCH --job-name=tps_hyperparams
 #SBATCH --time=20:00:0
 #SBATCH --mem 30GB
 #SBATCH --cpus-per-task 30

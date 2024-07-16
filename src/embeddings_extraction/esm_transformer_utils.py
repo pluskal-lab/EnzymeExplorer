@@ -54,7 +54,7 @@ def get_model_and_tokenizer(
         raise NotImplementedError(f"ESM transformer {model_name} is not supported")
     bert_batch_converter = bert_alphabet.get_batch_converter()
     if torch.cuda.is_available():
-        bert_model = bert_model.cuda()
+        bert_model = bert_model.to(device="cuda:0", non_blocking=True)
     if return_alphabet:
         return bert_model, bert_batch_converter, bert_alphabet
     return bert_model, bert_batch_converter
@@ -91,7 +91,7 @@ def compute_embeddings(
     _, _, tokens = converter(input_tuple_seqs)
     batch_lens = (tokens != padding_idx).sum(1)
     if torch.cuda.is_available():
-        tokens = tokens.to(device="cuda", non_blocking=True)
+        tokens = tokens.to(device="cuda:0", non_blocking=True)
     with torch.no_grad():
         bert_embs = bert_model(tokens, repr_layers=[model_repr_layer])
 
