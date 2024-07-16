@@ -12,4 +12,9 @@ source ~/.bashrc
 conda activate tps_ml_discovery
 cd /scratch/project_465000659/samusevi/TPS_ML_Discovery
 
-python -m src.screening.tps_screening_cluster_launcher --session-i $SLURM_ARRAY_TASK_ID
+input_fasta_path="$1"
+output_root_path="$2"
+echo "Performing TPS screening with input fasta: $1, storing individual detections into: $2"
+
+
+python -m src.screening.tps_screening_cluster_launcher --session-i $SLURM_ARRAY_TASK_ID --fasta-path "$input_fasta_path" --output-root "$output_root_path"

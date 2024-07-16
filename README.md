@@ -233,7 +233,7 @@ If you want to run hyperparameter optimization in parallel, you can use the foll
 ```bash
 cd TPS_ML_Discovery
 conda activate tps_ml_discovery
-bash scripts/tps_tune.sh
+bash scripts/tps_tune.sh # see the script for more details and accommodate to your use case
 ```
 
 
@@ -275,10 +275,17 @@ Note that `delta` stands for the number of sequences to be processed by a single
    
 To screen large databases, then run
 ```bash
-sbatch --array=0-<number_of_workers> scripts/tps_screening.sh
+sbatch --array=0-<number_of_workers> scripts/tps_screening.sh "data/uniprot_trembl.fasta" "trembl_screening_output"
 ```
 where `<number_of_workers>` is the number of workers estimated in the previous step. Please note, that you might have no slurm on your cluster,
 and you would need to set up the cluster environment yourself.
+
+This will store individual hits as separate files. To merge them into a single CSV file, run
+```bash
+cd TPS_ML_Discovery
+conda activate tps_ml_discovery
+python -m src.screening.gather_detections_to_csv --screening-results-root "trembl_screening/detections_plm" --output-path "trembl_screening/detections_plm/detections_first_batch.csv" --delete-individual-files
+``` 
 
 -----------------------------------------
 
