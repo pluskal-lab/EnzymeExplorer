@@ -60,6 +60,11 @@ class ExperimentInfo:
             return self.class_name < other.class_name
         return False
 
+    @property
+    def timestamp(self):
+        """Fold variable getter"""
+        return self._timestamp
+
     def __str__(self):
         return f"Experiment: {self.model_type}/{self.model_version}/fold {self.fold}/class {self.class_name}"
 

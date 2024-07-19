@@ -141,6 +141,17 @@ def run_experiment(experiment_info: ExperimentInfo):
                     else x.union({"isTPS"})
                 )
 
+                # checking if the model requires an amino acid sequence
+                if hasattr(config, "seq_col_name"):
+                    trn_df = trn_df.merge(
+                        tps_df[[config.id_col_name, config.seq_col_name]],
+                        on=config.id_col_name,
+                    )
+                    test_df = test_df.merge(
+                        tps_df[[config.id_col_name, config.seq_col_name]],
+                        on=config.id_col_name,
+                    )
+
                 # fitting the model
                 model.fit(trn_df)
                 logger.info(

@@ -41,6 +41,7 @@ def parse_args() -> argparse.Namespace:
         "--ckpt-root-path", type=str, default="data/classifier_checkpoints.pkl"
     )
     parser.add_argument("--detection-threshold", type=float, default=0.2)
+    parser.add_argument("--detect-precursor-synthases", type=bool, default=False)
     parser.add_argument("--gpu", type=str, default="0")
     return parser.parse_args()
 
@@ -162,7 +163,10 @@ if __name__ == "__main__":
                 enzyme_ids_list_to_process, predictions
             ):
                 protein_id_short = protein_id.split()[0].replace("/", "")
-                if class_2_prob["isTPS"] >= detection_threshold:
+                if class_2_prob["isTPS"] >= detection_threshold or (
+                    args.detect_precursor_synthases
+                    and class_2_prob["precursor substr"] >= detection_threshold
+                ):
                     output_file = results_output_root / protein_id_short
                     with open(output_file, "w", encoding="utf-8") as outputs_file:
                         json.dump(class_2_prob, outputs_file)

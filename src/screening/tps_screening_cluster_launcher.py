@@ -22,6 +22,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--fasta-path", type=str, default="data/uniprot_trembl.fasta")
     parser.add_argument("--output-root", type=str, default="trembl_screening")
     parser.add_argument("--model", type=str, default="esm-1v-finetuned-subseq")
+    parser.add_argument("--detection-threshold", type=float, default=0.2)
+    parser.add_argument("--detect-precursor-synthases", action="store_true")
+
     return parser.parse_args()
 
 
@@ -172,6 +175,10 @@ if __name__ == "__main__":
                 args.output_root,
                 "--model",
                 args.model,
+                "--detection-threshold",
+                str(args.detection_threshold),
+                "--detect-precursor-synthases",
+                str(args.detect_precursor_synthases),
             ]
         )
         gpu_allocator.assign_process_to_gpu(current_process, gpu_i)

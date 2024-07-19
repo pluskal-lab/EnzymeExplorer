@@ -13,7 +13,7 @@ class_names: ["CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",
             "isTPS"]
 optimize_hyperparams: true
 random_state: 0
-n_calls_hyperparams_opt: 50
+n_calls_hyperparams_opt: 150
 hyperparam_dimensions:
   class_weight:
     type: "categorical"

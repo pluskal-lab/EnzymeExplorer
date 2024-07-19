@@ -275,7 +275,7 @@ Note that `delta` stands for the number of sequences to be processed by a single
    
 To screen large databases, then run
 ```bash
-sbatch --array=0-<number_of_workers> scripts/tps_screening.sh "data/uniprot_trembl.fasta" "trembl_screening_output"
+sbatch --array=0-<number_of_workers> scripts/tps_screening.sh "data/uniprot_trembl.fasta" "trembl_screening_output" 0.4
 ```
 where `<number_of_workers>` is the number of workers estimated in the previous step. Please note, that you might have no slurm on your cluster,
 and you would need to set up the cluster environment yourself.
