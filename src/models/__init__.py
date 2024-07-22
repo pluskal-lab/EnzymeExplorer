@@ -7,4 +7,4 @@ from .plm_domain_comparison_randomforest import PlmDomainsRandomForest
 from .plm_domains_mlp import PlmDomainsMLP
 from .plm_domains_logistic_regression import PlmDomainsLogisticRegression
 
-# from .baselines import Blastp
+from .baselines import Blastp

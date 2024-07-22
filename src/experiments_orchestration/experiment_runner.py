@@ -143,12 +143,17 @@ def run_experiment(experiment_info: ExperimentInfo):
 
                 # checking if the model requires an amino acid sequence
                 if hasattr(config, "seq_col_name"):
+                    id_seq_df = tps_df[
+                        [config.id_col_name, config.seq_col_name]
+                    ].drop_duplicates()
+                    print("BEFORE!: ", len(trn_df))
                     trn_df = trn_df.merge(
-                        tps_df[[config.id_col_name, config.seq_col_name]],
+                        id_seq_df,
                         on=config.id_col_name,
                     )
+                    print("AFTER!: ", len(trn_df))
                     test_df = test_df.merge(
-                        tps_df[[config.id_col_name, config.seq_col_name]],
+                        id_seq_df,
                         on=config.id_col_name,
                     )
 

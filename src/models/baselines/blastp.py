@@ -4,7 +4,7 @@ from typing import Type, Optional
 
 import numpy as np
 import pandas as pd
-from profun.models import BlastMatching, BlastConfig as BlastConfigPackage
+from profun.models import BlastMatching
 
 from src.models.ifaces import BaseModel, BaseConfig
 
@@ -18,6 +18,8 @@ class BlastConfig(BaseConfig):
     n_neighbours: int
     e_threshold: float
     seq_col_name: str
+    pred_batch_size: Optional[int] = 32
+    n_jobs: Optional[int] = 64
 
 
 class Blastp(BaseModel):
