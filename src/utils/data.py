@@ -6,6 +6,7 @@ from typing import Tuple, Union
 import h5py  # type: ignore
 import numpy as np  # type: ignore
 import pandas as pd  # type: ignore
+from indigo import Indigo
 
 triplets_dtype = [
     ("Uniprot ID", h5py.string_dtype()),
@@ -195,3 +196,20 @@ def get_major_classes_distribution(
     counts_all_major.sort_index(inplace=True)
     counts_all_major /= counts_all_major.sum()
     return counts_all_major
+
+
+def get_canonical_smiles(smiles: str, without_stereo: bool = True):
+    """
+    The function computes a canonical SMILES with possibility to ignore stereoisomerism
+    :param smiles: input SMILES string
+    :param without_stereo: a boolean flag controlling if we want to ignore stereoisomerism
+    :return: a string of the canonical SMILES
+    """
+    if isinstance(smiles, float) or smiles in {'Unknown', 'Negative'}:
+        return smiles
+    indigo = Indigo()
+    mol = indigo.loadMolecule(smiles.strip())
+    if without_stereo:
+        mol.clearCisTrans()
+        mol.clearStereocenters()
+    return mol.canonicalSmiles()

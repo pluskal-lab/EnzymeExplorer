@@ -141,20 +141,21 @@ def run_experiment(experiment_info: ExperimentInfo):
                     else x.union({"isTPS"})
                 )
 
-                # checking if the model requires an amino acid sequence
-                if hasattr(config, "seq_col_name"):
-                    id_seq_df = tps_df[
-                        [config.id_col_name, config.seq_col_name]
-                    ].drop_duplicates(config.id_col_name)
-                    trn_df = trn_df.merge(
-                        id_seq_df,
-                        on=config.id_col_name,
-                    )
+                # checking if the model requires an amino acid sequence or a group (kingdom) column
+                for optional_column_attribute in ["seq_col_name", "group_column_name"]:
+                    if hasattr(config, optional_column_attribute) and getattr(config, optional_column_attribute) is not None:
+                        id_seq_df = tps_df[
+                            [config.id_col_name, getattr(config, optional_column_attribute)]
+                        ].drop_duplicates(config.id_col_name)
+                        trn_df = trn_df.merge(
+                            id_seq_df,
+                            on=config.id_col_name,
+                        )
 
-                    test_df = test_df.merge(
-                        id_seq_df,
-                        on=config.id_col_name,
-                    )
+                        test_df = test_df.merge(
+                            id_seq_df,
+                            on=config.id_col_name,
+                        )
 
                 # fitting the model
                 model.fit(trn_df)

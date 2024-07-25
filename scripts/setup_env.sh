@@ -28,3 +28,5 @@ pip install dataclasses-json
 pip install scikit-optimize
 pip install xgboost
 pip install GPUtil
+pip install wget
+pip install git+https://github.com/SamusRam/ProFun.git # one needs to install prerequisites of individual models separately, see https://github.com/SamusRam/ProFun
