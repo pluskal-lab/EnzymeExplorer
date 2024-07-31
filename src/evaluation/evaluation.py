@@ -4,7 +4,7 @@ import logging
 import pickle
 from collections import defaultdict
 
-from sklearn.metrics import average_precision_score, roc_auc_score  # type: ignore
+from sklearn.metrics import average_precision_score, roc_auc_score, precision_recall_curve  # type: ignore
 import numpy as np  # type: ignore
 import pandas as pd  # type: ignore
 
@@ -31,7 +31,7 @@ def eval_experiment(
     min_sample_count_for_eval: int,
     n_folds: int,
     classes: list[str],
-) -> tuple[list, list, list]:
+) -> tuple[list, list, list, list]:
     """
     This function evaluates results of the specified experiment
     """
@@ -66,13 +66,14 @@ def eval_experiment(
             f"Not all fold outputs found. Please run corresponding experiments ({experiment_info}) before evaluation"
         )
 
-    class_2_ap_vals, class_2_rocauc_vals, class_2_mccf1_vals = [[] for _ in range(3)]
+    class_2_ap_vals, class_2_rocauc_vals, class_2_mccf1_vals, class_2_pr_vals = [[] for _ in range(4)]
 
     for fold_i, fold_root_dir in fold_2_root_dir.items():
         logger.info("Processing fold %d with root dir %s", fold_i, str(fold_root_dir))
         class_2_ap = {}
         class_2_mccf1 = {}
         class_2_auc = {}
+        class_2_pr = {}
         for class_name in classes:
             if class_name not in {"Unknown", "other"}:
                 if (fold_root_dir / f"{class_name}").exists():
@@ -114,6 +115,7 @@ def eval_experiment(
                                 class_2_mccf1[class_name] = mccf1
                                 class_2_ap[class_name] = average_precision
                                 class_2_auc[class_name] = auc
+                                class_2_pr[class_name] = precision_recall_curve(y_true, y_pred)
                     except FileNotFoundError:
                         logger.warning(
                             "Fold %d results were not found for (%s)",
@@ -124,7 +126,8 @@ def eval_experiment(
         class_2_ap_vals.append(class_2_ap)
         class_2_mccf1_vals.append(class_2_mccf1)
         class_2_rocauc_vals.append(class_2_auc)
-    return class_2_ap_vals, class_2_rocauc_vals, class_2_mccf1_vals
+        class_2_pr_vals.append(class_2_pr)
+    return class_2_ap_vals, class_2_rocauc_vals, class_2_mccf1_vals, class_2_pr_vals
 
 
 def evaluate_selected_experiments(args: argparse.Namespace):
@@ -138,7 +141,8 @@ def evaluate_selected_experiments(args: argparse.Namespace):
         model_2_class_2_ap_vals,
         model_2_class_2_rocauc_vals,
         model_2_class_2_mccf1_vals,
-    ) = [{} for _ in range(3)]
+        model_2_class_2_pr_vals
+    ) = [{} for _ in range(4)]
     if args.select_single_experiment:
         experiment_kwargs = collect_single_experiment_arguments(config_root_path)
         experiment_info = ExperimentInfo(**experiment_kwargs)
@@ -154,6 +158,7 @@ def evaluate_selected_experiments(args: argparse.Namespace):
                 class_2_ap_vals,
                 class_2_rocauc_vals,
                 class_2_mccf1_vals,
+                class_2_pr_vals
             ) = eval_experiment(
                 experiment_info,
                 target_col=config_dict["target_col_name"],
@@ -169,6 +174,7 @@ def evaluate_selected_experiments(args: argparse.Namespace):
         model_2_class_2_ap_vals[model_name] = class_2_ap_vals
         model_2_class_2_rocauc_vals[model_name] = class_2_rocauc_vals
         model_2_class_2_mccf1_vals[model_name] = class_2_mccf1_vals
+        model_2_class_2_pr_vals[model_name] = class_2_pr_vals
     else:
         all_enabled_experiments_df = discover_experiments_from_configs(config_root_path)
         for _, experiment_info_row in all_enabled_experiments_df.iterrows():
@@ -190,6 +196,7 @@ def evaluate_selected_experiments(args: argparse.Namespace):
                     class_2_ap_vals,
                     class_2_rocauc_vals,
                     class_2_mccf1_vals,
+                    class_2_pr_vals
                 ) = eval_experiment(
                     experiment_info,
                     target_col=config_dict["target_col_name"],
@@ -208,6 +215,7 @@ def evaluate_selected_experiments(args: argparse.Namespace):
             model_2_class_2_ap_vals[model_name] = class_2_ap_vals
             model_2_class_2_rocauc_vals[model_name] = class_2_rocauc_vals
             model_2_class_2_mccf1_vals[model_name] = class_2_mccf1_vals
+            model_2_class_2_pr_vals[model_name] = class_2_pr_vals
 
     all_results_model = []
     all_results_map = []
@@ -225,6 +233,9 @@ def evaluate_selected_experiments(args: argparse.Namespace):
     class_results_ap = []
     class_results_rocauc = []
     class_results_mcc_f1 = []
+    class_results_ap_se = []
+    class_results_rocauc_se = []
+    class_results_mcc_f1_se = []
 
     eval_output_path = get_evaluations_output()
     if not eval_output_path.exists():
@@ -249,6 +260,9 @@ def evaluate_selected_experiments(args: argparse.Namespace):
             class_results_ap.append(np.nanmean(ap_values))
             class_results_rocauc.append(np.nanmean(rocauc_values))
             class_results_mcc_f1.append(np.nanmean(mccf1_values))
+            class_results_ap_se.append(np.std(ap_values, ddof=1))
+            class_results_rocauc_se.append(np.std(rocauc_values, ddof=1))
+            class_results_mcc_f1_se.append(np.std(mccf1_values, ddof=1))
 
     model_2_ap_mean_se = compute_mean_and_standard_error(model_2_class_2_ap_vals)
     model_2_rocauc_mean_se = compute_mean_and_standard_error(
@@ -289,14 +303,20 @@ def evaluate_selected_experiments(args: argparse.Namespace):
         {
             "Model": class_results_model,
             "Class": class_results_class_name,
-            "Average Precision ": class_results_ap,
+            "Average Precision": class_results_ap,
             "ROC-AUC": class_results_rocauc,
             "MCC-F1 summary": class_results_mcc_f1,
+            "Average Precision sem": class_results_ap_se,
+            "ROC-AUC sem": class_results_rocauc_se,
+            "MCC-F1 summary sem": class_results_mcc_f1_se,
         }
     )
     per_class_results_df.to_csv(
         eval_output_path / f"per_class_{args.output_filename}.csv", index=False
     )
+
+    with open(eval_output_path / f"model_2_class_2_pr_vals{args.output_filename}.pkl", "wb") as file:
+        pickle.dump(model_2_class_2_pr_vals, file)
 
 
 def compute_mean_and_standard_error(

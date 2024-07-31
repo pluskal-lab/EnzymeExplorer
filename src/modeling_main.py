@@ -3,6 +3,7 @@
 import argparse
 
 from src.evaluation import evaluate_selected_experiments
+from src.evaluation.plotting import plot_selected_results
 from src.experiments_orchestration.experiment_runner import run_experiment
 from src.experiments_orchestration.experiment_selector import (
     collect_single_experiment_arguments,
@@ -94,6 +95,50 @@ def parse_args() -> argparse.Namespace:
         help="A number of folds used in CV",
         default=5,
     )
+
+    parser_vis = subparsers.add_parser(
+        "visualize", help="Run visualizations"
+    )
+    parser_vis.set_defaults(cmd="visualize")
+    parser_vis.add_argument(
+        "--eval-output-filename",
+        help="A file with saved evaluation results",
+        type=str,
+        default="all_results",
+    )
+    parser_vis.add_argument(
+        "--models",
+        help="A list of models for visualization",
+        type=str,
+        nargs="+",
+        default=[
+            "CLEAN__with_minor_reactions",
+            "HMM__with_minor_reactions",
+            "Foldseek__with_minor_reactions",
+            "Blastp__with_minor_reactions",
+            "PlmDomainsRandomForest__tps_esm-1v-subseq_with_minor_reactions_global_tuning_domains_subset"
+        ],
+    )
+    parser_vis.add_argument(
+        "--model-names",
+        help="A list of model names to be displayed",
+        type=str,
+        nargs="+",
+        default=[
+            "CLEAN",
+            "HMM",
+            "Foldseek",
+            "Blastp",
+            "Ours"
+        ],
+    )
+
+    parser_vis.add_argument(
+        "--subset-name",
+        help="A name for comparison",
+        type=str,
+        default=None,
+    )
     args = parser.parse_args()
     return args
 
@@ -149,3 +194,5 @@ if __name__ == "__main__":
         evaluate_selected_experiments(arguments)
     elif arguments.cmd == "tune":
         tune_hyperparameters(arguments)
+    elif arguments.cmd == "visualize":
+        plot_selected_results(arguments)

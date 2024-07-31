@@ -1,9 +1,7 @@
 #!/bin/bash
 
 # Create env and install required packages
-conda create -n tps_ml_discovery python==3.10.0 scikit-learn pandas numpy scipy jupyter seaborn pymol pymol-psico tmalign -c schrodinger -c speleo3 -c conda-forge -y
-
-#conda create -n tps_ml_discovery python==3.10.0 scikit-learn pandas numpy scipy jupyter seaborn pytorch pytorch-cuda pymol pymol-psico tmalign -c pytorch -c nvidia -c schrodinger -c speleo3 -c conda-forge -y
+conda create -n tps_ml_discovery python==3.10.0 scikit-learn==1.5.1 pandas==2.2.2 numpy==1.26.4 scipy==1.14.0 jupyter seaborn pymol pymol-psico tmalign -c schrodinger -c speleo3 -c conda-forge -y
 
 conda activate tps_ml_discovery
 pip install torch --index-url https://download.pytorch.org/whl/rocm6.0

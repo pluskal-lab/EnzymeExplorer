@@ -1,0 +1,2 @@
+include: ../main_config.yaml
+representations_path: "data/gathered_embs_ankh_base_embs_avg.h5"

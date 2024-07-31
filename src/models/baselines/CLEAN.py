@@ -2,8 +2,6 @@
 Please note, that before using this wrapper you would need to install CLEAN as per https://github.com/tttianhao/CLEAN
 """
 import os
-import subprocess
-import sys
 from collections import defaultdict
 from shutil import copyfile
 
@@ -157,7 +155,10 @@ class CLEAN(BaseModel):
             lambda x: dict() if x not in id_2_substr_2_conf else id_2_substr_2_conf[x])
         val_proba_np = np.zeros((len(val_df), len(self.config.class_names)))
         for class_i, class_name in enumerate(self.config.class_names):
-            val_proba_np[:, class_i] = val_df['substr_2_conf'].map(lambda x: x.get(class_name, 0))
+            if class_name == "isTPS":
+                val_proba_np[:, class_i] = val_df['substr_2_conf'].map(lambda x: max(x.values()) if len(x) else 0)
+            else:
+                val_proba_np[:, class_i] = val_df['substr_2_conf'].map(lambda x: x.get(class_name, 0))
         return val_proba_np
 
     @classmethod

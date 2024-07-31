@@ -257,8 +257,27 @@ To evaluate only detection of the TPSs and isoprenyl diphosphate synthases, run
 ```bash
 python -m src.modeling_main evaluate --classes "isTPS" "precursor substr" --output-filename tps_and_precursors
 ```
+#### 4 - Visualization of performance
+```bash
+python -m src.modeling_main visualize
+```
 
-#### 4 - Screening large databases
+```bash
+python -m src.modeling_main visualize --models  \
+            PlmDomainsRandomForest__tps_esm-1v-subseq_with_minor_reactions_global_tuning  PlmDomainsMLP__tps_esm-1v-subseq_with_minor_reactions_global_tuning PlmDomainsLogisticRegression__tps_esm-1v_with_minor_reactions_global_tuning \
+        --model-names "Random Forest"  "Feed-Forward Neural Net" "Logistic Regression"\
+        --subset-name "different_models_best_feats"
+```
+
+
+```bash
+python -m src.modeling_main visualize --models  \
+            PlmDomainsRandomForest__tps_esm-1v-subseq_with_minor_reactions_global_tuning_domains_subset PlmDomainsRandomForest__tps_esm-1v-subseq_with_minor_reactions_global_tuning PlmDomainsRandomForest__esm-2_with_minor_reactions_global_tuning PlmDomainsRandomForest__tps_ankh_base_with_minor_reactions PlmDomainsRandomForest__tps_esm-1v_with_minor_reactions_global_tuning PlmDomainsRandomForest__esm-1v_with_minor_reactions_global_tuning PlmDomainsRandomForest__ankh_large_with_minor_reactions_global_tuning PlmDomainsRandomForest__ankh_base_with_minor_reactions\
+        --model-names tps_esm-1v-subseq-subset tps_esm-1v-subseq esm-2 tps_ankh tps_esm-1v esm-1v ankh_large ankh_base\
+        --subset-name "random_forest_different_plm"
+```
+
+#### 5 - Screening large databases
 Before screening large databases, you need to gather the trained models. To do so, run
 ```bash
 cd TPS_ML_Discovery

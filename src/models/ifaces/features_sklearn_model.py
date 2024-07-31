@@ -1,8 +1,6 @@
 """Module with interfaces for scikit-learn-compatible predictive models
 built on top of numerical protein representations (features)"""
 import logging
-import pickle
-from pathlib import Path
 from typing import Optional
 
 import numpy as np  # type: ignore
