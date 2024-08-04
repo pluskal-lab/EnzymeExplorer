@@ -59,6 +59,12 @@ def parse_args() -> argparse.Namespace:
         type=str,
         default="all_results",
     )
+    parser_eval.add_argument(
+        "--id-2-category-path",
+        help="A path to file containing categories to be evaluated separately (e.g., kingdoms)",
+        type=str,
+        default=None,
+    )
 
     parser_tune = subparsers.add_parser(
         "tune", help="Run experiments with hyper-parameter tuning"
@@ -132,12 +138,41 @@ def parse_args() -> argparse.Namespace:
             "Ours"
         ],
     )
-
     parser_vis.add_argument(
         "--subset-name",
         help="A name for comparison",
         type=str,
         default=None,
+    )
+    parser_vis.add_argument("--plot-tps-detection", action="store_true")
+    parser_vis.add_argument("--plot-boxplots-per-type", action="store_true")
+    parser_vis.add_argument(
+        "--type-detected",
+        help="A TPS type to evaluate detection",
+        type=str,
+        default="isTPS",
+    )
+    parser_vis.add_argument(
+        "--id-2-category-path",
+        help="A path to file containing categories to be evaluated separately (e.g., kingdoms)",
+        type=str,
+        default=None,
+    )
+    parser_vis.add_argument("--plot-barplots-per-category", action="store_true")
+    parser_vis.add_argument(
+        "--category-name",
+        help="A name of category to be evaluated separately (e.g., Kingdom)",
+        type=str,
+        default='Kingdom',
+    )
+    parser_vis.add_argument(
+        "--categories-order",
+        help="A list of category names to be displayed in the defined order",
+        type=str,
+        nargs="+",
+        default=[
+            'Bacteria', 'Fungi', 'Plants', 'Animals', 'Protists', 'Viruses', 'Archaea'
+        ],
     )
     args = parser.parse_args()
     return args

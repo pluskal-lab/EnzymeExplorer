@@ -48,7 +48,9 @@ cd TPS_ML_Discovery
 conda activate tps_ml_discovery
 jupyter notebook
 ```
-Then execute the notebook `notebooks/notebook_1_data_cleaning_from_raw_TPS_table.ipynb`.
+Then execute the notebook `notebooks/notebook_1_data_cleaning_from_raw_TPS_table.ipynb`. 
+# TODO: convert to script
+# TODO: from notebook_3_clustering_domains convert reaction type derivation and clean kingdom name derivation to a separate script
 
 #### 2 - Sampling negative examples from Swiss-Prot
 We sample negative (non-TPS) sequences from [Swiss-Prot](https://www.expasy.org/resources/uniprotkb-swiss-prot), the expertly curated UniProtKB component produced by the UniProt consortium. 
@@ -253,10 +255,23 @@ python -m src.modeling_main --select-single-experiment evaluate
 ```
 and select the experiment you are interested in.
 
-To evaluate only detection of the TPSs and isoprenyl diphosphate synthases, run
+To evaluate only detection of the TPSs, run
 ```bash
-python -m src.modeling_main evaluate --classes "isTPS" "precursor substr" --output-filename tps_and_precursors
+python -m src.modeling_main evaluate --classes "isTPS" --output-filename tps_detection
 ```
+
+To evaluate separately for individual kingdoms, run
+```bash
+python -m src.modeling_main evaluate --id-2-category-path data/id_2_kingdom_dataset.pkl --output-filename per_kingdom
+```
+
+Or to evaluate results separately per entries with and without Pfam/SUPFAM/InterPro protein signatures, run
+To evaluate separately for individual kingdoms, run
+```bash
+python -m src.modeling_main evaluate --id-2-category-path data/id_2_domains_presence.pkl --output-filename per_interpro_signatures
+```
+
+
 #### 4 - Visualization of performance
 ```bash
 python -m src.modeling_main visualize
@@ -275,6 +290,64 @@ python -m src.modeling_main visualize --models  \
             PlmDomainsRandomForest__tps_esm-1v-subseq_with_minor_reactions_global_tuning_domains_subset PlmDomainsRandomForest__tps_esm-1v-subseq_with_minor_reactions_global_tuning PlmDomainsRandomForest__esm-2_with_minor_reactions_global_tuning PlmDomainsRandomForest__tps_ankh_base_with_minor_reactions PlmDomainsRandomForest__tps_esm-1v_with_minor_reactions_global_tuning PlmDomainsRandomForest__esm-1v_with_minor_reactions_global_tuning PlmDomainsRandomForest__ankh_large_with_minor_reactions_global_tuning PlmDomainsRandomForest__ankh_base_with_minor_reactions\
         --model-names tps_esm-1v-subseq-subset tps_esm-1v-subseq esm-2 tps_ankh tps_esm-1v esm-1v ankh_large ankh_base\
         --subset-name "random_forest_different_plm"
+```
+
+```bash
+python -m src.modeling_main visualize --eval-output-filename tps_detection --plot-tps-detection --models  \
+            PfamSUPFAM__pfam PfamSUPFAM__supfam CLEAN__with_minor_reactions HMM__with_minor_reactions Foldseek__with_minor_reactions Blastp__with_minor_reactions PlmDomainsRandomForest__tps_esm-1v-subseq_with_minor_reactions_global_tuning_domains_subset\
+        --model-names Pfam SUPFAM CLEAN HMM Foldseek Blastp Ours
+        
+```
+
+
+```bash
+python -m src.modeling_main visualize --eval-output-filename all_results --plot-tps-detection --models  \
+            CLEAN__with_minor_reactions HMM__with_minor_reactions Foldseek__with_minor_reactions Blastp__with_minor_reactions PlmDomainsRandomForest__tps_esm-1v-subseq_with_minor_reactions_global_tuning_domains_subset\
+        --model-names CLEAN HMM Foldseek Blastp Ours \
+        --subset-name "sesq_detection" --type-detected sesq
+        
+```
+
+```bash
+python -m src.modeling_main visualize --eval-output-filename all_results --plot-tps-detection --models  \
+            CLEAN__with_minor_reactions HMM__with_minor_reactions Foldseek__with_minor_reactions Blastp__with_minor_reactions PlmDomainsRandomForest__tps_esm-1v-subseq_with_minor_reactions_global_tuning_domains_subset\
+        --model-names CLEAN HMM Foldseek Blastp Ours \
+        --subset-name "di_detection" --type-detected di
+        
+```
+
+```bash
+python -m src.modeling_main visualize --eval-output-filename all_results --plot-tps-detection --models  \
+            CLEAN__with_minor_reactions HMM__with_minor_reactions Foldseek__with_minor_reactions Blastp__with_minor_reactions PlmDomainsRandomForest__tps_esm-1v-subseq_with_minor_reactions_global_tuning_domains_subset\
+        --model-names CLEAN HMM Foldseek Blastp Ours \
+        --subset-name "sester_detection" --type-detected sester
+        
+```
+
+
+```bash
+python -m src.modeling_main visualize --eval-output-filename all_results --plot-boxplots-per-type --models  \
+            CLEAN__with_minor_reactions HMM__with_minor_reactions Foldseek__with_minor_reactions Blastp__with_minor_reactions PlmDomainsRandomForest__tps_esm-1v-subseq_with_minor_reactions_global_tuning_domains_subset\
+        --model-names CLEAN HMM Foldseek Blastp Ours         
+```
+
+To visualize evaluation results as barplots separately per each kingdom, run
+```bash
+python -m src.modeling_main visualize --eval-output-filename all_results --plot-barplots-per-category --models  \
+            CLEAN__with_minor_reactions HMM__with_minor_reactions Foldseek__with_minor_reactions Blastp__with_minor_reactions PlmDomainsRandomForest__tps_esm-1v-subseq_with_minor_reactions_global_tuning_domains_subset\
+        --model-names CLEAN HMM Foldseek Blastp Ours \
+        --category-name Kingdom --id-2-category-path data/id_2_kingdom_dataset.pkl --eval-output-filename per_kingdom \
+        --categories-order Bacteria Fungi Plants Animals Protists Viruses Archaea
+```
+
+Analogously, to visualize evaluation results as barplots separately per entries with and without Pfam/SUPFAM/InterPro protein signatures, run
+```bash
+python -m src.modeling_main visualize --eval-output-filename all_results --plot-barplots-per-category --models  \
+            CLEAN__with_minor_reactions HMM__with_minor_reactions Foldseek__with_minor_reactions Blastp__with_minor_reactions PlmDomainsRandomForest__tps_esm-1v-subseq_with_minor_reactions_global_tuning_domains_subset\
+        --model-names CLEAN HMM Foldseek Blastp Ours \
+        --category-name "Protein signature" --id-2-category-path data/id_2_domains_presence.pkl --eval-output-filename per_interpro_signatures \
+        --categories-order With Without
+
 ```
 
 #### 5 - Screening large databases

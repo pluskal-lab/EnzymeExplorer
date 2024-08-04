@@ -3,6 +3,7 @@ import argparse
 import logging
 import pickle
 from collections import defaultdict
+from typing import Optional
 
 from sklearn.metrics import average_precision_score, roc_auc_score, precision_recall_curve  # type: ignore
 import numpy as np  # type: ignore
@@ -31,6 +32,7 @@ def eval_experiment(
     min_sample_count_for_eval: int,
     n_folds: int,
     classes: list[str],
+        id_2_category_path: Optional[str] = None
 ) -> tuple[list, list, list, list]:
     """
     This function evaluates results of the specified experiment
@@ -68,6 +70,9 @@ def eval_experiment(
 
     class_2_ap_vals, class_2_rocauc_vals, class_2_mccf1_vals, class_2_pr_vals = [[] for _ in range(4)]
 
+    if id_2_category_path is not None:
+        with open(id_2_category_path, 'rb') as file:
+            id_2_category = pickle.load(file)
     for fold_i, fold_root_dir in fold_2_root_dir.items():
         logger.info("Processing fold %d with root dir %s", fold_i, str(fold_root_dir))
         class_2_ap = {}
@@ -99,23 +104,29 @@ def eval_experiment(
                             val_proba_np, class_names_in_fold, test_df = pickle.load(
                                 file
                             )
+                        if class_name in class_names_in_fold:
                             if not isinstance(class_names_in_fold, list):
                                 class_names_in_fold = list(class_names_in_fold)
                             y_true = test_df[target_col].map(lambda x: class_name in x)
                             y_pred = val_proba_np[
                                 :, class_names_in_fold.index(class_name)
                             ]
-
-                            if y_true.sum() >= min_sample_count_for_eval:
-                                average_precision = average_precision_score(
-                                    y_true, y_pred
-                                )
-                                mccf1 = summary_mccf1(y_true, y_pred)["mccf1_metric"]
-                                auc = roc_auc_score(y_true, y_pred)
-                                class_2_mccf1[class_name] = mccf1
-                                class_2_ap[class_name] = average_precision
-                                class_2_auc[class_name] = auc
-                                class_2_pr[class_name] = precision_recall_curve(y_true, y_pred)
+                            current_categories = test_df['Uniprot ID'].map(lambda x: id_2_category.get(x, 'Unknown') if id_2_category_path is not None else '')
+                            for category in set(current_categories).difference({'Unknown'}):
+                                is_category_bool = current_categories.isin({category, 'Unknown'})
+                                y_true_category = y_true[is_category_bool]
+                                y_pred_category = y_pred[is_category_bool]
+                                class_name_to_record = class_name if category == '' else f"{category}_|_{class_name}"
+                                if y_true_category.sum() >= min_sample_count_for_eval:
+                                    average_precision = average_precision_score(
+                                        y_true_category, y_pred_category
+                                    )
+                                    mccf1 = summary_mccf1(y_true_category, y_pred_category)["mccf1_metric"]
+                                    auc = roc_auc_score(y_true_category, y_pred_category)
+                                    class_2_mccf1[class_name_to_record] = mccf1
+                                    class_2_ap[class_name_to_record] = average_precision
+                                    class_2_auc[class_name_to_record] = auc
+                                    class_2_pr[class_name_to_record] = precision_recall_curve(y_true_category, y_pred_category)
                     except FileNotFoundError:
                         logger.warning(
                             "Fold %d results were not found for (%s)",
@@ -165,6 +176,7 @@ def evaluate_selected_experiments(args: argparse.Namespace):
                 min_sample_count_for_eval=args.minimal_count_to_eval,
                 n_folds=args.n_folds,
                 classes=args.classes,
+                id_2_category_path=args.id_2_category_path
             )
         except AssertionError as error:
             raise NotImplementedError(
@@ -203,6 +215,7 @@ def evaluate_selected_experiments(args: argparse.Namespace):
                     min_sample_count_for_eval=args.minimal_count_to_eval,
                     n_folds=args.n_folds,
                     classes=args.classes,
+                    id_2_category_path=args.id_2_category_path
                 )
             except (AssertionError, NotImplementedError):
                 # raise NotImplementedError(
@@ -241,8 +254,12 @@ def evaluate_selected_experiments(args: argparse.Namespace):
     if not eval_output_path.exists():
         eval_output_path.mkdir(parents=True)
 
-    for model_name in model_2_class_2_ap_vals.keys():
-        for class_name in args.classes:
+    for model_name, class_2_vals_list in model_2_class_2_ap_vals.items():
+        # getting all present class names
+        present_class_names = set()
+        for class_2_vals in class_2_vals_list:
+            present_class_names = present_class_names.union(class_2_vals.keys())
+        for class_name in present_class_names:
             class_results_model.append(model_name)
             class_results_class_name.append(class_name)
             ap_values = [
@@ -317,6 +334,9 @@ def evaluate_selected_experiments(args: argparse.Namespace):
 
     with open(eval_output_path / f"model_2_class_2_pr_vals{args.output_filename}.pkl", "wb") as file:
         pickle.dump(model_2_class_2_pr_vals, file)
+
+    with open(eval_output_path / f"model_2_class_2_metric_vals_{args.output_filename}.pkl", "wb") as file:
+        pickle.dump((model_2_class_2_ap_vals, model_2_class_2_rocauc_vals, model_2_class_2_mccf1_vals), file)
 
 
 def compute_mean_and_standard_error(
