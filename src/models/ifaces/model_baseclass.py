@@ -57,12 +57,19 @@ class BaseModel(ABC, BaseEstimator):
         """
         raise NotImplementedError
 
-    @abstractmethod
     def save(self, experiment_output_folder: Optional[Path | str] = None):
         """
         Function for model persistence
         """
-        raise NotImplementedError
+        if experiment_output_folder is None:
+            experiment_output_folder = self.output_root
+        experiment_output_folder = Path(experiment_output_folder)
+        with open(
+            experiment_output_folder
+            / f"model_fold_{self.config.experiment_info.fold}.pkl",
+            "wb",
+        ) as file:
+            pickle.dump(self, file)
 
     def fit(self, train_df: pd.DataFrame):
         """

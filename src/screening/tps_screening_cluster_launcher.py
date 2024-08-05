@@ -2,8 +2,12 @@
 import argparse
 import subprocess
 import time
+import logging
 
-import GPUtil  # type: ignore
+# import GPUtil  # type: ignore
+
+logger = logging.getLogger(__file__)
+logging.basicConfig(level=logging.INFO)
 
 
 def parse_args() -> argparse.Namespace:
@@ -17,7 +21,32 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--n-gpus", type=int, default=8)
     parser.add_argument("--fasta-path", type=str, default="data/uniprot_trembl.fasta")
     parser.add_argument("--output-root", type=str, default="trembl_screening")
+    parser.add_argument("--model", type=str, default="esm-1v-finetuned-subseq")
+    parser.add_argument("--detection-threshold", type=float, default=0.2)
+    parser.add_argument("--detect-precursor-synthases", action="store_true")
+
     return parser.parse_args()
+
+
+def get_amd_gpu_utilization():
+    """
+    Function to retrieve the utilization of AMD GPUs using the `rocm-smi` tool.
+
+    :return: A dictionary mapping GPU IDs to their utilization rates as a float value between 0 and 1.
+    """
+
+    result = subprocess.run(
+        ["rocm-smi", "--showuse"], capture_output=True, text=True, check=False
+    )
+    gpu_utilization = {}
+    lines = result.stdout.split("\n")
+    for line in lines:
+        if "GPU use" in line:
+            parts = line.split()
+            gpu_id = int(parts[0].replace("GPU[", "").replace("]", ""))
+            gpu_usage = float(parts[5]) / 100.0
+            gpu_utilization[gpu_id] = gpu_usage
+    return gpu_utilization
 
 
 class GpuAllocator:
@@ -26,17 +55,48 @@ class GpuAllocator:
     """
 
     def __init__(self, n_gpus: int = 8):
-        self.available_gpus = set(
-            GPUtil.getAvailable(
-                order="PCI_BUS_ID",
-                limit=100,  # big M (i.e. unreachable upper bound)
-                maxLoad=0.5,
-                maxMemory=0.5,
-                includeNan=False,
-                excludeID=[],
-                excludeUUID=[],
+        # self.available_gpus = set(
+        #     GPUtil.getAvailable(
+        #         order="PCI_BUS_ID",
+        #         limit=100,  # big M (i.e. unreachable upper bound)
+        #         maxLoad=0.5,
+        #         maxMemory=0.5,
+        #         includeNan=False,
+        #         excludeID=[],
+        #         excludeUUID=[],
+        #     )
+        # )
+
+        def get_amd_gpu_memory_usage():
+            result = subprocess.run(
+                ["rocm-smi", "--showmemuse"],
+                capture_output=True,
+                text=True,
+                check=False,
             )
-        )
+            gpu_memory_usage = {}
+            lines = result.stdout.split("\n")
+            for line in lines:
+                if "GPU memory use" in line:
+                    parts = line.split()
+                    gpu_id = int(parts[0].replace("GPU[", "").replace("]", ""))
+                    memory_usage = float(parts[6]) / 100.0
+                    gpu_memory_usage[gpu_id] = memory_usage
+            return gpu_memory_usage
+
+        def get_available_amd_gpus(max_load=0.5, max_memory=0.5):
+            gpu_utilization = get_amd_gpu_utilization()
+            gpu_memory_usage = get_amd_gpu_memory_usage()
+            available_gpus = set()
+            for gpu_id, current_utilization in gpu_utilization.items():
+                if (
+                    current_utilization <= max_load
+                    and gpu_memory_usage.get(gpu_id, 1.0) <= max_memory
+                ):
+                    available_gpus.add(gpu_id)
+            return available_gpus
+
+        self.available_gpus = get_available_amd_gpus(max_load=0.5, max_memory=0.5)
         self.process_id_2_gpu_id: dict[subprocess.Popen, int] = {}
         self.n_gpus = n_gpus
 
@@ -100,10 +160,11 @@ if __name__ == "__main__":
 
     gpu_allocator = GpuAllocator()
 
-    starting_i = (args.karolina_session - 1) * args.n_gpus * args.delta
+    starting_i = (args.session_i - 1) * args.n_gpus * args.delta
 
     for gpu_i in range(args.n_gpus):
-        with subprocess.Popen(
+        # pylint: disable=R1732
+        current_process = subprocess.Popen(
             [
                 "python",
                 "-m",
@@ -117,15 +178,19 @@ if __name__ == "__main__":
                 "--batch-size",
                 "32",
                 "--clf-batch-size",
-                "10000",
-                "--session-i",
-                str(args.session_i),
+                "4096",
                 "--fasta-path",
                 args.fasta_path,
                 "--output-root",
                 args.output_root,
+                "--model",
+                args.model,
+                "--detection-threshold",
+                str(args.detection_threshold),
+                "--detect-precursor-synthases",
+                str(args.detect_precursor_synthases),
             ]
-        ) as current_process:
-            gpu_allocator.assign_process_to_gpu(current_process, gpu_i)
+        )
+        gpu_allocator.assign_process_to_gpu(current_process, gpu_i)
 
     gpu_allocator.wait_for_complete_finish()

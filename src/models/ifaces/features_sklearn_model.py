@@ -1,8 +1,6 @@
 """Module with interfaces for scikit-learn-compatible predictive models
 built on top of numerical protein representations (features)"""
 import logging
-import pickle
-from pathlib import Path
 from typing import Optional
 
 import numpy as np  # type: ignore
@@ -228,14 +226,3 @@ class FeaturesSklearnModel(BaseModel):
                         else y_pred_proba[:, 1]
                     )
         return val_proba_np
-
-    def save(self, experiment_output_folder: Optional[Path | str] = None):
-        if experiment_output_folder is None:
-            experiment_output_folder = self.output_root
-        experiment_output_folder = Path(experiment_output_folder)
-        with open(
-            experiment_output_folder
-            / f"model_fold_{self.config.experiment_info.fold}.pkl",
-            "wb",
-        ) as file:
-            pickle.dump(self, file)

@@ -76,6 +76,7 @@ if __name__ == "__main__":
             ) from index_error
         with open(fold_class_latest_path / f"model_fold_{fold_i}.pkl", "rb") as file:
             model = pickle.load(file)
+        model.classifier.classes_ = model.config.class_names
         classifiers.append(model.classifier)
 
     with open(args.output_path, "wb") as file_writer:

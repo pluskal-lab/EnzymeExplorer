@@ -39,6 +39,14 @@ class PlmDomainsRandomForest(PlmRandomForest):
         self.allowed_feat_indices: list[int] = None  # type: ignore
         self.features_df_plm = self.features_df.copy()
         self.features_df = None
+        # to experiment with the domain features subset
+        if "domains_subset" in self.config.experiment_info.model_version:
+            # to obtain the subset of domain features, run the following code:
+            # python -m src.models.plm_domain_faster.get_domains_feature_importances
+            with open("data/domains_subset.pkl", "rb") as file:
+                _, self.feat_indices_subset = pickle.load(file)
+        else:
+            self.feat_indices_subset = set()
 
     def fit_core(self, train_df: pd.DataFrame, class_name: str = None):
         """
@@ -50,7 +58,7 @@ class PlmDomainsRandomForest(PlmRandomForest):
         (
             self.allowed_feat_indices,
             dom_features_df,
-        ) = compare_domains_to_known_instances(train_df, self)
+        ) = compare_domains_to_known_instances(train_df, self, self.feat_indices_subset)
         dom_features_df["Emb_dom"] = dom_features_df["Emb"]
 
         self.features_df = self.features_df_plm.merge(

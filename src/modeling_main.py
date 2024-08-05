@@ -3,6 +3,7 @@
 import argparse
 
 from src.evaluation import evaluate_selected_experiments
+from src.evaluation.plotting import plot_selected_results
 from src.experiments_orchestration.experiment_runner import run_experiment
 from src.experiments_orchestration.experiment_selector import (
     collect_single_experiment_arguments,
@@ -58,6 +59,12 @@ def parse_args() -> argparse.Namespace:
         type=str,
         default="all_results",
     )
+    parser_eval.add_argument(
+        "--id-2-category-path",
+        help="A path to file containing categories to be evaluated separately (e.g., kingdoms)",
+        type=str,
+        default=None,
+    )
 
     parser_tune = subparsers.add_parser(
         "tune", help="Run experiments with hyper-parameter tuning"
@@ -84,6 +91,8 @@ def parse_args() -> argparse.Namespace:
             "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",
             "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O.CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",
             "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O.CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",
+            "precursor substr",
+            "isTPS",
         ],
     )
     parser_tune.add_argument(
@@ -91,6 +100,77 @@ def parse_args() -> argparse.Namespace:
         type=int,
         help="A number of folds used in CV",
         default=5,
+    )
+
+    parser_vis = subparsers.add_parser("visualize", help="Run visualizations")
+    parser_vis.set_defaults(cmd="visualize")
+    parser_vis.add_argument(
+        "--eval-output-filename",
+        help="A file with saved evaluation results",
+        type=str,
+        default="all_results",
+    )
+    parser_vis.add_argument(
+        "--models",
+        help="A list of models for visualization",
+        type=str,
+        nargs="+",
+        default=[
+            "CLEAN__with_minor_reactions",
+            "HMM__with_minor_reactions",
+            "Foldseek__with_minor_reactions",
+            "Blastp__with_minor_reactions",
+            "PlmDomainsRandomForest__tps_esm-1v-subseq_with_minor_reactions_global_tuning_domains_subset",
+        ],
+    )
+    parser_vis.add_argument(
+        "--model-names",
+        help="A list of model names to be displayed",
+        type=str,
+        nargs="+",
+        default=["CLEAN", "HMM", "Foldseek", "Blastp", "Ours"],
+    )
+    parser_vis.add_argument(
+        "--subset-name",
+        help="A name for comparison",
+        type=str,
+        default=None,
+    )
+    parser_vis.add_argument("--plot-tps-detection", action="store_true")
+    parser_vis.add_argument("--plot-boxplots-per-type", action="store_true")
+    parser_vis.add_argument(
+        "--type-detected",
+        help="A TPS type to evaluate detection",
+        type=str,
+        default="isTPS",
+    )
+    parser_vis.add_argument(
+        "--id-2-category-path",
+        help="A path to file containing categories to be evaluated separately (e.g., kingdoms)",
+        type=str,
+        default=None,
+    )
+    parser_vis.add_argument("--plot-barplots-per-category", action="store_true")
+    parser_vis.add_argument(
+        "--category-name",
+        help="A name of category to be evaluated separately (e.g., Kingdom)",
+        type=str,
+        default="Kingdom",
+    )
+    parser_vis.add_argument(
+        "--categories-order",
+        help="A list of category names to be displayed in the defined order",
+        type=str,
+        nargs="+",
+        default=[
+            "Bacteria",
+            "Fungi",
+            "Plants",
+            "Animals",
+            "Protists",
+            "Viruses",
+            "Archaea",
+        ],
     )
     args = parser.parse_args()
     return args
@@ -147,3 +227,5 @@ if __name__ == "__main__":
         evaluate_selected_experiments(arguments)
     elif arguments.cmd == "tune":
         tune_hyperparameters(arguments)
+    elif arguments.cmd == "visualize":
+        plot_selected_results(arguments)
