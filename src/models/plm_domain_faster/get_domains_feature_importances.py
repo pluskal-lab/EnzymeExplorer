@@ -6,7 +6,7 @@ Usage: python -m src.models.plm_domain_faster.get_domains_feature_importances
 import argparse
 import pickle
 
-import pandas as pd
+import pandas as pd  # type: ignore
 
 from src.experiments_orchestration.experiment_selector import (
     collect_single_experiment_arguments,
@@ -73,7 +73,7 @@ if __name__ == "__main__":
 
     n_folds = args.n_folds
     experiment_output_folder_root = (
-        get_output_root() / experiment_info.model_type / experiment_info.model_version
+            get_output_root() / experiment_info.model_type / experiment_info.model_version
     )
     assert (
         experiment_output_folder_root.exists()
@@ -82,8 +82,8 @@ if __name__ == "__main__":
         x.stem for x in experiment_output_folder_root.glob("*")
     }
     if (
-        len(model_version_fold_folders.intersection(set(map(str, range(n_folds)))))
-        == n_folds
+            len(model_version_fold_folders.intersection(set(map(str, range(n_folds)))))
+            == n_folds
     ):
         fold_2_root_dir = {
             fold_i: experiment_output_folder_root / f"{fold_i}"
@@ -99,8 +99,8 @@ if __name__ == "__main__":
             f"Not all fold outputs found. Please run corresponding experiments ({experiment_info}) before evaluation"
         )
 
-    domains_subset = set()
-    feat_indices_subset = set()
+    domains_subset: set = set()
+    feat_indices_subset: set = set()
     for fold_i, fold_root_dir in fold_2_root_dir.items():
         fold_class_path = fold_root_dir / "all_classes"
         assert fold_class_path.exists(), "Only all_classes are supported"

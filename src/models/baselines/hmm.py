@@ -2,9 +2,9 @@
 from dataclasses import dataclass
 from typing import Type, Optional
 
-import numpy as np
-import pandas as pd
-from profun.models import ProfileHMM
+import numpy as np  # type: ignore
+import pandas as pd  # type: ignore
+from profun.models import ProfileHMM  # type: ignore
 
 from src.models.ifaces import BaseModel, BaseConfig
 
@@ -36,15 +36,32 @@ class HMM(BaseModel):
         self.hmm = ProfileHMM(config=config)
 
     def fit_core(self, train_df: pd.DataFrame, class_name: str = None):
+        """
+        Function to train the core components of the model using the HMM (Hidden Markov Model).
+
+        :param train_df: A pandas DataFrame containing the training data.
+        :param class_name: The name of a class for separate model fitting for the class. Defaults to None.
+        """
+
         self.hmm.fit_core(train_df, class_name)
 
     def predict_proba(
-        self,
-        val_df: pd.DataFrame | np.ndarray,
-        selected_class_name: Optional[str] = None,
+            self,
+            val_df: pd.DataFrame,
+            selected_class_name: Optional[str] = None,
     ) -> np.ndarray:
+        """
+        Function to predict class probabilities for the given validation data using the Hidden Markov Model (HMM).
+
+        :param val_df: A pandas DataFrame containing the validation data.
+        :param selected_class_name: An optional parameter for selecting a class. Defaults to None.
+                                    Note: This model does not support class selection and will raise an assertion error if a class name is provided.
+
+        :return: A numpy ndarray containing the predicted class probabilities.
+        """
+
         assert (
-            selected_class_name is None
+                selected_class_name is None
         ), "This model does not support class selection."
         return self.hmm.predict_proba(val_df)
 

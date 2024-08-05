@@ -29,7 +29,15 @@ def parse_args() -> argparse.Namespace:
 
 
 def get_amd_gpu_utilization():
-    result = subprocess.run(["rocm-smi", "--showuse"], capture_output=True, text=True)
+    """
+    Function to retrieve the utilization of AMD GPUs using the `rocm-smi` tool.
+
+    :return: A dictionary mapping GPU IDs to their utilization rates as a float value between 0 and 1.
+    """
+
+    result = subprocess.run(
+        ["rocm-smi", "--showuse"], capture_output=True, text=True, check=False
+    )
     gpu_utilization = {}
     lines = result.stdout.split("\n")
     for line in lines:
@@ -61,7 +69,10 @@ class GpuAllocator:
 
         def get_amd_gpu_memory_usage():
             result = subprocess.run(
-                ["rocm-smi", "--showmemuse"], capture_output=True, text=True
+                ["rocm-smi", "--showmemuse"],
+                capture_output=True,
+                text=True,
+                check=False,
             )
             gpu_memory_usage = {}
             lines = result.stdout.split("\n")
@@ -77,16 +88,15 @@ class GpuAllocator:
             gpu_utilization = get_amd_gpu_utilization()
             gpu_memory_usage = get_amd_gpu_memory_usage()
             available_gpus = set()
-            for gpu_id in gpu_utilization:
+            for gpu_id, current_utilization in gpu_utilization.items():
                 if (
-                    gpu_utilization[gpu_id] <= max_load
-                    and gpu_memory_usage.get(gpu_id, 1.0) <= max_memory
+                        current_utilization <= max_load
+                        and gpu_memory_usage.get(gpu_id, 1.0) <= max_memory
                 ):
                     available_gpus.add(gpu_id)
             return available_gpus
 
         self.available_gpus = get_available_amd_gpus(max_load=0.5, max_memory=0.5)
-        logger.info(f"Available GPUs: {self.available_gpus}")
         self.process_id_2_gpu_id: dict[subprocess.Popen, int] = {}
         self.n_gpus = n_gpus
 
@@ -94,7 +104,6 @@ class GpuAllocator:
         """
         Check if any of the processes have finished and free the GPU
         """
-        logger.info(f"GPUs' utilization is: {get_amd_gpu_utilization()}")
         for process in list(self.process_id_2_gpu_id.keys()):
             if process.poll() is not None:
                 self.available_gpus.add(self.process_id_2_gpu_id[process])
@@ -154,6 +163,7 @@ if __name__ == "__main__":
     starting_i = (args.session_i - 1) * args.n_gpus * args.delta
 
     for gpu_i in range(args.n_gpus):
+        # pylint: disable=R1732
         current_process = subprocess.Popen(
             [
                 "python",

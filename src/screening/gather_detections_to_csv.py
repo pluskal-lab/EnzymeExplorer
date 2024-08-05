@@ -7,8 +7,8 @@ import os
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
-import pandas as pd
-from tqdm import tqdm
+import pandas as pd  # type: ignore
+from tqdm import tqdm  # type: ignore
 
 logger = logging.getLogger(__file__)
 logging.basicConfig(level=logging.INFO)
@@ -55,21 +55,23 @@ if __name__ == "__main__":
     all_files = [file for file in screening_results_root.glob("*") if file.is_file()]
     for detected_file in tqdm(all_files, desc="Processing detection files"):
         if ".csv" not in detected_file.name:
-            with open(detected_file, "r") as file:
+            with open(detected_file, "r", encoding="utf-8") as file:
                 content = json.load(file)
             ids.append(detected_file.name)
             for class_name, prob in content.items():
                 predicted_class_2_vals[class_name].append(prob)
-            processed_files.append(detected_file)
+            processed_files.append(str(detected_file))
 
     predicted_class_2_vals.update({"ID": ids})
     df_detections = pd.DataFrame(predicted_class_2_vals)
     df_detections.to_csv(args.output_path, index=False)
     logger.info(
-        f"Screening results gathered into {args.output_path} with {len(df_detections)} rows"
+        "Screening results gathered into %s with %d rows",
+        args.output_path,
+        len(df_detections),
     )
 
     if args.delete_individual_files:
-        for file in processed_files:
-            os.remove(file)
-        logger.info(f"Deleted {len(processed_files)} individual files")
+        for file_to_delete in processed_files:
+            os.remove(file_to_delete)
+        logger.info("Deleted %d individual files", len(processed_files))

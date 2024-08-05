@@ -102,9 +102,7 @@ def parse_args() -> argparse.Namespace:
         default=5,
     )
 
-    parser_vis = subparsers.add_parser(
-        "visualize", help="Run visualizations"
-    )
+    parser_vis = subparsers.add_parser("visualize", help="Run visualizations")
     parser_vis.set_defaults(cmd="visualize")
     parser_vis.add_argument(
         "--eval-output-filename",
@@ -122,7 +120,7 @@ def parse_args() -> argparse.Namespace:
             "HMM__with_minor_reactions",
             "Foldseek__with_minor_reactions",
             "Blastp__with_minor_reactions",
-            "PlmDomainsRandomForest__tps_esm-1v-subseq_with_minor_reactions_global_tuning_domains_subset"
+            "PlmDomainsRandomForest__tps_esm-1v-subseq_with_minor_reactions_global_tuning_domains_subset",
         ],
     )
     parser_vis.add_argument(
@@ -130,13 +128,7 @@ def parse_args() -> argparse.Namespace:
         help="A list of model names to be displayed",
         type=str,
         nargs="+",
-        default=[
-            "CLEAN",
-            "HMM",
-            "Foldseek",
-            "Blastp",
-            "Ours"
-        ],
+        default=["CLEAN", "HMM", "Foldseek", "Blastp", "Ours"],
     )
     parser_vis.add_argument(
         "--subset-name",
@@ -163,7 +155,7 @@ def parse_args() -> argparse.Namespace:
         "--category-name",
         help="A name of category to be evaluated separately (e.g., Kingdom)",
         type=str,
-        default='Kingdom',
+        default="Kingdom",
     )
     parser_vis.add_argument(
         "--categories-order",
@@ -171,7 +163,13 @@ def parse_args() -> argparse.Namespace:
         type=str,
         nargs="+",
         default=[
-            'Bacteria', 'Fungi', 'Plants', 'Animals', 'Protists', 'Viruses', 'Archaea'
+            "Bacteria",
+            "Fungi",
+            "Plants",
+            "Animals",
+            "Protists",
+            "Viruses",
+            "Archaea",
         ],
     )
     args = parser.parse_args()

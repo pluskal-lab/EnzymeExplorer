@@ -143,9 +143,15 @@ def run_experiment(experiment_info: ExperimentInfo):
 
                 # checking if the model requires an amino acid sequence or a group (kingdom) column
                 for optional_column_attribute in ["seq_col_name", "group_column_name"]:
-                    if hasattr(config, optional_column_attribute) and getattr(config, optional_column_attribute) is not None:
+                    if (
+                        hasattr(config, optional_column_attribute)
+                        and getattr(config, optional_column_attribute) is not None
+                    ):
                         id_seq_df = tps_df[
-                            [config.id_col_name, getattr(config, optional_column_attribute)]
+                            [
+                                config.id_col_name,
+                                getattr(config, optional_column_attribute),
+                            ]
                         ].drop_duplicates(config.id_col_name)
                         trn_df = trn_df.merge(
                             id_seq_df,
