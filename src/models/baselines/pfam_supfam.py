@@ -47,9 +47,9 @@ class PfamSUPFAM(BaseModel):
         """A placeholder for the compatibility with the BaseModel interface"""
 
     def predict_proba(
-            self,
-            val_df: pd.DataFrame,
-            selected_class_name: Optional[str] = None,
+        self,
+        val_df: pd.DataFrame,
+        selected_class_name: Optional[str] = None,
     ) -> np.ndarray:
         """
         Function to predict class probabilities for the given validation data using profile Hidden Markov Models (pHMM).
@@ -65,7 +65,7 @@ class PfamSUPFAM(BaseModel):
             val_df, pd.DataFrame
         ), "This model does not support class selection."
         assert (
-                selected_class_name is None
+            selected_class_name is None
         ), "This model does not support class selection."
         fasta_str = get_fasta_seqs(
             val_df[self.config.seq_col_name].values,

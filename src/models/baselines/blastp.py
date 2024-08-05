@@ -45,9 +45,9 @@ class Blastp(BaseModel):
         self.blast_matcher.fit_core(train_df, class_name)
 
     def predict_proba(
-            self,
-            val_df: pd.DataFrame,
-            selected_class_name: Optional[str] = None,
+        self,
+        val_df: pd.DataFrame,
+        selected_class_name: Optional[str] = None,
     ) -> np.ndarray:
         """
         Function to predict the class probabilities for the given validation data.
@@ -60,7 +60,7 @@ class Blastp(BaseModel):
         """
 
         assert (
-                selected_class_name is None
+            selected_class_name is None
         ), "This model does not support class selection."
         return self.blast_matcher.predict_proba(val_df)
 

@@ -73,7 +73,7 @@ if __name__ == "__main__":
 
     n_folds = args.n_folds
     experiment_output_folder_root = (
-            get_output_root() / experiment_info.model_type / experiment_info.model_version
+        get_output_root() / experiment_info.model_type / experiment_info.model_version
     )
     assert (
         experiment_output_folder_root.exists()
@@ -82,8 +82,8 @@ if __name__ == "__main__":
         x.stem for x in experiment_output_folder_root.glob("*")
     }
     if (
-            len(model_version_fold_folders.intersection(set(map(str, range(n_folds)))))
-            == n_folds
+        len(model_version_fold_folders.intersection(set(map(str, range(n_folds)))))
+        == n_folds
     ):
         fold_2_root_dir = {
             fold_i: experiment_output_folder_root / f"{fold_i}"

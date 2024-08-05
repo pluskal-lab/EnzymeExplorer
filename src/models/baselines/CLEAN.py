@@ -128,9 +128,9 @@ class CLEAN(BaseModel):
         """Just a placeholder for the interface compatibility"""
 
     def predict_proba(
-            self,
-            val_df: pd.DataFrame,
-            selected_class_name: Optional[str] = None,
+        self,
+        val_df: pd.DataFrame,
+        selected_class_name: Optional[str] = None,
     ) -> np.ndarray:
         """
         Function to predict the class probabilities for the given validation data using the CLEAN model.
@@ -144,7 +144,7 @@ class CLEAN(BaseModel):
         """
 
         assert (
-                selected_class_name is None
+            selected_class_name is None
         ), "This model does not support class selection."
 
         seqs = val_df[self.config.seq_col_name].values
@@ -152,7 +152,7 @@ class CLEAN(BaseModel):
         fasta_str = get_fasta_seqs(seqs, ids)
 
         temp_fasta_path = (
-                self.config.clean_installation_root / "app" / f"_temp_msa_{uuid4()}.fasta"
+            self.config.clean_installation_root / "app" / f"_temp_msa_{uuid4()}.fasta"
         )
         with open(temp_fasta_path, "w", encoding="utf-8") as file:
             file.writelines(fasta_str.replace("'", "").replace('"', ""))
@@ -184,7 +184,7 @@ class CLEAN(BaseModel):
         )
 
         with open(
-                f"results/{temp_fasta_path.stem}_maxsep.csv", "r", encoding="utf-8"
+            f"results/{temp_fasta_path.stem}_maxsep.csv", "r", encoding="utf-8"
         ) as file:
             clean_pred_lines = file.readlines()
         os.chdir(cwd)
@@ -200,7 +200,7 @@ class CLEAN(BaseModel):
         for uni_id, ec_num_2_conf in id_2_class_2_conf.items():
             for ec_num, conf in ec_num_2_conf.items():
                 if ec_num in self.ec_2_substrates and len(
-                        self.ec_2_substrates[ec_num].intersection(self.tps_substrate_smiles)
+                    self.ec_2_substrates[ec_num].intersection(self.tps_substrate_smiles)
                 ):
                     ec_num_substrates = self.ec_2_substrates[ec_num]
                     if len(self.precursor_smiles.intersection(ec_num_substrates)):

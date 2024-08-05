@@ -90,8 +90,8 @@ class GpuAllocator:
             available_gpus = set()
             for gpu_id, current_utilization in gpu_utilization.items():
                 if (
-                        current_utilization <= max_load
-                        and gpu_memory_usage.get(gpu_id, 1.0) <= max_memory
+                    current_utilization <= max_load
+                    and gpu_memory_usage.get(gpu_id, 1.0) <= max_memory
                 ):
                     available_gpus.add(gpu_id)
             return available_gpus

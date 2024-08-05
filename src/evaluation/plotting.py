@@ -17,12 +17,12 @@ mpl.rcParams["ps.fonttype"] = 42
 
 
 def plot_avg_pr_curves_per_class(
-        model_class_2_pr: dict,
-        class_names: list[str],
-        title: str,
-        output_path: str | Path,
-        supported_models: list[str],
-        model_names: list[str],
+    model_class_2_pr: dict,
+    class_names: list[str],
+    title: str,
+    output_path: str | Path,
+    supported_models: list[str],
+    model_names: list[str],
 ):
     """
     Function to plot average precision-recall curves for each class.
@@ -105,7 +105,7 @@ def plot_avg_pr_curves_per_class(
 
 
 def plot_bars(
-        means, std, model_names_plots, title, metric_name, output_path, highlighted_count=1
+    means, std, model_names_plots, title, metric_name, output_path, highlighted_count=1
 ):
     """
     Function to plot a bar chart with error bars representing standard deviation.
@@ -130,7 +130,7 @@ def plot_bars(
         ecolor="black",
         capsize=10,
         color=["lightskyblue"] * (len(model_names_plots) - highlighted_count)
-              + ["dodgerblue"] * highlighted_count,
+        + ["dodgerblue"] * highlighted_count,
     )
 
     ax.set_xticks(list(range(len(model_names_plots))))
@@ -142,13 +142,13 @@ def plot_bars(
 
 
 def plot_boxplots_per_type(
-        models: list[str],
-        substr_2_type: dict,
-        model_2_class_2_metric_vals: dict,
-        metric_name: str,
-        title: str,
-        output_path: str | Path,
-        model_names_plots: list[str],
+    models: list[str],
+    substr_2_type: dict,
+    model_2_class_2_metric_vals: dict,
+    metric_name: str,
+    title: str,
+    output_path: str | Path,
+    model_names_plots: list[str],
 ):
     """
     Function to plot boxplots of metric values for different types across models.
@@ -205,14 +205,14 @@ def plot_boxplots_per_type(
 
 
 def plot_barplots_per_categories(
-        models: list[str],
-        model_2_class_2_metric_vals: dict,
-        categories_order: list[str],
-        category_name: str,
-        metric_name: str,
-        title: str,
-        output_path: str | Path,
-        model_names_plots: list[str],
+    models: list[str],
+    model_2_class_2_metric_vals: dict,
+    categories_order: list[str],
+    category_name: str,
+    metric_name: str,
+    title: str,
+    output_path: str | Path,
+    model_names_plots: list[str],
 ):
     """
     Function to plot bar plots of metric values for different categories across models.
@@ -239,7 +239,7 @@ def plot_barplots_per_categories(
         for fold_dict in class_dicts:
             for category_class_name, val in fold_dict.items():
                 assert (
-                        "_|_" in category_class_name
+                    "_|_" in category_class_name
                 ), "The evaluation results provided were not computed per different categories"
                 category, _ = category_class_name.split("_|_")
                 present_categories.add(category)
@@ -290,12 +290,12 @@ def plot_selected_results(args: argparse.Namespace):
             eval_output_path / f"per_class_{args.eval_output_filename}.csv"
         ).set_index("Model")
         for metric, column_group in zip(
-                ["Average Precision", "ROC-AUC", "MCC-F1 summary"],
-                [
-                    ["Average Precision", "Average Precision sem"],
-                    ["ROC-AUC", "ROC-AUC sem"],
-                    ["MCC-F1 summary", "MCC-F1 summary sem"],
-                ],
+            ["Average Precision", "ROC-AUC", "MCC-F1 summary"],
+            [
+                ["Average Precision", "Average Precision sem"],
+                ["ROC-AUC", "ROC-AUC sem"],
+                ["MCC-F1 summary", "MCC-F1 summary sem"],
+            ],
         ):
             means, stds = [], []
             if args.type_detected == "isTPS":
@@ -306,7 +306,7 @@ def plot_selected_results(args: argparse.Namespace):
                 )
             current_df = per_class_results_df[
                 series_of_categories_to_check == args.type_detected
-                ]
+            ]
             for model in args.models:
                 mean_vals = current_df.loc[model, column_group[0]]
                 std_vals = current_df.loc[model, column_group[1]]
@@ -317,7 +317,7 @@ def plot_selected_results(args: argparse.Namespace):
                     total_mean, total_variance = 0, 0
                     for mean, std in zip(mean_vals, std_vals):
                         total_mean += mean
-                        total_variance += std ** 2
+                        total_variance += std**2
                     mean_val = total_mean / len(mean_vals)
                     std_val = np.sqrt(total_variance) / len(mean_vals)
                 means.append(mean_val)
@@ -334,9 +334,9 @@ def plot_selected_results(args: argparse.Namespace):
             )
 
         with open(
-                eval_output_path
-                / f"model_2_class_2_pr_vals{args.eval_output_filename}.pkl",
-                "rb",
+            eval_output_path
+            / f"model_2_class_2_pr_vals{args.eval_output_filename}.pkl",
+            "rb",
         ) as file:
             model_2_class_2_pr_vals = pickle.load(file)
 
@@ -360,9 +360,9 @@ def plot_selected_results(args: argparse.Namespace):
         )
     elif args.plot_boxplots_per_type:
         with open(
-                eval_output_path
-                / f"model_2_class_2_metric_vals_{args.eval_output_filename}.pkl",
-                "rb",
+            eval_output_path
+            / f"model_2_class_2_metric_vals_{args.eval_output_filename}.pkl",
+            "rb",
         ) as file:
             (
                 model_2_class_2_ap_vals,
@@ -370,12 +370,12 @@ def plot_selected_results(args: argparse.Namespace):
                 model_2_class_2_mccf1_vals,
             ) = pickle.load(file)
         for model_2_class_2_metric_vals, metric_name in zip(
-                [
-                    model_2_class_2_ap_vals,
-                    model_2_class_2_rocauc_vals,
-                    model_2_class_2_mccf1_vals,
-                ],
-                ["Average Precision", "ROC AUC", "MCC-F1 summary"],
+            [
+                model_2_class_2_ap_vals,
+                model_2_class_2_rocauc_vals,
+                model_2_class_2_mccf1_vals,
+            ],
+            ["Average Precision", "ROC AUC", "MCC-F1 summary"],
         ):
             plot_boxplots_per_type(
                 models=args.models,
@@ -384,14 +384,14 @@ def plot_selected_results(args: argparse.Namespace):
                 metric_name=metric_name,
                 title="TPS detection per type",
                 output_path=eval_output_path
-                            / f"{plots_name}_{metric_name}_per_type.png",
+                / f"{plots_name}_{metric_name}_per_type.png",
                 model_names_plots=args.model_names,
             )
     elif args.plot_barplots_per_category:
         with open(
-                eval_output_path
-                / f"model_2_class_2_metric_vals_{args.eval_output_filename}.pkl",
-                "rb",
+            eval_output_path
+            / f"model_2_class_2_metric_vals_{args.eval_output_filename}.pkl",
+            "rb",
         ) as file:
             (
                 model_2_class_2_ap_vals,
@@ -399,12 +399,12 @@ def plot_selected_results(args: argparse.Namespace):
                 model_2_class_2_mccf1_vals,
             ) = pickle.load(file)
         for model_2_class_2_metric_vals, metric_name in zip(
-                [
-                    model_2_class_2_ap_vals,
-                    model_2_class_2_rocauc_vals,
-                    model_2_class_2_mccf1_vals,
-                ],
-                ["Average Precision", "ROC AUC", "MCC-F1 summary"],
+            [
+                model_2_class_2_ap_vals,
+                model_2_class_2_rocauc_vals,
+                model_2_class_2_mccf1_vals,
+            ],
+            ["Average Precision", "ROC AUC", "MCC-F1 summary"],
         ):
             plot_barplots_per_categories(
                 models=args.models,
@@ -414,7 +414,7 @@ def plot_selected_results(args: argparse.Namespace):
                 metric_name=metric_name,
                 title=f"TPS detection per {args.category_name.lower()}",
                 output_path=eval_output_path
-                            / f"{plots_name}_{metric_name}_per_{args.category_name.lower()}.png",
+                / f"{plots_name}_{metric_name}_per_{args.category_name.lower()}.png",
                 model_names_plots=args.model_names,
             )
     else:
@@ -422,16 +422,16 @@ def plot_selected_results(args: argparse.Namespace):
             eval_output_path / f"{args.eval_output_filename}.csv"
         ).set_index("Model")
         for metric, column_group in zip(
-                ["Mean Average Precision", "ROC-AUC", "MCC-F1 summary"],
+            ["Mean Average Precision", "ROC-AUC", "MCC-F1 summary"],
+            [
+                ["Mean Average Precision (mAP)", "mAP - SEM", "mAP + SEM"],
+                ["ROC-AUC (macro mean)", "Mean ROC-AUC - SEM", "Mean ROC-AUC + SEM"],
                 [
-                    ["Mean Average Precision (mAP)", "mAP - SEM", "mAP + SEM"],
-                    ["ROC-AUC (macro mean)", "Mean ROC-AUC - SEM", "Mean ROC-AUC + SEM"],
-                    [
-                        "MCC-F1 summary (macro mean)",
-                        "Mean MCC-F1 summary - SEM",
-                        "Mean MCC-F1 summary + SEM",
-                    ],
+                    "MCC-F1 summary (macro mean)",
+                    "Mean MCC-F1 summary - SEM",
+                    "Mean MCC-F1 summary + SEM",
                 ],
+            ],
         ):
             means, stds = [], []
             for model in args.models:

@@ -281,6 +281,7 @@ python -m src.modeling_main --select-single-experiment run
 On headless servers, you would be prompted to select one of the available configs via the command line:
 ![](data/readme_figures/cli_modeling_demo.gif)
 Otherwise, you can select a model via a simple GUI.
+
 ![](data/readme_figures/gui_demo.gif)
 
 If you want to run hyperparameter optimization in parallel, you can use the following:

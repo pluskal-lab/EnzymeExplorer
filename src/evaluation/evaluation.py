@@ -27,12 +27,12 @@ logging.basicConfig(level=logging.INFO)
 
 
 def eval_experiment(
-        experiment_info: ExperimentInfo,
-        target_col: str,
-        min_sample_count_for_eval: int,
-        n_folds: int,
-        classes: list[str],
-        id_2_category_path: Optional[str] = None,
+    experiment_info: ExperimentInfo,
+    target_col: str,
+    min_sample_count_for_eval: int,
+    n_folds: int,
+    classes: list[str],
+    id_2_category_path: Optional[str] = None,
 ) -> tuple[list, list, list, list]:
     """
     Function for evaluating results of the specified experiment
@@ -48,7 +48,7 @@ def eval_experiment(
     """
     # retrieve the model class
     experiment_output_folder_root = (
-            get_output_root() / experiment_info.model_type / experiment_info.model_version
+        get_output_root() / experiment_info.model_type / experiment_info.model_version
     )
     assert (
         experiment_output_folder_root.exists()
@@ -58,8 +58,8 @@ def eval_experiment(
         x.stem for x in experiment_output_folder_root.glob("*")
     }
     if (
-            len(model_version_fold_folders.intersection(set(map(str, range(n_folds)))))
-            == n_folds
+        len(model_version_fold_folders.intersection(set(map(str, range(n_folds)))))
+        == n_folds
     ):
         logger.info("Found %d fold results for %s", n_folds, str(experiment_info))
         fold_2_root_dir = {
@@ -113,7 +113,7 @@ def eval_experiment(
                         ) from index_error
                     try:
                         with open(
-                                fold_class_latest_path / f"fold_{fold_i}_results.pkl", "rb"
+                            fold_class_latest_path / f"fold_{fold_i}_results.pkl", "rb"
                         ) as file:
                             val_proba_np, class_names_in_fold, test_df = pickle.load(
                                 file
@@ -123,15 +123,15 @@ def eval_experiment(
                                 class_names_in_fold = list(class_names_in_fold)
                             y_true = test_df[target_col].map(lambda x: class_name in x)
                             y_pred = val_proba_np[
-                                     :, class_names_in_fold.index(class_name)
-                                     ]
+                                :, class_names_in_fold.index(class_name)
+                            ]
                             current_categories = test_df["Uniprot ID"].map(
                                 lambda x: id_2_category.get(x, "Unknown")
                                 if id_2_category is not None
                                 else ""
                             )
                             for category in set(current_categories).difference(
-                                    {"Unknown"}
+                                {"Unknown"}
                             ):
                                 is_category_bool = current_categories.isin(
                                     {category, "Unknown"}
@@ -195,10 +195,10 @@ def evaluate_selected_experiments(args: argparse.Namespace):
         experiment_kwargs = collect_single_experiment_arguments(config_root_path)
         experiment_info = ExperimentInfo(**experiment_kwargs)
         config_path = (
-                config_root_path
-                / experiment_info.model_type
-                / experiment_info.model_version
-                / "config.yaml"
+            config_root_path
+            / experiment_info.model_type
+            / experiment_info.model_version
+            / "config.yaml"
         )
         config_dict = BaseConfig.load(config_path)
         try:
@@ -229,10 +229,10 @@ def evaluate_selected_experiments(args: argparse.Namespace):
         for _, experiment_info_row in all_enabled_experiments_df.iterrows():
             experiment_info = ExperimentInfo(**experiment_info_row.to_dict())
             config_path = (
-                    config_root_path
-                    / experiment_info.model_type
-                    / experiment_info.model_version
-                    / "config.yaml"
+                config_root_path
+                / experiment_info.model_type
+                / experiment_info.model_version
+                / "config.yaml"
             )
             config_dict = BaseConfig.load(config_path)
             logger.info(
@@ -370,13 +370,13 @@ def evaluate_selected_experiments(args: argparse.Namespace):
     )
 
     with open(
-            eval_output_path / f"model_2_class_2_pr_vals{args.output_filename}.pkl", "wb"
+        eval_output_path / f"model_2_class_2_pr_vals{args.output_filename}.pkl", "wb"
     ) as file:
         pickle.dump(model_2_class_2_pr_vals, file)
 
     with open(
-            eval_output_path / f"model_2_class_2_metric_vals_{args.output_filename}.pkl",
-            "wb",
+        eval_output_path / f"model_2_class_2_metric_vals_{args.output_filename}.pkl",
+        "wb",
     ) as file:
         pickle.dump(
             (
@@ -389,7 +389,7 @@ def evaluate_selected_experiments(args: argparse.Namespace):
 
 
 def compute_mean_and_standard_error(
-        model_2_class_2_vals: dict[str, list[dict[str, float]]],
+    model_2_class_2_vals: dict[str, list[dict[str, float]]],
 ) -> dict:
     """
     Function to compute the mean and standard error for each model's class metrics.

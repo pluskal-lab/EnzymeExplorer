@@ -20,7 +20,7 @@ triplets_dtype = [
 
 
 def get_fold(
-        fold_i: Union[int, str], path: str = "data/tps_folds.h5", split_desc: str = "all"
+    fold_i: Union[int, str], path: str = "data/tps_folds.h5", split_desc: str = "all"
 ) -> np.ndarray:
     """
     This function returns selected fold of the specified validation split
@@ -78,10 +78,10 @@ def get_str(h5_val: Union[bytes, str]) -> str:
 
 
 def get_train_val_per_fold(
-        fold_i: Union[int, str],
-        path: str = "data/tps_folds.h5",
-        split_desc: str = "all",
-        filter_val_terzyme: bool = False,
+    fold_i: Union[int, str],
+    path: str = "data/tps_folds.h5",
+    split_desc: str = "all",
+    filter_val_terzyme: bool = False,
 ) -> Tuple[np.ndarray, np.ndarray]:
     """
     This function returns train and validation indices for the selected validation fold
@@ -94,7 +94,7 @@ def get_train_val_per_fold(
     val_np = get_fold(fold_i, path, split_desc=split_desc)
 
     if (
-            filter_val_terzyme
+        filter_val_terzyme
     ):  # deprecated as we re-train profileHMM on our richer data to get a stronger baseline
         terzyme_whole_df = pd.read_csv("data/terzyme_data_whole.csv")
         uniprot_ids_terzyme = set(terzyme_whole_df["Uniprot ID"].values)
@@ -116,10 +116,10 @@ def get_train_val_per_fold(
 
 
 def get_tps_df(
-        path_to_file: str,
-        path_to_sampled_negatives: str,
-        remove_fragments: bool = True,
-        max_seq_len: int = 2000,
+    path_to_file: str,
+    path_to_sampled_negatives: str,
+    remove_fragments: bool = True,
+    max_seq_len: int = 2000,
 ) -> pd.DataFrame:
     """
     This function prepares pre-processed terpene synthases dataset as a pandas dataframe
@@ -173,9 +173,9 @@ def get_tps_df(
 
 
 def get_major_classes_distribution(
-        dataframe: pd.DataFrame,
-        target_col: str,
-        major_classes: list,
+    dataframe: pd.DataFrame,
+    target_col: str,
+    major_classes: list,
 ) -> pd.Series:
     """
     The function returns proportions of the specified classes in the selected column of the dataframe
