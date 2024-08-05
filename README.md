@@ -70,10 +70,6 @@ jupyter notebook
 
 Then execute the notebook `notebooks/notebook_1_data_cleaning_from_raw_TPS_table.ipynb`.
 
-# TODO: convert to script
-
-# TODO: from notebook_3_clustering_domains convert reaction type derivation and clean kingdom name derivation to a separate script
-
 #### 2 - Sampling negative examples from Swiss-Prot
 
 We sample negative (non-TPS) sequences from [Swiss-Prot](https://www.expasy.org/resources/uniprotkb-swiss-prot), the
