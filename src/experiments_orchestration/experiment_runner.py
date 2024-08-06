@@ -13,7 +13,7 @@ from tqdm.contrib.logging import logging_redirect_tqdm  # type: ignore
 
 from src import models
 from src.models.ifaces import BaseConfig, BaseModel
-from src.utils.data import get_folds
+from src.utils.data import get_folds, get_tps_df
 from src.utils.project_info import ExperimentInfo, get_config_root
 
 logger = logging.getLogger(__file__)
@@ -111,13 +111,8 @@ def run_experiment(experiment_info: ExperimentInfo):
                     if fold_trn != test_fold
                 ]
                 trn_df = tps_df[tps_df[config.split_col_name].isin(set(trn_folds))]
-                test_df = tps_df[tps_df[config.split_col_name] == f"fold_{test_fold}"]
                 trn_df.loc[
                     trn_df[f"{config.split_col_name}_ignore_in_eval"] == 1,
-                    config.target_col_name,
-                ] = "other"
-                test_df.loc[
-                    test_df[f"{config.split_col_name}_ignore_in_eval"] == 1,
                     config.target_col_name,
                 ] = "other"
                 trn_df = (
@@ -125,15 +120,38 @@ def run_experiment(experiment_info: ExperimentInfo):
                     .agg(set)
                     .reset_index()
                 )
-                test_df = (
-                    test_df.groupby(config.id_col_name)[config.target_col_name]
-                    .agg(set)
-                    .reset_index()
-                )
                 trn_df[config.target_col_name] = trn_df[config.target_col_name].map(
                     lambda x: x
                     if len(x.intersection({"Unknown", "precursor substr"}))
                     else x.union({"isTPS"})
+                )
+
+                if config.run_against_wetlab:
+                    test_df_raw = get_tps_df(
+                        path_to_file="data/df_wetlab_long_clean.csv",
+                        path_to_sampled_negatives="data/sampled_id_2_seq_experimental.pkl",
+                        id_col_name="ID",
+                        remove_fragments=False,
+                    )
+                    test_id_column_name = "ID"
+                    raw_dataset_id_colunm_name = config.id_col_name
+                    trn_df[test_id_column_name] = trn_df[raw_dataset_id_colunm_name]
+                    tps_df[test_id_column_name] = tps_df[raw_dataset_id_colunm_name]
+                    model.config.id_col_name = test_id_column_name
+                else:
+                    test_df_raw = tps_df[
+                        tps_df[config.split_col_name] == f"fold_{test_fold}"
+                    ]
+                    test_df_raw.loc[
+                        test_df_raw[f"{config.split_col_name}_ignore_in_eval"] == 1,
+                        config.target_col_name,
+                    ] = "other"
+                    test_id_column_name = config.id_col_name
+                    model.config.id_col_name = test_id_column_name
+                test_df = (
+                    test_df_raw.groupby(test_id_column_name)[config.target_col_name]
+                    .agg(set)
+                    .reset_index()
                 )
                 test_df[config.target_col_name] = test_df[config.target_col_name].map(
                     lambda x: x
@@ -149,18 +167,23 @@ def run_experiment(experiment_info: ExperimentInfo):
                     ):
                         id_seq_df = tps_df[
                             [
-                                config.id_col_name,
+                                raw_dataset_id_colunm_name,
                                 getattr(config, optional_column_attribute),
                             ]
-                        ].drop_duplicates(config.id_col_name)
+                        ].drop_duplicates(raw_dataset_id_colunm_name)
                         trn_df = trn_df.merge(
                             id_seq_df,
-                            on=config.id_col_name,
+                            on=raw_dataset_id_colunm_name,
                         )
-
+                        test_id_seq_df = test_df_raw[
+                            [
+                                test_id_column_name,
+                                getattr(config, optional_column_attribute),
+                            ]
+                        ].drop_duplicates(test_id_column_name)
                         test_df = test_df.merge(
-                            id_seq_df,
-                            on=config.id_col_name,
+                            test_id_seq_df,
+                            on=test_id_column_name,
                         )
 
                 # fitting the model
@@ -174,6 +197,7 @@ def run_experiment(experiment_info: ExperimentInfo):
                 if save_trained_model:
                     model.save()
 
+                # scoring the model
                 val_proba_np = model.predict_proba(test_df)
                 with open(
                     model.output_root / f"fold_{test_fold}_results.pkl", "wb"

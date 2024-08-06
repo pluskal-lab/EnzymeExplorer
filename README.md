@@ -60,17 +60,7 @@ cd TPS_ML_Discovery
 
 ### Data Preparation
 
-#### 1 - Raw Data Preprocessing
-
-```bash
-cd TPS_ML_Discovery
-conda activate tps_ml_discovery
-jupyter notebook
-```
-
-Then execute the notebook `notebooks/notebook_1_data_cleaning_from_raw_TPS_table.ipynb`.
-
-#### 2 - Sampling negative examples from Swiss-Prot
+#### 1 - Sampling negative examples from Swiss-Prot
 
 We sample negative (non-TPS) sequences from [Swiss-Prot](https://www.expasy.org/resources/uniprotkb-swiss-prot), the
 expertly curated UniProtKB component produced by the UniProt consortium.
@@ -82,14 +72,41 @@ from [UniProt.org Downloads](https://www.uniprot.org/help/downloads) to the data
 ```bash
 cd TPS_ML_Discovery
 conda activate tps_ml_discovery
+mkdir -p outputs/logs
 if [ ! -f data/sampled_id_2_seq.pkl ]; then
     python -m src.data_preparation.get_uniprot_sample \
         --uniprot-fasta-path data/uniprot_sprot.fasta \
+        --output-path "data/sampled_id_2_seq.pkl" \
         --sample-size 10000 > outputs/logs/swissprot_sampling.log 2>&1
 else
     echo "data/sampled_id_2_seq.pkl exists already. You might want to stash it before re-writing the file by the sampling script."
 fi
 ```
+Also, for experimental (wet-lab) validation, we sample Swiss-Prot for negative examples with the same script, while ensuring that the sampled sequences are not present in the training set.
+
+```bash
+cd TPS_ML_Discovery
+conda activate tps_ml_discovery
+if [ ! -f data/sampled_id_2_seq_experimental.pkl ]; then
+    python -m src.data_preparation.get_uniprot_sample \
+        --uniprot-fasta-path data/uniprot_sprot.fasta \
+        --output-path "data/sampled_id_2_seq_experimental.pkl" \
+        --blacklist-path "data/sampled_id_2_seq.pkl" \
+        --sample-size 1000 > outputs/logs/swissprot_sampling_experimental.log 2>&1
+else
+    echo "data/sampled_id_2_seq_experimental.pkl exists already. You might want to stash it before re-writing the file by the sampling script."
+fi
+```
+
+#### 2 - Raw Data Preprocessing
+
+```bash
+cd TPS_ML_Discovery
+conda activate tps_ml_discovery
+python -m src.data_preparation.cleaning_data_from_raw_tps_table
+```
+This data preprocessing script is application-specific. It would require a separate implementation for other enzyme families. 
+For that reason, the script is not configurable via command line arguments.
 
 #### 3 - Computing a phylogenetic tree and clade-based sequence groups
 
