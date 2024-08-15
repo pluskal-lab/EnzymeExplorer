@@ -1,12 +1,40 @@
 [![Code style:black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
 
 [![Checks for coding standard, code smells and typing](https://github.com/samusram/tps_ml_discovery/actions/workflows/ci.yml/badge.svg)](https://github.com/samusram/tps_ml_discovery/actions/workflows/ci.yml)
+
+[![DOI:10.1101/2024.01.29.577750](http://img.shields.io/badge/DOI-10.1101/2024.01.29.577750-B31B1B.svg)](https://doi.org/10.1101/2024.01.29.577750)
 <div align="center">
 
 # Highly accurate discovery of terpene synthases powered by machine learning
 
 ![](data/readme_figures/fig_overview.png)
 </div>
+
+Table of contents
+=================
+
+<!--ts-->
+- [Introduction](#introduction)
+- [Installation](#installation)
+- [Workflow](#workflow)
+  - [Data Preparation](#data-preparation)
+    - [1 - Sampling negative examples from Swiss-Prot](#1---sampling-negative-examples-from-swiss-prot)
+    - [2 - Raw Data Preprocessing](#2---raw-data-preprocessing)
+    - [3 - Computing a phylogenetic tree and clade-based sequence groups](#3---computing-a-phylogenetic-tree-and-clade-based-sequence-groups)
+    - [4 - Preparing validation schema](#4---preparing-validation-schema)
+  - [Structural analysis](#structural-analysis)
+    - [1 - Segmentation of a TPS structure into TPS-specific domains](#1---segmentation-of-a-tps-structure-into-tps-specific-domains)
+    - [2 - Pairwise comparison of the detected domains](#2---pairwise-comparison-of-the-detected-domains)
+    - [3 - Clustering of the detected domains](#3---clustering-of-the-detected-domains)
+  - [Predictive Modeling](#predictive-modeling)
+    - [1 - Extracting numerical embeddings](#1---extracting-numerical-embeddings)
+    - [2 - Training all models with hyperparameter optimization](#2---training-all-models-with-hyperparameter-optimization)
+    - [3 - Evaluating performance](#3---evaluating-performance)
+    - [4 - Visualization of performance](#4---visualization-of-performance)
+  - [Screening large databases](#screening-large-databases)
+- [Reference](#reference)
+    
+<!--te-->
 
 ## Introduction
 
@@ -527,7 +555,7 @@ python -m src.modeling_main visualize --eval-output-filename all_results --plot-
   <img src="outputs/evaluation_results/sester_detection_MCC-F1 summary_sesterTPS.png" width="350" />
 </p>
 
-#### 5 - Screening large databases
+### Screening large databases
 
 Before screening large databases, you need to gather the trained models. To do so, run
 
