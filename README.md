@@ -1,6 +1,6 @@
 [![Code style:black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
 
-[![Checks for coding standard, code smells and typing](https://github.com/samusram/tps_ml_discovery/actions/workflows/ci.yml/badge.svg)](https://github.com/samusram/tps_ml_discovery/actions/workflows/ci.yml)
+[![Checks for coding standard, code smells and typing](https://github.com/samusram/TerpeneMiner/actions/workflows/ci.yml/badge.svg)](https://github.com/samusram/TerpeneMiner/actions/workflows/ci.yml)
 
 [![DOI:10.1101/2024.01.29.577750](http://img.shields.io/badge/DOI-10.1101/2024.01.29.577750-B31B1B.svg)](https://doi.org/10.1101/2024.01.29.577750)
 <div align="center">
@@ -77,9 +77,9 @@ our approach to other enzyme families, accelerating biological discoveries.
 ## Installation
 
 ```bash
-git clone https://github.com/SamusRam/TPS_ML_Discovery.git
+git clone https://github.com/SamusRam/TerpeneMiner.git
 
-cd TPS_ML_Discovery
+cd TerpeneMiner
 
 . scripts/setup_env.sh
 ```
@@ -98,8 +98,8 @@ If you want to sample Swiss-Prot entries on your own, download Swiss-Prot `.fast
 from [UniProt.org Downloads](https://www.uniprot.org/help/downloads) to the data folder and then run
 
 ```bash
-cd TPS_ML_Discovery
-conda activate tps_ml_discovery
+cd TerpeneMiner
+conda activate terpene_miner
 mkdir -p outputs/logs
 if [ ! -f data/sampled_id_2_seq.pkl ]; then
     python -m src.data_preparation.get_uniprot_sample \
@@ -113,8 +113,8 @@ fi
 Also, for experimental (wet-lab) validation, we sample Swiss-Prot for negative examples with the same script, while ensuring that the sampled sequences are not present in the training set.
 
 ```bash
-cd TPS_ML_Discovery
-conda activate tps_ml_discovery
+cd TerpeneMiner
+conda activate terpene_miner
 if [ ! -f data/sampled_id_2_seq_experimental.pkl ]; then
     python -m src.data_preparation.get_uniprot_sample \
         --uniprot-fasta-path data/uniprot_sprot.fasta \
@@ -129,8 +129,8 @@ fi
 #### 2 - Raw Data Preprocessing
 
 ```bash
-cd TPS_ML_Discovery
-conda activate tps_ml_discovery
+cd TerpeneMiner
+conda activate terpene_miner
 python -m src.data_preparation.cleaning_data_from_raw_tps_table
 ```
 This data preprocessing script is application-specific. It would require a separate implementation for other enzyme families. 
@@ -155,8 +155,8 @@ We share the computed phylogenetic groups in `data/phylogenetic_clusters.pkl` fo
 To compute a clade-based sequence group on your own, run
 
 ```bash
-cd TPS_ML_Discovery
-conda activate tps_ml_discovery
+cd TerpeneMiner
+conda activate terpene_miner
 if [ ! -f data/phylogenetic_clusters.pkl ]; then
     python -m src.data_preparation.get_phylogeny_based_clusters \
         --tps-cleaned-csv-path data/TPS-Nov19_2023_verified_all_reactions.csv \
@@ -188,8 +188,8 @@ We share the computed folds in `data/tps_folds_nov2023.h5` for reproducibility.
 To compute the folds on your own, run
 
 ```bash
-cd TPS_ML_Discovery
-conda activate tps_ml_discovery
+cd TerpeneMiner
+conda activate terpene_miner
 if [ ! -f data/tps_folds_nov2023.h5 ]; then
     python -m src.data_preparation.get_balanced_stratified_group_kfolds \
         --negative-samples-path data/sampled_id_2_seq.pkl \
@@ -206,8 +206,8 @@ fi
 Then, to store the folds in corresponding CSVs, run
 
 ```bash
-cd TPS_ML_Discovery
-conda activate tps_ml_discovery
+cd TerpeneMiner
+conda activate terpene_miner
 python -m src.data_preparation.store_folds_into_csv \
     --negative-samples-path data/sampled_id_2_seq.pkl \
     --tps-cleaned-csv-path data/TPS-Nov19_2023_verified_all_reactions.csv \
@@ -244,7 +244,7 @@ Implementation of our structural algorithms is in `utils/structural_algorithms.p
 To use the algorithms for segmenting AF2 structures into TPS-specific domains, run
 
 ```bash
-cd TPS_ML_Discovery
+cd TerpeneMiner
 jupyter notebook
 ```
 
@@ -254,7 +254,7 @@ There you can check an interactive visualization of the TPS-domain segmentations
 accession.
 ![](data/readme_figures/domains_detection_notebook.gif)
 If not running locally,
-see [the notebook HTML version](https://html-preview.github.io/?url=https://github.com/SamusRam/TPS_ML_Discovery/blob/main/notebooks/notebook_2_domain_detections.html#tps_random_id_segmentation).
+see [the notebook HTML version](https://html-preview.github.io/?url=https://github.com/SamusRam/TerpeneMiner/blob/main/notebooks/notebook_2_domain_detections.html#tps_random_id_segmentation).
 
 #### 2 - Pairwise comparison of the detected domains
 
@@ -262,7 +262,7 @@ To perform pairwise comparison of the detected domains with the use of the same 
 algorithms from `utils/structural_algorithms.py`, run
 
 ```bash
-cd TPS_ML_Discovery
+cd TerpeneMiner
 
 python -m src.utils.compute_pairwise_similarities_of_domains \
     --name all \
@@ -280,7 +280,7 @@ subsequently used for domain clustering.
 For clustering, run
 
 ```bash
-cd TPS_ML_Discovery
+cd TerpeneMiner
 jupyter notebook
 ```
 
@@ -293,8 +293,8 @@ Then, execute the notebook `notebooks/notebook_3_clustering_domains.ipynb`.
 First, we extract protein-language-model's (PLM's) embeddings.
 
 ```bash
-cd TPS_ML_Discovery
-conda activate tps_ml_discovery
+cd TerpeneMiner
+conda activate terpene_miner
 . src/embeddings_extraction/extract_all_embeddings.sh > outputs/logs/embeddings_extraction.log 2>&1
 ```
 
@@ -303,8 +303,8 @@ conda activate tps_ml_discovery
 Parameters of the models and/or hyperparameter search can be modified in `configs`.
 
 ```bash
-cd TPS_ML_Discovery
-conda activate tps_ml_discovery
+cd TerpeneMiner
+conda activate terpene_miner
 python -m src.modeling_main run > outputs/logs/models_training.log 2>&1
 ```
 
@@ -314,8 +314,8 @@ If you want to exclude some model, put `.ignore` suffix to the corresponding fol
 If you want to run a single model, run
 
 ```bash
-cd TPS_ML_Discovery
-conda activate tps_ml_discovery
+cd TerpeneMiner
+conda activate terpene_miner
 python -m src.modeling_main --select-single-experiment run
 ```
 
@@ -328,8 +328,8 @@ Otherwise, you can select a model via a simple GUI.
 If you want to run hyperparameter optimization in parallel, you can use the following:
 
 ```bash
-cd TPS_ML_Discovery
-conda activate tps_ml_discovery
+cd TerpeneMiner
+conda activate terpene_miner
 bash scripts/tps_tune.sh # see the script for more details and accommodate to your use case
 ```
 
@@ -342,16 +342,16 @@ folder and run the consequent evaluation steps.
 To evaluate all configured models, run
 
 ```bash
-cd TPS_ML_Discovery
-conda activate tps_ml_discovery
+cd TerpeneMiner
+conda activate terpene_miner
 python -m src.modeling_main evaluate
 ```
 
 Again, if you want to evaluate a single model, run
 
 ```bash
-cd TPS_ML_Discovery
-conda activate tps_ml_discovery
+cd TerpeneMiner
+conda activate terpene_miner
 python -m src.modeling_main --select-single-experiment evaluate --output-filename single_model_specific_name
 ```
 
@@ -560,16 +560,16 @@ python -m src.modeling_main visualize --eval-output-filename all_results --plot-
 Before screening large databases, you need to gather the trained models. To do so, run
 
 ```bash
-cd TPS_ML_Discovery
-conda activate tps_ml_discovery
+cd TerpeneMiner
+conda activate terpene_miner
 python -m src.screening.gather_classifier_checkpoints --output-path data/classifier_checkpoints.pkl
 ```
 
 Next, to estimate the required number of workers for the screening, run
 
 ```bash
-cd TPS_ML_Discovery
-conda activate tps_ml_discovery
+cd TerpeneMiner
+conda activate terpene_miner
 python -m src.screening.estimate_number_of_workers --fasta-path data/uniprot_trembl.fasta --delta 40000 --n-gpus 8
 ```
 
@@ -588,8 +588,8 @@ and you would need to set up the cluster environment yourself.
 This will store individual hits as separate files. To merge them into a single CSV file, run
 
 ```bash
-cd TPS_ML_Discovery
-conda activate tps_ml_discovery
+cd TerpeneMiner
+conda activate terpene_miner
 python -m src.screening.gather_detections_to_csv --screening-results-root "trembl_screening/detections_plm" --output-path "trembl_screening/detections_plm/detections_first_batch.csv" --delete-individual-files
 ``` 
 

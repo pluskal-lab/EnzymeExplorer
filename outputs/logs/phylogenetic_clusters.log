@@ -1,6 +1,6 @@
-INFO:/home/samusevich/TPS_ML_Discovery/utils/data_prep_scripts/get_phylogeny_based_clusters.py:Loading data...
-INFO:/home/samusevich/TPS_ML_Discovery/utils/data_prep_scripts/get_phylogeny_based_clusters.py:Data were loaded! There are 1203 loaded records in total.
-INFO:/home/samusevich/TPS_ML_Discovery/utils/data_prep_scripts/get_phylogeny_based_clusters.py:Generating MSA...
+INFO:/home/samusevich/TerpeneMiner/utils/data_prep_scripts/get_phylogeny_based_clusters.py:Loading data...
+INFO:/home/samusevich/TerpeneMiner/utils/data_prep_scripts/get_phylogeny_based_clusters.py:Data were loaded! There are 1203 loaded records in total.
+INFO:/home/samusevich/TerpeneMiner/utils/data_prep_scripts/get_phylogeny_based_clusters.py:Generating MSA...
 nthread = 64
 nthreadpair = 64
 nthreadtb = 16
@@ -14,39 +14,1323 @@ Gap Penalty = -1.53, +0.00, +0.00
 Making a distance matrix ..
 
 There are 28 ambiguous characters.
-    1 / 1203 (thread    0)  101 / 1203 (thread   12)  201 / 1203 (thread    8)  301 / 1203 (thread   31)  401 / 1203 (thread   30)  501 / 1203 (thread   27)  601 / 1203 (thread   30)  701 / 1203 (thread   11)  801 / 1203 (thread   32)  901 / 1203 (thread    5) 1001 / 1203 (thread    4) 1101 / 1203 (thread   54) 1201 / 1203 (thread   56)
+
+    1 / 1203 (thread    0)
+  101 / 1203 (thread   12)
+  201 / 1203 (thread    8)
+  301 / 1203 (thread   31)
+  401 / 1203 (thread   30)
+  501 / 1203 (thread   27)
+  601 / 1203 (thread   30)
+  701 / 1203 (thread   11)
+  801 / 1203 (thread   32)
+  901 / 1203 (thread    5)
+ 1001 / 1203 (thread    4)
+ 1101 / 1203 (thread   54)
+ 1201 / 1203 (thread   56)
 done.
 
 Constructing a UPGMA tree (efffree=0) ... 
-    0 / 1203   10 / 1203   20 / 1203   30 / 1203   40 / 1203   50 / 1203   60 / 1203   70 / 1203   80 / 1203   90 / 1203  100 / 1203  110 / 1203  120 / 1203  130 / 1203  140 / 1203  150 / 1203  160 / 1203  170 / 1203  180 / 1203  190 / 1203  200 / 1203  210 / 1203  220 / 1203  230 / 1203  240 / 1203  250 / 1203  260 / 1203  270 / 1203  280 / 1203  290 / 1203  300 / 1203  310 / 1203  320 / 1203  330 / 1203  340 / 1203  350 / 1203  360 / 1203  370 / 1203  380 / 1203  390 / 1203  400 / 1203  410 / 1203  420 / 1203  430 / 1203  440 / 1203  450 / 1203  460 / 1203  470 / 1203  480 / 1203  490 / 1203  500 / 1203  510 / 1203  520 / 1203  530 / 1203  540 / 1203  550 / 1203  560 / 1203  570 / 1203  580 / 1203  590 / 1203  600 / 1203  610 / 1203  620 / 1203  630 / 1203  640 / 1203  650 / 1203  660 / 1203  670 / 1203  680 / 1203  690 / 1203  700 / 1203  710 / 1203  720 / 1203  730 / 1203  740 / 1203  750 / 1203  760 / 1203  770 / 1203  780 / 1203  790 / 1203  800 / 1203  810 / 1203  820 / 1203  830 / 1203  840 / 1203  850 / 1203  860 / 1203  870 / 1203  880 / 1203  890 / 1203  900 / 1203  910 / 1203  920 / 1203  930 / 1203  940 / 1203  950 / 1203  960 / 1203  970 / 1203  980 / 1203  990 / 1203 1000 / 1203 1010 / 1203 1020 / 1203 1030 / 1203 1040 / 1203 1050 / 1203 1060 / 1203 1070 / 1203 1080 / 1203 1090 / 1203 1100 / 1203 1110 / 1203 1120 / 1203 1130 / 1203 1140 / 1203 1150 / 1203 1160 / 1203 1170 / 1203 1180 / 1203 1190 / 1203 1200 / 1203
+
+    0 / 1203
+   10 / 1203
+   20 / 1203
+   30 / 1203
+   40 / 1203
+   50 / 1203
+   60 / 1203
+   70 / 1203
+   80 / 1203
+   90 / 1203
+  100 / 1203
+  110 / 1203
+  120 / 1203
+  130 / 1203
+  140 / 1203
+  150 / 1203
+  160 / 1203
+  170 / 1203
+  180 / 1203
+  190 / 1203
+  200 / 1203
+  210 / 1203
+  220 / 1203
+  230 / 1203
+  240 / 1203
+  250 / 1203
+  260 / 1203
+  270 / 1203
+  280 / 1203
+  290 / 1203
+  300 / 1203
+  310 / 1203
+  320 / 1203
+  330 / 1203
+  340 / 1203
+  350 / 1203
+  360 / 1203
+  370 / 1203
+  380 / 1203
+  390 / 1203
+  400 / 1203
+  410 / 1203
+  420 / 1203
+  430 / 1203
+  440 / 1203
+  450 / 1203
+  460 / 1203
+  470 / 1203
+  480 / 1203
+  490 / 1203
+  500 / 1203
+  510 / 1203
+  520 / 1203
+  530 / 1203
+  540 / 1203
+  550 / 1203
+  560 / 1203
+  570 / 1203
+  580 / 1203
+  590 / 1203
+  600 / 1203
+  610 / 1203
+  620 / 1203
+  630 / 1203
+  640 / 1203
+  650 / 1203
+  660 / 1203
+  670 / 1203
+  680 / 1203
+  690 / 1203
+  700 / 1203
+  710 / 1203
+  720 / 1203
+  730 / 1203
+  740 / 1203
+  750 / 1203
+  760 / 1203
+  770 / 1203
+  780 / 1203
+  790 / 1203
+  800 / 1203
+  810 / 1203
+  820 / 1203
+  830 / 1203
+  840 / 1203
+  850 / 1203
+  860 / 1203
+  870 / 1203
+  880 / 1203
+  890 / 1203
+  900 / 1203
+  910 / 1203
+  920 / 1203
+  930 / 1203
+  940 / 1203
+  950 / 1203
+  960 / 1203
+  970 / 1203
+  980 / 1203
+  990 / 1203
+ 1000 / 1203
+ 1010 / 1203
+ 1020 / 1203
+ 1030 / 1203
+ 1040 / 1203
+ 1050 / 1203
+ 1060 / 1203
+ 1070 / 1203
+ 1080 / 1203
+ 1090 / 1203
+ 1100 / 1203
+ 1110 / 1203
+ 1120 / 1203
+ 1130 / 1203
+ 1140 / 1203
+ 1150 / 1203
+ 1160 / 1203
+ 1170 / 1203
+ 1180 / 1203
+ 1190 / 1203
+ 1200 / 1203
 done.
 
 Progressive alignment 1/2... 
-STEP     1 / 1202 (thread    0) fSTEP     2 / 1202 (thread    1) fSTEP     3 / 1202 (thread    2) fSTEP     4 / 1202 (thread    3) fSTEP     5 / 1202 (thread    4) fSTEP     6 / 1202 (thread    5) fSTEP     7 / 1202 (thread    6) fSTEP     8 / 1202 (thread    7) fSTEP     9 / 1202 (thread    8) fSTEP    10 / 1202 (thread    9) fSTEP    11 / 1202 (thread   10) fSTEP    12 / 1202 (thread   11) fSTEP    13 / 1202 (thread   12) fSTEP    14 / 1202 (thread   13) fSTEP    15 / 1202 (thread   14) fSTEP    16 / 1202 (thread   15) fSTEP    17 / 1202 (thread    1) fSTEP    18 / 1202 (thread    0) fSTEP    19 / 1202 (thread   12) fSTEP    20 / 1202 (thread    7) fSTEP    21 / 1202 (thread    4) fSTEP    22 / 1202 (thread    8) fSTEP    23 / 1202 (thread    9) fSTEP    24 / 1202 (thread    2) fSTEP    25 / 1202 (thread    3) fSTEP    26 / 1202 (thread    5) fSTEP    27 / 1202 (thread   15) fSTEP    28 / 1202 (thread    1) fSTEP    29 / 1202 (thread   14) fSTEP    30 / 1202 (thread    6) fSTEP    31 / 1202 (thread   10) fSTEP    34 / 1202 (thread    7) fSTEP    35 / 1202 (thread    8) fSTEP    36 / 1202 (thread    0) fSTEP    37 / 1202 (thread   15) fSTEP    38 / 1202 (thread   12) fSTEP    39 / 1202 (thread   14) fSTEP    40 / 1202 (thread    4) fSTEP    33 / 1202 (thread   11) fSTEP    41 / 1202 (thread    2) fSTEP    42 / 1202 (thread    9) fSTEP    43 / 1202 (thread    3) fSTEP    44 / 1202 (thread    5) fSTEP    45 / 1202 (thread    1) fSTEP    46 / 1202 (thread    0) fSTEP    47 / 1202 (thread    8) fSTEP    48 / 1202 (thread   10) fSTEP    32 / 1202 (thread   13) fSTEP    49 / 1202 (thread    7) fSTEP    50 / 1202 (thread    2) fSTEP    51 / 1202 (thread   12) fSTEP    53 / 1202 (thread    4) fSTEP    54 / 1202 (thread    9) fSTEP    55 / 1202 (thread   14) fSTEP    56 / 1202 (thread   15) fSTEP    57 / 1202 (thread    5) fSTEP    52 / 1202 (thread    6) fSTEP    58 / 1202 (thread    1) fSTEP    59 / 1202 (thread    0) fSTEP    60 / 1202 (thread   14) fSTEP    61 / 1202 (thread    8) fSTEP    62 / 1202 (thread   10) fSTEP    63 / 1202 (thread    7) fSTEP    65 / 1202 (thread   12) fSTEP    66 / 1202 (thread    3) fSTEP    67 / 1202 (thread    4) fSTEP    68 / 1202 (thread    9) fSTEP    69 / 1202 (thread   15) fSTEP    70 / 1202 (thread    1) fSTEP    71 / 1202 (thread   11) fSTEP    73 / 1202 (thread    5) fSTEP    74 / 1202 (thread    0) fSTEP    75 / 1202 (thread    8) fSTEP    64 / 1202 (thread    2) fSTEP    76 / 1202 (thread    9) fSTEP    77 / 1202 (thread    4) fSTEP    78 / 1202 (thread   12) fSTEP    79 / 1202 (thread   10) fSTEP    80 / 1202 (thread   15) fSTEP    81 / 1202 (thread    6) fSTEP    82 / 1202 (thread    7) fSTEP    83 / 1202 (thread   13) fSTEP    84 / 1202 (thread    3) fSTEP    85 / 1202 (thread    9) fSTEP    86 / 1202 (thread    0) fSTEP    87 / 1202 (thread    4) fSTEP    89 / 1202 (thread   10) fSTEP    90 / 1202 (thread   11) fSTEP    72 / 1202 (thread   14) fSTEP    91 / 1202 (thread    2) fSTEP    92 / 1202 (thread    5) fSTEP    94 / 1202 (thread    6) fSTEP    95 / 1202 (thread    8) fSTEP    96 / 1202 (thread    1) fSTEP    97 / 1202 (thread    4) fSTEP    98 / 1202 (thread    9) fSTEP    99 / 1202 (thread   15) fSTEP   100 / 1202 (thread    5) fSTEP   101 / 1202 (thread    6) fSTEP   102 / 1202 (thread   13) fSTEP    88 / 1202 (thread   12) fSTEP   104 / 1202 (thread    0) fSTEP   106 / 1202 (thread   11) fSTEP   107 / 1202 (thread    1) fSTEP   108 / 1202 (thread    9) fSTEP   109 / 1202 (thread   10) fSTEP    93 / 1202 (thread    7) fSTEP   111 / 1202 (thread    6) fSTEP   112 / 1202 (thread    8) fSTEP   110 / 1202 (thread   11) fSTEP   113 / 1202 (thread   15) fSTEP   114 / 1202 (thread   13) fSTEP   115 / 1202 (thread    4) fSTEP   117 / 1202 (thread   10) fSTEP   118 / 1202 (thread   14) fSTEP   120 / 1202 (thread    6) fSTEP   121 / 1202 (thread    4) fSTEP   122 / 1202 (thread   13) fSTEP   123 / 1202 (thread    0) fSTEP   105 / 1202 (thread    2) fSTEP   124 / 1202 (thread   12) fSTEP   125 / 1202 (thread   10) fSTEP   126 / 1202 (thread   15) fSTEP   116 / 1202 (thread    1) fSTEP   128 / 1202 (thread   14) fSTEP   129 / 1202 (thread    9) fSTEP   130 / 1202 (thread   13) fSTEP   131 / 1202 (thread    7) fSTEP   103 / 1202 (thread    3) fSTEP   119 / 1202 (thread    5) fSTEP   133 / 1202 (thread    4) fSTEP   134 / 1202 (thread    6) fSTEP   135 / 1202 (thread   14) fSTEP   136 / 1202 (thread   15) fSTEP   127 / 1202 (thread    8) fSTEP   137 / 1202 (thread   10) fSTEP   138 / 1202 (thread    0) fSTEP   139 / 1202 (thread   12) fSTEP   140 / 1202 (thread    7) fSTEP   132 / 1202 (thread   11) fSTEP   141 / 1202 (thread    2) fSTEP   143 / 1202 (thread    9) fSTEP   142 / 1202 (thread   13) fSTEP   145 / 1202 (thread    3) fSTEP   146 / 1202 (thread    5) fSTEP   147 / 1202 (thread    9) fSTEP   149 / 1202 (thread    7) fSTEP   150 / 1202 (thread    0) fSTEP   151 / 1202 (thread    6) fSTEP   152 / 1202 (thread    2) fSTEP   153 / 1202 (thread   15) fSTEP   154 / 1202 (thread   14) fSTEP   144 / 1202 (thread    1) fSTEP   155 / 1202 (thread   10) fSTEP   156 / 1202 (thread   12) fSTEP   148 / 1202 (thread    4) fSTEP   157 / 1202 (thread    8) fSTEP   158 / 1202 (thread   11) fSTEP   159 / 1202 (thread    6) fSTEP   160 / 1202 (thread   13) fSTEP   161 / 1202 (thread    2) fSTEP   162 / 1202 (thread    7) fSTEP   163 / 1202 (thread    5) fSTEP   164 / 1202 (thread   14) fSTEP   165 / 1202 (thread    3) fSTEP   166 / 1202 (thread   12) fSTEP   167 / 1202 (thread   10) fSTEP   169 / 1202 (thread   15) fSTEP   170 / 1202 (thread    0) fSTEP   171 / 1202 (thread    8) fSTEP   172 / 1202 (thread    1) fSTEP   173 / 1202 (thread    2) fSTEP   174 / 1202 (thread    7) fSTEP   176 / 1202 (thread    6) fSTEP   168 / 1202 (thread    9) fSTEP   177 / 1202 (thread    3) fSTEP   178 / 1202 (thread    0) fSTEP   179 / 1202 (thread   13) fSTEP   180 / 1202 (thread   10) fSTEP   181 / 1202 (thread    8) fSTEP   182 / 1202 (thread   12) fSTEP   183 / 1202 (thread   14) fSTEP   184 / 1202 (thread    1) fSTEP   185 / 1202 (thread   15) fSTEP   186 / 1202 (thread    4) fSTEP   187 / 1202 (thread    7) fSTEP   175 / 1202 (thread   11) fSTEP   188 / 1202 (thread    5) fSTEP   189 / 1202 (thread    2) fSTEP   190 / 1202 (thread    3) fSTEP   191 / 1202 (thread   12) fSTEP   193 / 1202 (thread   13) fSTEP   194 / 1202 (thread    8) fSTEP   195 / 1202 (thread    9) fSTEP   196 / 1202 (thread    4) fSTEP   197 / 1202 (thread    7) fSTEP   198 / 1202 (thread    1) fSTEP   199 / 1202 (thread    0) fSTEP   200 / 1202 (thread    5) fSTEP   201 / 1202 (thread    3) fSTEP   202 / 1202 (thread   12) fSTEP   203 / 1202 (thread    8) fSTEP   204 / 1202 (thread    2) fSTEP   205 / 1202 (thread   15) fSTEP   206 / 1202 (thread   10) fSTEP   192 / 1202 (thread    6) fSTEP   208 / 1202 (thread    4) fSTEP   209 / 1202 (thread    7) fSTEP   210 / 1202 (thread    1) fSTEP   212 / 1202 (thread    3) fSTEP   214 / 1202 (thread    9) fSTEP   207 / 1202 (thread   14) fSTEP   216 / 1202 (thread   11) fSTEP   217 / 1202 (thread    2) fSTEP   218 / 1202 (thread   12) fSTEP   219 / 1202 (thread    1) fSTEP   220 / 1202 (thread    5) fSTEP   211 / 1202 (thread   13) fSTEP   221 / 1202 (thread   10) fSTEP   222 / 1202 (thread    8) fSTEP   223 / 1202 (thread    6) fSTEP   224 / 1202 (thread    2) fSTEP   225 / 1202 (thread    4) fSTEP   226 / 1202 (thread    7) fSTEP   213 / 1202 (thread   15) fSTEP   227 / 1202 (thread    3) fSTEP   228 / 1202 (thread   12) fSTEP   229 / 1202 (thread   11) fSTEP   230 / 1202 (thread    9) fSTEP   231 / 1202 (thread   14) fSTEP   232 / 1202 (thread    6) fSTEP   233 / 1202 (thread    5) fSTEP   234 / 1202 (thread    7)STEP   235 / 1202 (thread    4) f fSTEP   236 / 1202 (thread    1) fSTEP   237 / 1202 (thread   10) fSTEP   238 / 1202 (thread   13) fSTEP   240 / 1202 (thread   12) fSTEP   241 / 1202 (thread    2) fSTEP   242 / 1202 (thread    6) fSTEP   243 / 1202 (thread   14) fSTEP   244 / 1202 (thread    9) fSTEP   239 / 1202 (thread    8) fSTEP   246 / 1202 (thread    5) fSTEP   215 / 1202 (thread    0) fSTEP   249 / 1202 (thread    1) fSTEP   250 / 1202 (thread    7) fSTEP   251 / 1202 (thread    2) fSTEP   252 / 1202 (thread    4) fSTEP   245 / 1202 (thread    3) fSTEP   253 / 1202 (thread    6) fSTEP   248 / 1202 (thread   15) fSTEP   254 / 1202 (thread   13) fSTEP   247 / 1202 (thread   12) fSTEP   256 / 1202 (thread   10) fSTEP   257 / 1202 (thread    7) fSTEP   258 / 1202 (thread   14) fSTEP   259 / 1202 (thread    8) fSTEP   260 / 1202 (thread    4) fSTEP   261 / 1202 (thread   11) fSTEP   262 / 1202 (thread   13) fSTEP   255 / 1202 (thread    5) fSTEP   263 / 1202 (thread    6) fSTEP   266 / 1202 (thread    7) fSTEP   267 / 1202 (thread    0) fSTEP   268 / 1202 (thread   15) fSTEP   269 / 1202 (thread    3) fSTEP   270 / 1202 (thread   14) fSTEP   264 / 1202 (thread    1) fSTEP   272 / 1202 (thread   11) fSTEP   274 / 1202 (thread    7) fSTEP   275 / 1202 (thread    0) fSTEP   276 / 1202 (thread   15) fSTEP   277 / 1202 (thread   14) fSTEP   278 / 1202 (thread    3) fSTEP   279 / 1202 (thread   13) fSTEP   280 / 1202 (thread    6) fSTEP   281 / 1202 (thread    1) fSTEP   265 / 1202 (thread   10) fSTEP   282 / 1202 (thread    5) fSTEP   283 / 1202 (thread    0) fSTEP   284 / 1202 (thread   11) fSTEP   285 / 1202 (thread    4) fSTEP   286 / 1202 (thread    3) fSTEP   287 / 1202 (thread    7) fSTEP   288 / 1202 (thread    6) fSTEP   271 / 1202 (thread   12) fSTEP   292 / 1202 (thread   15) fSTEP   293 / 1202 (thread   10) fSTEP   294 / 1202 (thread    7) fSTEP   295 / 1202 (thread   14) fSTEP   296 / 1202 (thread   11) fSTEP   297 / 1202 (thread    0) fSTEP   298 / 1202 (thread    5) fSTEP   289 / 1202 (thread   13) fSTEP   299 / 1202 (thread    3) fSTEP   300 / 1202 (thread   15) fSTEP   301 / 1202 (thread    4) fSTEP   302 / 1202 (thread    6) fSTEP   303 / 1202 (thread    7) fSTEP   304 / 1202 (thread   10) fSTEP   305 / 1202 (thread    0) fSTEP   306 / 1202 (thread    4) fSTEP   307 / 1202 (thread   14) fSTEP   308 / 1202 (thread    3) fSTEP   309 / 1202 (thread   11) fSTEP   310 / 1202 (thread    5) fSTEP   312 / 1202 (thread   15) fSTEP   313 / 1202 (thread   13) fSTEP   314 / 1202 (thread   12) fSTEP   290 / 1202 (thread    2) fSTEP   315 / 1202 (thread   14) fSTEP   316 / 1202 (thread    4) fSTEP   317 / 1202 (thread    0) fSTEP   311 / 1202 (thread    6) fSTEP   319 / 1202 (thread   10) fSTEP   320 / 1202 (thread   11) fSTEP   318 / 1202 (thread    7) fSTEP   321 / 1202 (thread   13) fSTEP   323 / 1202 (thread    5) fSTEP   324 / 1202 (thread    3) fSTEP   325 / 1202 (thread   12) fSTEP   326 / 1202 (thread    0) fSTEP   327 / 1202 (thread   14) fSTEP   328 / 1202 (thread    5) fSTEP   329 / 1202 (thread    9) fSTEP   273 / 1202 (thread    8) fSTEP   330 / 1202 (thread    6) fSTEP   331 / 1202 (thread    0) fSTEP   332 / 1202 (thread   14) fSTEP   333 / 1202 (thread   12) fSTEP   334 / 1202 (thread   13) fSTEP   335 / 1202 (thread    4) fSTEP   336 / 1202 (thread    7) fSTEP   337 / 1202 (thread    3) fSTEP   338 / 1202 (thread   14) fSTEP   339 / 1202 (thread    2) fSTEP   291 / 1202 (thread    1) fSTEP   340 / 1202 (thread   12) fSTEP   341 / 1202 (thread   10) fSTEP   342 / 1202 (thread    9) fSTEP   343 / 1202 (thread    5) fSTEP   344 / 1202 (thread    6) fSTEP   345 / 1202 (thread   14) fSTEP   346 / 1202 (thread    7) fSTEP   347 / 1202 (thread   11) fSTEP   322 / 1202 (thread   15) fSTEP   348 / 1202 (thread    0) fSTEP   349 / 1202 (thread   10) fSTEP   350 / 1202 (thread   13) fSTEP   351 / 1202 (thread    2) fSTEP   352 / 1202 (thread   11) fSTEP   354 / 1202 (thread    4) fSTEP   355 / 1202 (thread   12) fSTEP   357 / 1202 (thread    9) fSTEP   358 / 1202 (thread    7) fSTEP   359 / 1202 (thread    0) fSTEP   353 / 1202 (thread    5) fSTEP   363 / 1202 (thread   10) fSTEP   356 / 1202 (thread   14) fSTEP   364 / 1202 (thread    7) fSTEP   366 / 1202 (thread   13) fSTEP   367 / 1202 (thread   12) fSTEP   368 / 1202 (thread    4) fSTEP   360 / 1202 (thread    6) fSTEP   370 / 1202 (thread   15) fSTEP   371 / 1202 (thread    0) fSTEP   365 / 1202 (thread   11) fSTEP   372 / 1202 (thread   13) fSTEP   375 / 1202 (thread    7) fSTEP   376 / 1202 (thread    5) fSTEP   361 / 1202 (thread    2) fSTEP   377 / 1202 (thread   14) fSTEP   369 / 1202 (thread    9) fSTEP   378 / 1202 (thread   10) fSTEP   379 / 1202 (thread    0) fSTEP   362 / 1202 (thread    3) fSTEP   381 / 1202 (thread   11) fSTEP   382 / 1202 (thread   12) fSTEP   383 / 1202 (thread    4) fSTEP   384 / 1202 (thread    5) fSTEP   386 / 1202 (thread   11) fSTEP   387 / 1202 (thread   13) fSTEP   388 / 1202 (thread    0) fSTEP   389 / 1202 (thread    2) fSTEP   390 / 1202 (thread    5) fSTEP   391 / 1202 (thread   10) fSTEP   393 / 1202 (thread   12) fSTEP   394 / 1202 (thread    3) fSTEP   373 / 1202 (thread    1) fSTEP   395 / 1202 (thread    4) fSTEP   396 / 1202 (thread    0) fSTEP   398 / 1202 (thread    9) fSTEP   374 / 1202 (thread   15) fSTEP   399 / 1202 (thread    8) fSTEP   400 / 1202 (thread   11) fSTEP   402 / 1202 (thread    5) fSTEP   404 / 1202 (thread    9) fSTEP   403 / 1202 (thread    3) fSTEP   406 / 1202 (thread   11) fSTEP   407 / 1202 (thread    4) fSTEP   401 / 1202 (thread   12) fSTEP   408 / 1202 (thread   10) fSTEP   409 / 1202 (thread    5) fSTEP   410 / 1202 (thread    9) fSTEP   411 / 1202 (thread    1) fSTEP   392 / 1202 (thread   13) fSTEP   412 / 1202 (thread   11) fSTEP   380 / 1202 (thread    6) fSTEP   414 / 1202 (thread    0) fSTEP   415 / 1202 (thread    4) fSTEP   416 / 1202 (thread   10) fSTEP   417 / 1202 (thread    5) fSTEP   405 / 1202 (thread    2) fSTEP   419 / 1202 (thread   12) fSTEP   420 / 1202 (thread    3) fSTEP   421 / 1202 (thread   11) fSTEP   423 / 1202 (thread    4) fSTEP   424 / 1202 (thread    0) fSTEP   425 / 1202 (thread   12) fSTEP   426 / 1202 (thread    5) fSTEP   427 / 1202 (thread   10) fSTEP   428 / 1202 (thread    3) fSTEP   413 / 1202 (thread   15) fSTEP   429 / 1202 (thread   13) fSTEP   430 / 1202 (thread   12) fSTEP   431 / 1202 (thread   11) fSTEP   433 / 1202 (thread    5) fSTEP   385 / 1202 (thread    7) fSTEP   434 / 1202 (thread    6) fSTEP   435 / 1202 (thread   10) fSTEP   436 / 1202 (thread    0) fSTEP   432 / 1202 (thread    2) fSTEP   438 / 1202 (thread    1) fSTEP   439 / 1202 (thread   13) fSTEP   440 / 1202 (thread   10) fSTEP   441 / 1202 (thread    3) fSTEP   442 / 1202 (thread   11) fSTEP   443 / 1202 (thread   12) fSTEP   444 / 1202 (thread   15) fSTEP   418 / 1202 (thread    9) fSTEP   445 / 1202 (thread    6) fSTEP   448 / 1202 (thread    2) fSTEP   449 / 1202 (thread    1) fSTEP   450 / 1202 (thread    0) fSTEP   451 / 1202 (thread   15) fSTEP   452 / 1202 (thread   13) fSTEP   397 / 1202 (thread   14) fSTEP   454 / 1202 (thread    6) fSTEP   455 / 1202 (thread   12) fSTEP   447 / 1202 (thread    5) fSTEP   456 / 1202 (thread    3) fSTEP   457 / 1202 (thread    6) fSTEP   458 / 1202 (thread   15) fSTEP   422 / 1202 (thread    8) fSTEP   459 / 1202 (thread    9) fSTEP   460 / 1202 (thread    2) fSTEP   462 / 1202 (thread   13) fSTEP   463 / 1202 (thread    3) fSTEP   464 / 1202 (thread   15) fSTEP   465 / 1202 (thread   12) fSTEP   466 / 1202 (thread    0) fSTEP   467 / 1202 (thread    6) fSTEP   468 / 1202 (thread    9) fSTEP   446 / 1202 (thread   10) fSTEP   470 / 1202 (thread   14) fSTEP   471 / 1202 (thread    5) fSTEP   472 / 1202 (thread   13) fSTEP   469 / 1202 (thread    6) fSTEP   473 / 1202 (thread   12) fSTEP   474 / 1202 (thread   14) fSTEP   437 / 1202 (thread    4) fSTEP   475 / 1202 (thread    8) fSTEP   478 / 1202 (thread    1) fSTEP   479 / 1202 (thread   15) fSTEP   480 / 1202 (thread    2) fSTEP   477 / 1202 (thread    3) fSTEP   481 / 1202 (thread    6) fSTEP   482 / 1202 (thread   15) fSTEP   483 / 1202 (thread   14) fSTEP   484 / 1202 (thread    5) fSTEP   485 / 1202 (thread    8) fSTEP   486 / 1202 (thread    1) fSTEP   487 / 1202 (thread   15) fSTEP   488 / 1202 (thread    4) fSTEP   476 / 1202 (thread    0) fSTEP   489 / 1202 (thread   10) fSTEP   453 / 1202 (thread    7) fSTEP   490 / 1202 (thread    3) fSTEP   491 / 1202 (thread    6) fSTEP   492 / 1202 (thread    1) fSTEP   493 / 1202 (thread    2) fSTEP   494 / 1202 (thread   14) fSTEP   495 / 1202 (thread    8) fSTEP   496 / 1202 (thread    9) fSTEP   497 / 1202 (thread   12) fSTEP   498 / 1202 (thread    5) fSTEP   499 / 1202 (thread    1) fSTEP   500 / 1202 (thread   10) fSTEP   501 / 1202 (thread    8) fSTEP   461 / 1202 (thread   11) fSTEP   601 / 1202 (thread    6) fSTEP   701 / 1202 (thread   10) fSTEP   801 / 1202 (thread    5) fSTEP   901 / 1202 (thread    1) fSTEP  1001 / 1202 (thread   13) f
+
+STEP     1 / 1202 (thread    0) f
+STEP     2 / 1202 (thread    1) f
+STEP     3 / 1202 (thread    2) f
+STEP     4 / 1202 (thread    3) f
+STEP     5 / 1202 (thread    4) f
+STEP     6 / 1202 (thread    5) f
+STEP     7 / 1202 (thread    6) f
+STEP     8 / 1202 (thread    7) f
+STEP     9 / 1202 (thread    8) f
+STEP    10 / 1202 (thread    9) f
+STEP    11 / 1202 (thread   10) f
+STEP    12 / 1202 (thread   11) f
+STEP    13 / 1202 (thread   12) f
+STEP    14 / 1202 (thread   13) f
+STEP    15 / 1202 (thread   14) f
+STEP    16 / 1202 (thread   15) f
+STEP    17 / 1202 (thread    1) f
+STEP    18 / 1202 (thread    0) f
+STEP    19 / 1202 (thread   12) f
+STEP    20 / 1202 (thread    7) f
+STEP    21 / 1202 (thread    4) f
+STEP    22 / 1202 (thread    8) f
+STEP    23 / 1202 (thread    9) f
+STEP    24 / 1202 (thread    2) f
+STEP    25 / 1202 (thread    3) f
+STEP    26 / 1202 (thread    5) f
+STEP    27 / 1202 (thread   15) f
+STEP    28 / 1202 (thread    1) f
+STEP    29 / 1202 (thread   14) f
+STEP    30 / 1202 (thread    6) f
+STEP    31 / 1202 (thread   10) f
+STEP    34 / 1202 (thread    7) f
+STEP    35 / 1202 (thread    8) f
+STEP    36 / 1202 (thread    0) f
+STEP    37 / 1202 (thread   15) f
+STEP    38 / 1202 (thread   12) f
+STEP    39 / 1202 (thread   14) f
+STEP    40 / 1202 (thread    4) f
+STEP    33 / 1202 (thread   11) f
+STEP    41 / 1202 (thread    2) f
+STEP    42 / 1202 (thread    9) f
+STEP    43 / 1202 (thread    3) f
+STEP    44 / 1202 (thread    5) f
+STEP    45 / 1202 (thread    1) f
+STEP    46 / 1202 (thread    0) f
+STEP    47 / 1202 (thread    8) f
+STEP    48 / 1202 (thread   10) f
+STEP    32 / 1202 (thread   13) f
+STEP    49 / 1202 (thread    7) f
+STEP    50 / 1202 (thread    2) f
+STEP    51 / 1202 (thread   12) f
+STEP    53 / 1202 (thread    4) f
+STEP    54 / 1202 (thread    9) f
+STEP    55 / 1202 (thread   14) f
+STEP    56 / 1202 (thread   15) f
+STEP    57 / 1202 (thread    5) f
+STEP    52 / 1202 (thread    6) f
+STEP    58 / 1202 (thread    1) f
+STEP    59 / 1202 (thread    0) f
+STEP    60 / 1202 (thread   14) f
+STEP    61 / 1202 (thread    8) f
+STEP    62 / 1202 (thread   10) f
+STEP    63 / 1202 (thread    7) f
+STEP    65 / 1202 (thread   12) f
+STEP    66 / 1202 (thread    3) f
+STEP    67 / 1202 (thread    4) f
+STEP    68 / 1202 (thread    9) f
+STEP    69 / 1202 (thread   15) f
+STEP    70 / 1202 (thread    1) f
+STEP    71 / 1202 (thread   11) f
+STEP    73 / 1202 (thread    5) f
+STEP    74 / 1202 (thread    0) f
+STEP    75 / 1202 (thread    8) f
+STEP    64 / 1202 (thread    2) f
+STEP    76 / 1202 (thread    9) f
+STEP    77 / 1202 (thread    4) f
+STEP    78 / 1202 (thread   12) f
+STEP    79 / 1202 (thread   10) f
+STEP    80 / 1202 (thread   15) f
+STEP    81 / 1202 (thread    6) f
+STEP    82 / 1202 (thread    7) f
+STEP    83 / 1202 (thread   13) f
+STEP    84 / 1202 (thread    3) f
+STEP    85 / 1202 (thread    9) f
+STEP    86 / 1202 (thread    0) f
+STEP    87 / 1202 (thread    4) f
+STEP    89 / 1202 (thread   10) f
+STEP    90 / 1202 (thread   11) f
+STEP    72 / 1202 (thread   14) f
+STEP    91 / 1202 (thread    2) f
+STEP    92 / 1202 (thread    5) f
+STEP    94 / 1202 (thread    6) f
+STEP    95 / 1202 (thread    8) f
+STEP    96 / 1202 (thread    1) f
+STEP    97 / 1202 (thread    4) f
+STEP    98 / 1202 (thread    9) f
+STEP    99 / 1202 (thread   15) f
+STEP   100 / 1202 (thread    5) f
+STEP   101 / 1202 (thread    6) f
+STEP   102 / 1202 (thread   13) f
+STEP    88 / 1202 (thread   12) f
+STEP   104 / 1202 (thread    0) f
+STEP   106 / 1202 (thread   11) f
+STEP   107 / 1202 (thread    1) f
+STEP   108 / 1202 (thread    9) f
+STEP   109 / 1202 (thread   10) f
+STEP    93 / 1202 (thread    7) f
+STEP   111 / 1202 (thread    6) f
+STEP   112 / 1202 (thread    8) f
+STEP   110 / 1202 (thread   11) f
+STEP   113 / 1202 (thread   15) f
+STEP   114 / 1202 (thread   13) f
+STEP   115 / 1202 (thread    4) f
+STEP   117 / 1202 (thread   10) f
+STEP   118 / 1202 (thread   14) f
+STEP   120 / 1202 (thread    6) f
+STEP   121 / 1202 (thread    4) f
+STEP   122 / 1202 (thread   13) f
+STEP   123 / 1202 (thread    0) f
+STEP   105 / 1202 (thread    2) f
+STEP   124 / 1202 (thread   12) f
+STEP   125 / 1202 (thread   10) f
+STEP   126 / 1202 (thread   15) f
+STEP   116 / 1202 (thread    1) f
+STEP   128 / 1202 (thread   14) f
+STEP   129 / 1202 (thread    9) f
+STEP   130 / 1202 (thread   13) f
+STEP   131 / 1202 (thread    7) f
+STEP   103 / 1202 (thread    3) f
+STEP   119 / 1202 (thread    5) f
+STEP   133 / 1202 (thread    4) f
+STEP   134 / 1202 (thread    6) f
+STEP   135 / 1202 (thread   14) f
+STEP   136 / 1202 (thread   15) f
+STEP   127 / 1202 (thread    8) f
+STEP   137 / 1202 (thread   10) f
+STEP   138 / 1202 (thread    0) f
+STEP   139 / 1202 (thread   12) f
+STEP   140 / 1202 (thread    7) f
+STEP   132 / 1202 (thread   11) f
+STEP   141 / 1202 (thread    2) f
+STEP   143 / 1202 (thread    9) f
+STEP   142 / 1202 (thread   13) f
+STEP   145 / 1202 (thread    3) f
+STEP   146 / 1202 (thread    5) f
+STEP   147 / 1202 (thread    9) f
+STEP   149 / 1202 (thread    7) f
+STEP   150 / 1202 (thread    0) f
+STEP   151 / 1202 (thread    6) f
+STEP   152 / 1202 (thread    2) f
+STEP   153 / 1202 (thread   15) f
+STEP   154 / 1202 (thread   14) f
+STEP   144 / 1202 (thread    1) f
+STEP   155 / 1202 (thread   10) f
+STEP   156 / 1202 (thread   12) f
+STEP   148 / 1202 (thread    4) f
+STEP   157 / 1202 (thread    8) f
+STEP   158 / 1202 (thread   11) f
+STEP   159 / 1202 (thread    6) f
+STEP   160 / 1202 (thread   13) f
+STEP   161 / 1202 (thread    2) f
+STEP   162 / 1202 (thread    7) f
+STEP   163 / 1202 (thread    5) f
+STEP   164 / 1202 (thread   14) f
+STEP   165 / 1202 (thread    3) f
+STEP   166 / 1202 (thread   12) f
+STEP   167 / 1202 (thread   10) f
+STEP   169 / 1202 (thread   15) f
+STEP   170 / 1202 (thread    0) f
+STEP   171 / 1202 (thread    8) f
+STEP   172 / 1202 (thread    1) f
+STEP   173 / 1202 (thread    2) f
+STEP   174 / 1202 (thread    7) f
+STEP   176 / 1202 (thread    6) f
+STEP   168 / 1202 (thread    9) f
+STEP   177 / 1202 (thread    3) f
+STEP   178 / 1202 (thread    0) f
+STEP   179 / 1202 (thread   13) f
+STEP   180 / 1202 (thread   10) f
+STEP   181 / 1202 (thread    8) f
+STEP   182 / 1202 (thread   12) f
+STEP   183 / 1202 (thread   14) f
+STEP   184 / 1202 (thread    1) f
+STEP   185 / 1202 (thread   15) f
+STEP   186 / 1202 (thread    4) f
+STEP   187 / 1202 (thread    7) f
+STEP   175 / 1202 (thread   11) f
+STEP   188 / 1202 (thread    5) f
+STEP   189 / 1202 (thread    2) f
+STEP   190 / 1202 (thread    3) f
+STEP   191 / 1202 (thread   12) f
+STEP   193 / 1202 (thread   13) f
+STEP   194 / 1202 (thread    8) f
+STEP   195 / 1202 (thread    9) f
+STEP   196 / 1202 (thread    4) f
+STEP   197 / 1202 (thread    7) f
+STEP   198 / 1202 (thread    1) f
+STEP   199 / 1202 (thread    0) f
+STEP   200 / 1202 (thread    5) f
+STEP   201 / 1202 (thread    3) f
+STEP   202 / 1202 (thread   12) f
+STEP   203 / 1202 (thread    8) f
+STEP   204 / 1202 (thread    2) f
+STEP   205 / 1202 (thread   15) f
+STEP   206 / 1202 (thread   10) f
+STEP   192 / 1202 (thread    6) f
+STEP   208 / 1202 (thread    4) f
+STEP   209 / 1202 (thread    7) f
+STEP   210 / 1202 (thread    1) f
+STEP   212 / 1202 (thread    3) f
+STEP   214 / 1202 (thread    9) f
+STEP   207 / 1202 (thread   14) f
+STEP   216 / 1202 (thread   11) f
+STEP   217 / 1202 (thread    2) f
+STEP   218 / 1202 (thread   12) f
+STEP   219 / 1202 (thread    1) f
+STEP   220 / 1202 (thread    5) f
+STEP   211 / 1202 (thread   13) f
+STEP   221 / 1202 (thread   10) f
+STEP   222 / 1202 (thread    8) f
+STEP   223 / 1202 (thread    6) f
+STEP   224 / 1202 (thread    2) f
+STEP   225 / 1202 (thread    4) f
+STEP   226 / 1202 (thread    7) f
+STEP   213 / 1202 (thread   15) f
+STEP   227 / 1202 (thread    3) f
+STEP   228 / 1202 (thread   12) f
+STEP   229 / 1202 (thread   11) f
+STEP   230 / 1202 (thread    9) f
+STEP   231 / 1202 (thread   14) f
+STEP   232 / 1202 (thread    6) f
+STEP   233 / 1202 (thread    5) f
+STEP   234 / 1202 (thread    7)
+STEP   235 / 1202 (thread    4) f f
+STEP   236 / 1202 (thread    1) f
+STEP   237 / 1202 (thread   10) f
+STEP   238 / 1202 (thread   13) f
+STEP   240 / 1202 (thread   12) f
+STEP   241 / 1202 (thread    2) f
+STEP   242 / 1202 (thread    6) f
+STEP   243 / 1202 (thread   14) f
+STEP   244 / 1202 (thread    9) f
+STEP   239 / 1202 (thread    8) f
+STEP   246 / 1202 (thread    5) f
+STEP   215 / 1202 (thread    0) f
+STEP   249 / 1202 (thread    1) f
+STEP   250 / 1202 (thread    7) f
+STEP   251 / 1202 (thread    2) f
+STEP   252 / 1202 (thread    4) f
+STEP   245 / 1202 (thread    3) f
+STEP   253 / 1202 (thread    6) f
+STEP   248 / 1202 (thread   15) f
+STEP   254 / 1202 (thread   13) f
+STEP   247 / 1202 (thread   12) f
+STEP   256 / 1202 (thread   10) f
+STEP   257 / 1202 (thread    7) f
+STEP   258 / 1202 (thread   14) f
+STEP   259 / 1202 (thread    8) f
+STEP   260 / 1202 (thread    4) f
+STEP   261 / 1202 (thread   11) f
+STEP   262 / 1202 (thread   13) f
+STEP   255 / 1202 (thread    5) f
+STEP   263 / 1202 (thread    6) f
+STEP   266 / 1202 (thread    7) f
+STEP   267 / 1202 (thread    0) f
+STEP   268 / 1202 (thread   15) f
+STEP   269 / 1202 (thread    3) f
+STEP   270 / 1202 (thread   14) f
+STEP   264 / 1202 (thread    1) f
+STEP   272 / 1202 (thread   11) f
+STEP   274 / 1202 (thread    7) f
+STEP   275 / 1202 (thread    0) f
+STEP   276 / 1202 (thread   15) f
+STEP   277 / 1202 (thread   14) f
+STEP   278 / 1202 (thread    3) f
+STEP   279 / 1202 (thread   13) f
+STEP   280 / 1202 (thread    6) f
+STEP   281 / 1202 (thread    1) f
+STEP   265 / 1202 (thread   10) f
+STEP   282 / 1202 (thread    5) f
+STEP   283 / 1202 (thread    0) f
+STEP   284 / 1202 (thread   11) f
+STEP   285 / 1202 (thread    4) f
+STEP   286 / 1202 (thread    3) f
+STEP   287 / 1202 (thread    7) f
+STEP   288 / 1202 (thread    6) f
+STEP   271 / 1202 (thread   12) f
+STEP   292 / 1202 (thread   15) f
+STEP   293 / 1202 (thread   10) f
+STEP   294 / 1202 (thread    7) f
+STEP   295 / 1202 (thread   14) f
+STEP   296 / 1202 (thread   11) f
+STEP   297 / 1202 (thread    0) f
+STEP   298 / 1202 (thread    5) f
+STEP   289 / 1202 (thread   13) f
+STEP   299 / 1202 (thread    3) f
+STEP   300 / 1202 (thread   15) f
+STEP   301 / 1202 (thread    4) f
+STEP   302 / 1202 (thread    6) f
+STEP   303 / 1202 (thread    7) f
+STEP   304 / 1202 (thread   10) f
+STEP   305 / 1202 (thread    0) f
+STEP   306 / 1202 (thread    4) f
+STEP   307 / 1202 (thread   14) f
+STEP   308 / 1202 (thread    3) f
+STEP   309 / 1202 (thread   11) f
+STEP   310 / 1202 (thread    5) f
+STEP   312 / 1202 (thread   15) f
+STEP   313 / 1202 (thread   13) f
+STEP   314 / 1202 (thread   12) f
+STEP   290 / 1202 (thread    2) f
+STEP   315 / 1202 (thread   14) f
+STEP   316 / 1202 (thread    4) f
+STEP   317 / 1202 (thread    0) f
+STEP   311 / 1202 (thread    6) f
+STEP   319 / 1202 (thread   10) f
+STEP   320 / 1202 (thread   11) f
+STEP   318 / 1202 (thread    7) f
+STEP   321 / 1202 (thread   13) f
+STEP   323 / 1202 (thread    5) f
+STEP   324 / 1202 (thread    3) f
+STEP   325 / 1202 (thread   12) f
+STEP   326 / 1202 (thread    0) f
+STEP   327 / 1202 (thread   14) f
+STEP   328 / 1202 (thread    5) f
+STEP   329 / 1202 (thread    9) f
+STEP   273 / 1202 (thread    8) f
+STEP   330 / 1202 (thread    6) f
+STEP   331 / 1202 (thread    0) f
+STEP   332 / 1202 (thread   14) f
+STEP   333 / 1202 (thread   12) f
+STEP   334 / 1202 (thread   13) f
+STEP   335 / 1202 (thread    4) f
+STEP   336 / 1202 (thread    7) f
+STEP   337 / 1202 (thread    3) f
+STEP   338 / 1202 (thread   14) f
+STEP   339 / 1202 (thread    2) f
+STEP   291 / 1202 (thread    1) f
+STEP   340 / 1202 (thread   12) f
+STEP   341 / 1202 (thread   10) f
+STEP   342 / 1202 (thread    9) f
+STEP   343 / 1202 (thread    5) f
+STEP   344 / 1202 (thread    6) f
+STEP   345 / 1202 (thread   14) f
+STEP   346 / 1202 (thread    7) f
+STEP   347 / 1202 (thread   11) f
+STEP   322 / 1202 (thread   15) f
+STEP   348 / 1202 (thread    0) f
+STEP   349 / 1202 (thread   10) f
+STEP   350 / 1202 (thread   13) f
+STEP   351 / 1202 (thread    2) f
+STEP   352 / 1202 (thread   11) f
+STEP   354 / 1202 (thread    4) f
+STEP   355 / 1202 (thread   12) f
+STEP   357 / 1202 (thread    9) f
+STEP   358 / 1202 (thread    7) f
+STEP   359 / 1202 (thread    0) f
+STEP   353 / 1202 (thread    5) f
+STEP   363 / 1202 (thread   10) f
+STEP   356 / 1202 (thread   14) f
+STEP   364 / 1202 (thread    7) f
+STEP   366 / 1202 (thread   13) f
+STEP   367 / 1202 (thread   12) f
+STEP   368 / 1202 (thread    4) f
+STEP   360 / 1202 (thread    6) f
+STEP   370 / 1202 (thread   15) f
+STEP   371 / 1202 (thread    0) f
+STEP   365 / 1202 (thread   11) f
+STEP   372 / 1202 (thread   13) f
+STEP   375 / 1202 (thread    7) f
+STEP   376 / 1202 (thread    5) f
+STEP   361 / 1202 (thread    2) f
+STEP   377 / 1202 (thread   14) f
+STEP   369 / 1202 (thread    9) f
+STEP   378 / 1202 (thread   10) f
+STEP   379 / 1202 (thread    0) f
+STEP   362 / 1202 (thread    3) f
+STEP   381 / 1202 (thread   11) f
+STEP   382 / 1202 (thread   12) f
+STEP   383 / 1202 (thread    4) f
+STEP   384 / 1202 (thread    5) f
+STEP   386 / 1202 (thread   11) f
+STEP   387 / 1202 (thread   13) f
+STEP   388 / 1202 (thread    0) f
+STEP   389 / 1202 (thread    2) f
+STEP   390 / 1202 (thread    5) f
+STEP   391 / 1202 (thread   10) f
+STEP   393 / 1202 (thread   12) f
+STEP   394 / 1202 (thread    3) f
+STEP   373 / 1202 (thread    1) f
+STEP   395 / 1202 (thread    4) f
+STEP   396 / 1202 (thread    0) f
+STEP   398 / 1202 (thread    9) f
+STEP   374 / 1202 (thread   15) f
+STEP   399 / 1202 (thread    8) f
+STEP   400 / 1202 (thread   11) f
+STEP   402 / 1202 (thread    5) f
+STEP   404 / 1202 (thread    9) f
+STEP   403 / 1202 (thread    3) f
+STEP   406 / 1202 (thread   11) f
+STEP   407 / 1202 (thread    4) f
+STEP   401 / 1202 (thread   12) f
+STEP   408 / 1202 (thread   10) f
+STEP   409 / 1202 (thread    5) f
+STEP   410 / 1202 (thread    9) f
+STEP   411 / 1202 (thread    1) f
+STEP   392 / 1202 (thread   13) f
+STEP   412 / 1202 (thread   11) f
+STEP   380 / 1202 (thread    6) f
+STEP   414 / 1202 (thread    0) f
+STEP   415 / 1202 (thread    4) f
+STEP   416 / 1202 (thread   10) f
+STEP   417 / 1202 (thread    5) f
+STEP   405 / 1202 (thread    2) f
+STEP   419 / 1202 (thread   12) f
+STEP   420 / 1202 (thread    3) f
+STEP   421 / 1202 (thread   11) f
+STEP   423 / 1202 (thread    4) f
+STEP   424 / 1202 (thread    0) f
+STEP   425 / 1202 (thread   12) f
+STEP   426 / 1202 (thread    5) f
+STEP   427 / 1202 (thread   10) f
+STEP   428 / 1202 (thread    3) f
+STEP   413 / 1202 (thread   15) f
+STEP   429 / 1202 (thread   13) f
+STEP   430 / 1202 (thread   12) f
+STEP   431 / 1202 (thread   11) f
+STEP   433 / 1202 (thread    5) f
+STEP   385 / 1202 (thread    7) f
+STEP   434 / 1202 (thread    6) f
+STEP   435 / 1202 (thread   10) f
+STEP   436 / 1202 (thread    0) f
+STEP   432 / 1202 (thread    2) f
+STEP   438 / 1202 (thread    1) f
+STEP   439 / 1202 (thread   13) f
+STEP   440 / 1202 (thread   10) f
+STEP   441 / 1202 (thread    3) f
+STEP   442 / 1202 (thread   11) f
+STEP   443 / 1202 (thread   12) f
+STEP   444 / 1202 (thread   15) f
+STEP   418 / 1202 (thread    9) f
+STEP   445 / 1202 (thread    6) f
+STEP   448 / 1202 (thread    2) f
+STEP   449 / 1202 (thread    1) f
+STEP   450 / 1202 (thread    0) f
+STEP   451 / 1202 (thread   15) f
+STEP   452 / 1202 (thread   13) f
+STEP   397 / 1202 (thread   14) f
+STEP   454 / 1202 (thread    6) f
+STEP   455 / 1202 (thread   12) f
+STEP   447 / 1202 (thread    5) f
+STEP   456 / 1202 (thread    3) f
+STEP   457 / 1202 (thread    6) f
+STEP   458 / 1202 (thread   15) f
+STEP   422 / 1202 (thread    8) f
+STEP   459 / 1202 (thread    9) f
+STEP   460 / 1202 (thread    2) f
+STEP   462 / 1202 (thread   13) f
+STEP   463 / 1202 (thread    3) f
+STEP   464 / 1202 (thread   15) f
+STEP   465 / 1202 (thread   12) f
+STEP   466 / 1202 (thread    0) f
+STEP   467 / 1202 (thread    6) f
+STEP   468 / 1202 (thread    9) f
+STEP   446 / 1202 (thread   10) f
+STEP   470 / 1202 (thread   14) f
+STEP   471 / 1202 (thread    5) f
+STEP   472 / 1202 (thread   13) f
+STEP   469 / 1202 (thread    6) f
+STEP   473 / 1202 (thread   12) f
+STEP   474 / 1202 (thread   14) f
+STEP   437 / 1202 (thread    4) f
+STEP   475 / 1202 (thread    8) f
+STEP   478 / 1202 (thread    1) f
+STEP   479 / 1202 (thread   15) f
+STEP   480 / 1202 (thread    2) f
+STEP   477 / 1202 (thread    3) f
+STEP   481 / 1202 (thread    6) f
+STEP   482 / 1202 (thread   15) f
+STEP   483 / 1202 (thread   14) f
+STEP   484 / 1202 (thread    5) f
+STEP   485 / 1202 (thread    8) f
+STEP   486 / 1202 (thread    1) f
+STEP   487 / 1202 (thread   15) f
+STEP   488 / 1202 (thread    4) f
+STEP   476 / 1202 (thread    0) f
+STEP   489 / 1202 (thread   10) f
+STEP   453 / 1202 (thread    7) f
+STEP   490 / 1202 (thread    3) f
+STEP   491 / 1202 (thread    6) f
+STEP   492 / 1202 (thread    1) f
+STEP   493 / 1202 (thread    2) f
+STEP   494 / 1202 (thread   14) f
+STEP   495 / 1202 (thread    8) f
+STEP   496 / 1202 (thread    9) f
+STEP   497 / 1202 (thread   12) f
+STEP   498 / 1202 (thread    5) f
+STEP   499 / 1202 (thread    1) f
+STEP   500 / 1202 (thread   10) f
+STEP   501 / 1202 (thread    8) f
+STEP   461 / 1202 (thread   11) f
+STEP   601 / 1202 (thread    6) f
+STEP   701 / 1202 (thread   10) f
+STEP   801 / 1202 (thread    5) f
+STEP   901 / 1202 (thread    1) f
+STEP  1001 / 1202 (thread   13) f
 Reallocating..done. *alloclen = 4632
-STEP  1101 / 1202 (thread    0) f
+
+STEP  1101 / 1202 (thread    0) f
 Reallocating..done. *alloclen = 6166
-STEP  1201 / 1202 (thread   12) f
+
+STEP  1201 / 1202 (thread   12) f
 Reallocating..done. *alloclen = 7346
 
 done.
 
 Making a distance matrix from msa.. 
-    0 / 1203 (thread    2)  100 / 1203 (thread   42)  200 / 1203 (thread   10)  300 / 1203 (thread    0)  400 / 1203 (thread   56)  500 / 1203 (thread   13)  600 / 1203 (thread   38)  700 / 1203 (thread   29)  800 / 1203 (thread    0)  900 / 1203 (thread   32) 1000 / 1203 (thread   31) 1100 / 1203 (thread   25) 1200 / 1203 (thread   58)
+
+    0 / 1203 (thread    2)
+  100 / 1203 (thread   42)
+  200 / 1203 (thread   10)
+  300 / 1203 (thread    0)
+  400 / 1203 (thread   56)
+  500 / 1203 (thread   13)
+  600 / 1203 (thread   38)
+  700 / 1203 (thread   29)
+  800 / 1203 (thread    0)
+  900 / 1203 (thread   32)
+ 1000 / 1203 (thread   31)
+ 1100 / 1203 (thread   25)
+ 1200 / 1203 (thread   58)
 done.
 
 Constructing a UPGMA tree (efffree=1) ... 
-    0 / 1203   10 / 1203   20 / 1203   30 / 1203   40 / 1203   50 / 1203   60 / 1203   70 / 1203   80 / 1203   90 / 1203  100 / 1203  110 / 1203  120 / 1203  130 / 1203  140 / 1203  150 / 1203  160 / 1203  170 / 1203  180 / 1203  190 / 1203  200 / 1203  210 / 1203  220 / 1203  230 / 1203  240 / 1203  250 / 1203  260 / 1203  270 / 1203  280 / 1203  290 / 1203  300 / 1203  310 / 1203  320 / 1203  330 / 1203  340 / 1203  350 / 1203  360 / 1203  370 / 1203  380 / 1203  390 / 1203  400 / 1203  410 / 1203  420 / 1203  430 / 1203  440 / 1203  450 / 1203  460 / 1203  470 / 1203  480 / 1203  490 / 1203  500 / 1203  510 / 1203  520 / 1203  530 / 1203  540 / 1203  550 / 1203  560 / 1203  570 / 1203  580 / 1203  590 / 1203  600 / 1203  610 / 1203  620 / 1203  630 / 1203  640 / 1203  650 / 1203  660 / 1203  670 / 1203  680 / 1203  690 / 1203  700 / 1203  710 / 1203  720 / 1203  730 / 1203  740 / 1203  750 / 1203  760 / 1203  770 / 1203  780 / 1203  790 / 1203  800 / 1203  810 / 1203  820 / 1203  830 / 1203  840 / 1203  850 / 1203  860 / 1203  870 / 1203  880 / 1203  890 / 1203  900 / 1203  910 / 1203  920 / 1203  930 / 1203  940 / 1203  950 / 1203  960 / 1203  970 / 1203  980 / 1203  990 / 1203 1000 / 1203 1010 / 1203 1020 / 1203 1030 / 1203 1040 / 1203 1050 / 1203 1060 / 1203 1070 / 1203 1080 / 1203 1090 / 1203 1100 / 1203 1110 / 1203 1120 / 1203 1130 / 1203 1140 / 1203 1150 / 1203 1160 / 1203 1170 / 1203 1180 / 1203 1190 / 1203 1200 / 1203
+
+    0 / 1203
+   10 / 1203
+   20 / 1203
+   30 / 1203
+   40 / 1203
+   50 / 1203
+   60 / 1203
+   70 / 1203
+   80 / 1203
+   90 / 1203
+  100 / 1203
+  110 / 1203
+  120 / 1203
+  130 / 1203
+  140 / 1203
+  150 / 1203
+  160 / 1203
+  170 / 1203
+  180 / 1203
+  190 / 1203
+  200 / 1203
+  210 / 1203
+  220 / 1203
+  230 / 1203
+  240 / 1203
+  250 / 1203
+  260 / 1203
+  270 / 1203
+  280 / 1203
+  290 / 1203
+  300 / 1203
+  310 / 1203
+  320 / 1203
+  330 / 1203
+  340 / 1203
+  350 / 1203
+  360 / 1203
+  370 / 1203
+  380 / 1203
+  390 / 1203
+  400 / 1203
+  410 / 1203
+  420 / 1203
+  430 / 1203
+  440 / 1203
+  450 / 1203
+  460 / 1203
+  470 / 1203
+  480 / 1203
+  490 / 1203
+  500 / 1203
+  510 / 1203
+  520 / 1203
+  530 / 1203
+  540 / 1203
+  550 / 1203
+  560 / 1203
+  570 / 1203
+  580 / 1203
+  590 / 1203
+  600 / 1203
+  610 / 1203
+  620 / 1203
+  630 / 1203
+  640 / 1203
+  650 / 1203
+  660 / 1203
+  670 / 1203
+  680 / 1203
+  690 / 1203
+  700 / 1203
+  710 / 1203
+  720 / 1203
+  730 / 1203
+  740 / 1203
+  750 / 1203
+  760 / 1203
+  770 / 1203
+  780 / 1203
+  790 / 1203
+  800 / 1203
+  810 / 1203
+  820 / 1203
+  830 / 1203
+  840 / 1203
+  850 / 1203
+  860 / 1203
+  870 / 1203
+  880 / 1203
+  890 / 1203
+  900 / 1203
+  910 / 1203
+  920 / 1203
+  930 / 1203
+  940 / 1203
+  950 / 1203
+  960 / 1203
+  970 / 1203
+  980 / 1203
+  990 / 1203
+ 1000 / 1203
+ 1010 / 1203
+ 1020 / 1203
+ 1030 / 1203
+ 1040 / 1203
+ 1050 / 1203
+ 1060 / 1203
+ 1070 / 1203
+ 1080 / 1203
+ 1090 / 1203
+ 1100 / 1203
+ 1110 / 1203
+ 1120 / 1203
+ 1130 / 1203
+ 1140 / 1203
+ 1150 / 1203
+ 1160 / 1203
+ 1170 / 1203
+ 1180 / 1203
+ 1190 / 1203
+ 1200 / 1203
 done.
 
 Progressive alignment 2/2... 
-STEP     1 / 1202 (thread    0) fSTEP     2 / 1202 (thread    1) fSTEP     3 / 1202 (thread    2) fSTEP     4 / 1202 (thread    3) fSTEP     5 / 1202 (thread    4) fSTEP     6 / 1202 (thread    5) fSTEP     7 / 1202 (thread    6) fSTEP     8 / 1202 (thread    7) fSTEP     9 / 1202 (thread    8) fSTEP    10 / 1202 (thread    9) fSTEP    11 / 1202 (thread   10) fSTEP    13 / 1202 (thread   12) fSTEP    12 / 1202 (thread   11) fSTEP    14 / 1202 (thread   13) fSTEP    15 / 1202 (thread   14) fSTEP    16 / 1202 (thread   15) fSTEP    17 / 1202 (thread   12) fSTEP    18 / 1202 (thread   12) fSTEP    19 / 1202 (thread   12) fSTEP    20 / 1202 (thread   12) fSTEP    21 / 1202 (thread    5) fSTEP    22 / 1202 (thread   12) fSTEP    23 / 1202 (thread    4) fSTEP    24 / 1202 (thread   11) fSTEP    25 / 1202 (thread    5) fSTEP    26 / 1202 (thread   10) fSTEP    28 / 1202 (thread    2) fSTEP    29 / 1202 (thread    3) fSTEP    27 / 1202 (thread   12) fSTEP    30 / 1202 (thread    2) fSTEP    31 / 1202 (thread   10) fSTEP    32 / 1202 (thread    7) fSTEP    33 / 1202 (thread    1) fSTEP    34 / 1202 (thread   11) fSTEP    35 / 1202 (thread    2) fSTEP    36 / 1202 (thread    3) fSTEP    37 / 1202 (thread   11) fSTEP    38 / 1202 (thread    1) fSTEP    39 / 1202 (thread   10) fSTEP    40 / 1202 (thread    7) fSTEP    41 / 1202 (thread   14) fSTEP    42 / 1202 (thread    8) fSTEP    43 / 1202 (thread   11) fSTEP    44 / 1202 (thread   10) fSTEP    45 / 1202 (thread    3) fSTEP    46 / 1202 (thread    1) fSTEP    47 / 1202 (thread    7) fSTEP    48 / 1202 (thread    0) fSTEP    49 / 1202 (thread   14) fSTEP    50 / 1202 (thread    8) fSTEP    51 / 1202 (thread    6) fSTEP    52 / 1202 (thread   11) fSTEP    53 / 1202 (thread    5) fSTEP    54 / 1202 (thread   10) fSTEP    55 / 1202 (thread    3) fSTEP    56 / 1202 (thread   12) fSTEP    57 / 1202 (thread    1) fSTEP    58 / 1202 (thread   14) fSTEP    59 / 1202 (thread   10) fSTEP    60 / 1202 (thread    8) fSTEP    61 / 1202 (thread    4) fSTEP    62 / 1202 (thread    3) fSTEP    63 / 1202 (thread   11) fSTEP    65 / 1202 (thread    7) fSTEP    66 / 1202 (thread   14) fSTEP    67 / 1202 (thread    2) fSTEP    68 / 1202 (thread    1) fSTEP    69 / 1202 (thread    0) fSTEP    70 / 1202 (thread    4) fSTEP    73 / 1202 (thread   14) fSTEP    74 / 1202 (thread    1) fSTEP    75 / 1202 (thread   12) fSTEP    64 / 1202 (thread    5) fSTEP    77 / 1202 (thread    2) fSTEP    78 / 1202 (thread    4) fSTEP    79 / 1202 (thread   14) fSTEP    80 / 1202 (thread    1) fSTEP    81 / 1202 (thread   12) fSTEP    82 / 1202 (thread    4) fSTEP    83 / 1202 (thread    1) fSTEP    84 / 1202 (thread   12) fSTEP    85 / 1202 (thread    6) fSTEP    86 / 1202 (thread    4) fSTEP    87 / 1202 (thread    5) fSTEP    76 / 1202 (thread    8) fSTEP    89 / 1202 (thread    2) fSTEP    90 / 1202 (thread   11) fSTEP    91 / 1202 (thread   12) fSTEP    92 / 1202 (thread    4) fSTEP    93 / 1202 (thread   10) fSTEP    71 / 1202 (thread    3) fSTEP    94 / 1202 (thread   11) fSTEP    95 / 1202 (thread    5) fSTEP    97 / 1202 (thread    2) fSTEP    88 / 1202 (thread    1) fSTEP    99 / 1202 (thread   10) fSTEP   100 / 1202 (thread    2) fSTEP   101 / 1202 (thread    4) fSTEP    98 / 1202 (thread    6) fSTEP   103 / 1202 (thread    0) fSTEP    72 / 1202 (thread    7) fSTEP   104 / 1202 (thread    5) fSTEP   105 / 1202 (thread   10) fSTEP   107 / 1202 (thread   14) fSTEP   106 / 1202 (thread    4) fSTEP   108 / 1202 (thread    2) fSTEP   109 / 1202 (thread    0) fSTEP   102 / 1202 (thread   11) fSTEP   111 / 1202 (thread    3) fSTEP   112 / 1202 (thread    2) fSTEP   113 / 1202 (thread   10) fSTEP   114 / 1202 (thread    8) fSTEP   115 / 1202 (thread    0) fSTEP   116 / 1202 (thread   14) fSTEP   117 / 1202 (thread    1) fSTEP   118 / 1202 (thread    4) fSTEP   110 / 1202 (thread    6) fSTEP   119 / 1202 (thread   10) fSTEP   120 / 1202 (thread    2) fSTEP   121 / 1202 (thread    5) fSTEP   123 / 1202 (thread    0) fSTEP   124 / 1202 (thread   11) fSTEP   125 / 1202 (thread    1) fSTEP   127 / 1202 (thread    8) fSTEP   128 / 1202 (thread   15) fSTEP    96 / 1202 (thread   12) fSTEP   130 / 1202 (thread   10) fSTEP   131 / 1202 (thread   11) fSTEP   132 / 1202 (thread   13) fSTEP   133 / 1202 (thread   14) fSTEP   134 / 1202 (thread    4) fSTEP   122 / 1202 (thread    7) fSTEP   135 / 1202 (thread    0) fSTEP   136 / 1202 (thread    6) fSTEP   129 / 1202 (thread    9) fSTEP   137 / 1202 (thread    2) fSTEP   138 / 1202 (thread    5) fSTEP   139 / 1202 (thread    1) fSTEP   140 / 1202 (thread    8) fSTEP   141 / 1202 (thread   10) fSTEP   142 / 1202 (thread    4) fSTEP   143 / 1202 (thread   11) fSTEP   144 / 1202 (thread   12) fSTEP   145 / 1202 (thread   15) fSTEP   146 / 1202 (thread    6) fSTEP   147 / 1202 (thread   13) fSTEP   148 / 1202 (thread    7) fSTEP   126 / 1202 (thread    3) fSTEP   149 / 1202 (thread    5) fSTEP   150 / 1202 (thread    2) fSTEP   152 / 1202 (thread    0) fSTEP   154 / 1202 (thread   10) fSTEP   155 / 1202 (thread    9) fSTEP   157 / 1202 (thread   13) fSTEP   153 / 1202 (thread   11) fSTEP   159 / 1202 (thread   14) fSTEP   158 / 1202 (thread    4) fSTEP   160 / 1202 (thread   15) fSTEP   161 / 1202 (thread   12) fSTEP   162 / 1202 (thread   10) fSTEP   163 / 1202 (thread    0) fSTEP   164 / 1202 (thread    2) fSTEP   165 / 1202 (thread    7) fSTEP   166 / 1202 (thread    6) fSTEP   167 / 1202 (thread    3) fSTEP   151 / 1202 (thread    1) fSTEP   169 / 1202 (thread   14) fSTEP   170 / 1202 (thread   12) fSTEP   171 / 1202 (thread    9) fSTEP   168 / 1202 (thread    5) fSTEP   173 / 1202 (thread   11) fSTEP   156 / 1202 (thread    8) fSTEP   174 / 1202 (thread    0) fSTEP   175 / 1202 (thread    2) fSTEP   176 / 1202 (thread   13) fSTEP   177 / 1202 (thread    6) fSTEP   178 / 1202 (thread   15) fSTEP   179 / 1202 (thread   14) fSTEP   180 / 1202 (thread    3) fSTEP   181 / 1202 (thread    1) fSTEP   182 / 1202 (thread    7) fSTEP   183 / 1202 (thread    5) fSTEP   184 / 1202 (thread    0) fSTEP   185 / 1202 (thread   13) fSTEP   186 / 1202 (thread    4) fSTEP   187 / 1202 (thread    2) fSTEP   188 / 1202 (thread    6) fSTEP   190 / 1202 (thread    3) fSTEP   191 / 1202 (thread   11) fSTEP   192 / 1202 (thread    8) fSTEP   193 / 1202 (thread   12) fSTEP   194 / 1202 (thread    9) fSTEP   172 / 1202 (thread   10) fSTEP   195 / 1202 (thread    5) fSTEP   196 / 1202 (thread    6) fSTEP   197 / 1202 (thread   15) fSTEP   198 / 1202 (thread    7) fSTEP   200 / 1202 (thread    1) fSTEP   189 / 1202 (thread   14) fSTEP   201 / 1202 (thread    3) fSTEP   202 / 1202 (thread   11) fSTEP   203 / 1202 (thread    0) fSTEP   204 / 1202 (thread    8) fSTEP   205 / 1202 (thread   13) fSTEP   206 / 1202 (thread    4) fSTEP   207 / 1202 (thread    7) fSTEP   208 / 1202 (thread    9) fSTEP   209 / 1202 (thread    6) fSTEP   210 / 1202 (thread   10) fSTEP   211 / 1202 (thread   11) fSTEP   213 / 1202 (thread    9) fSTEP   212 / 1202 (thread   12) fSTEP   214 / 1202 (thread    3) fSTEP   215 / 1202 (thread    8) fSTEP   216 / 1202 (thread    5) fSTEP   217 / 1202 (thread    4) fSTEP   218 / 1202 (thread   15) fSTEP   219 / 1202 (thread   14) fSTEP   199 / 1202 (thread    2) fSTEP   220 / 1202 (thread    1) fSTEP   221 / 1202 (thread    0) fSTEP   222 / 1202 (thread    8) fSTEP   223 / 1202 (thread   13) fSTEP   224 / 1202 (thread   12) fSTEP   226 / 1202 (thread    6) fSTEP   227 / 1202 (thread    4) fSTEP   228 / 1202 (thread    0) fSTEP   229 / 1202 (thread    7) fSTEP   230 / 1202 (thread   15) fSTEP   231 / 1202 (thread   10) fSTEP   232 / 1202 (thread    9) fSTEP   234 / 1202 (thread    3) fSTEP   235 / 1202 (thread    5) fSTEP   236 / 1202 (thread    6) fSTEP   237 / 1202 (thread   12) fSTEP   238 / 1202 (thread    1) fSTEP   239 / 1202 (thread    2) fSTEP   225 / 1202 (thread   11) fSTEP   240 / 1202 (thread    4) fSTEP   233 / 1202 (thread   13) fSTEP   241 / 1202 (thread   14) fSTEP   242 / 1202 (thread   15) fSTEP   243 / 1202 (thread    8) fSTEP   244 / 1202 (thread    3) fSTEP   245 / 1202 (thread    0) fSTEP   246 / 1202 (thread    7) fSTEP   247 / 1202 (thread    6) fSTEP   248 / 1202 (thread    2) fSTEP   249 / 1202 (thread    4) fSTEP   250 / 1202 (thread    9) fSTEP   251 / 1202 (thread    5) fSTEP   252 / 1202 (thread   10) fSTEP   253 / 1202 (thread   15) fSTEP   254 / 1202 (thread   11) fSTEP   255 / 1202 (thread   12) fSTEP   256 / 1202 (thread    7) fSTEP   257 / 1202 (thread    0) fSTEP   259 / 1202 (thread    1) fSTEP   260 / 1202 (thread   14) fSTEP   261 / 1202 (thread    6) fSTEP   262 / 1202 (thread   13) fSTEP   264 / 1202 (thread    0) fSTEP   265 / 1202 (thread    9) fSTEP   266 / 1202 (thread    4) fSTEP   263 / 1202 (thread    8) fSTEP   268 / 1202 (thread    1) fSTEP   269 / 1202 (thread   10) fSTEP   270 / 1202 (thread   14) fSTEP   272 / 1202 (thread    5) fSTEP   273 / 1202 (thread    2) fSTEP   274 / 1202 (thread    0) fSTEP   275 / 1202 (thread    7) fSTEP   258 / 1202 (thread    3) fSTEP   276 / 1202 (thread   12) fSTEP   277 / 1202 (thread   10) fSTEP   278 / 1202 (thread    6) fSTEP   279 / 1202 (thread    0) fSTEP   280 / 1202 (thread    4) fSTEP   281 / 1202 (thread    5) fSTEP   282 / 1202 (thread    9) fSTEP   283 / 1202 (thread    2) fSTEP   284 / 1202 (thread    8) fSTEP   267 / 1202 (thread   15) fSTEP   286 / 1202 (thread    1) fSTEP   287 / 1202 (thread   12) fSTEP   289 / 1202 (thread    3) fSTEP   290 / 1202 (thread    4) fSTEP   291 / 1202 (thread    0) fSTEP   292 / 1202 (thread    6) fSTEP   293 / 1202 (thread   13) fSTEP   294 / 1202 (thread    5) fSTEP   295 / 1202 (thread   12) fSTEP   296 / 1202 (thread    1) fSTEP   297 / 1202 (thread   10) fSTEP   285 / 1202 (thread   14) fSTEP   298 / 1202 (thread   15) fSTEP   271 / 1202 (thread   11) fSTEP   299 / 1202 (thread    8) fSTEP   301 / 1202 (thread    5) fSTEP   302 / 1202 (thread    7) fSTEP   303 / 1202 (thread    6) fSTEP   300 / 1202 (thread    2) fSTEP   304 / 1202 (thread   12) fSTEP   305 / 1202 (thread   13) fSTEP   306 / 1202 (thread    0) fSTEP   307 / 1202 (thread    3) fSTEP   308 / 1202 (thread   10) fSTEP   309 / 1202 (thread    0) fSTEP   310 / 1202 (thread   11) fSTEP   311 / 1202 (thread    1) fSTEP   312 / 1202 (thread   15) fSTEP   313 / 1202 (thread    4) fSTEP   314 / 1202 (thread    5) fSTEP   315 / 1202 (thread   14) fSTEP   288 / 1202 (thread    9) fSTEP   316 / 1202 (thread   13) fSTEP   317 / 1202 (thread   11) fSTEP   318 / 1202 (thread    6) fSTEP   319 / 1202 (thread    7) fSTEP   320 / 1202 (thread    8) fSTEP   321 / 1202 (thread    1) fSTEP   322 / 1202 (thread    0) fSTEP   323 / 1202 (thread   10) fSTEP   324 / 1202 (thread   12) fSTEP   325 / 1202 (thread    4) fSTEP   326 / 1202 (thread    2) fSTEP   327 / 1202 (thread   15) fSTEP   328 / 1202 (thread   11) fSTEP   329 / 1202 (thread    6) fSTEP   330 / 1202 (thread   10) fSTEP   331 / 1202 (thread    3) fSTEP   332 / 1202 (thread   13) fSTEP   333 / 1202 (thread   12) fSTEP   334 / 1202 (thread    5) fSTEP   335 / 1202 (thread    6) fSTEP   336 / 1202 (thread    7) fSTEP   337 / 1202 (thread    1) fSTEP   339 / 1202 (thread    8) fSTEP   340 / 1202 (thread    2) fSTEP   342 / 1202 (thread   12) fSTEP   343 / 1202 (thread   14) fSTEP   344 / 1202 (thread    3) fSTEP   345 / 1202 (thread    4) fSTEP   346 / 1202 (thread   15) fSTEP   347 / 1202 (thread    5) fSTEP   338 / 1202 (thread   10) fSTEP   348 / 1202 (thread    9) fSTEP   350 / 1202 (thread   13) fSTEP   352 / 1202 (thread    5) fSTEP   353 / 1202 (thread   12) fSTEP   354 / 1202 (thread   14) fSTEP   355 / 1202 (thread   11) fSTEP   341 / 1202 (thread    0) fSTEP   357 / 1202 (thread    8) fSTEP   349 / 1202 (thread    7) fSTEP   351 / 1202 (thread    6) fSTEP   359 / 1202 (thread    9) fSTEP   360 / 1202 (thread    1) fSTEP   361 / 1202 (thread   15) fSTEP   358 / 1202 (thread    4) fSTEP   363 / 1202 (thread   10) fSTEP   364 / 1202 (thread   14) fSTEP   362 / 1202 (thread    2) fSTEP   366 / 1202 (thread   13) fSTEP   368 / 1202 (thread   12) fSTEP   369 / 1202 (thread   11) fSTEP   370 / 1202 (thread    6) fSTEP   356 / 1202 (thread    3) fSTEP   371 / 1202 (thread    5) fSTEP   372 / 1202 (thread    4) fSTEP   373 / 1202 (thread   14) fSTEP   365 / 1202 (thread    8) fSTEP   377 / 1202 (thread    7) fSTEP   378 / 1202 (thread    9) fSTEP   379 / 1202 (thread    4) fSTEP   380 / 1202 (thread   11) fSTEP   381 / 1202 (thread   13) fSTEP   367 / 1202 (thread    1) fSTEP   382 / 1202 (thread    3) fSTEP   374 / 1202 (thread    2) fSTEP   384 / 1202 (thread    0) fSTEP   385 / 1202 (thread   12) fSTEP   386 / 1202 (thread    9) fSTEP   389 / 1202 (thread   10) fSTEP   375 / 1202 (thread   15) fSTEP   390 / 1202 (thread    8) fSTEP   376 / 1202 (thread    6) fSTEP   391 / 1202 (thread   13) fSTEP   392 / 1202 (thread   12) fSTEP   393 / 1202 (thread    5) fSTEP   394 / 1202 (thread    0) fSTEP   395 / 1202 (thread    5) fSTEP   397 / 1202 (thread    9) fSTEP   398 / 1202 (thread    2) fSTEP   399 / 1202 (thread   13) fSTEP   401 / 1202 (thread   11) fSTEP   403 / 1202 (thread   12) fSTEP   404 / 1202 (thread   10) fSTEP   388 / 1202 (thread    4) fSTEP   406 / 1202 (thread   15) fSTEP   383 / 1202 (thread   14) fSTEP   407 / 1202 (thread    9) fSTEP   408 / 1202 (thread   13) fSTEP   405 / 1202 (thread    6) fSTEP   411 / 1202 (thread   11) fSTEP   412 / 1202 (thread   10) fSTEP   413 / 1202 (thread   12) fSTEP   414 / 1202 (thread   15) fSTEP   415 / 1202 (thread   12) fSTEP   416 / 1202 (thread    4) fSTEP   400 / 1202 (thread    8) fSTEP   419 / 1202 (thread   14) fSTEP   387 / 1202 (thread    7) fSTEP   420 / 1202 (thread    4) fSTEP   421 / 1202 (thread    9) fSTEP   422 / 1202 (thread    4) fSTEP   423 / 1202 (thread   11) fSTEP   424 / 1202 (thread   10) fSTEP   417 / 1202 (thread   13) fSTEP   426 / 1202 (thread   12) fSTEP   418 / 1202 (thread   15) fSTEP   427 / 1202 (thread    9) fSTEP   428 / 1202 (thread   10) fSTEP   429 / 1202 (thread   14) fSTEP   409 / 1202 (thread    2) fSTEP   430 / 1202 (thread    8) fSTEP   431 / 1202 (thread    4) fSTEP   396 / 1202 (thread    3) fSTEP   433 / 1202 (thread   10) fSTEP   434 / 1202 (thread   11) fSTEP   435 / 1202 (thread   13) fSTEP   436 / 1202 (thread    9) fSTEP   437 / 1202 (thread   12) fSTEP   438 / 1202 (thread   14) fSTEP   439 / 1202 (thread   15) fSTEP   440 / 1202 (thread    8) fSTEP   441 / 1202 (thread    2) fSTEP   425 / 1202 (thread    6) fSTEP   443 / 1202 (thread   11) fSTEP   442 / 1202 (thread   10) fSTEP   445 / 1202 (thread   13) fSTEP   446 / 1202 (thread    1) fSTEP   447 / 1202 (thread    3) fSTEP   402 / 1202 (thread    0) fSTEP   449 / 1202 (thread   14) fSTEP   450 / 1202 (thread    2) fSTEP   451 / 1202 (thread    4) fSTEP   453 / 1202 (thread    6) fSTEP   444 / 1202 (thread   12) fSTEP   455 / 1202 (thread    9) fSTEP   456 / 1202 (thread    3) fSTEP   457 / 1202 (thread   15) fSTEP   454 / 1202 (thread   10) fSTEP   460 / 1202 (thread    2) fSTEP   461 / 1202 (thread    3) fSTEP   462 / 1202 (thread    9) fSTEP   463 / 1202 (thread    0) fSTEP   410 / 1202 (thread    5) fSTEP   464 / 1202 (thread   11) fSTEP   448 / 1202 (thread    8) fSTEP   466 / 1202 (thread   11) fSTEP   467 / 1202 (thread    2) fSTEP   468 / 1202 (thread   15) fSTEP   469 / 1202 (thread   10) fSTEP   470 / 1202 (thread    2) fSTEP   471 / 1202 (thread    6) fSTEP   472 / 1202 (thread    3) fSTEP   473 / 1202 (thread    4) fSTEP   474 / 1202 (thread    0) fSTEP   458 / 1202 (thread   13) fSTEP   475 / 1202 (thread   11) fSTEP   476 / 1202 (thread    9) fSTEP   478 / 1202 (thread    5) fSTEP   432 / 1202 (thread    7) fSTEP   459 / 1202 (thread   14) fSTEP   479 / 1202 (thread    8) fSTEP   480 / 1202 (thread    9) fSTEP   481 / 1202 (thread    5) fSTEP   477 / 1202 (thread    2) fSTEP   484 / 1202 (thread   10) fSTEP   485 / 1202 (thread    0) fSTEP   486 / 1202 (thread    9) fSTEP   487 / 1202 (thread    3) fSTEP   488 / 1202 (thread    8) fSTEP   489 / 1202 (thread    4) fSTEP   490 / 1202 (thread   13) fSTEP   483 / 1202 (thread    6) fSTEP   491 / 1202 (thread   14) fSTEP   492 / 1202 (thread    5) fSTEP   493 / 1202 (thread   10) fSTEP   495 / 1202 (thread    8) fSTEP   496 / 1202 (thread    9) fSTEP   497 / 1202 (thread    4) fSTEP   498 / 1202 (thread    7) fSTEP   452 / 1202 (thread    1) fSTEP   499 / 1202 (thread    0) fSTEP   500 / 1202 (thread   10) fSTEP   465 / 1202 (thread   12) fSTEP   482 / 1202 (thread   15) fSTEP   494 / 1202 (thread    2) fSTEP   501 / 1202 (thread    3) fSTEP   601 / 1202 (thread    7) fSTEP   701 / 1202 (thread   13) fSTEP   801 / 1202 (thread    4) fSTEP   901 / 1202 (thread    8) fSTEP  1001 / 1202 (thread    3) fSTEP  1101 / 1202 (thread   10) f
+
+STEP     1 / 1202 (thread    0) f
+STEP     2 / 1202 (thread    1) f
+STEP     3 / 1202 (thread    2) f
+STEP     4 / 1202 (thread    3) f
+STEP     5 / 1202 (thread    4) f
+STEP     6 / 1202 (thread    5) f
+STEP     7 / 1202 (thread    6) f
+STEP     8 / 1202 (thread    7) f
+STEP     9 / 1202 (thread    8) f
+STEP    10 / 1202 (thread    9) f
+STEP    11 / 1202 (thread   10) f
+STEP    13 / 1202 (thread   12) f
+STEP    12 / 1202 (thread   11) f
+STEP    14 / 1202 (thread   13) f
+STEP    15 / 1202 (thread   14) f
+STEP    16 / 1202 (thread   15) f
+STEP    17 / 1202 (thread   12) f
+STEP    18 / 1202 (thread   12) f
+STEP    19 / 1202 (thread   12) f
+STEP    20 / 1202 (thread   12) f
+STEP    21 / 1202 (thread    5) f
+STEP    22 / 1202 (thread   12) f
+STEP    23 / 1202 (thread    4) f
+STEP    24 / 1202 (thread   11) f
+STEP    25 / 1202 (thread    5) f
+STEP    26 / 1202 (thread   10) f
+STEP    28 / 1202 (thread    2) f
+STEP    29 / 1202 (thread    3) f
+STEP    27 / 1202 (thread   12) f
+STEP    30 / 1202 (thread    2) f
+STEP    31 / 1202 (thread   10) f
+STEP    32 / 1202 (thread    7) f
+STEP    33 / 1202 (thread    1) f
+STEP    34 / 1202 (thread   11) f
+STEP    35 / 1202 (thread    2) f
+STEP    36 / 1202 (thread    3) f
+STEP    37 / 1202 (thread   11) f
+STEP    38 / 1202 (thread    1) f
+STEP    39 / 1202 (thread   10) f
+STEP    40 / 1202 (thread    7) f
+STEP    41 / 1202 (thread   14) f
+STEP    42 / 1202 (thread    8) f
+STEP    43 / 1202 (thread   11) f
+STEP    44 / 1202 (thread   10) f
+STEP    45 / 1202 (thread    3) f
+STEP    46 / 1202 (thread    1) f
+STEP    47 / 1202 (thread    7) f
+STEP    48 / 1202 (thread    0) f
+STEP    49 / 1202 (thread   14) f
+STEP    50 / 1202 (thread    8) f
+STEP    51 / 1202 (thread    6) f
+STEP    52 / 1202 (thread   11) f
+STEP    53 / 1202 (thread    5) f
+STEP    54 / 1202 (thread   10) f
+STEP    55 / 1202 (thread    3) f
+STEP    56 / 1202 (thread   12) f
+STEP    57 / 1202 (thread    1) f
+STEP    58 / 1202 (thread   14) f
+STEP    59 / 1202 (thread   10) f
+STEP    60 / 1202 (thread    8) f
+STEP    61 / 1202 (thread    4) f
+STEP    62 / 1202 (thread    3) f
+STEP    63 / 1202 (thread   11) f
+STEP    65 / 1202 (thread    7) f
+STEP    66 / 1202 (thread   14) f
+STEP    67 / 1202 (thread    2) f
+STEP    68 / 1202 (thread    1) f
+STEP    69 / 1202 (thread    0) f
+STEP    70 / 1202 (thread    4) f
+STEP    73 / 1202 (thread   14) f
+STEP    74 / 1202 (thread    1) f
+STEP    75 / 1202 (thread   12) f
+STEP    64 / 1202 (thread    5) f
+STEP    77 / 1202 (thread    2) f
+STEP    78 / 1202 (thread    4) f
+STEP    79 / 1202 (thread   14) f
+STEP    80 / 1202 (thread    1) f
+STEP    81 / 1202 (thread   12) f
+STEP    82 / 1202 (thread    4) f
+STEP    83 / 1202 (thread    1) f
+STEP    84 / 1202 (thread   12) f
+STEP    85 / 1202 (thread    6) f
+STEP    86 / 1202 (thread    4) f
+STEP    87 / 1202 (thread    5) f
+STEP    76 / 1202 (thread    8) f
+STEP    89 / 1202 (thread    2) f
+STEP    90 / 1202 (thread   11) f
+STEP    91 / 1202 (thread   12) f
+STEP    92 / 1202 (thread    4) f
+STEP    93 / 1202 (thread   10) f
+STEP    71 / 1202 (thread    3) f
+STEP    94 / 1202 (thread   11) f
+STEP    95 / 1202 (thread    5) f
+STEP    97 / 1202 (thread    2) f
+STEP    88 / 1202 (thread    1) f
+STEP    99 / 1202 (thread   10) f
+STEP   100 / 1202 (thread    2) f
+STEP   101 / 1202 (thread    4) f
+STEP    98 / 1202 (thread    6) f
+STEP   103 / 1202 (thread    0) f
+STEP    72 / 1202 (thread    7) f
+STEP   104 / 1202 (thread    5) f
+STEP   105 / 1202 (thread   10) f
+STEP   107 / 1202 (thread   14) f
+STEP   106 / 1202 (thread    4) f
+STEP   108 / 1202 (thread    2) f
+STEP   109 / 1202 (thread    0) f
+STEP   102 / 1202 (thread   11) f
+STEP   111 / 1202 (thread    3) f
+STEP   112 / 1202 (thread    2) f
+STEP   113 / 1202 (thread   10) f
+STEP   114 / 1202 (thread    8) f
+STEP   115 / 1202 (thread    0) f
+STEP   116 / 1202 (thread   14) f
+STEP   117 / 1202 (thread    1) f
+STEP   118 / 1202 (thread    4) f
+STEP   110 / 1202 (thread    6) f
+STEP   119 / 1202 (thread   10) f
+STEP   120 / 1202 (thread    2) f
+STEP   121 / 1202 (thread    5) f
+STEP   123 / 1202 (thread    0) f
+STEP   124 / 1202 (thread   11) f
+STEP   125 / 1202 (thread    1) f
+STEP   127 / 1202 (thread    8) f
+STEP   128 / 1202 (thread   15) f
+STEP    96 / 1202 (thread   12) f
+STEP   130 / 1202 (thread   10) f
+STEP   131 / 1202 (thread   11) f
+STEP   132 / 1202 (thread   13) f
+STEP   133 / 1202 (thread   14) f
+STEP   134 / 1202 (thread    4) f
+STEP   122 / 1202 (thread    7) f
+STEP   135 / 1202 (thread    0) f
+STEP   136 / 1202 (thread    6) f
+STEP   129 / 1202 (thread    9) f
+STEP   137 / 1202 (thread    2) f
+STEP   138 / 1202 (thread    5) f
+STEP   139 / 1202 (thread    1) f
+STEP   140 / 1202 (thread    8) f
+STEP   141 / 1202 (thread   10) f
+STEP   142 / 1202 (thread    4) f
+STEP   143 / 1202 (thread   11) f
+STEP   144 / 1202 (thread   12) f
+STEP   145 / 1202 (thread   15) f
+STEP   146 / 1202 (thread    6) f
+STEP   147 / 1202 (thread   13) f
+STEP   148 / 1202 (thread    7) f
+STEP   126 / 1202 (thread    3) f
+STEP   149 / 1202 (thread    5) f
+STEP   150 / 1202 (thread    2) f
+STEP   152 / 1202 (thread    0) f
+STEP   154 / 1202 (thread   10) f
+STEP   155 / 1202 (thread    9) f
+STEP   157 / 1202 (thread   13) f
+STEP   153 / 1202 (thread   11) f
+STEP   159 / 1202 (thread   14) f
+STEP   158 / 1202 (thread    4) f
+STEP   160 / 1202 (thread   15) f
+STEP   161 / 1202 (thread   12) f
+STEP   162 / 1202 (thread   10) f
+STEP   163 / 1202 (thread    0) f
+STEP   164 / 1202 (thread    2) f
+STEP   165 / 1202 (thread    7) f
+STEP   166 / 1202 (thread    6) f
+STEP   167 / 1202 (thread    3) f
+STEP   151 / 1202 (thread    1) f
+STEP   169 / 1202 (thread   14) f
+STEP   170 / 1202 (thread   12) f
+STEP   171 / 1202 (thread    9) f
+STEP   168 / 1202 (thread    5) f
+STEP   173 / 1202 (thread   11) f
+STEP   156 / 1202 (thread    8) f
+STEP   174 / 1202 (thread    0) f
+STEP   175 / 1202 (thread    2) f
+STEP   176 / 1202 (thread   13) f
+STEP   177 / 1202 (thread    6) f
+STEP   178 / 1202 (thread   15) f
+STEP   179 / 1202 (thread   14) f
+STEP   180 / 1202 (thread    3) f
+STEP   181 / 1202 (thread    1) f
+STEP   182 / 1202 (thread    7) f
+STEP   183 / 1202 (thread    5) f
+STEP   184 / 1202 (thread    0) f
+STEP   185 / 1202 (thread   13) f
+STEP   186 / 1202 (thread    4) f
+STEP   187 / 1202 (thread    2) f
+STEP   188 / 1202 (thread    6) f
+STEP   190 / 1202 (thread    3) f
+STEP   191 / 1202 (thread   11) f
+STEP   192 / 1202 (thread    8) f
+STEP   193 / 1202 (thread   12) f
+STEP   194 / 1202 (thread    9) f
+STEP   172 / 1202 (thread   10) f
+STEP   195 / 1202 (thread    5) f
+STEP   196 / 1202 (thread    6) f
+STEP   197 / 1202 (thread   15) f
+STEP   198 / 1202 (thread    7) f
+STEP   200 / 1202 (thread    1) f
+STEP   189 / 1202 (thread   14) f
+STEP   201 / 1202 (thread    3) f
+STEP   202 / 1202 (thread   11) f
+STEP   203 / 1202 (thread    0) f
+STEP   204 / 1202 (thread    8) f
+STEP   205 / 1202 (thread   13) f
+STEP   206 / 1202 (thread    4) f
+STEP   207 / 1202 (thread    7) f
+STEP   208 / 1202 (thread    9) f
+STEP   209 / 1202 (thread    6) f
+STEP   210 / 1202 (thread   10) f
+STEP   211 / 1202 (thread   11) f
+STEP   213 / 1202 (thread    9) f
+STEP   212 / 1202 (thread   12) f
+STEP   214 / 1202 (thread    3) f
+STEP   215 / 1202 (thread    8) f
+STEP   216 / 1202 (thread    5) f
+STEP   217 / 1202 (thread    4) f
+STEP   218 / 1202 (thread   15) f
+STEP   219 / 1202 (thread   14) f
+STEP   199 / 1202 (thread    2) f
+STEP   220 / 1202 (thread    1) f
+STEP   221 / 1202 (thread    0) f
+STEP   222 / 1202 (thread    8) f
+STEP   223 / 1202 (thread   13) f
+STEP   224 / 1202 (thread   12) f
+STEP   226 / 1202 (thread    6) f
+STEP   227 / 1202 (thread    4) f
+STEP   228 / 1202 (thread    0) f
+STEP   229 / 1202 (thread    7) f
+STEP   230 / 1202 (thread   15) f
+STEP   231 / 1202 (thread   10) f
+STEP   232 / 1202 (thread    9) f
+STEP   234 / 1202 (thread    3) f
+STEP   235 / 1202 (thread    5) f
+STEP   236 / 1202 (thread    6) f
+STEP   237 / 1202 (thread   12) f
+STEP   238 / 1202 (thread    1) f
+STEP   239 / 1202 (thread    2) f
+STEP   225 / 1202 (thread   11) f
+STEP   240 / 1202 (thread    4) f
+STEP   233 / 1202 (thread   13) f
+STEP   241 / 1202 (thread   14) f
+STEP   242 / 1202 (thread   15) f
+STEP   243 / 1202 (thread    8) f
+STEP   244 / 1202 (thread    3) f
+STEP   245 / 1202 (thread    0) f
+STEP   246 / 1202 (thread    7) f
+STEP   247 / 1202 (thread    6) f
+STEP   248 / 1202 (thread    2) f
+STEP   249 / 1202 (thread    4) f
+STEP   250 / 1202 (thread    9) f
+STEP   251 / 1202 (thread    5) f
+STEP   252 / 1202 (thread   10) f
+STEP   253 / 1202 (thread   15) f
+STEP   254 / 1202 (thread   11) f
+STEP   255 / 1202 (thread   12) f
+STEP   256 / 1202 (thread    7) f
+STEP   257 / 1202 (thread    0) f
+STEP   259 / 1202 (thread    1) f
+STEP   260 / 1202 (thread   14) f
+STEP   261 / 1202 (thread    6) f
+STEP   262 / 1202 (thread   13) f
+STEP   264 / 1202 (thread    0) f
+STEP   265 / 1202 (thread    9) f
+STEP   266 / 1202 (thread    4) f
+STEP   263 / 1202 (thread    8) f
+STEP   268 / 1202 (thread    1) f
+STEP   269 / 1202 (thread   10) f
+STEP   270 / 1202 (thread   14) f
+STEP   272 / 1202 (thread    5) f
+STEP   273 / 1202 (thread    2) f
+STEP   274 / 1202 (thread    0) f
+STEP   275 / 1202 (thread    7) f
+STEP   258 / 1202 (thread    3) f
+STEP   276 / 1202 (thread   12) f
+STEP   277 / 1202 (thread   10) f
+STEP   278 / 1202 (thread    6) f
+STEP   279 / 1202 (thread    0) f
+STEP   280 / 1202 (thread    4) f
+STEP   281 / 1202 (thread    5) f
+STEP   282 / 1202 (thread    9) f
+STEP   283 / 1202 (thread    2) f
+STEP   284 / 1202 (thread    8) f
+STEP   267 / 1202 (thread   15) f
+STEP   286 / 1202 (thread    1) f
+STEP   287 / 1202 (thread   12) f
+STEP   289 / 1202 (thread    3) f
+STEP   290 / 1202 (thread    4) f
+STEP   291 / 1202 (thread    0) f
+STEP   292 / 1202 (thread    6) f
+STEP   293 / 1202 (thread   13) f
+STEP   294 / 1202 (thread    5) f
+STEP   295 / 1202 (thread   12) f
+STEP   296 / 1202 (thread    1) f
+STEP   297 / 1202 (thread   10) f
+STEP   285 / 1202 (thread   14) f
+STEP   298 / 1202 (thread   15) f
+STEP   271 / 1202 (thread   11) f
+STEP   299 / 1202 (thread    8) f
+STEP   301 / 1202 (thread    5) f
+STEP   302 / 1202 (thread    7) f
+STEP   303 / 1202 (thread    6) f
+STEP   300 / 1202 (thread    2) f
+STEP   304 / 1202 (thread   12) f
+STEP   305 / 1202 (thread   13) f
+STEP   306 / 1202 (thread    0) f
+STEP   307 / 1202 (thread    3) f
+STEP   308 / 1202 (thread   10) f
+STEP   309 / 1202 (thread    0) f
+STEP   310 / 1202 (thread   11) f
+STEP   311 / 1202 (thread    1) f
+STEP   312 / 1202 (thread   15) f
+STEP   313 / 1202 (thread    4) f
+STEP   314 / 1202 (thread    5) f
+STEP   315 / 1202 (thread   14) f
+STEP   288 / 1202 (thread    9) f
+STEP   316 / 1202 (thread   13) f
+STEP   317 / 1202 (thread   11) f
+STEP   318 / 1202 (thread    6) f
+STEP   319 / 1202 (thread    7) f
+STEP   320 / 1202 (thread    8) f
+STEP   321 / 1202 (thread    1) f
+STEP   322 / 1202 (thread    0) f
+STEP   323 / 1202 (thread   10) f
+STEP   324 / 1202 (thread   12) f
+STEP   325 / 1202 (thread    4) f
+STEP   326 / 1202 (thread    2) f
+STEP   327 / 1202 (thread   15) f
+STEP   328 / 1202 (thread   11) f
+STEP   329 / 1202 (thread    6) f
+STEP   330 / 1202 (thread   10) f
+STEP   331 / 1202 (thread    3) f
+STEP   332 / 1202 (thread   13) f
+STEP   333 / 1202 (thread   12) f
+STEP   334 / 1202 (thread    5) f
+STEP   335 / 1202 (thread    6) f
+STEP   336 / 1202 (thread    7) f
+STEP   337 / 1202 (thread    1) f
+STEP   339 / 1202 (thread    8) f
+STEP   340 / 1202 (thread    2) f
+STEP   342 / 1202 (thread   12) f
+STEP   343 / 1202 (thread   14) f
+STEP   344 / 1202 (thread    3) f
+STEP   345 / 1202 (thread    4) f
+STEP   346 / 1202 (thread   15) f
+STEP   347 / 1202 (thread    5) f
+STEP   338 / 1202 (thread   10) f
+STEP   348 / 1202 (thread    9) f
+STEP   350 / 1202 (thread   13) f
+STEP   352 / 1202 (thread    5) f
+STEP   353 / 1202 (thread   12) f
+STEP   354 / 1202 (thread   14) f
+STEP   355 / 1202 (thread   11) f
+STEP   341 / 1202 (thread    0) f
+STEP   357 / 1202 (thread    8) f
+STEP   349 / 1202 (thread    7) f
+STEP   351 / 1202 (thread    6) f
+STEP   359 / 1202 (thread    9) f
+STEP   360 / 1202 (thread    1) f
+STEP   361 / 1202 (thread   15) f
+STEP   358 / 1202 (thread    4) f
+STEP   363 / 1202 (thread   10) f
+STEP   364 / 1202 (thread   14) f
+STEP   362 / 1202 (thread    2) f
+STEP   366 / 1202 (thread   13) f
+STEP   368 / 1202 (thread   12) f
+STEP   369 / 1202 (thread   11) f
+STEP   370 / 1202 (thread    6) f
+STEP   356 / 1202 (thread    3) f
+STEP   371 / 1202 (thread    5) f
+STEP   372 / 1202 (thread    4) f
+STEP   373 / 1202 (thread   14) f
+STEP   365 / 1202 (thread    8) f
+STEP   377 / 1202 (thread    7) f
+STEP   378 / 1202 (thread    9) f
+STEP   379 / 1202 (thread    4) f
+STEP   380 / 1202 (thread   11) f
+STEP   381 / 1202 (thread   13) f
+STEP   367 / 1202 (thread    1) f
+STEP   382 / 1202 (thread    3) f
+STEP   374 / 1202 (thread    2) f
+STEP   384 / 1202 (thread    0) f
+STEP   385 / 1202 (thread   12) f
+STEP   386 / 1202 (thread    9) f
+STEP   389 / 1202 (thread   10) f
+STEP   375 / 1202 (thread   15) f
+STEP   390 / 1202 (thread    8) f
+STEP   376 / 1202 (thread    6) f
+STEP   391 / 1202 (thread   13) f
+STEP   392 / 1202 (thread   12) f
+STEP   393 / 1202 (thread    5) f
+STEP   394 / 1202 (thread    0) f
+STEP   395 / 1202 (thread    5) f
+STEP   397 / 1202 (thread    9) f
+STEP   398 / 1202 (thread    2) f
+STEP   399 / 1202 (thread   13) f
+STEP   401 / 1202 (thread   11) f
+STEP   403 / 1202 (thread   12) f
+STEP   404 / 1202 (thread   10) f
+STEP   388 / 1202 (thread    4) f
+STEP   406 / 1202 (thread   15) f
+STEP   383 / 1202 (thread   14) f
+STEP   407 / 1202 (thread    9) f
+STEP   408 / 1202 (thread   13) f
+STEP   405 / 1202 (thread    6) f
+STEP   411 / 1202 (thread   11) f
+STEP   412 / 1202 (thread   10) f
+STEP   413 / 1202 (thread   12) f
+STEP   414 / 1202 (thread   15) f
+STEP   415 / 1202 (thread   12) f
+STEP   416 / 1202 (thread    4) f
+STEP   400 / 1202 (thread    8) f
+STEP   419 / 1202 (thread   14) f
+STEP   387 / 1202 (thread    7) f
+STEP   420 / 1202 (thread    4) f
+STEP   421 / 1202 (thread    9) f
+STEP   422 / 1202 (thread    4) f
+STEP   423 / 1202 (thread   11) f
+STEP   424 / 1202 (thread   10) f
+STEP   417 / 1202 (thread   13) f
+STEP   426 / 1202 (thread   12) f
+STEP   418 / 1202 (thread   15) f
+STEP   427 / 1202 (thread    9) f
+STEP   428 / 1202 (thread   10) f
+STEP   429 / 1202 (thread   14) f
+STEP   409 / 1202 (thread    2) f
+STEP   430 / 1202 (thread    8) f
+STEP   431 / 1202 (thread    4) f
+STEP   396 / 1202 (thread    3) f
+STEP   433 / 1202 (thread   10) f
+STEP   434 / 1202 (thread   11) f
+STEP   435 / 1202 (thread   13) f
+STEP   436 / 1202 (thread    9) f
+STEP   437 / 1202 (thread   12) f
+STEP   438 / 1202 (thread   14) f
+STEP   439 / 1202 (thread   15) f
+STEP   440 / 1202 (thread    8) f
+STEP   441 / 1202 (thread    2) f
+STEP   425 / 1202 (thread    6) f
+STEP   443 / 1202 (thread   11) f
+STEP   442 / 1202 (thread   10) f
+STEP   445 / 1202 (thread   13) f
+STEP   446 / 1202 (thread    1) f
+STEP   447 / 1202 (thread    3) f
+STEP   402 / 1202 (thread    0) f
+STEP   449 / 1202 (thread   14) f
+STEP   450 / 1202 (thread    2) f
+STEP   451 / 1202 (thread    4) f
+STEP   453 / 1202 (thread    6) f
+STEP   444 / 1202 (thread   12) f
+STEP   455 / 1202 (thread    9) f
+STEP   456 / 1202 (thread    3) f
+STEP   457 / 1202 (thread   15) f
+STEP   454 / 1202 (thread   10) f
+STEP   460 / 1202 (thread    2) f
+STEP   461 / 1202 (thread    3) f
+STEP   462 / 1202 (thread    9) f
+STEP   463 / 1202 (thread    0) f
+STEP   410 / 1202 (thread    5) f
+STEP   464 / 1202 (thread   11) f
+STEP   448 / 1202 (thread    8) f
+STEP   466 / 1202 (thread   11) f
+STEP   467 / 1202 (thread    2) f
+STEP   468 / 1202 (thread   15) f
+STEP   469 / 1202 (thread   10) f
+STEP   470 / 1202 (thread    2) f
+STEP   471 / 1202 (thread    6) f
+STEP   472 / 1202 (thread    3) f
+STEP   473 / 1202 (thread    4) f
+STEP   474 / 1202 (thread    0) f
+STEP   458 / 1202 (thread   13) f
+STEP   475 / 1202 (thread   11) f
+STEP   476 / 1202 (thread    9) f
+STEP   478 / 1202 (thread    5) f
+STEP   432 / 1202 (thread    7) f
+STEP   459 / 1202 (thread   14) f
+STEP   479 / 1202 (thread    8) f
+STEP   480 / 1202 (thread    9) f
+STEP   481 / 1202 (thread    5) f
+STEP   477 / 1202 (thread    2) f
+STEP   484 / 1202 (thread   10) f
+STEP   485 / 1202 (thread    0) f
+STEP   486 / 1202 (thread    9) f
+STEP   487 / 1202 (thread    3) f
+STEP   488 / 1202 (thread    8) f
+STEP   489 / 1202 (thread    4) f
+STEP   490 / 1202 (thread   13) f
+STEP   483 / 1202 (thread    6) f
+STEP   491 / 1202 (thread   14) f
+STEP   492 / 1202 (thread    5) f
+STEP   493 / 1202 (thread   10) f
+STEP   495 / 1202 (thread    8) f
+STEP   496 / 1202 (thread    9) f
+STEP   497 / 1202 (thread    4) f
+STEP   498 / 1202 (thread    7) f
+STEP   452 / 1202 (thread    1) f
+STEP   499 / 1202 (thread    0) f
+STEP   500 / 1202 (thread   10) f
+STEP   465 / 1202 (thread   12) f
+STEP   482 / 1202 (thread   15) f
+STEP   494 / 1202 (thread    2) f
+STEP   501 / 1202 (thread    3) f
+STEP   601 / 1202 (thread    7) f
+STEP   701 / 1202 (thread   13) f
+STEP   801 / 1202 (thread    4) f
+STEP   901 / 1202 (thread    8) f
+STEP  1001 / 1202 (thread    3) f
+STEP  1101 / 1202 (thread   10) f
 Reallocating..done. *alloclen = 4744
 
 Reallocating..done. *alloclen = 6116
 
 Reallocating..done. *alloclen = 7616
-STEP  1201 / 1202 (thread   14) d h
+
+STEP  1201 / 1202 (thread   14) d h
 done.
 
 disttbfast (aa) Version 7.525
@@ -65,8 +1349,8 @@ The default gap scoring scheme has been changed in version 7.110 (2013 Oct).
 It tends to insert more gaps into gap-rich regions than previous versions.
 To disable this change, add the --leavegappyregion option.
 
-INFO:/home/samusevich/TPS_ML_Discovery/utils/data_prep_scripts/get_phylogeny_based_clusters.py:MSA is ready!
-INFO:/home/samusevich/TPS_ML_Discovery/utils/data_prep_scripts/get_phylogeny_based_clusters.py:Computing the phylogenetic tree...
+INFO:/home/samusevich/TerpeneMiner/utils/data_prep_scripts/get_phylogeny_based_clusters.py:MSA is ready!
+INFO:/home/samusevich/TerpeneMiner/utils/data_prep_scripts/get_phylogeny_based_clusters.py:Computing the phylogenetic tree...
 IQ-TREE multicore version 2.3.0 COVID-edition for Linux 64-bit built Mar 14 2024
 Developed by Bui Quang Minh, James Barbetti, Nguyen Lam Tung,
 Olga Chernomor, Heiko Schmidt, Dominik Schrempf, Michael Woodhams, Ly Trong Nhan.
@@ -1617,7 +2901,7 @@ Ultrafast bootstrap approximation results written to:
   Screen log file:               data/_mafft_msa_tps_all.fasta.log
 
 Date and Time: Sun Apr 14 03:21:01 2024
-INFO:/home/samusevich/TPS_ML_Discovery/utils/data_prep_scripts/get_phylogeny_based_clusters.py:The phylogenetic tree is ready!
-INFO:/home/samusevich/TPS_ML_Discovery/utils/data_prep_scripts/get_phylogeny_based_clusters.py:Performing several traversals of the phylogenetic tree to get clade-based groups...
-INFO:/home/samusevich/TPS_ML_Discovery/utils/data_prep_scripts/get_phylogeny_based_clusters.py:Clade-based groups are ready!
-INFO:/home/samusevich/TPS_ML_Discovery/utils/data_prep_scripts/get_phylogeny_based_clusters.py:Clade-based sequence grouped were stored to data/phylogenetic_cluster.pkl.
+INFO:/home/samusevich/TerpeneMiner/utils/data_prep_scripts/get_phylogeny_based_clusters.py:The phylogenetic tree is ready!
+INFO:/home/samusevich/TerpeneMiner/utils/data_prep_scripts/get_phylogeny_based_clusters.py:Performing several traversals of the phylogenetic tree to get clade-based groups...
+INFO:/home/samusevich/TerpeneMiner/utils/data_prep_scripts/get_phylogeny_based_clusters.py:Clade-based groups are ready!
+INFO:/home/samusevich/TerpeneMiner/utils/data_prep_scripts/get_phylogeny_based_clusters.py:Clade-based sequence grouped were stored to data/phylogenetic_cluster.pkl.

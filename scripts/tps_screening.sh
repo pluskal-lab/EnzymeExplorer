@@ -9,8 +9,8 @@
 #SBATCH --gpus 8
 
 source ~/.bashrc
-conda activate tps_ml_discovery
-cd /scratch/project_465000659/samusevi/TPS_ML_Discovery
+conda activate terpene_miner
+cd /scratch/project_465000659/samusevi/TerpeneMiner
 
 input_fasta_path="$1"
 output_root_path="$2"

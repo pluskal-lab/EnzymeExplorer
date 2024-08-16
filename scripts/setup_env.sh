@@ -1,23 +1,22 @@
 #!/bin/bash
 
 # Create env and install required packages
-conda create -n tps_ml_discovery python==3.10.0 scikit-learn==1.5.1 pandas==2.2.2 numpy==1.26.4 scipy==1.14.0 jupyter matplotlib seaborn pymol pymol-psico tmalign -c schrodinger -c speleo3 -c conda-forge -y
+conda create -n terpene_miner python==3.10.0 scikit-learn==1.5.1 pandas==2.2.2 numpy==1.26.4 scipy==1.14.0 jupyter matplotlib seaborn pymol==3.0.2 pymol-psico==3.4.19 tmalign==20170708 -c schrodinger -c speleo3 -c conda-forge -y
 
-conda activate tps_ml_discovery
-pip install torch --index-url https://download.pytorch.org/whl/rocm6.0
+conda activate terpene_miner
+pip install torch # for amd gpu's: --index-url https://download.pytorch.org/whl/rocm6.0
 pip install epam.indigo
 pip install openpyxl
-pip install rdkit-pypi
-conda install -c bioconda mafft -y
-conda install -c bioconda iqtree -y
-conda install -c conda-forge biopython -y
-conda install -c schrodinger pymol-psico -y
+pip install rdkit-pypi==2022.9.5
+conda install -c bioconda mafft==7.525 -y
+conda install -c bioconda iqtree==2.3.0 -y
+conda install -c conda-forge biopython==1.83 -y
 pip install py3Dmol
-pip install hdbscan
+pip install hdbscan==0.8.33
 pip install scikit-learn-extra
 pip install plotly
-pip install fair-esm
-pip install ankh
+pip install fair-esm==2.0.0
+pip install ankh==1.10.0
 pip install tables
 pip install tqdm
 pip install py-mcc-f1
