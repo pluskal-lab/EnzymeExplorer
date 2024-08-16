@@ -51,8 +51,7 @@ and characterization.
 TPSs generate the scaffolds of the largest class of natural products (more than 96.000 compounds), including several
 first-line
 medicines [[5]](https://pubs.acs.org/doi/pdf/10.1021/acs.accounts.1c00296?casa_token=OzB4p1Y4nLoAAAAA:h85bm9CC10o33CQCMnhF1Th63mVD23YnnOGau7qhTjVhR7233XPV2-GS0LBDbIeQg-_LqjCS7ciCi7g).
-Our research, outlined in *
-*[the accompanying paper *Highly accurate discovery of terpene synthases powered by machine learning reveals functional
+Our research, outlined in **[the accompanying paper *Highly accurate discovery of terpene synthases powered by machine learning reveals functional
 terpene cyclization in Archaea*](https://www.biorxiv.org/content/10.1101/2024.01.29.577750)**, addresses the challenge
 of accurately detecting TPS activity in sequence databases.
 
