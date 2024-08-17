@@ -1,6 +1,6 @@
-INFO:/home/samusevich/TPS_ML_Discovery/utils/data_prep_scripts/get_balanced_stratified_group_kfolds.py:Loading data...
-INFO:/home/samusevich/TPS_ML_Discovery/utils/data_prep_scripts/get_balanced_stratified_group_kfolds.py:Data were loaded! There are 11116 loaded records in total.
-INFO:/home/samusevich/TPS_ML_Discovery/utils/data_prep_scripts/get_balanced_stratified_group_kfolds.py:Computing a balanced StratifiedGroupKFold for split named stratified_phylogeny_based_split_with_minor_products
-INFO:/home/samusevich/TPS_ML_Discovery/utils/data_prep_scripts/get_balanced_stratified_group_kfolds.py:Number of target categories originally: 19
-INFO:/home/samusevich/TPS_ML_Discovery/utils/data_prep_scripts/get_balanced_stratified_group_kfolds.py:Number of target categories after removing categories covered exclusively by the same clade of the phylogenetic tree: 16
-INFO:/home/samusevich/TPS_ML_Discovery/utils/data_prep_scripts/get_balanced_stratified_group_kfolds.py:Number of positive protein IDs entering K-Fold computation: 1176
+INFO:/home/samusevich/TerpeneMiner/utils/data_prep_scripts/get_balanced_stratified_group_kfolds.py:Loading data...
+INFO:/home/samusevich/TerpeneMiner/utils/data_prep_scripts/get_balanced_stratified_group_kfolds.py:Data were loaded! There are 11116 loaded records in total.
+INFO:/home/samusevich/TerpeneMiner/utils/data_prep_scripts/get_balanced_stratified_group_kfolds.py:Computing a balanced StratifiedGroupKFold for split named stratified_phylogeny_based_split_with_minor_products
+INFO:/home/samusevich/TerpeneMiner/utils/data_prep_scripts/get_balanced_stratified_group_kfolds.py:Number of target categories originally: 19
+INFO:/home/samusevich/TerpeneMiner/utils/data_prep_scripts/get_balanced_stratified_group_kfolds.py:Number of target categories after removing categories covered exclusively by the same clade of the phylogenetic tree: 16
+INFO:/home/samusevich/TerpeneMiner/utils/data_prep_scripts/get_balanced_stratified_group_kfolds.py:Number of positive protein IDs entering K-Fold computation: 1176
