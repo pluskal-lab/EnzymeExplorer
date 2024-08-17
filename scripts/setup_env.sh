@@ -4,7 +4,8 @@
 conda create -n terpene_miner python==3.10.0 scikit-learn==1.5.1 pandas==2.2.2 numpy==1.26.4 scipy==1.14.0 jupyter matplotlib seaborn pymol==3.0.2 pymol-psico==3.4.19 tmalign==20170708 -c schrodinger -c speleo3 -c conda-forge -y
 
 conda activate terpene_miner
-pip install torch # for amd gpu's: --index-url https://download.pytorch.org/whl/rocm6.0
+pip install torch --index-url https://download.pytorch.org/whl/cu121
+# pip install torch --index-url https://download.pytorch.org/whl/rocm6.0  # for amd gpu's
 pip install epam.indigo
 pip install openpyxl
 pip install rdkit-pypi==2022.9.5

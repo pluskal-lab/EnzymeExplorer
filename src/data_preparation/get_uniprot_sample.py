@@ -25,6 +25,8 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--uniprot-size-to-check", type=int, default=566_509)
     parser.add_argument("--sample-size", type=int, default=10_000)
+    parser.add_argument("--output-path", type=str, default="data/sampled_id_2_seq.pkl")
+    parser.add_argument("--blacklist-path", type=str, default=None)
     args = parser.parse_args()
     return args
 
@@ -37,7 +39,7 @@ def get_random_sample(  # pylint: disable=R0913
     blacklisted_ids: Optional[set] = None,
 ) -> Union[list[str], tuple[list[str], dict[str, str]]]:
     """
-    This function returns a requested sample from UniProt.
+    This function returns a requested random sample from UniProt.
     :param generator: iterator over UniProt entries
     :param selected_indices_set: randomly sampled indices of UniProt entries
     :param uniprot_size_to_check: number of UniProt entries to go through
@@ -90,13 +92,20 @@ if __name__ == "__main__":
     )
     logger.info("Starting Swiss-Prot negatives sampling.")
     uniprot_generator = esm.data.read_fasta(cli_args.uniprot_fasta_path)
+    current_blacklisted_ids = set(tps_df["Uniprot ID"].values)
+    if cli_args.blacklist_path is not None:
+        with open(cli_args.blacklist_path, "rb") as file:
+            blacklisted_id_2_seq = pickle.load(file)
+        current_blacklisted_ids = set(blacklisted_id_2_seq.keys()).union(
+            current_blacklisted_ids
+        )
     uniprot_ids_list, id_2_seq = get_random_sample(
         uniprot_generator,
         cli_args.sample_size,
         selected_indices_set=sample_indices,
         uniprot_size_to_check=cli_args.uniprot_size_to_check,
-        blacklisted_ids=set(tps_df["Uniprot ID"].values),
+        blacklisted_ids=current_blacklisted_ids,
     )
-    with open("data/sampled_id_2_seq.pkl", "wb") as file:
-        pickle.dump(id_2_seq, file)
+    with open(cli_args.output_path, "wb") as file_write:
+        pickle.dump(id_2_seq, file_write)
     logger.info("Swiss-Prot negatives sampled and stored to data/sampled_id_2_seq.pkl.")

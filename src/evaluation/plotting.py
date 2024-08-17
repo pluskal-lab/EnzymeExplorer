@@ -59,15 +59,8 @@ def plot_avg_pr_curves_per_class(
                         base_recall, recalls_fold, precisions_fold
                     )[::-1]
                     precisions.append(precision_base)
-                    print("model: ", model, "; precisions_fold: ", precisions_fold)
-                    print("precision_base: ", precision_base)
-                    print("recalls_fold: ", recalls_fold)
-                    print("base_recall: ", base_recall)
 
         precisions_np = np.array(precisions)
-        print(
-            "model: ", model, "; precisions: ", precisions, "; recalls: ", base_recall
-        )
         mean_precisions = precisions_np.mean(axis=0)
 
         std = precisions_np.std(axis=0)

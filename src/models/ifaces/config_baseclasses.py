@@ -9,7 +9,7 @@ import yaml  # type: ignore
 from src.utils.project_info import ExperimentInfo
 
 
-@dataclass
+@dataclass(kw_only=True)
 class BaseConfig:
     """
     A data class to store model attributes
@@ -30,6 +30,7 @@ class BaseConfig:
     per_class_optimization: bool
     load_per_class_params_from: str
     reuse_existing_partial_results: bool
+    run_against_wetlab: bool = False
 
     @classmethod
     def load(cls, path_to_config: Union[str, Path]) -> dict:

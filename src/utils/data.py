@@ -118,26 +118,31 @@ def get_train_val_per_fold(
 def get_tps_df(
     path_to_file: str,
     path_to_sampled_negatives: str,
+    id_col_name: str = "Uniprot ID",
     remove_fragments: bool = True,
     max_seq_len: int = 2000,
 ) -> pd.DataFrame:
     """
-    This function prepares pre-processed terpene synthases dataset as a pandas dataframe
-    :param path_to_file: path to an xlsx file containing gathered TPS sequences
-    :param path_to_sampled_negatives: path to a pickle file containing negative sequences sampled from Swiss-Prot
-    :param remove_fragments: flag requesting removal of sequences which are not full
-    :param max_seq_len: max allowed length of the sequence (to filter too long negatives)
-    :return: pre-processed terpene synthases dataset as a pandas dataframe
+    Function to prepare a pre-processed terpene synthases dataset as a pandas DataFrame.
+
+    :param path_to_file: Path to an xlsx file containing gathered TPS sequences.
+    :param path_to_sampled_negatives: Path to a pickle file containing negative sequences sampled from Swiss-Prot.
+    :param id_col_name: The name of the column containing Uniprot IDs. Defaults to "Uniprot ID".
+    :param remove_fragments: Flag indicating whether to remove sequences that are not full fragments. Defaults to True.
+    :param max_seq_len: Maximum allowed length of the sequence to filter out sequences that are too long. Defaults to 2000.
+
+    :return: A pandas DataFrame containing the pre-processed terpene synthases dataset.
     """
+
     tps_df = pd.read_csv(path_to_file)
-    tps_df["Uniprot ID"] = tps_df["Uniprot ID"].map(
+    tps_df[id_col_name] = tps_df[id_col_name].map(
         lambda x: x.strip() if isinstance(x, str) else "Negative"
     )
     tps_df.dropna(subset=["Amino acid sequence"], inplace=True)
     if remove_fragments:
         tps_df = tps_df[tps_df["Fragment"].isnull()]
 
-    known_ids = set(tps_df["Uniprot ID"].values)
+    known_ids = set(tps_df[id_col_name].values)
 
     with open(path_to_sampled_negatives, "rb") as file:
         id_2_seq = pickle.load(file)
@@ -149,7 +154,7 @@ def get_tps_df(
     ]
 
     tps_df_new_dict = {
-        "Uniprot ID": [el[0] for el in id_seq_new],
+        id_col_name: [el[0] for el in id_seq_new],
         "Amino acid sequence": [el[1] for el in id_seq_new],
     }
 
@@ -200,10 +205,12 @@ def get_major_classes_distribution(
 
 def get_canonical_smiles(smiles: str, without_stereo: bool = True):
     """
-    The function computes a canonical SMILES with possibility to ignore stereoisomerism
-    :param smiles: input SMILES string
-    :param without_stereo: a boolean flag controlling if we want to ignore stereoisomerism
-    :return: a string of the canonical SMILES
+    Function to generate the canonical SMILES representation of a given SMILES string.
+
+    :param smiles: The input SMILES string.
+    :param without_stereo: A flag indicating whether to remove stereochemistry information. Defaults to True.
+
+    :return: The canonical SMILES string or the original input if it is invalid or in a predefined set of non-processable values.
     """
     if isinstance(smiles, float) or smiles in {"Unknown", "Negative"}:
         return smiles
