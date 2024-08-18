@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Create env and install required packages
-conda create -n terpene_miner python==3.10.0 scikit-learn==1.5.1 pandas==2.2.2 numpy==1.26.4 scipy==1.14.0 jupyter matplotlib seaborn pymol==3.0.2 pymol-psico==3.4.19 tmalign==20170708 -c schrodinger -c speleo3 -c conda-forge -y
+conda create -n terpene_miner python==3.10.0 scikit-learn==1.5.1 pandas==2.2.2 numpy==1.26.4 scipy==1.13.0 jupyter matplotlib seaborn pymol==3.0.2 pymol-psico==3.4.19 tmalign==20170708 -c schrodinger -c speleo3 -c conda-forge -y
 
 conda activate terpene_miner
 pip install torch --index-url https://download.pytorch.org/whl/cu121
@@ -28,3 +28,15 @@ pip install xgboost
 pip install GPUtil
 pip install wget
 pip install git+https://github.com/SamusRam/ProFun.git # one needs to install prerequisites of individual models separately, see https://github.com/SamusRam/ProFun
+
+# installing CLEAN.ignore
+cwd=$(pwd)
+cd ..
+if [ -d CLEAN ]; then
+    rm -rf CLEAN
+fi
+git clone https://github.com/tttianhao/CLEAN.git
+cd CLEAN/app/src
+echo "export PATH=\$PATH:$(pwd)" >> ~/.bashrc
+source ~/.bashrc
+cd $cwd
