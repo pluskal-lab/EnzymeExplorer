@@ -48,25 +48,25 @@ def main():
     logger.info("Data were loaded! There are %s loaded records in total.", len(tps_df))
 
     logger.info("Generating MSA...")
-    MSA_PATH_WORKING = "data/_mafft_msa_tps_all.fasta"
+    msa_path_working = "data/_mafft_msa_tps_all.fasta"
     generate_msa_mafft(
         seqs=tps_df["Amino acid sequence"],
         ids=tps_df["Uniprot ID"],
-        output_name=MSA_PATH_WORKING,
+        output_name=msa_path_working,
         num_workers=cli_args.n_workers,
     )
     logger.info("MSA is ready!")
 
     logger.info("Computing the phylogenetic tree...")
     os.system(
-        f"iqtree -s {MSA_PATH_WORKING} -st AA -m TEST -bb 1000 -alrt 1000 -T {cli_args.n_workers}"
+        f"iqtree -s {msa_path_working} -st AA -m TEST -bb 1000 -alrt 1000 -T {cli_args.n_workers}"
     )
     logger.info("The phylogenetic tree is ready!")
 
     logger.info(
         "Performing several traversals of the phylogenetic tree to get clade-based groups..."
     )
-    tree = Phylo.read(f"{MSA_PATH_WORKING}.treefile", "newick")
+    tree = Phylo.read(f"{msa_path_working}.treefile", "newick")
     clade_2_parent = {}
     queue_for_depth_computation: collections.deque = deque()
     queue_for_depth_computation.append(tree.root)

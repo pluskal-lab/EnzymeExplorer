@@ -66,7 +66,7 @@ def main():
         model, batch_converter, alphabet = esm_get_model_and_tokenizer(
             cli_args.model, return_alphabet=True
         )
-        MAX_LEN = 424242_000 if "esm-2" in cli_args.model else 1022
+        max_len = 424242_000 if "esm-2" in cli_args.model else 1022
 
         compute_embeddings_partial = partial(
             esm_compute_embeddings,
@@ -74,7 +74,7 @@ def main():
             converter=batch_converter,
             padding_idx=alphabet.padding_idx,
             model_repr_layer=cli_args.model_repr_layer,
-            max_len=MAX_LEN,
+            max_len=max_len,
         )
     elif "ankh" in cli_args.model:
         logger.info("Loading an Ankh-family model %s", cli_args.model)

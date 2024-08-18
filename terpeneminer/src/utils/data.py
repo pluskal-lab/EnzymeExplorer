@@ -2,12 +2,12 @@
 import pickle
 from typing import Tuple, Union
 import logging
-
-logging.getLogger("h5py").setLevel(logging.INFO)
-import h5py  # type: ignore
 import numpy as np  # type: ignore
 import pandas as pd  # type: ignore
 from indigo import Indigo  # type: ignore
+
+logging.getLogger("h5py").setLevel(logging.INFO)
+import h5py  # type: ignore # pylint: disable=C0413
 
 logger = logging.getLogger(__file__)
 logger.setLevel(level=logging.INFO)

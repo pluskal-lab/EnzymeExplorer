@@ -63,14 +63,14 @@ def main():
         with open(os.path.join(root_path, id_file), "rb") as f:
             uniprot_ids = pickle.load(f)
 
-        EMBEDDINGS = None
+        embeddings = None
         for id_idx, uniprot_id in enumerate(uniprot_ids):
             if uniprot_id in required_ids or cli_args.process_all:
                 if uniprot_id in required_ids:
                     required_ids.remove(uniprot_id)
                 if cli_args.verbose and len(required_ids) % 500 == 0:
                     logger.info("Remains %d IDs to find", len(required_ids))
-                if EMBEDDINGS is None:
+                if embeddings is None:
                     with open(
                         os.path.join(
                             root_path,
@@ -78,9 +78,9 @@ def main():
                         ),
                         "rb",
                     ) as f:
-                        EMBEDDINGS = pickle.load(f)
+                        embeddings = pickle.load(f)
                 all_found_ids.append(uniprot_id)
-                all_found_embs.append(EMBEDDINGS[id_idx])
+                all_found_embs.append(embeddings[id_idx])
         i += 1
 
     if required_ids:
@@ -90,9 +90,7 @@ def main():
         {cli_args.id_column: all_found_ids, "Emb": all_found_embs}
     )
     if cli_args.embs_suffix == "embs_seqs":
-        for part_i, start_i in enumerate(
-            range(0, len(results_df), cli_args.storage_step)
-        ):
+        for part_i, _ in enumerate(range(0, len(results_df), cli_args.storage_step)):
             results_df.iloc[
                 part_i * cli_args.storage_step : (part_i + 1) * cli_args.storage_step
             ].to_hdf(

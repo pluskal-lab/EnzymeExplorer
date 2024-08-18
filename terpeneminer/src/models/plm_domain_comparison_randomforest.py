@@ -17,7 +17,7 @@ from terpeneminer.src.models.ifaces.domains_sklearn_model import (
 )
 
 
-# pylint: disable=R0903
+# pylint: disable=R0903, R0901
 class PlmDomainsRandomForest(PlmRandomForest):
     """
     Random Forest on top of protein language model (PLM) embeddings

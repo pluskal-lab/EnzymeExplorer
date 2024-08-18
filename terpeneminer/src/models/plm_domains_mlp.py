@@ -8,7 +8,7 @@ from terpeneminer.src.models.config_classes import EmbMLPConfig
 from terpeneminer.src.models import PlmDomainsRandomForest
 
 
-# pylint: disable=R0903
+# pylint: disable=R0903, R0901
 class PlmDomainsMLP(PlmDomainsRandomForest):
     """
     Random Forest on top of protein language model (PLM) embeddings

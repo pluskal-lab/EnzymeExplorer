@@ -103,7 +103,7 @@ def main() -> None:
         current_blacklisted_ids = set(blacklisted_id_2_seq.keys()).union(
             current_blacklisted_ids
         )
-    uniprot_ids_list, id_2_seq = get_random_sample(
+    _, id_2_seq = get_random_sample(
         uniprot_generator,
         cli_args.sample_size,
         selected_indices_set=sample_indices,

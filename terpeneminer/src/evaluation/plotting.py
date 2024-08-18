@@ -3,15 +3,14 @@ import argparse
 import pickle
 from pathlib import Path
 import logging
-
-logging.getLogger("matplotlib").setLevel(logging.INFO)
-import matplotlib.pyplot as plt  # type: ignore
-import matplotlib as mpl  # type: ignore
 import numpy as np  # type: ignore
 import pandas as pd  # type: ignore
 from seaborn import boxplot, barplot  # type: ignore
-
 from terpeneminer.src.utils.project_info import get_evaluations_output
+
+logging.getLogger("matplotlib").setLevel(logging.INFO)
+import matplotlib.pyplot as plt  # type: ignore # pylint: disable=C0413, C0411
+import matplotlib as mpl  # type: ignore # pylint: disable=C0413, C0411
 
 # set global parameters
 mpl.rcParams["pdf.fonttype"] = 42
