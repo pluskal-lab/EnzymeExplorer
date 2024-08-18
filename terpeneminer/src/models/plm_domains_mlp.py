@@ -5,7 +5,9 @@ from typing import Type
 from sklearn.neural_network import MLPClassifier  # type: ignore
 
 from terpeneminer.src.models.config_classes import EmbMLPConfig
-from terpeneminer.src.models import PlmDomainsRandomForest
+from terpeneminer.src.models.plm_domain_comparison_randomforest import (
+    PlmDomainsRandomForest,
+)
 
 
 # pylint: disable=R0903, R0901

@@ -5,7 +5,9 @@ from typing import Type
 from sklearn.linear_model import LogisticRegression  # type: ignore
 
 from terpeneminer.src.models.config_classes import EmbLogisticRegressionConfig
-from terpeneminer.src.models import PlmDomainsRandomForest
+from terpeneminer.src.models.plm_domain_comparison_randomforest import (
+    PlmDomainsRandomForest,
+)
 
 
 # pylint: disable=R0903, R0901

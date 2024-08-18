@@ -10,7 +10,7 @@ from terpeneminer.src.models.config_classes import (
     EmbMLPConfig,
     EmbLogisticRegressionConfig,
 )
-from terpeneminer.src.models import PlmRandomForest
+from terpeneminer.src.models.plm_randomforest import PlmRandomForest
 from terpeneminer.src.models.ifaces import BaseConfig
 from terpeneminer.src.models.ifaces.domains_sklearn_model import (
     compare_domains_to_known_instances,
