@@ -1,2 +1,0 @@
-include: ../main_config.yaml
-representations_path: "data/gathered_embs_esm-2_embs_avg.h5"

@@ -28,9 +28,12 @@ Table of contents
     - [3 - Clustering of the detected domains](#3---clustering-of-the-detected-domains)
   - [Predictive Modeling](#predictive-modeling)
     - [1 - Extracting numerical embeddings](#1---extracting-numerical-embeddings)
-    - [2 - Training all models with hyperparameter optimization](#2---training-all-models-with-hyperparameter-optimization)
-    - [3 - Evaluating performance](#3---evaluating-performance)
-    - [4 - Visualization of performance](#4---visualization-of-performance)
+    - [2 - Training all models (with optional hyperparameter optimization)](#2---training-all-models-with-optional-hyperparameter-optimization)
+    - [3 - Training a single model](#3---training-a-single-model)
+    - [4 - Descriminative structural domains selection](#4---descriminative-structural-domains-selection)
+    - [5 - Parallelized hyperparameter optimization](#5---parallelized-hyperparameter-optimization)
+    - [6 - Evaluating performance](#6---evaluating-performance)
+    - [7 - Visualization of performance](#7---visualization-of-performance)
   - [Screening large databases](#screening-large-databases)
 - [Reference](#reference)
     
@@ -79,8 +82,9 @@ our approach to other enzyme families, accelerating biological discoveries.
 git clone https://github.com/SamusRam/TerpeneMiner.git
 
 cd TerpeneMiner
-
 . scripts/setup_env.sh
+conda activate terpene_miner
+pip install .
 ```
 
 ## Workflow
@@ -101,7 +105,7 @@ cd TerpeneMiner
 conda activate terpene_miner
 mkdir -p outputs/logs
 if [ ! -f data/sampled_id_2_seq.pkl ]; then
-    python -m src.data_preparation.get_uniprot_sample \
+    get_uniprot_sample \
         --uniprot-fasta-path data/uniprot_sprot.fasta \
         --output-path "data/sampled_id_2_seq.pkl" \
         --sample-size 10000 > outputs/logs/swissprot_sampling.log 2>&1
@@ -115,7 +119,7 @@ Also, for experimental (wet-lab) validation, we sample Swiss-Prot for negative e
 cd TerpeneMiner
 conda activate terpene_miner
 if [ ! -f data/sampled_id_2_seq_experimental.pkl ]; then
-    python -m src.data_preparation.get_uniprot_sample \
+    get_uniprot_sample \
         --uniprot-fasta-path data/uniprot_sprot.fasta \
         --output-path "data/sampled_id_2_seq_experimental.pkl" \
         --blacklist-path "data/sampled_id_2_seq.pkl" \
@@ -130,7 +134,7 @@ fi
 ```bash
 cd TerpeneMiner
 conda activate terpene_miner
-python -m src.data_preparation.cleaning_data_from_raw_tps_table
+python -m terpeneminer.src.data_preparation.cleaning_data_from_raw_tps_table
 ```
 This data preprocessing script is application-specific. It would require a separate implementation for other enzyme families. 
 For that reason, the script is not configurable via command line arguments.
@@ -157,7 +161,7 @@ To compute a clade-based sequence group on your own, run
 cd TerpeneMiner
 conda activate terpene_miner
 if [ ! -f data/phylogenetic_clusters.pkl ]; then
-    python -m src.data_preparation.get_phylogeny_based_clusters \
+    get_phylogeny_based_clusters \
         --tps-cleaned-csv-path data/TPS-Nov19_2023_verified_all_reactions.csv \
         --n-workers 64 > outputs/logs/phylogenetic_clusters.log 2>&1
 else
@@ -190,7 +194,7 @@ To compute the folds on your own, run
 cd TerpeneMiner
 conda activate terpene_miner
 if [ ! -f data/tps_folds_nov2023.h5 ]; then
-    python -m src.data_preparation.get_balanced_stratified_group_kfolds \
+    python -m terpeneminer.src.data_preparation.get_balanced_stratified_group_kfolds \
         --negative-samples-path data/sampled_id_2_seq.pkl \
         --tps-cleaned-csv-path data/TPS-Nov19_2023_verified_all_reactions.csv \
         --n-folds 5 \
@@ -207,7 +211,7 @@ Then, to store the folds in corresponding CSVs, run
 ```bash
 cd TerpeneMiner
 conda activate terpene_miner
-python -m src.data_preparation.store_folds_into_csv \
+python -m terpeneminer.src.data_preparation.store_folds_into_csv \
     --negative-samples-path data/sampled_id_2_seq.pkl \
     --tps-cleaned-csv-path data/TPS-Nov19_2023_verified_all_reactions.csv \
     --kfolds-path data/tps_folds_nov2023.h5 \
@@ -263,7 +267,7 @@ algorithms from `utils/structural_algorithms.py`, run
 ```bash
 cd TerpeneMiner
 
-python -m src.utils.compute_pairwise_similarities_of_domains \
+python -m terpeneminer.src.utils.compute_pairwise_similarities_of_domains \
     --name all \
     --n-jobs 64
 ```
@@ -294,36 +298,50 @@ First, we extract protein-language-model's (PLM's) embeddings.
 ```bash
 cd TerpeneMiner
 conda activate terpene_miner
-. src/embeddings_extraction/extract_all_embeddings.sh > outputs/logs/embeddings_extraction.log 2>&1
+. scripts/extract_all_embeddings.sh > outputs/logs/embeddings_extraction.log 2>&1
 ```
 
-#### 2 - Training all models with hyperparameter optimization
+#### 2 - Training all models (with optional hyperparameter optimization)
 
 Parameters of the models and/or hyperparameter search can be modified in `configs`.
 
 ```bash
 cd TerpeneMiner
 conda activate terpene_miner
-python -m src.modeling_main run > outputs/logs/models_training.log 2>&1
+terpene_miner_main run > outputs/logs/models_training.log 2>&1
 ```
 
 This command will automatically retrieve all models specified in the `configs` folder.
 If you want to exclude some model, put `.ignore` suffix to the corresponding folder in `configs`.
 
+#### 3 - Training a single model
 If you want to run a single model, run
 
 ```bash
 cd TerpeneMiner
 conda activate terpene_miner
-python -m src.modeling_main --select-single-experiment run
+terpene_miner_main --select-single-experiment run
 ```
 
 On headless servers, you would be prompted to select one of the available configs via the command line:
 ![](data/readme_figures/cli_modeling_demo.gif)
+
+
 Otherwise, you can select a model via a simple GUI.
 
 ![](data/readme_figures/gui_demo.gif)
 
+#### 4 - Descriminative structural domains selection
+After training a `PlmDomainsRandomForest`, to select the most important domains for the best-performing model, run
+
+```bash
+cd TerpeneMiner
+conda activate terpene_miner
+python -m terpeneminer.src.models.plm_domain_faster.get_domains_feature_importances \
+    --top-most-important-domain-features-per-model 200 --output-path "data/domains_subset.pkl" > outputs/logs/domains_subset.log 2>&1
+```
+
+#### 5 - Parallelized hyperparameter optimization
 If you want to run hyperparameter optimization in parallel, you can use the following:
 
 ```bash
@@ -336,14 +354,14 @@ For reproducability, we share outputs of the hyperparameter optimization
 on [zenodo](https://zenodo.org/records/10567437) as `outputs.zip`. You can simply unzip its contents to the `outputs`
 folder and run the consequent evaluation steps.
 
-#### 3 - Evaluating performance
+#### 6 - Evaluating performance
 
 To evaluate all configured models, run
 
 ```bash
 cd TerpeneMiner
 conda activate terpene_miner
-python -m src.modeling_main evaluate
+terpene_miner_main evaluate
 ```
 
 Again, if you want to evaluate a single model, run
@@ -351,7 +369,7 @@ Again, if you want to evaluate a single model, run
 ```bash
 cd TerpeneMiner
 conda activate terpene_miner
-python -m src.modeling_main --select-single-experiment evaluate --output-filename single_model_specific_name
+terpene_miner_main --select-single-experiment evaluate --output-filename single_model_specific_name
 ```
 
 and select the experiment you are interested in.
@@ -359,29 +377,29 @@ and select the experiment you are interested in.
 To evaluate detection of the TPSs, run
 
 ```bash
-python -m src.modeling_main evaluate --classes "isTPS" --output-filename tps_detection
+terpene_miner_main evaluate --classes "isTPS" --output-filename tps_detection
 ```
 
 To evaluate separately for individual kingdoms, run
 
 ```bash
-python -m src.modeling_main evaluate --id-2-category-path data/id_2_kingdom_dataset.pkl --output-filename per_kingdom
+terpene_miner_main evaluate --id-2-category-path data/id_2_kingdom_dataset.pkl --output-filename per_kingdom
 ```
 
 Finally, to evaluate results separately per entries with and without Pfam/SUPFAM/InterPro protein signatures, run
 
 ```bash
-python -m src.modeling_main evaluate --id-2-category-path data/id_2_domains_presence.pkl --output-filename per_interpro_signatures
+terpene_miner_main evaluate --id-2-category-path data/id_2_domains_presence.pkl --output-filename per_interpro_signatures
 ```
 
-#### 4 - Visualization of performance
+#### 7 - Visualization of performance
 
 Once the performance evaluation is done, you can visualize the results.
 
 - To visualize main evaluation results, run
 
 ```bash
-python -m src.modeling_main visualize
+terpene_miner_main visualize
 ```
 
 It will generate the following set of plots in the `outputs/evaluation_results`
@@ -396,7 +414,7 @@ folder (`all_results_Mean Average Precision.png, all_results_ROC-AUC.png, all_re
 - To see the isolated importance of domain-comparison features, of PLM embeddings, and PLM fine-tuning, run
 
 ```bash
-python -m src.modeling_main visualize --models  \
+terpene_miner_main visualize --models  \
         DomainsRandomForest__with_minor_reactions_global_tuning PlmRandomForest__esm-1v_with_minor_reactions_global_tuning PlmRandomForest__tps_esm-1v-subseq_with_minor_reactions_global_tuning PlmDomainsRandomForest__tps_esm-1v-subseq_with_minor_reactions_global_tuning_domains_subset \
         --model-names  "Domain comparisons only" "PLM only" "Finetuned PLM only" "Finetuned PLM + Domain comparisons"\
         --subset-name "ablation_study"
@@ -413,7 +431,7 @@ folder (`ablation_study_Mean Average Precision.png, ablation_study_ROC-AUC.png, 
 - To compare different downstream classifiers on top of the same features (PLM embeddings + domain comparisons), run
 
 ```bash
-python -m src.modeling_main visualize --models  \
+terpene_miner_main visualize --models  \
             PlmDomainsMLP__tps_esm-1v-subseq_with_minor_reactions_global_tuning PlmDomainsLogisticRegression__tps_esm-1v_with_minor_reactions_global_tuning PlmDomainsRandomForest__tps_esm-1v-subseq_with_minor_reactions_global_tuning\
         --model-names  "Feed-Forward Neural Net" "Logistic Regression" "Random Forest"\
         --subset-name "different_models_best_feats"
@@ -430,7 +448,7 @@ folder (`different_models_best_feats_Mean Average Precision.png, different_model
 - To see the performance for different PLMs, run
 
 ```bash
-python -m src.modeling_main visualize --models  \
+terpene_miner_main visualize --models  \
          PlmDomainsRandomForest__ankh_large_with_minor_reactions_global_tuning PlmDomainsRandomForest__ankh_base_with_minor_reactions PlmDomainsRandomForest__tps_ankh_base_with_minor_reactions PlmDomainsRandomForest__esm-2_with_minor_reactions_global_tuning PlmDomainsRandomForest__esm-1v_with_minor_reactions_global_tuning PlmDomainsRandomForest__tps_esm-1v_with_minor_reactions_global_tuning PlmDomainsRandomForest__tps_esm-1v-subseq_with_minor_reactions_global_tuning_domains_subset\
         --model-names Ankh-large Ankh Ankh-finetuned ESM-2 ESM-1v ESM-1v-finetuned ESM-1v-finetuned-subseq \
         --subset-name "random_forest_different_plm"
@@ -448,9 +466,9 @@ folder (`random_forest_different_plm_Mean Average Precision.png, random_forest_d
 - To visualize performance per different TPS types, run
 
 ```bash
-python -m src.modeling_main visualize --eval-output-filename all_results --plot-boxplots-per-type --models  \
+terpene_miner_main visualize --eval-output-filename all_results --plot-boxplots-per-type --models  \
             CLEAN__with_minor_reactions HMM__with_minor_reactions Foldseek__with_minor_reactions Blastp__with_minor_reactions PlmDomainsRandomForest__tps_esm-1v-subseq_with_minor_reactions_global_tuning_domains_subset\
-        --model-names CLEAN HMM Foldseek Blastp Ours         
+        --model-names CLEAN.ignore HMM Foldseek Blastp Ours         
 ```
 
 The following plots will be generated in the `outputs/evaluation_results`
@@ -465,9 +483,9 @@ folder (`all_results_Average Precision_per_type.png, all_results_ROC AUC_per_typ
 - Similarly, to visualize performance separately per each kingdom, run
 
 ```bash
-python -m src.modeling_main visualize --eval-output-filename all_results --plot-barplots-per-category --models  \
+terpene_miner_main visualize --eval-output-filename all_results --plot-barplots-per-category --models  \
             CLEAN__with_minor_reactions HMM__with_minor_reactions Foldseek__with_minor_reactions Blastp__with_minor_reactions PlmDomainsRandomForest__tps_esm-1v-subseq_with_minor_reactions_global_tuning_domains_subset\
-        --model-names CLEAN HMM Foldseek Blastp Ours \
+        --model-names CLEAN.ignore HMM Foldseek Blastp Ours \
         --category-name Kingdom --id-2-category-path data/id_2_kingdom_dataset.pkl --eval-output-filename per_kingdom \
         --categories-order Bacteria Fungi Plants Animals Protists Viruses Archaea
 ```
@@ -484,9 +502,9 @@ Analogously, to visualize evaluation results as barplots separately per entries 
 protein signatures, run
 
 ```bash
-python -m src.modeling_main visualize --eval-output-filename all_results --plot-barplots-per-category --models  \
+terpene_miner_main visualize --eval-output-filename all_results --plot-barplots-per-category --models  \
             CLEAN__with_minor_reactions HMM__with_minor_reactions Foldseek__with_minor_reactions Blastp__with_minor_reactions PlmDomainsRandomForest__tps_esm-1v-subseq_with_minor_reactions_global_tuning_domains_subset\
-        --model-names CLEAN HMM Foldseek Blastp Ours \
+        --model-names CLEAN.ignore HMM Foldseek Blastp Ours \
         --category-name "Protein signature" --id-2-category-path data/id_2_domains_presence.pkl --eval-output-filename per_interpro_signatures \
         --categories-order With Without
 
@@ -503,9 +521,9 @@ folder (
 ##### Visualization of TPS detection performance
 
 ```bash
-python -m src.modeling_main visualize --eval-output-filename tps_detection --plot-tps-detection --models  \
+terpene_miner_main visualize --eval-output-filename tps_detection --plot-tps-detection --models  \
             PfamSUPFAM__pfam PfamSUPFAM__supfam CLEAN__with_minor_reactions HMM__with_minor_reactions Foldseek__with_minor_reactions Blastp__with_minor_reactions PlmDomainsRandomForest__tps_esm-1v-subseq_with_minor_reactions_global_tuning_domains_subset\
-        --model-names Pfam SUPFAM CLEAN HMM Foldseek Blastp Ours
+        --model-names Pfam SUPFAM CLEAN.ignore HMM Foldseek Blastp Ours
         
 ```
 
@@ -523,9 +541,9 @@ This is a global mean across all TPSs. So basically, it is mainly the performanc
 To see the performance for different TPS types, run commands like the following:
 
 ```bash
-python -m src.modeling_main visualize --eval-output-filename all_results --plot-tps-detection --models  \
+terpene_miner_main visualize --eval-output-filename all_results --plot-tps-detection --models  \
             CLEAN__with_minor_reactions HMM__with_minor_reactions Foldseek__with_minor_reactions Blastp__with_minor_reactions PlmDomainsRandomForest__tps_esm-1v-subseq_with_minor_reactions_global_tuning_domains_subset\
-        --model-names CLEAN HMM Foldseek Blastp Ours \
+        --model-names CLEAN.ignore HMM Foldseek Blastp Ours \
         --subset-name "di_detection" --type-detected di
         
 ```
@@ -539,9 +557,9 @@ python -m src.modeling_main visualize --eval-output-filename all_results --plot-
 </p>
 
 ```bash
-python -m src.modeling_main visualize --eval-output-filename all_results --plot-tps-detection --models  \
+terpene_miner_main visualize --eval-output-filename all_results --plot-tps-detection --models  \
             CLEAN__with_minor_reactions HMM__with_minor_reactions Foldseek__with_minor_reactions Blastp__with_minor_reactions PlmDomainsRandomForest__tps_esm-1v-subseq_with_minor_reactions_global_tuning_domains_subset\
-        --model-names CLEAN HMM Foldseek Blastp Ours \
+        --model-names CLEAN.ignore HMM Foldseek Blastp Ours \
         --subset-name "sester_detection" --type-detected sester
         
 ```
@@ -561,7 +579,7 @@ Before screening large databases, you need to gather the trained models. To do s
 ```bash
 cd TerpeneMiner
 conda activate terpene_miner
-python -m src.screening.gather_classifier_checkpoints --output-path data/classifier_checkpoints.pkl
+python -m terpeneminer.src.screening.gather_classifier_checkpoints --output-path data/classifier_checkpoints.pkl
 ```
 
 Next, to estimate the required number of workers for the screening, run
@@ -569,7 +587,7 @@ Next, to estimate the required number of workers for the screening, run
 ```bash
 cd TerpeneMiner
 conda activate terpene_miner
-python -m src.screening.estimate_number_of_workers --fasta-path data/uniprot_trembl.fasta --delta 40000 --n-gpus 8
+python -m terpeneminer.src.screening.estimate_number_of_workers --fasta-path data/uniprot_trembl.fasta --delta 40000 --n-gpus 8
 ```
 
 Note that `delta` stands for the number of sequences to be processed by a single GPU on a worker.
@@ -589,7 +607,7 @@ This will store individual hits as separate files. To merge them into a single C
 ```bash
 cd TerpeneMiner
 conda activate terpene_miner
-python -m src.screening.gather_detections_to_csv --screening-results-root "trembl_screening/detections_plm" --output-path "trembl_screening/detections_plm/detections_first_batch.csv" --delete-individual-files
+python -m terpeneminer.src.screening.gather_detections_to_csv --screening-results-root "trembl_screening/detections_plm" --output-path "trembl_screening/detections_plm/detections_first_batch.csv" --delete-individual-files
 ``` 
 
 -----------------------------------------
