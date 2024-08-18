@@ -1,7 +1,6 @@
 """This script performs grouping of sequences based on clades of phylogenetic tree"""
 
 import argparse
-import collections
 import logging
 import os
 import pickle
