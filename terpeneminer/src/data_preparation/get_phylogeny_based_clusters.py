@@ -68,7 +68,7 @@ def main():
     )
     tree = Phylo.read(f"{msa_path_working}.treefile", "newick")
     clade_2_parent = {}
-    queue_for_depth_computation: collections.deque = deque()
+    queue_for_depth_computation = deque()
     queue_for_depth_computation.append(tree.root)
     while len(queue_for_depth_computation):
         parent = queue_for_depth_computation.popleft()
