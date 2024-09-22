@@ -16,7 +16,7 @@ random_state: 0
 hyperparam_dimensions: none
 seq_col_name: "Amino acid sequence"
 n_calls_hyperparams_opt: 0
-clean_installation_root: "/home/samusevich/CLEAN.ignore"
+clean_installation_root: "/home/samusevich/CLEAN"
 rhea2ec_link: "https://ftp.expasy.org/databases/rhea/tsv/rhea2ec.tsv"
 rhea_reaction_smiles_link: "https://ftp.expasy.org/databases/rhea/tsv/rhea-reaction-smiles.tsv"
 rhea_directions_link: "https://ftp.expasy.org/databases/rhea/tsv/rhea-directions.tsv"

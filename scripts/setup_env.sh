@@ -29,7 +29,7 @@ pip install GPUtil
 pip install wget
 pip install git+https://github.com/SamusRam/ProFun.git # one needs to install prerequisites of individual models separately, see https://github.com/SamusRam/ProFun
 
-# installing CLEAN.ignore
+# installing CLEAN
 cwd=$(pwd)
 cd ..
 if [ -d CLEAN ]; then

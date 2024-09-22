@@ -138,7 +138,7 @@ def parse_args() -> argparse.Namespace:
         help="A list of model names to be displayed",
         type=str,
         nargs="+",
-        default=["CLEAN.ignore", "HMM", "Foldseek", "Blastp", "Ours"],
+        default=["CLEAN", "HMM", "Foldseek", "Blastp", "Ours"],
     )
     parser_vis.add_argument(
         "--subset-name",

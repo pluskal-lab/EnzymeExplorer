@@ -19,6 +19,13 @@ from scipy.spatial import KDTree  # type: ignore
 from tqdm.auto import tqdm  # type: ignore
 
 SUPPORTED_DOMAINS = {"alpha", "beta", "gamma", "delta", "epsilon"}
+DOMAIN_2_THRESHOLD = {
+    "beta": (0.6, 50),
+    "delta": (0.6, 50),
+    "epsilon": (0.6, 50),
+    "gamma": (0.55, 50),
+    "alpha": (0.35, 130),
+}
 
 
 @dataclass(eq=True)
@@ -43,9 +50,18 @@ def exists_in_pymol(pymol_cmd, sele):
     return False
 
 
-def prepare_domain(pymol_cmd, domain_name):
+def prepare_domain(pymol_cmd, domain_name: str) -> tuple:
     """
-    A function to create a domain object in pymol session
+    Creates a domain object in a PyMOL session based on the provided domain name.
+
+    :param pymol_cmd: The PyMOL command object used to interact with the PyMOL session
+    :type pymol_cmd: pymol.Cmd
+
+    :param domain_name: The name of the domain to be created in the PyMOL session
+    :type domain_name: str
+
+    :return: A tuple containing the modified PyMOL command object and the new domain name string
+    :rtype: tuple
     """
     domain_2_standard = {dom_name_: f"{dom_name_}" for dom_name_ in SUPPORTED_DOMAINS}
     domain_2_standard.update(
@@ -79,9 +95,14 @@ def prepare_domain(pymol_cmd, domain_name):
     return pymol_cmd, domain_name_new
 
 
-def compress_selection_list(selected_residues):
+def compress_selection_list(selected_residues: list[int]) -> str:
     """
-    Compressing the residues list into concise form
+    Compresses a list of selected residues into a concise string representation.
+
+    :param selected_residues: A list of residue numbers to be compressed
+
+    :return: A string representing the compressed form of the residue list, with consecutive residues represented
+             as ranges (e.g., "1-3+5+7-10")
     """
     sorted_residues = sorted(map(int, selected_residues))
     start_res = None
@@ -126,7 +147,14 @@ def compute_full_mapping(
     file_2_all_residues: dict[str, set[str]],
 ) -> dict:
     """
-    A function computing assignments of larger_obj residues to domain_obj residues based on the closest aligned residue pairs
+    Computes a full mapping of residues from a larger object to a domain object based on the closest aligned residue pairs.
+
+    :param domain_obj: The identifier of the domain object
+    :param larger_obj: The identifier of the larger object
+    :param residues_mapping: A dictionary mapping residues from the larger object to residues in the domain object
+    :param file_2_all_residues: A dictionary mapping object identifiers to sets of residues in those objects
+
+    :return: A dictionary representing the full mapping of residues from the larger object to the domain object
     """
     if len(residues_mapping) == 0:
         return {}
@@ -213,8 +241,16 @@ def get_super_res_alignment(
     pymol_cmd=cmd,
 ) -> tuple[float, dict]:
     """
-    Function performing sequence-independent alignment with assignment of all domain_obj residues to the larger_obj
-    :return: TM-score of the alignment and completed residues mapping between domain object and larger_obj
+    Performs sequence-independent alignment and assigns all residues of the domain object to the larger object.
+
+    :param larger_obj: The identifier of the larger object to align
+    :param domain_obj: The identifier of the domain object to align
+    :param file_2_all_residues: A dictionary mapping object identifiers to sets of residues in those objects
+    :param min_domain_fraction: The minimum fraction of domain residues that must be aligned for a valid mapping, defaults to 0.1
+    :param pymol_cmd: The PyMOL command object used to interact with the PyMOL session, defaults to cmd
+
+    :return: A tuple containing the TM-score of the alignment and a dictionary representing the full residues mapping
+             between the domain object and the larger object
     """
     if larger_obj in file_2_all_residues and len(file_2_all_residues[larger_obj]) == 0:
         if exists_in_pymol(pymol_cmd, larger_obj):
@@ -357,11 +393,18 @@ def find_longest_continuous_segments(
     residues_subset: set, all_residues: set, max_allowed_gap: int = 5
 ) -> list[int]:
     """
-    Function returning the longest continuous segments of residues
+    Identifies and returns the longest continuous segments of residues from a given subset.
+
+    :param residues_subset: A set of residue numbers to evaluate for continuous segments
+    :param all_residues: A set of all residue numbers available in the sequence
+    :param max_allowed_gap: The maximum gap allowed between consecutive residues to still consider them part of a continuous segment, defaults to 5
+
+    :return: A list of residue numbers representing the longest continuous segment found in the subset
     """
     res_continuous_candidates: list[list[int]] = [[]]
     prev_res = None
     allowed_prev_residues = None
+
     for res in sorted(map(int, residues_subset)):
         if prev_res is not None:
             allowed_prev_residues = {prev_res + 1}.union(
@@ -413,8 +456,12 @@ def get_regions_of_interest(
     domains: set[str], file_2_mapped_regions: dict[str, list[MappedRegion]]
 ) -> list[tuple[str, MappedRegion]]:
     """
-    Function filtering the dictionary of mapped regions.
-    It preserves only the regions of domain types specified in the `domains` parameter
+    Filters the dictionary of mapped regions to preserve only those regions belonging to specified domain types.
+
+    :param domains: A set of domain types to filter the mapped regions by
+    :param file_2_mapped_regions: A dictionary mapping filenames to lists of MappedRegion objects
+
+    :return: A list of tuples, each containing a filename and a MappedRegion object corresponding to the specified domain types
     """
     all_mapped_regions_of_interest = []
     for filename, mapped_regions in file_2_mapped_regions.items():
@@ -431,7 +478,14 @@ def get_pairwise_tmscore(
     file_2_all_residues: dict[str, set],
 ) -> float:
     """
-    Function computing pairwise TM-score between two domains
+    Computes the pairwise TM-score between two domains.
+
+    :param pymol_cmd: The PyMOL command object used to interact with the PyMOL session
+    :param module_1: A tuple containing the filename and MappedRegion object for the first domain
+    :param module_2: A tuple containing the filename and MappedRegion object for the second domain
+    :param file_2_all_residues: A dictionary mapping filenames to sets of all residues in those files
+
+    :return: The TM-score representing the structural similarity between the two domains
     """
     filename_1, region_1 = module_1
     filename_2, region_2 = module_2
@@ -500,10 +554,20 @@ def compute_region_distances(
     file_2_all_residues: dict[str, set],
     save_output: bool = True,
     output_name: str = "all",
+    precomputed_scores: dict[tuple[str, str], float] = None,
 ) -> list[tuple[int, int, float]]:
     """
-    Function computing a pairwise alignment TM-score of the i-th structural domain from the list `regions`
-    against all `regions` with higher indices. For an upper-triangle distance matrix, this function computes a single row.
+    Computes pairwise alignment TM-scores between the i-th structural domain in the list `regions` and all subsequent domains.
+    This function effectively computes a single row of an upper-triangle distance matrix.
+
+    :param i: The index of the structural domain in the list `regions` to be compared
+    :param regions: A list of tuples, where each tuple contains a filename and a MappedRegion object
+    :param file_2_all_residues: A dictionary mapping filenames to sets of all residues in those files
+    :param save_output: Whether to save the computed results to a file, defaults to True
+    :param output_name: The base name for the output file, defaults to "all"
+
+    :return: A list of tuples, each containing the index of the first region, the index of the second region,
+             and the computed TM-score between the two regions
     """
     results = []
     region_1 = regions[i]
@@ -512,7 +576,21 @@ def compute_region_distances(
         return []
     j = i + 1
     for region_2 in regions[j:]:
-        dist = get_pairwise_tmscore(cmd, region_1, region_2, file_2_all_residues)
+        if precomputed_scores is not None:
+            if (region_1[1].module_id, region_2[1].module_id) in precomputed_scores:
+                dist = precomputed_scores[
+                    (region_1[1].module_id, region_2[1].module_id)
+                ]
+            elif (region_2[1].module_id, region_1[1].module_id) in precomputed_scores:
+                dist = precomputed_scores[
+                    (region_2[1].module_id, region_1[1].module_id)
+                ]
+            else:
+                dist = get_pairwise_tmscore(
+                    cmd, region_1, region_2, file_2_all_residues
+                )
+        else:
+            dist = get_pairwise_tmscore(cmd, region_1, region_2, file_2_all_residues)
         results.append((i, j, dist))
         j += 1
     if save_output:
@@ -524,7 +602,12 @@ def compute_region_distances(
 
 def get_all_residues_per_file(pdb_files: list[Path], pymol_cmd) -> dict[str, set[str]]:
     """
-    Function computing a set of all residues in the pdb file
+    Computes a set of all residues in each PDB file provided.
+
+    :param pdb_files: A list of Path objects representing the PDB files to be processed
+    :param pymol_cmd: The PyMOL command object used to interact with the PyMOL session
+
+    :return: A dictionary mapping each PDB filename (without extension) to a set of all residues found in that file
     """
     file_2_all_residues = {}
     for filepath in tqdm(pdb_files, desc="All residues"):
@@ -546,7 +629,17 @@ def get_alignments(
     n_jobs: int = 8,
 ) -> dict[str, list[tuple[float, dict]]]:
     """
-    Function to compute alignments of a domain_obj to all structures from `pdb_filepahts` list
+    Computes alignments of a specified domain object to all structures in the provided list of PDB file paths.
+
+    :param pdb_filepaths: A list of Path objects representing the PDB files to be aligned
+    :param domain_name: The name of the domain to align against the structures
+    :param file_2_current_residues: A dictionary mapping filenames to sets of current residues available in those files
+    :param tmscore_threshold: An optional TM-score threshold; alignments with scores below this threshold will be discarded
+    :param mapping_size_threshold: An optional minimum size for the residue mapping; alignments with fewer residues will be discarded
+    :param n_jobs: The number of parallel jobs to use for the alignment computation, defaults to 8
+
+    :return: A dictionary mapping each PDB filename (without extension) to a list of tuples,
+             where each tuple contains a TM-score and a dictionary representing the residue mapping for that alignment
     """
     align_partial = partial(
         get_super_res_alignment,
@@ -578,7 +671,15 @@ def get_mapped_regions_per_file(
     domain_2_thresholds: dict[str, tuple[float, int]],
 ) -> dict[str, list[MappedRegion]]:
     """
-    A function detecting reliable alignment of domains per file, based on thresholds on TM-score from `domain_2_thresholds`
+    Detects reliable alignments of domains per file based on TM-score thresholds provided in `domain_2_thresholds`.
+
+    :param domain_2_file_2_tmscore_residues: A dictionary mapping domain names to another dictionary that maps filenames
+                                             to lists of alignment results, where each result is a tuple containing a TM-score
+                                             and a residue mapping
+    :param domain_2_thresholds: A dictionary mapping domain names to a tuple, where each tuple contains a TM-score detection threshold
+                                and a minimum mapping size threshold
+
+    :return: A dictionary mapping filenames to lists of MappedRegion objects representing the detected reliable domain alignments
     """
     file_2_mapped_regions = defaultdict(list)
     for domain, (
@@ -635,6 +736,7 @@ def get_remaining_residues(
 def plot_aligned_domains(
     file_2_tmscore_residues: dict[str, list[tuple[float, dict[str, str]]]],
     title: str = "",
+    save_path: Optional[str | Path] = None,
 ):
     """
     Helper function plotting TM-scores of detected domains on x-axis and
@@ -654,7 +756,10 @@ def plot_aligned_domains(
     plt.xlabel("TM-score", fontsize=11)
     plt.ylabel("Number of residues assigned to the domain", fontsize=11)
     plt.title(title, fontsize=14)
-    plt.show()
+    if save_path is not None:
+        plt.savefig(save_path)
+    else:
+        plt.show()
 
 
 def detect_second_encounter_of_domain(

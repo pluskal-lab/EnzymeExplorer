@@ -76,6 +76,8 @@ domains, enhancing our understanding of TPS diversity and function.
 This repository provides access to our approach's source codes. We invite researchers to explore, contribute, and apply
 our approach to other enzyme families, accelerating biological discoveries.
 
+-----------------------------------------
+
 ## Installation
 
 ```bash
@@ -86,6 +88,7 @@ cd TerpeneMiner
 conda activate terpene_miner
 pip install .
 ```
+-----------------------------------------
 
 ## Workflow
 
@@ -218,20 +221,34 @@ python -m terpeneminer.src.data_preparation.store_folds_into_csv \
     --split-description stratified_phylogeny_based_split_with_minor_products \
     > outputs/logs/kfold_with_minors_to_csv.log 2>&1
 ```
+-----------------------------------------
 
 ### Structural analysis
 
 For the majority of proteins, AlphaFold2(AF2)-predicted structures can be downloaded
 using [the following script](https://github.com/SamusRam/ProFun/blob/main/profun/utils/alphafold_struct_downloader.py)
-from our [ProFun library](https://github.com/SamusRam/ProFun).
-Store the structures in the `data/alphafold_structs` folder. For the remaining few without precomputed AF2 prediction,
+from my [ProFun library](https://github.com/SamusRam/ProFun). If you ran the installation steps, then the ProFun library is already installed and you can use the following command: 
+```bash
+cd TerpeneMiner
+conda activate terpene_miner
+awk -F, '$1 != "" && $1 != "\"" && $1 != "Uniprot ID" {print $1}' "data/TPS-Nov19_2023_verified_all_reactions_with_neg_with_folds.csv" | sort | uniq > tps_ids.txt
+alphafold_struct_downloader \
+    --path-to-file-with-ids tps_ids.txt \
+    --structures-output-path "data/alphafold_structs" \
+    --n-jobs 64
+rm tps_ids.txt
+```
+
+The downloaded structures will be stored in the `data/alphafold_structs` folder. For the remaining few without precomputed AF2 prediction,
 one of the easiest ways to run AF2 is by
 using [ColabFold](https://github.com/sokrypton/ColabFold) [[5]](https://www.nature.com/articles/s41592-022-01488-1) by
 Mirdita M, Schütze K, Moriwaki Y, Heo L, Ovchinnikov S and Steinegger M.).
+For reproducibility, we share the AF2 predictions for the sequences without DeepMind-precomputed AF2 predictions on [zenodo](https://zenodo.org/records/10567437) as `alphafold_additional.zip`. You can simply add its contents to the `data/alphafold_structs`
+folder and run the consequent evaluation steps.
 
-For illustration purposes, we store AF2 predictions for the archaeal TPSs we discovered in the
-folder `data/alphafold_structs`.
-We also put there a randomly selected TPS with UniProt accession B9GSM9, and PDBe structures we used for domain
+
+Also, for illustration purposes, we store AF2 predictions for the archaeal TPSs we discovered in the
+folder `data/alphafold_structs` on GitHub. There, we also put there a randomly selected TPS with UniProt accession B9GSM9, and PDBe structures we used for domain
 standards.
 
 #### 1 - Segmentation of a TPS structure into TPS-specific domains
@@ -243,38 +260,84 @@ A high-level overview of our pipeline for TPS structure segmentation into domain
 
 </div>
 
-Implementation of our structural algorithms is in `utils/structural_algorithms.py`.
 To use the algorithms for segmenting AF2 structures into TPS-specific domains, run
 
 ```bash
 cd TerpeneMiner
-jupyter notebook
+conda activate terpene_miner
+python -m terpeneminer.src.structure_processing.domain_detections \
+    --needed-proteins-csv-path "data/TPS-Nov19_2023_verified_all_reactions_with_neg_with_folds.csv" \
+    --input-directory-with-structures "data/alphafold_structs/" \
+    --n-jobs 16 --detections-output-path "data/filename_2_detected_domains_completed_confident.pkl" \
+    --store-domains --domains-output-path "data/detected domains" > outputs/logs/tps_structures_segmentation.log 2>&1
 ```
-
-Then, execute the notebook `notebooks/notebook_2_domain_detections.ipynb`.
-
-There you can check an interactive visualization of the TPS-domain segmentations for a randomly picked UniProt
-accession.
-![](data/readme_figures/domains_detection_notebook.gif)
-If not running locally,
-see [the notebook HTML version](https://html-preview.github.io/?url=https://github.com/SamusRam/TerpeneMiner/blob/main/notebooks/notebook_2_domain_detections.html#tps_random_id_segmentation).
 
 #### 2 - Pairwise comparison of the detected domains
 
-To perform pairwise comparison of the detected domains with the use of the same alignment-based
-algorithms from `utils/structural_algorithms.py`, run
+To perform pairwise comparison of the detected domains with the use our alignment-based
+algorithms, run
 
 ```bash
 cd TerpeneMiner
-
-python -m terpeneminer.src.utils.compute_pairwise_similarities_of_domains \
+conda activate terpene_miner
+python -m terpeneminer.src.structure_processing.compute_pairwise_similarities_of_domains \
     --name all \
-    --n-jobs 64
+    --n-jobs 64 \
+    --precomputed-scores-path "data/precomputed_tmscores.pkl" > outputs/logs/pairwise_comparisons.log 2>&1
+```
+Note the `--precomputed-scores-path` argument. It is used to store the previously computed TM-scores. 
+For the efficiency of any future extensions of the project, we share the precomputed TM-scores in `data/precomputed_tmscores.pkl` on GitHub.
+
+Also note, that if you have access to more servers,
+you might want to load-balance the pairwise comparison computation across your machines as shown below:
+
+```python
+# Number of machines to split the workload across
+n_machines = 15
+
+# Total number of regions, i.e. the detected structural domains, to process
+regions_total = len(regions_completed_confident_all)
+
+# Calculate the delta value, which determines how many pairs each machine will process
+# Overall, we need to fill an upper-triangular distance matrix of size regions_total x regions_total
+delta = regions_total**2 / 2 // n_machines + 1
+
+# Initialize counters
+start_i = 0  # Keeps track of the current index in the pairwise comparison
+start_prev = 0  # Keeps track of the previous start index for comparison
+split_indices = [0]  # List to hold the indices where splits across machines will occur
+
+# Loop over each region to calculate the split indices
+for i in range(regions_total):
+    for j in range(i + 1, regions_total):
+        start_i += 1  # Increment start_i for each pair (i, j)
+
+    # If the difference between the current and previous start index exceeds delta, record a split
+    if start_i - start_prev >= delta:
+        split_indices.append(i)
+        start_prev = start_i
+
+# Append the total number of regions to the split indices to cover the last segment
+split_indices.append(regions_total)
+
+def print_script(i: int, split_indices: list[int]=split_indices):
+    """
+    Print the command to process a segment of the regions.
+    
+    Parameters:
+    - i (int): The index in split_indices that determines the start and end of the segment.
+    - split_indices (list of int): The list of indices where the workload is split.
+    """
+    print(
+        f"""python -m terpeneminer.src.structure_processing.compute_pairwise_similarities_of_domains --start-i {split_indices[i]} --end-i {split_indices[i + 1]} --n-jobs 64 --name all 
+    """
+    )
+
+# Loop over each segment and print the corresponding script command
+for i in range(len(split_indices) - 1):
+    print_script(i)
 ```
 
-If you have access to more servers,
-you might want to load-balance the pairwise comparison computation across your machines as shown
-in the last cell of the notebook `notebooks/notebook_2_domain_detections.ipynb`.
 For convenience, we share all the raw pairwise comparison results in `data/tps_domains_and_comparisons.zip`, which are
 subsequently used for domain clustering.
 
@@ -288,6 +351,8 @@ jupyter notebook
 ```
 
 Then, execute the notebook `notebooks/notebook_3_clustering_domains.ipynb`.
+
+-----------------------------------------
 
 ### Predictive Modeling
 
@@ -378,6 +443,8 @@ To evaluate detection of the TPSs, run
 
 ```bash
 terpene_miner_main evaluate --classes "isTPS" --output-filename tps_detection
+terpene_miner_main evaluate --classes "isTPS" --id-2-category-path data/id_2_kingdom_dataset.pkl --output-filename tps_detection_per_kingdom
+
 ```
 
 To evaluate separately for individual kingdoms, run
@@ -463,14 +530,6 @@ folder (`random_forest_different_plm_Mean Average Precision.png, random_forest_d
   <img src="outputs/evaluation_results/random_forest_different_plm_MCC-F1 summary.png" width="350" />
 </p>
 
-- To visualize performance per different TPS types, run
-
-```bash
-terpene_miner_main visualize --eval-output-filename all_results --plot-boxplots-per-type --models  \
-            CLEAN__with_minor_reactions HMM__with_minor_reactions Foldseek__with_minor_reactions Blastp__with_minor_reactions PlmDomainsRandomForest__tps_esm-1v-subseq_with_minor_reactions_global_tuning_domains_subset\
-        --model-names CLEAN.ignore HMM Foldseek Blastp Ours         
-```
-
 The following plots will be generated in the `outputs/evaluation_results`
 folder (`all_results_Average Precision_per_type.png, all_results_ROC AUC_per_type.png, all_results_MCC-F1 summary_per_type.png`):
 
@@ -483,11 +542,11 @@ folder (`all_results_Average Precision_per_type.png, all_results_ROC AUC_per_typ
 - Similarly, to visualize performance separately per each kingdom, run
 
 ```bash
-terpene_miner_main visualize --eval-output-filename all_results --plot-barplots-per-category --models  \
+terpene_miner_main visualize --plot-barplots-per-category --models  \
             CLEAN__with_minor_reactions HMM__with_minor_reactions Foldseek__with_minor_reactions Blastp__with_minor_reactions PlmDomainsRandomForest__tps_esm-1v-subseq_with_minor_reactions_global_tuning_domains_subset\
-        --model-names CLEAN.ignore HMM Foldseek Blastp Ours \
-        --category-name Kingdom --id-2-category-path data/id_2_kingdom_dataset.pkl --eval-output-filename per_kingdom \
-        --categories-order Bacteria Fungi Plants Animals Protists Viruses Archaea
+        --model-names "CLEAN*" HMM Foldseek Blastp Ours \
+        --category-name Taxon --id-2-category-path data/id_2_kingdom_dataset.pkl --eval-output-filename per_kingdom \
+        --categories-order Bacteria Fungi Plants Animals Protists Viruses
 ```
 
 The following plots will be generated in the `outputs/evaluation_results`
@@ -504,7 +563,7 @@ protein signatures, run
 ```bash
 terpene_miner_main visualize --eval-output-filename all_results --plot-barplots-per-category --models  \
             CLEAN__with_minor_reactions HMM__with_minor_reactions Foldseek__with_minor_reactions Blastp__with_minor_reactions PlmDomainsRandomForest__tps_esm-1v-subseq_with_minor_reactions_global_tuning_domains_subset\
-        --model-names CLEAN.ignore HMM Foldseek Blastp Ours \
+        --model-names "CLEAN*" HMM Foldseek Blastp Ours \
         --category-name "Protein signature" --id-2-category-path data/id_2_domains_presence.pkl --eval-output-filename per_interpro_signatures \
         --categories-order With Without
 
@@ -522,9 +581,23 @@ folder (
 
 ```bash
 terpene_miner_main visualize --eval-output-filename tps_detection --plot-tps-detection --models  \
-            PfamSUPFAM__pfam PfamSUPFAM__supfam CLEAN__with_minor_reactions HMM__with_minor_reactions Foldseek__with_minor_reactions Blastp__with_minor_reactions PlmDomainsRandomForest__tps_esm-1v-subseq_with_minor_reactions_global_tuning_domains_subset\
-        --model-names Pfam SUPFAM CLEAN.ignore HMM Foldseek Blastp Ours
-        
+            CLEAN__with_minor_reactions Foldseek__with_minor_reactions Blastp__with_minor_reactions HMM__with_minor_reactions PfamSUPFAM__supfam PfamSUPFAM__pfam PlmDomainsRandomForest__tps_esm-1v-subseq_with_minor_reactions_global_tuning_domains_subset\
+        --model-names "CLEAN*" Foldseek Blastp HMM SUPFAM Pfam Ours
+```
+
+```bash
+terpene_miner_main visualize --plot-barplots-per-category --models  \
+            CLEAN__with_minor_reactions Foldseek__with_minor_reactions Blastp__with_minor_reactions HMM__with_minor_reactions PfamSUPFAM__supfam PfamSUPFAM__pfam PlmDomainsRandomForest__tps_esm-1v-subseq_with_minor_reactions_global_tuning_domains_subset\
+        --model-names "CLEAN*" Foldseek Blastp HMM SUPFAM Pfam Ours --category-name Taxon --id-2-category-path data/id_2_kingdom_dataset.pkl --eval-output-filename tps_detection_per_kingdom \
+        --categories-order Bacteria Fungi Plants Animals Protists Viruses
+```
+
+- To visualize performance per different TPS types, run
+
+```bash
+terpene_miner_main visualize --eval-output-filename tps_detection --plot-boxplots-per-type --models  \
+            CLEAN__with_minor_reactions Foldseek__with_minor_reactions HMM__with_minor_reactions Blastp__with_minor_reactions PfamSUPFAM__supfam PfamSUPFAM__pfam PlmDomainsRandomForest__tps_esm-1v-subseq_with_minor_reactions_global_tuning_domains_subset\
+        --model-names "CLEAN*" Foldseek Blastp HMM SUPFAM Pfam Ours         
 ```
 
 This will generate the following plots `outputs/evaluation_results/tps_detection_*`:
@@ -543,7 +616,7 @@ To see the performance for different TPS types, run commands like the following:
 ```bash
 terpene_miner_main visualize --eval-output-filename all_results --plot-tps-detection --models  \
             CLEAN__with_minor_reactions HMM__with_minor_reactions Foldseek__with_minor_reactions Blastp__with_minor_reactions PlmDomainsRandomForest__tps_esm-1v-subseq_with_minor_reactions_global_tuning_domains_subset\
-        --model-names CLEAN.ignore HMM Foldseek Blastp Ours \
+        --model-names "CLEAN*" HMM Foldseek Blastp Ours \
         --subset-name "di_detection" --type-detected di
         
 ```
@@ -559,7 +632,7 @@ terpene_miner_main visualize --eval-output-filename all_results --plot-tps-detec
 ```bash
 terpene_miner_main visualize --eval-output-filename all_results --plot-tps-detection --models  \
             CLEAN__with_minor_reactions HMM__with_minor_reactions Foldseek__with_minor_reactions Blastp__with_minor_reactions PlmDomainsRandomForest__tps_esm-1v-subseq_with_minor_reactions_global_tuning_domains_subset\
-        --model-names CLEAN.ignore HMM Foldseek Blastp Ours \
+        --model-names "CLEAN*" HMM Foldseek Blastp Ours \
         --subset-name "sester_detection" --type-detected sester
         
 ```
@@ -571,6 +644,8 @@ terpene_miner_main visualize --eval-output-filename all_results --plot-tps-detec
   <img src="outputs/evaluation_results/sester_detection_ROC-AUC_sesterTPS.png" width="350" /> 
   <img src="outputs/evaluation_results/sester_detection_MCC-F1 summary_sesterTPS.png" width="350" />
 </p>
+
+-----------------------------------------
 
 ### Screening large databases
 

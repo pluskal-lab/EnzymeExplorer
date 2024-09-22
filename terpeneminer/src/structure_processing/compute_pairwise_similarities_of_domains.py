@@ -7,7 +7,9 @@ import pickle
 from functools import partial
 from multiprocessing import Pool
 
-from terpeneminer.src.structural_algorithms import compute_region_distances
+from terpeneminer.src.structure_processing.structural_algorithms import (
+    compute_region_distances,
+)
 
 logger = logging.getLogger(__file__)
 logger.setLevel(logging.INFO)
@@ -21,7 +23,8 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--name", type=str, default="alpha")
     parser.add_argument("--start-i", type=int, default=0)
-    parser.add_argument("--end-i", type=int, default=2500)
+    parser.add_argument("--end-i", type=int, default=1000000)
+    parser.add_argument("--precomputed-scores-path", type=str, default="")
     parser.add_argument("--n-jobs", type=int, default=64)
     args = parser.parse_args()
     return args
@@ -29,6 +32,11 @@ def parse_args() -> argparse.Namespace:
 
 if __name__ == "__main__":
     cli_args = parse_args()
+    if cli_args.precomputed_scores_path != "":
+        with open(cli_args.precomputed_scores_path, "rb") as file:
+            precomputed_scores = pickle.load(file)
+    else:
+        precomputed_scores = None
     os.chdir("data/alphafold_structs")
     logger.info("Loading data...")
     with open("file_2_all_residues.pkl", "rb") as f:
@@ -53,6 +61,7 @@ if __name__ == "__main__":
         regions=regions_all,
         file_2_all_residues=file_2_all_residues,
         output_name=cli_args.name,
+        precomputed_scores=precomputed_scores,
     )
     region_indices = list(range(len(regions_all)))[cli_args.start_i : cli_args.end_i]
     logger.info(

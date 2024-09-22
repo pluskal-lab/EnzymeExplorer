@@ -168,7 +168,7 @@ def plot_boxplots_per_type(
         for fold_dict in class_dicts:
             for class_name, val in fold_dict.items():
                 if class_name in substr_2_type:
-                    type_name = substr_2_type[class_name]
+                    type_name = substr_2_type[class_name].replace('sesq', 'sesqui')
                     present_type_names.add(type_name)
                     model_list.append(model_names_plots[model_i])
                     class_list.append(type_name)
@@ -186,13 +186,87 @@ def plot_boxplots_per_type(
         ax=ax,
         order=[
             type_name
-            for type_name in ["mono", "sesq", "di", "sester", "tri", "tetra"]
+            for type_name in ["mono", "sesqui", "di", "sester", "tri", "tetra"]
             if type_name in present_type_names
         ],
         fliersize=0,
     )
     ax.set_ylim([0, 1.02])
     ax.set_ylabel(metric_name, fontsize=15)
+    ax.set_xlabel("TPS Type", fontsize=15)
+    ax.set_title(title, fontsize=19)
+    plt.savefig(output_path, bbox_inches="tight")
+
+
+def plot_type_boxplots_per_model(
+    models: list[str],
+    substr_2_type: dict,
+    model_2_class_2_metric_vals: dict,
+    metric_name: str,
+    title: str,
+    output_path: str | Path,
+    model_names_plots: list[str],
+):
+    """
+    Function to plot boxplots of metric values for different types across models.
+
+    :param models: A list of model names.
+    :param substr_2_type: A dictionary mapping class names to their corresponding types.
+    :param model_2_class_2_metric_vals: A dictionary mapping models to class-specific metric values.
+    :param metric_name: The name of the metric to be plotted.
+    :param title: The title of the boxplot.
+    :param output_path: The file path where the boxplot image will be saved.
+    :param model_names_plots: A list of model names to be used for plotting on the x-axis.
+
+    :return: None. Saves the boxplot to the specified output path.
+    """
+
+    model_list = []
+    class_list = []
+    val_list = []
+
+    present_type_names = set()
+    for model_i, model_name in enumerate(models):
+        class_dicts = model_2_class_2_metric_vals[model_name]
+        for fold_dict in class_dicts:
+            for class_name, val in fold_dict.items():
+                if class_name in substr_2_type:
+                    type_name = substr_2_type[class_name].replace('sesq', 'sesqui')
+                    present_type_names.add(type_name)
+                    model_list.append(model_names_plots[model_i])
+                    class_list.append(type_name)
+                    val_list.append(val)
+    ap_per_class_df = pd.DataFrame(
+        {"Model": model_list, "TPS Type": class_list, metric_name: val_list}
+    )
+
+    _, ax = plt.subplots(figsize=(15, 8))
+    boxplot(
+        x="Model",
+        y=metric_name,
+        hue="TPS Type",
+        data=ap_per_class_df,
+        width=0.4,
+        ax=ax,
+        hue_order=[
+            type_name
+            for type_name in ["mono", "sesqui", "di", "sester", "tri", "tetra"]
+            if type_name in present_type_names
+        ],
+        order=model_names_plots,
+        palette={'tetra': np.array([0.12156863, 0.46666667, 0.70588235, 1.]),
+ 'sesquar': np.array([1.        , 0.49803922, 0.05490196, 1.]),
+ 'tri': np.array([0.45490196, 0.76862745, 0.4627451 , 1.        ]),
+ 'sester': np.array([0.83921569, 0.15294118, 0.15686275, 1.        ]),
+ 'di': np.array([0.58039216, 0.40392157, 0.74117647, 1.        ]),
+ 'sesqui': np.array([0.54901961, 0.3372549 , 0.29411765, 1.        ]),
+ 'mono': np.array([0.89019608, 0.46666667, 0.76078431, 1.        ]),
+ 'isoprenyl diphosphate synthase': np.array([0.49803922, 0.49803922, 0.49803922, 1.        ]),
+ 'hemi': np.array([0.7372549 , 0.74117647, 0.13333333, 1.        ])},
+        fliersize=0,
+    )
+    ax.set_ylim([0, 1.02])
+    ax.set_ylabel("Model", fontsize=15)
     ax.set_xlabel("TPS Type", fontsize=15)
     ax.set_title(title, fontsize=19)
     plt.savefig(output_path, bbox_inches="tight")
@@ -245,7 +319,7 @@ def plot_barplots_per_categories(
     )
     _, ax = plt.subplots(figsize=(15, 8))
     barplot(
-        x=category_list,
+        x=category_name,
         y=metric_name,
         hue="Model",
         data=metric_per_category_df,
@@ -260,6 +334,82 @@ def plot_barplots_per_categories(
     ax.set_ylim([0, 1.02])
     ax.set_ylabel(metric_name, fontsize=15)
     ax.set_xlabel(category_name, fontsize=15)
+    ax.set_title(title, fontsize=19)
+    plt.savefig(output_path, bbox_inches="tight")
+
+
+def plot_category_boxplots_per_model(
+    models: list[str],
+    model_2_class_2_metric_vals: dict,
+    categories_order: list[str],
+    category_name: str,
+    metric_name: str,
+    title: str,
+    output_path: str | Path,
+    model_names_plots: list[str],
+):
+    """
+    Function to plot bar plots of metric values for different categories across models.
+
+    :param models: A list of model names.
+    :param model_2_class_2_metric_vals: A dictionary mapping models to class-category-specific metric values.
+    :param categories_order: A list specifying the order of categories to be plotted.
+    :param category_name: The name of the category for x-axis labeling.
+    :param metric_name: The name of the metric to be plotted.
+    :param title: The title of the bar plot.
+    :param output_path: The file path where the bar plot image will be saved.
+    :param model_names_plots: A list of model names to be used for plotting on the x-axis.
+
+    :return: None. Saves the bar plot to the specified output path.
+    """
+
+    print('!!!: ', models)
+    print('!!!!@@@@@@@@@@@@@@ model keys: ', model_2_class_2_metric_vals.keys())
+
+    model_list = []
+    category_list = []
+    val_list = []
+
+    present_categories = set()
+    for model_i, model_name in enumerate(models):
+        class_dicts = model_2_class_2_metric_vals[model_name]
+        for fold_dict in class_dicts:
+            for category_class_name, val in fold_dict.items():
+                assert (
+                    "_|_" in category_class_name
+                ), "The evaluation results provided were not computed per different categories"
+                category, _ = category_class_name.split("_|_")
+                present_categories.add(category)
+                model_list.append(model_names_plots[model_i])
+                category_list.append(category)
+                val_list.append(val)
+    metric_per_category_df = pd.DataFrame(
+        {"Model": model_list, category_name: category_list, metric_name: val_list}
+    )
+
+    print('###############################################################################metric_per_category_df: ', metric_per_category_df)
+    _, ax = plt.subplots(figsize=(15, 8))
+    kingdom_2_color = dict(zip(['Plants', 'Fungi', 'Bacteria', 'Animals', 'Protists', 'Archaea', 'Viruses'],
+                               ['#20E478', '#F1A978', '#FFD966', '#FF4343', '#5B9BD5', '#EA8FBF', '#2F5597']))
+    boxplot(
+        x="Model",
+        y=metric_name,
+        hue=category_name,
+        data=metric_per_category_df,
+        width=0.4,
+        ax=ax,
+        hue_order=[
+            category_name
+            for category_name in categories_order
+            if category_name in present_categories
+        ],
+        order=model_names_plots,
+        palette=kingdom_2_color,
+
+    )
+    ax.set_ylim([0, 1.02])
+    ax.set_ylabel(metric_name, fontsize=15)
+    ax.set_xlabel("Model", fontsize=15)
     ax.set_title(title, fontsize=19)
     plt.savefig(output_path, bbox_inches="tight")
 
@@ -298,9 +448,7 @@ def plot_selected_results(args: argparse.Namespace):
                 series_of_categories_to_check = per_class_results_df["Class"].map(
                     substrate_2_tps_type
                 )
-            current_df = per_class_results_df[
-                series_of_categories_to_check == args.type_detected
-            ]
+            current_df = per_class_results_df[series_of_categories_to_check == args.type_detected]
             for model in args.models:
                 mean_vals = current_df.loc[model, column_group[0]]
                 std_vals = current_df.loc[model, column_group[1]]
@@ -317,15 +465,16 @@ def plot_selected_results(args: argparse.Namespace):
                 means.append(mean_val)
                 stds.append(std_val)
 
-            plot_bars(
-                means,
-                stds,
-                args.model_names,
-                f"{detection_specification}TPS detection",
-                metric,
-                eval_output_path
-                / f"{plots_name}_{metric}_{detection_specification}TPS.png",
-            )
+            for extension in 'png', 'pdf', 'svg':
+                plot_bars(
+                    means,
+                    stds,
+                    args.model_names,
+                    f"{detection_specification}TPS detection",
+                    metric,
+                    eval_output_path
+                    / f"{plots_name}_{metric}_{detection_specification}TPS.{extension}",
+                )
 
         with open(
             eval_output_path
@@ -342,16 +491,17 @@ def plot_selected_results(args: argparse.Namespace):
             ]
         else:
             classes_to_consider = ["isTPS"]
-        plot_avg_pr_curves_per_class(
-            model_2_class_2_pr_vals,
-            classes_to_consider,
-            f"{detection_specification}TPS detection Precision-Recall curves",
-            output_path=str(
-                eval_output_path / f"{plots_name}_PR_{detection_specification}TPS.png"
-            ),
-            supported_models=args.models,
-            model_names=args.model_names,
-        )
+        for extension in 'png', 'pdf':
+            plot_avg_pr_curves_per_class(
+                model_2_class_2_pr_vals,
+                classes_to_consider,
+                f"{detection_specification}TPS detection Precision-Recall curves",
+                output_path=str(
+                    eval_output_path / f"{plots_name}_PR_{detection_specification}TPS.{extension}"
+                ),
+                supported_models=args.models,
+                model_names=args.model_names,
+            )
     elif args.plot_boxplots_per_type:
         with open(
             eval_output_path
@@ -371,16 +521,27 @@ def plot_selected_results(args: argparse.Namespace):
             ],
             ["Average Precision", "ROC AUC", "MCC-F1 summary"],
         ):
-            plot_boxplots_per_type(
-                models=args.models,
-                substr_2_type=substrate_2_tps_type,
-                model_2_class_2_metric_vals=model_2_class_2_metric_vals,
-                metric_name=metric_name,
-                title="TPS detection per type",
-                output_path=eval_output_path
-                / f"{plots_name}_{metric_name}_per_type.png",
-                model_names_plots=args.model_names,
-            )
+            for extension in 'png', 'pdf', 'svg':
+                plot_boxplots_per_type(
+                    models=args.models,
+                    substr_2_type=substrate_2_tps_type,
+                    model_2_class_2_metric_vals=model_2_class_2_metric_vals,
+                    metric_name=metric_name,
+                    title="TPS detection per type",
+                    output_path=eval_output_path
+                    / f"{plots_name}_{metric_name}_per_type.{extension}",
+                    model_names_plots=args.model_names,
+                )
+                plot_type_boxplots_per_model(
+                    models=args.models,
+                    substr_2_type=substrate_2_tps_type,
+                    model_2_class_2_metric_vals=model_2_class_2_metric_vals,
+                    metric_name=metric_name,
+                    title="TPS detection per type",
+                    output_path=eval_output_path
+                                / f"{plots_name}_{metric_name}_per_type_boxplot.{extension}",
+                    model_names_plots=args.model_names,
+                )
     elif args.plot_barplots_per_category:
         with open(
             eval_output_path
@@ -400,17 +561,29 @@ def plot_selected_results(args: argparse.Namespace):
             ],
             ["Average Precision", "ROC AUC", "MCC-F1 summary"],
         ):
-            plot_barplots_per_categories(
-                models=args.models,
-                model_2_class_2_metric_vals=model_2_class_2_metric_vals,
-                categories_order=args.categories_order,
-                category_name=args.category_name,
-                metric_name=metric_name,
-                title=f"TPS detection per {args.category_name.lower()}",
-                output_path=eval_output_path
-                / f"{plots_name}_{metric_name}_per_{args.category_name.lower()}.png",
-                model_names_plots=args.model_names,
-            )
+            for extension in 'png', 'pdf', 'svg':
+                plot_barplots_per_categories(
+                    models=args.models,
+                    model_2_class_2_metric_vals=model_2_class_2_metric_vals,
+                    categories_order=args.categories_order,
+                    category_name=args.category_name,
+                    metric_name=metric_name,
+                    title=f"TPS detection per {args.category_name.lower()}",
+                    output_path=eval_output_path
+                    / f"{plots_name}_{metric_name}_per_{args.category_name.lower()}.{extension}",
+                    model_names_plots=args.model_names,
+                )
+                plot_category_boxplots_per_model(
+                    models=args.models,
+                    model_2_class_2_metric_vals=model_2_class_2_metric_vals,
+                    categories_order=args.categories_order,
+                    category_name=args.category_name,
+                    metric_name=metric_name,
+                    title=f"TPS detection per {args.category_name.lower()}",
+                    output_path=eval_output_path
+                                / f"{plots_name}_{metric_name}_per_{args.category_name.lower()}_boxplot.{extension}",
+                    model_names_plots=args.model_names,
+                )
     else:
         results_df = pd.read_csv(
             eval_output_path / f"{args.eval_output_filename}.csv"
@@ -433,11 +606,12 @@ def plot_selected_results(args: argparse.Namespace):
                 std_val = mean_val - results_df.loc[model, column_group[1]]
                 means.append(mean_val)
                 stds.append(std_val)
-            plot_bars(
-                means,
-                stds,
-                args.model_names,
-                "TPS classes detection",
-                metric,
-                eval_output_path / f"{plots_name}_{metric}.png",
-            )
+            for extension in 'png', 'pdf', 'svg':
+                plot_bars(
+                    means,
+                    stds,
+                    args.model_names,
+                    "TPS classes detection",
+                    metric,
+                    eval_output_path / f"{plots_name}_{metric}.{extension}",
+                )
