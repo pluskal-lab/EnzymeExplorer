@@ -1,6 +1,6 @@
 [![Code style:black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
 
-[![Checks for coding standard, code smells and typing](https://github.com/samusram/TerpeneMiner/actions/workflows/ci.yml/badge.svg)](https://github.com/samusram/TerpeneMiner/actions/workflows/ci.yml)
+[![Checks for coding standard, code smells and typing](https://github.com/pluskal-lab/TerpeneMiner/actions/workflows/ci.yml/badge.svg)](https://github.com/pluskal-lab/TerpeneMiner/actions/workflows/ci.yml)
 
 [![DOI:10.1101/2024.01.29.577750](http://img.shields.io/badge/DOI-10.1101/2024.01.29.577750-B31B1B.svg)](https://doi.org/10.1101/2024.01.29.577750)
 <div align="center">
@@ -79,7 +79,7 @@ our approach to other enzyme families, accelerating biological discoveries.
 ## Installation
 
 ```bash
-git clone https://github.com/SamusRam/TerpeneMiner.git
+git clone https://github.com/pluskal-lab/TerpeneMiner.git
 
 cd TerpeneMiner
 . scripts/setup_env.sh
