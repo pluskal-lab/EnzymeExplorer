@@ -12,7 +12,7 @@ setup(
     description="A package for highly accurate detection of terpene synthases",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/SamusRam/TerpeneMiner",
+    url="https://github.com/pluskal-lab/TerpeneMiner",
     packages=find_packages(),
     entry_points={
         "console_scripts": [
