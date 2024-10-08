@@ -5,7 +5,7 @@ import pickle
 from shutil import copyfile
 from pathlib import Path
 import argparse
-from pymol import cmd
+from pymol import cmd  # type: ignore
 from terpeneminer.src.structure_processing.structural_algorithms import (
     get_all_residues_per_file,
 )

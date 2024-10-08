@@ -9,10 +9,10 @@ import time
 import logging
 import subprocess
 from datetime import datetime
-import pandas as pd
-from Bio import PDB
-from pymol import cmd
-from tqdm.auto import tqdm
+import pandas as pd  # type: ignore
+from Bio import PDB  # type: ignore
+from pymol import cmd  # type: ignore
+from tqdm.auto import tqdm  # type: ignore
 from terpeneminer.src.structure_processing.structural_algorithms import (
     SUPPORTED_DOMAINS,
     DOMAIN_2_THRESHOLD,
@@ -162,7 +162,10 @@ def detect_domains_roughly(
                 n_jobs=n_jobs,
             )
             regions_of_possible_2nd_alphas = []
-            for uniprot_id, current_detections in file_2_tmscore_residues_2nd_alpha.items():
+            for (
+                uniprot_id,
+                current_detections,
+            ) in file_2_tmscore_residues_2nd_alpha.items():
                 for i, (tm_score, res_mapping) in enumerate(current_detections):
                     new_tuple = (
                         uniprot_id,
@@ -191,16 +194,14 @@ def detect_domains_roughly(
                 pickle.dump(regions_of_possible_2nd_alphas, result_file)
             domain_2_possible_regions[domain_this] += regions_of_possible_2nd_alphas
 
-    file_2_known_regions = defaultdict(list)
+    file_2_known_regions: dict = defaultdict(list)
     for domain_name_to_include in ["alpha", "epsilon", "delta", "beta", "gamma"]:
         potential_regions = domain_2_possible_regions[domain_name_to_include]
         # filter clashes with already loaded domains
         regions_of_possible_domain_to_include = [
             (file_, region)
             for file_, region in potential_regions
-            if not is_similar_to_anything_known(
-                file_, region, file_2_known_regions
-            )
+            if not is_similar_to_anything_known(file_, region, file_2_known_regions)
         ]
         for file_name, domain_region in regions_of_possible_domain_to_include:
             file_2_known_regions[file_name].append(domain_region)
@@ -208,7 +209,7 @@ def detect_domains_roughly(
 
 
 def is_similar_to_known_region(
-    region_known: str, region_new: str, threshold_recall_threshold: float = 0.5
+    region_known: MappedRegion, region_new: MappedRegion, threshold_recall_threshold: float = 0.5
 ) -> bool:
     """
     Checks whether two regions overlap sufficiently based on a recall threshold.
@@ -244,7 +245,9 @@ def is_similar_to_anything_known(
     :return: True if the new region overlaps with any known region according to the threshold, otherwise False
     """
     for region_known in file_2_known_regions[file_name]:
-        if is_similar_to_known_region(region_known, struct_region, threshold_recall_threshold):
+        if is_similar_to_known_region(
+            region_known, struct_region, threshold_recall_threshold
+        ):
             return True
     return False
 
@@ -434,7 +437,7 @@ if __name__ == "__main__":
                 if res in conf_residues
             }
             new_regions.append(
-                MappedRegion( #pylint: disable=R0801
+                MappedRegion(  # pylint: disable=R0801
                     module_id=mapped_region_init.module_id,
                     domain=mapped_region_init.domain,
                     tmscore=mapped_region_init.tmscore,
@@ -480,8 +483,8 @@ if __name__ == "__main__":
             filename_2_known_regions_completed_confident.items()
         ):
             for region in protein_regions:
-                PATH = f"../tps_domain_detections_{region.domain}"
-                mapped_residues = set(region.residues_mapping.keys())
+                PATH = Path(f"../tps_domain_detections_{region.domain}")
+                mapped_residues = list(set(region.residues_mapping.keys()))
                 cmd.delete(filename)
                 cmd.load(f"{filename}.pdb")
                 cmd.select(

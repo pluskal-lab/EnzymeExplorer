@@ -88,7 +88,7 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
                 "Please implement loading of outputs for per-class optimization, it wasn't needed before"
             )
         # in the future, refactor hyperparameters loading as a common routine used here and in hyperparameter tuning
-        #pylint: disable=R0801
+        # pylint: disable=R0801
         logger.info("Looking for hyperparameters optimization results...")
         n_folds = len(
             get_folds(
@@ -107,16 +107,10 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
             x.stem for x in experiment_output_folder_root.glob("*")
         }
         if (
-            len(
-                model_version_fold_folders.intersection(
-                    set(map(str, range(n_folds)))
-                )
-            )
+            len(model_version_fold_folders.intersection(set(map(str, range(n_folds)))))
             == n_folds
         ):
-            logger.info(
-                "Found %d fold results for %s", n_folds, str(experiment_info)
-            )
+            logger.info("Found %d fold results for %s", n_folds, str(experiment_info))
             fold_2_root_dir = {
                 f"{fold_i}": experiment_output_folder_root / f"{fold_i}"
                 for fold_i in range(n_folds)
@@ -124,7 +118,7 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
         elif "all_folds" in model_version_fold_folders:
             logger.info("Found all_folds results for %s", f"{experiment_info}")
             fold_2_root_dir = {
-                fold_i: experiment_output_folder_root / "all_folds"
+                str(fold_i): experiment_output_folder_root / "all_folds"
                 for fold_i in range(n_folds)
             }
         else:
@@ -270,7 +264,7 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
                             elif (fold_root_dir / "all_classes").exists():
                                 fold_class_path = fold_root_dir / "all_classes"
                             else:
-                                fold_class_path = None
+                                raise ValueError("No fold_class_path found")
                             previous_results = list(
                                 fold_class_path.glob(
                                     "*/hyperparameters_optimization/optimization_results_detailed_*.pkl"

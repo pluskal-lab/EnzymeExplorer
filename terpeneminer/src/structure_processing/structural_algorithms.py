@@ -280,7 +280,7 @@ def get_super_res_alignment(
         residues_permitted = current_residues.intersection(allowed_residues)
         pymol_cmd.select(
             larger_obj,
-            f"{orig_obj_to_remove} & resi {compress_selection_list(residues_permitted)} & chain A",
+            f"{orig_obj_to_remove} & resi {compress_selection_list(list(map(int, residues_permitted)))} & chain A",
         )
         file_2_all_residues[larger_obj] = residues_permitted
 
@@ -315,7 +315,7 @@ def get_super_res_alignment(
         pymol_cmd.copy(new_object_name, object_name)
         pymol_cmd.select(
             domain_obj,
-            f"{new_object_name} & resi {compress_selection_list(file_2_all_residues[domain_obj])} & chain A",
+            f"{new_object_name} & resi {compress_selection_list(list(map(int, file_2_all_residues[domain_obj])))} & chain A",
         )
 
     pymol_cmd.select(domain_obj_secondary_structure, f"{domain_obj} & ss H+S")
@@ -339,7 +339,7 @@ def get_super_res_alignment(
         if needs_clone:
             pymol_cmd.select(
                 domain_obj,
-                f"{object_name} & resi {compress_selection_list(file_2_all_residues[domain_obj])} & chain A",
+                f"{object_name} & resi {compress_selection_list(list(map(int, file_2_all_residues[domain_obj])))} & chain A",
             )
             pymol_cmd.delete(new_object_name)
         if loaded_new_domain_obj:
@@ -380,7 +380,7 @@ def get_super_res_alignment(
     if needs_clone:
         pymol_cmd.select(
             domain_obj,
-            f"{object_name} & resi {compress_selection_list(file_2_all_residues[domain_obj])} & chain A",
+            f"{object_name} & resi {compress_selection_list(list(map(int, file_2_all_residues[domain_obj])))} & chain A",
         )
         pymol_cmd.delete(new_object_name)
     if loaded_new_domain_obj:
@@ -501,7 +501,7 @@ def get_pairwise_tmscore(
     try:
         pymol_cmd.select(
             f"{filename_1}_{selection_1_id}",
-            f"{filename_1} & resi {compress_selection_list(region_residues_1)} & chain A & ss H+S",
+            f"{filename_1} & resi {compress_selection_list(list(region_residues_1))} & chain A & ss H+S",
         )
         file_2_all_residues[f"{filename_1}_{selection_1_id}"] = set(
             map(str, region_residues_1)
@@ -510,7 +510,7 @@ def get_pairwise_tmscore(
         region_residues_2 = set(fill_short_gaps(set(region_2.residues_mapping.keys())))
         pymol_cmd.select(
             f"{filename_2}_{selection_2_id}",
-            f"{filename_2} & resi {compress_selection_list(region_residues_2)} & chain A & ss H+S",
+            f"{filename_2} & resi {compress_selection_list(list(region_residues_2))} & chain A & ss H+S",
         )
     except CmdException:
         pymol_cmd.delete(filename_2)
@@ -905,7 +905,7 @@ def get_mapped_regions_with_surroundings(
                 segment_name = f"bigger_selection_{mapped_region_i}_{segment_i}"
                 cmd.select(
                     segment_name,
-                    f"{filename} & resi {compress_selection_list(set(region_segment))} & chain A",
+                    f"{filename} & resi {compress_selection_list(region_segment)} & chain A",
                 )
                 segment_i += 1
                 region_i_2_segments[mapped_region_i].append(segment_name)
@@ -921,7 +921,7 @@ def get_mapped_regions_with_surroundings(
         ):
             cmd.select(
                 "small_selection",
-                f"{filename} & resi {compress_selection_list(set(residue_segment_remaining))} & chain A",
+                f"{filename} & resi {compress_selection_list(residue_segment_remaining)} & chain A",
             )
             min_dist = float("inf")
             closest_region_i = None
