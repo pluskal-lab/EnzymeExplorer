@@ -34,9 +34,9 @@ if __name__ == "__main__":
     cli_args = parse_args()
     if cli_args.precomputed_scores_path != "":
         with open(cli_args.precomputed_scores_path, "rb") as file:
-            precomputed_scores = pickle.load(file)
+            PRECOMPUTED_SCORES = pickle.load(file)
     else:
-        precomputed_scores = None
+        PRECOMPUTED_SCORES = None
     os.chdir("data/alphafold_structs")
     logger.info("Loading data...")
     with open("file_2_all_residues.pkl", "rb") as f:
@@ -61,7 +61,7 @@ if __name__ == "__main__":
         regions=regions_all,
         file_2_all_residues=file_2_all_residues,
         output_name=cli_args.name,
-        precomputed_scores=precomputed_scores,
+        precomputed_scores=PRECOMPUTED_SCORES,
     )
     region_indices = list(range(len(regions_all)))[cli_args.start_i : cli_args.end_i]
     logger.info(

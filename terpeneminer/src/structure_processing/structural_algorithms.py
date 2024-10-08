@@ -1,3 +1,4 @@
+# pylint: disable=C0302
 """This module contains our structural algorithms for segmentation of a protein structure into TPS-specific domains
 and comparison of domains between each other"""
 

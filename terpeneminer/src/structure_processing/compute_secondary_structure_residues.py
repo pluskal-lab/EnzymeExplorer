@@ -1,9 +1,11 @@
+"""This script computes secondary-structure residues of all proteins in a directory"""
+
 import os
 import pickle
 from shutil import copyfile
-from pymol import cmd
 from pathlib import Path
 import argparse
+from pymol import cmd
 from terpeneminer.src.structure_processing.structural_algorithms import (
     get_all_residues_per_file,
 )
@@ -36,15 +38,15 @@ if __name__ == "__main__":
     args = parse_args()
     cwd = os.getcwd()
     os.chdir(args.input_directory)
-    pdb_files_raw = [filepath for filepath in Path(".").glob("*.pdb")]
+    pdb_files_raw = list(Path(".").glob("*.pdb"))
     # substituting ids which Pymol cannot handle
     pdb_files = []
     filepath_2_corrected_filepath = {}
     for filepath in pdb_files_raw:
-        filepath_str = str(filepath)
-        if "(" in filepath_str or ")" in filepath_str or len(filepath_str.split()) > 1:
+        FILEPATH_STR = str(filepath)
+        if "(" in FILEPATH_STR or ")" in FILEPATH_STR or len(FILEPATH_STR.split()) > 1:
             filepath_2_corrected_filepath[filepath] = Path(
-                "".join(filepath_str.replace("(", "").replace(")", "").split())
+                "".join(FILEPATH_STR.replace("(", "").replace(")", "").split())
             )
             copyfile(filepath, filepath_2_corrected_filepath[filepath])
         pdb_files.append(filepath_2_corrected_filepath.get(filepath, filepath))

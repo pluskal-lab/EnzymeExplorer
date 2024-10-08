@@ -202,7 +202,9 @@ def run_selected_experiments(args: argparse.Namespace):
         all_enabled_experiments_df = discover_experiments_from_configs(config_root_path)
         for _, experiment_info_row in all_enabled_experiments_df.iterrows():
             experiment_info = ExperimentInfo(**experiment_info_row.to_dict())
-            run_experiment(experiment_info, load_hyperparameters=args.load_hyperparameters)
+            run_experiment(
+                experiment_info, load_hyperparameters=args.load_hyperparameters
+            )
 
 
 def tune_hyperparameters(args: argparse.Namespace):

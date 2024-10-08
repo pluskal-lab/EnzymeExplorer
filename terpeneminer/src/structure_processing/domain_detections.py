@@ -1,17 +1,18 @@
-from pymol import cmd
+"""This script detects TPS domains in protein structures"""
+
 import os
 import argparse
 from pathlib import Path
-from tqdm.auto import tqdm
 from collections import defaultdict
 import pickle
-import pandas as pd
 import time
-from Bio import PDB
 import logging
 import subprocess
 from datetime import datetime
-
+import pandas as pd
+from Bio import PDB
+from pymol import cmd
+from tqdm.auto import tqdm
 from terpeneminer.src.structure_processing.structural_algorithms import (
     SUPPORTED_DOMAINS,
     DOMAIN_2_THRESHOLD,
@@ -70,17 +71,17 @@ def parse_args() -> argparse.Namespace:
 
 
 def detect_domains_roughly(
-    pdb_files: list[Path],
-    file_2_all_residues: dict[str, set[str]],
+    specified_pdb_files: list[Path],
+    file_2_all_residues_mapping: dict[str, set[str]],
     domain_2_threshold: dict[str, tuple[float, int]],
     output_root: Path,
-    supported_domains: set[str] = SUPPORTED_DOMAINS,
+    supported_domains: set[str],
     n_jobs: int = 16,
 ) -> dict[str, list[MappedRegion]]:
     """
     Detects protein domains in multiple structures based on alignment scores and domain-specific thresholds.
 
-    :param file_2_all_residues: A dictionary mapping file identifiers to sets of residue sequences present in those files
+    :param file_2_all_residues_mapping: A dictionary mapping file identifiers to sets of residue sequences present in those files
     :param domain_2_threshold: A dictionary mapping domain names to a tuple containing the TM-score threshold (float)
                                and the minimum mapping size (int) required to consider a match valid
     :param output_root: The root directory where output images and serialized results will be saved
@@ -90,19 +91,19 @@ def detect_domains_roughly(
     :return: A dictionary mapping each filename to a list of known MappedRegion objects representing the detected
              reliable domains, while ensuring that no overlaying domains are included.
     """
-    domain_2_possible_regions = dict()
-    for domain_name in supported_domains:
-        logger.info("Started detection of domain %s", domain_name)
+    domain_2_possible_regions = {}
+    for domain_this in supported_domains:
+        logger.info("Started detection of domain %s", domain_this)
         start_t = time.time()
         file_2_tmscore_residues_domain = get_alignments(
-            pdb_files,
-            domain_name=domain_name,
-            file_2_current_residues=file_2_all_residues,
+            specified_pdb_files,
+            domain_name=domain_this,
+            file_2_current_residues=file_2_all_residues_mapping,
             n_jobs=n_jobs,
         )
         logger.info(
             "Detection of %s domain. Execution took %d seconds",
-            domain_name,
+            domain_this,
             time.time() - start_t,
         )
 
@@ -110,66 +111,66 @@ def detect_domains_roughly(
         if len(file_2_tmscore_residues_domain):
             plot_aligned_domains(
                 file_2_tmscore_residues_domain,
-                title=f"{domain_name} domain detections",
+                title=f"{domain_this} domain detections",
                 save_path=output_root
-                / f"{domain_name}_detections_{execution_timestamp}.png",
+                / f"{domain_this}_detections_{execution_timestamp}.png",
             )
         regions_of_possible_domain = []
 
-        for uni_id, detections in file_2_tmscore_residues_domain.items():
-            for i, (tmscore, mapping) in enumerate(detections):
-                if tmscore >= domain_2_threshold[domain_name][0]:
+        for uniprot_id, current_detections in file_2_tmscore_residues_domain.items():
+            for i, (tm_score, res_mapping) in enumerate(current_detections):
+                if tm_score >= domain_2_threshold[domain_this][0]:
                     regions_of_possible_domain.append(
                         (
-                            uni_id,
+                            uniprot_id,
                             MappedRegion(
-                                module_id=f"{uni_id}_{domain_name}_{i}",
-                                domain=domain_name,
-                                tmscore=tmscore,
-                                residues_mapping=mapping,
+                                module_id=f"{uniprot_id}_{domain_this}_{i}",
+                                domain=domain_this,
+                                tmscore=tm_score,
+                                residues_mapping=res_mapping,
                             ),
                         )
                     )
 
         logger.info(
-            "Detected %d %s domains", len(regions_of_possible_domain), domain_name
+            "Detected %d %s domains", len(regions_of_possible_domain), domain_this
         )
 
         with open(
             output_root
-            / f"final_regions_{domain_name}s_tm_ALL_{execution_timestamp}.pkl",
+            / f"final_regions_{domain_this}s_tm_ALL_{execution_timestamp}.pkl",
             "wb",
-        ) as file:
-            pickle.dump(regions_of_possible_domain, file)
+        ) as result_file:
+            pickle.dump(regions_of_possible_domain, result_file)
 
-        domain_2_possible_regions[domain_name] = regions_of_possible_domain
+        domain_2_possible_regions[domain_this] = regions_of_possible_domain
 
-        if domain_name == "alpha":
+        if domain_this == "alpha":
             file_2_mapped_regions = get_mapped_regions_per_file(
                 {"alpha": file_2_tmscore_residues_domain}, domain_2_threshold
             )
-            file_2_remaining_residues = get_remaining_residues(
-                file_2_mapped_regions, file_2_all_residues
+            file_2_remaining_ress = get_remaining_residues(
+                file_2_mapped_regions, file_2_all_residues_mapping
             )
-            tmscore_threshold, mapping_size_threshold = domain_2_threshold["alpha"]
+            tm_score_threshold, mapping_res_size_threshold = domain_2_threshold["alpha"]
             file_2_tmscore_residues_2nd_alpha = get_alignments(
-                pdb_files,
+                specified_pdb_files,
                 "alpha",
-                file_2_remaining_residues,
-                tmscore_threshold,
-                mapping_size_threshold,
+                file_2_remaining_ress,
+                tm_score_threshold,
+                mapping_res_size_threshold,
                 n_jobs=n_jobs,
             )
             regions_of_possible_2nd_alphas = []
-            for uni_id, detections in file_2_tmscore_residues_2nd_alpha.items():
-                for i, (tmscore, mapping) in enumerate(detections):
+            for uniprot_id, current_detections in file_2_tmscore_residues_2nd_alpha.items():
+                for i, (tm_score, res_mapping) in enumerate(current_detections):
                     new_tuple = (
-                        uni_id,
+                        uniprot_id,
                         MappedRegion(
-                            module_id=f"{uni_id}_alpha_{i + len(file_2_tmscore_residues_domain[uni_id])}",
+                            module_id=f"{uniprot_id}_alpha_{i + len(file_2_tmscore_residues_domain[uniprot_id])}",
                             domain="alpha",
-                            tmscore=tmscore,
-                            residues_mapping=mapping,
+                            tmscore=tm_score,
+                            residues_mapping=res_mapping,
                         ),
                     )
                     regions_of_possible_2nd_alphas.append(new_tuple)
@@ -177,7 +178,7 @@ def detect_domains_roughly(
             if len(file_2_tmscore_residues_2nd_alpha):
                 plot_aligned_domains(
                     file_2_tmscore_residues_2nd_alpha,
-                    title=f"2nd alpha domain detections",
+                    title="2nd alpha domain detections",
                     save_path=output_root
                     / f"2nd_alpha_detections_{execution_timestamp}.png",
                 )
@@ -186,24 +187,24 @@ def detect_domains_roughly(
                 output_root
                 / f"final_regions_2nd_alphas_tm_ALL_{execution_timestamp}.pkl",
                 "wb",
-            ) as file:
-                pickle.dump(regions_of_possible_2nd_alphas, file)
-            domain_2_possible_regions[domain_name] += regions_of_possible_2nd_alphas
+            ) as result_file:
+                pickle.dump(regions_of_possible_2nd_alphas, result_file)
+            domain_2_possible_regions[domain_this] += regions_of_possible_2nd_alphas
 
-    filename_2_known_regions = defaultdict(list)
+    file_2_known_regions = defaultdict(list)
     for domain_name_to_include in ["alpha", "epsilon", "delta", "beta", "gamma"]:
         potential_regions = domain_2_possible_regions[domain_name_to_include]
         # filter clashes with already loaded domains
         regions_of_possible_domain_to_include = [
-            (filename, region)
-            for filename, region in potential_regions
+            (file_, region)
+            for file_, region in potential_regions
             if not is_similar_to_anything_known(
-                filename, region, filename_2_known_regions
+                file_, region, file_2_known_regions
             )
         ]
-        for filename, region in regions_of_possible_domain_to_include:
-            filename_2_known_regions[filename].append(region)
-    return filename_2_known_regions
+        for file_name, domain_region in regions_of_possible_domain_to_include:
+            file_2_known_regions[file_name].append(domain_region)
+    return file_2_known_regions
 
 
 def is_similar_to_known_region(
@@ -228,60 +229,59 @@ def is_similar_to_known_region(
 
 
 def is_similar_to_anything_known(
-    filename: str,
-    region: MappedRegion,
-    filename_2_known_regions: dict[str, list[MappedRegion]],
+    file_name: str,
+    struct_region: MappedRegion,
+    file_2_known_regions: dict[str, list[MappedRegion]],
     threshold_recall_threshold: float = 0.5,
 ) -> bool:
     """
     Checks if `region_new` overlaps with any of the known regions in the given file.
 
-    :param region_new: A tuple containing the filename and the new region to be compared
-    :param filename_2_known_regions: A dictionary mapping filenames to lists of known MappedRegion objects
+    :param file_name: A filename to be compared
+    :param file_2_known_regions: A dictionary mapping filenames to lists of known MappedRegion objects
     :param threshold_recall_threshold: The minimum recall threshold for the regions to be considered similar, defaults to 0.5
 
     :return: True if the new region overlaps with any known region according to the threshold, otherwise False
     """
-    for region_known in filename_2_known_regions[filename]:
-        if is_similar_to_known_region(region_known, region, threshold_recall_threshold):
+    for region_known in file_2_known_regions[file_name]:
+        if is_similar_to_known_region(region_known, struct_region, threshold_recall_threshold):
             return True
     return False
 
 
 def can_there_be_unassigned_domain(
-    filename: str,
-    file_2_remaining_residues: dict[str, set[str]],
-    filename_2_known_regions: dict[str, list[MappedRegion]],
+    file_name: str,
+    filename_2_remaining_residues_mapping: dict[str, set[str]],
+    filename_2_known_regions_mapping: dict[str, list[MappedRegion]],
     min_len: int = 90,
     max_allowed_gap: int = 3,
 ) -> bool:
     """
     Determines whether there could be an unassigned domain in the given file based on the remaining residues.
 
-    :param filename: The name of the file to check for unassigned domains
-    :param file_2_remaining_residues: A dictionary mapping filenames to sets of remaining residues not yet assigned to any domain
-    :param filename_2_known_regions: A dictionary mapping filenames to lists of known MappedRegion objects
+    :param file_name: The name of the file to check for unassigned domains
+    :param filename_2_remaining_residues_mapping: A dictionary mapping filenames to sets of remaining residues not yet assigned to any domain
+    :param filename_2_known_regions_mapping: A dictionary mapping filenames to lists of known MappedRegion objects
     :param min_len: The minimum length of residues required to consider the presence of an unassigned domain, defaults to 90
     :param max_allowed_gap: The maximum gap allowed between residues in a continuous segment, defaults to 3
 
     :return: True if there could be an unassigned domain in the file, otherwise False
     """
-    if filename not in filename_2_known_regions:
+    if file_name not in filename_2_known_regions_mapping:
         return False
-    region_types = {reg.domain for reg in filename_2_known_regions[filename]}
+    region_types = {reg.domain for reg in filename_2_known_regions_mapping[file_name]}
     if "alpha" not in region_types:
-        return len(file_2_remaining_residues[filename]) > min_len
-    else:
-        return (
-            len(
-                find_continuous_segments_longer_than(
-                    file_2_remaining_residues[filename],
-                    min_secondary_struct_len=min_len,
-                    max_allowed_gap=max_allowed_gap,
-                )
+        return len(filename_2_remaining_residues_mapping[file_name]) > min_len
+    return (
+        len(
+            find_continuous_segments_longer_than(
+                filename_2_remaining_residues_mapping[file_name],
+                min_secondary_struct_len=min_len,
+                max_allowed_gap=max_allowed_gap,
             )
-            > 0
         )
+        > 0
+    )
 
 
 def get_confident_af_residues(
@@ -350,6 +350,7 @@ if __name__ == "__main__":
         pdb_files,
         file_2_all_residues,
         DOMAIN_2_THRESHOLD,
+        supported_domains=SUPPORTED_DOMAINS,
         output_root=Path("."),
         n_jobs=args.n_jobs,
     )
@@ -379,7 +380,7 @@ if __name__ == "__main__":
         )
     ]
 
-    domain_2_file_2_tmscore_residues = dict()
+    domain_2_file_2_tmscore_residues = {}
     for domain_type, (
         tmscore_threshold,
         mapping_size_threshold,
@@ -393,8 +394,13 @@ if __name__ == "__main__":
             n_jobs=args.n_jobs,
         )
 
-    sorted_additional_detections = sorted(list(domain_2_file_2_tmscore_residues.items()), key=lambda x: (
-    -len(x[1]), 0 if len(x[1]) == 0 else -list(x[1].items())[0][1][0][0]))
+    sorted_additional_detections = sorted(
+        list(domain_2_file_2_tmscore_residues.items()),
+        key=lambda x: (
+            -len(x[1]),
+            0 if len(x[1]) == 0 else -list(x[1].items())[0][1][0][0],
+        ),
+    )
     for domain, file_2_tmscore_residues in sorted_additional_detections:
         for uni_id, detections in file_2_tmscore_residues.items():
             for tmscore, mapping in detections:
@@ -411,11 +417,13 @@ if __name__ == "__main__":
                     tmscore=tmscore,
                     residues_mapping=mapping,
                 )
-                if not is_similar_to_anything_known((uni_id, new_region), filename_2_known_regions):
+                if not is_similar_to_anything_known(
+                    uni_id, new_region, filename_2_known_regions
+                ):
                     filename_2_known_regions[uni_id].append(new_region)
 
     # Getting confident residues
-    filename_2_known_regions_completed_confident = dict()
+    filename_2_known_regions_completed_confident = {}
     for filename, regions in tqdm(filename_2_known_regions_completed.items()):
         conf_residues = get_confident_af_residues(filename)
         new_regions = []
@@ -426,7 +434,7 @@ if __name__ == "__main__":
                 if res in conf_residues
             }
             new_regions.append(
-                MappedRegion(
+                MappedRegion( #pylint: disable=R0801
                     module_id=mapped_region_init.module_id,
                     domain=mapped_region_init.domain,
                     tmscore=mapped_region_init.tmscore,
@@ -464,15 +472,15 @@ if __name__ == "__main__":
         if not domains_output_path.exists():
             domains_output_path.mkdir(parents=True)
         for domain_name in SUPPORTED_DOMAINS:
-            path = domains_output_path / f"tps_domain_detections_{domain_name}"
-            if not os.path.exists(path):
-                os.mkdir(path)
+            PATH = domains_output_path / f"tps_domain_detections_{domain_name}"
+            if not os.path.exists(PATH):
+                os.mkdir(PATH)
 
         for filename, protein_regions in tqdm(
             filename_2_known_regions_completed_confident.items()
         ):
             for region in protein_regions:
-                path = f"../tps_domain_detections_{region.domain}"
+                PATH = f"../tps_domain_detections_{region.domain}"
                 mapped_residues = set(region.residues_mapping.keys())
                 cmd.delete(filename)
                 cmd.load(f"{filename}.pdb")
@@ -480,5 +488,5 @@ if __name__ == "__main__":
                     f"{region.module_id}",
                     f"{filename} & resi {compress_selection_list(mapped_residues)}",
                 )
-                cmd.save(f"{path}/{region.module_id}.pdb", f"{region.module_id}")
+                cmd.save(f"{PATH}/{region.module_id}.pdb", f"{region.module_id}")
                 cmd.delete(filename)
