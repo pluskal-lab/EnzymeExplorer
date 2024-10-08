@@ -1,6 +1,6 @@
 # pylint: disable=C0103
-""" This is a wrapper to use the CLEAN.ignore model for substrate prediction.
-Please note, that before using this wrapper you would need to install CLEAN.ignore as per https://github.com/tttianhao/CLEAN
+""" This is a wrapper to use the CLEAN model for substrate prediction.
+Please note, that before using this wrapper you would need to install CLEAN as per https://github.com/tttianhao/CLEAN
 """
 import os
 from collections import defaultdict
@@ -16,12 +16,12 @@ import wget  # type: ignore
 
 from rdkit.Chem import MolToSmiles, rdChemReactions  # type: ignore
 
-# remove additional 'data' folder from CLEAN.ignore's codebase (at the time of my experiments, the CLEAN.ignore's scripts were unrunnable without fixes of paths)
+# remove additional 'data' folder from CLEAN's codebase (at the time of my experiments, the CLEAN's scripts were unrunnable without fixes of paths)
 from CLEAN.utils import (  # type: ignore
     prepare_infer_fasta,
 )
 
-# also remove additional 'data' folder from CLEAN.ignore's codebase
+# also remove additional 'data' folder from CLEAN's codebase
 from CLEAN.infer import (  # type: ignore
     infer_maxsep,
 )
@@ -34,7 +34,7 @@ from terpeneminer.src.utils.data import get_canonical_smiles
 @dataclass
 class CLEANConfig(BaseConfig):
     """
-    A data class to store CLEAN.ignore-model attributes
+    A data class to store CLEAN-model attributes
     """
 
     clean_installation_root: Path
@@ -47,7 +47,7 @@ class CLEANConfig(BaseConfig):
 
 class CLEAN(BaseModel):
     """
-    CLEAN.ignore model wrapper for prediction of TPS substrates
+    CLEAN model wrapper for prediction of TPS substrates
     """
 
     def __init__(self, config: CLEANConfig):
@@ -133,7 +133,7 @@ class CLEAN(BaseModel):
         selected_class_name: Optional[str] = None,
     ) -> np.ndarray:
         """
-        Function to predict the class probabilities for the given validation data using the CLEAN.ignore model.
+        Function to predict the class probabilities for the given validation data using the CLEAN model.
 
         :param val_df: A pandas DataFrame containing the validation data.
                        The DataFrame must contain sequence and ID columns as specified in the configuration.
@@ -157,7 +157,7 @@ class CLEAN(BaseModel):
         with open(temp_fasta_path, "w", encoding="utf-8") as file:
             file.writelines(fasta_str.replace("'", "").replace('"', ""))
         # maybe some locations are redundant,
-        # but CLEAN.ignore codebase tends to look into multiple places for the same input, so to be safe:
+        # but CLEAN codebase tends to look into multiple places for the same input, so to be safe:
         copyfile(
             temp_fasta_path,
             self.config.clean_installation_root
@@ -212,7 +212,7 @@ class CLEAN(BaseModel):
                         id_2_substr_2_conf[uni_id][substr] = conf
         assert isinstance(
             val_df, pd.DataFrame
-        ), "the CLEAN.ignore requires Uniprot ID and sequences, np.array of numerical representations is not a possible input"
+        ), "the CLEAN requires Uniprot ID and sequences, np.array of numerical representations is not a possible input"
         val_df["substr_2_conf"] = val_df[self.config.id_col_name].map(
             lambda x: {} if x not in id_2_substr_2_conf else id_2_substr_2_conf[x]
         )

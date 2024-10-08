@@ -152,7 +152,7 @@ if __name__ == "__main__":
             terpene_synthases_df["Type (mono, sesq, di, …)"].isin({"tetra", "sester"}),
             "Uniprot ID",
         ].unique()
-    )
+    ).union({"D5SJ87", "B0Y565"})
     for domain_id in domain_module_id_2_dist_matrix_index.keys():
         uni_id = domain_id.split("_")[0]
         if uni_id in ids_rare_set:

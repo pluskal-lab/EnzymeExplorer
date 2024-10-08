@@ -14,13 +14,17 @@ from tqdm.contrib.logging import logging_redirect_tqdm  # type: ignore
 from terpeneminer.src import models
 from terpeneminer.src.models.ifaces import BaseConfig, BaseModel
 from terpeneminer.src.utils.data import get_folds, get_tps_df
-from terpeneminer.src.utils.project_info import ExperimentInfo, get_config_root
+from terpeneminer.src.utils.project_info import (
+    ExperimentInfo,
+    get_config_root,
+    get_output_root,
+)
 
 logger = logging.getLogger(__file__)
 logger.setLevel(logging.INFO)
 
 
-def run_experiment(experiment_info: ExperimentInfo):
+def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool = False):
     """
     This function gathers all the required pieces of information for a particular experiment
     and consequently runs the experiment, i.e. instantiating, training and scoring the selected model
@@ -74,6 +78,54 @@ def run_experiment(experiment_info: ExperimentInfo):
 
     # instantiating model
     model = model_class(config)
+    if load_hyperparameters:
+        try:
+            per_class_optimization = model.config.per_class_optimization
+        except AttributeError:
+            per_class_optimization = False
+        if per_class_optimization:
+            raise NotImplementedError(
+                "Please implement loading of outputs for per-class optimization, it wasn't needed before"
+            )
+        # in the future, refactor hyperparameters loading as a common routine used here and in hyperparameter tuning
+        # pylint: disable=R0801
+        logger.info("Looking for hyperparameters optimization results...")
+        n_folds = len(
+            get_folds(
+                split_desc=config.split_col_name,
+            )
+        )
+        experiment_output_folder_root = (
+            get_output_root()
+            / experiment_info.model_type
+            / experiment_info.model_version
+        )
+        assert (
+            experiment_output_folder_root.exists()
+        ), f"Output folder {experiment_output_folder_root} for {experiment_info} does not exist"
+        model_version_fold_folders = {
+            x.stem for x in experiment_output_folder_root.glob("*")
+        }
+        if (
+            len(model_version_fold_folders.intersection(set(map(str, range(n_folds)))))
+            == n_folds
+        ):
+            logger.info("Found %d fold results for %s", n_folds, str(experiment_info))
+            fold_2_root_dir = {
+                f"{fold_i}": experiment_output_folder_root / f"{fold_i}"
+                for fold_i in range(n_folds)
+            }
+        elif "all_folds" in model_version_fold_folders:
+            logger.info("Found all_folds results for %s", f"{experiment_info}")
+            fold_2_root_dir = {
+                str(fold_i): experiment_output_folder_root / "all_folds"
+                for fold_i in range(n_folds)
+            }
+        else:
+            raise NotImplementedError(
+                f"Not all fold outputs found. Please run corresponding experiments ({experiment_info}) before evaluation"
+            )
+
     logger.info(
         "Instantiated the model %s", model.config.experiment_info.get_experiment_name()
     )
@@ -92,6 +144,7 @@ def run_experiment(experiment_info: ExperimentInfo):
         save_trained_model = False
     # iterating over folds
     with logging_redirect_tqdm([logger]):
+        # pylint: disable=too-many-nested-blocks
         for test_fold in tqdm(
             get_folds(
                 split_desc=config.split_col_name,
@@ -185,6 +238,48 @@ def run_experiment(experiment_info: ExperimentInfo):
                             test_id_seq_df,
                             on=test_id_column_name,
                         )
+
+                # retrieving hyperparameters
+                if load_hyperparameters:
+                    fold_root_dir = fold_2_root_dir[test_fold]
+                    logger.info(
+                        "Loading hyperparameters for fold %s with root dir %s",
+                        test_fold,
+                        str(fold_root_dir),
+                    )
+                    # in the future, refactor hyperparameters loading as a common routine used here and in hyperparameter tuning
+                    # pylint: disable=R0801
+                    if per_class_optimization:
+                        class_names = [
+                            model.config.class_names
+                            if not hasattr(model.config, "class_name")
+                            else [model.config.class_name]
+                        ]
+                    else:
+                        class_names = ["all_classes"]
+                    for class_name in class_names:
+                        if class_name not in {"Unknown", "other"}:
+                            if (fold_root_dir / f"{class_name}").exists():
+                                fold_class_path = fold_root_dir / f"{class_name}"
+                            elif (fold_root_dir / "all_classes").exists():
+                                fold_class_path = fold_root_dir / "all_classes"
+                            else:
+                                raise ValueError("No fold_class_path found")
+                            previous_results = list(
+                                fold_class_path.glob(
+                                    "*/hyperparameters_optimization/optimization_results_detailed_*.pkl"
+                                )
+                            )
+                            if previous_results:
+                                logger.info(
+                                    "Found previous results for class %s: %s",
+                                    class_name,
+                                    previous_results,
+                                )
+                                with open(previous_results[0], "rb") as file:
+                                    best_params, _, _ = pickle.load(file)
+                                model.set_params(**best_params)
+                                logger.info("Loaded previous best hyperparameters")
 
                 # fitting the model
                 model.fit(trn_df)

@@ -80,7 +80,7 @@ def get_output_root() -> Path:
     """
     Returns: absolute path to the output directory
     """
-    return get_project_root() / "outputs"
+    return get_project_root() / "../outputs"
 
 
 def get_experiments_output() -> Path:
