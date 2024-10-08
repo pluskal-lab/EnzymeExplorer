@@ -209,7 +209,9 @@ def detect_domains_roughly(
 
 
 def is_similar_to_known_region(
-    region_known: MappedRegion, region_new: MappedRegion, threshold_recall_threshold: float = 0.5
+    region_known: MappedRegion,
+    region_new: MappedRegion,
+    threshold_recall_threshold: float = 0.5,
 ) -> bool:
     """
     Checks whether two regions overlap sufficiently based on a recall threshold.
