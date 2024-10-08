@@ -419,6 +419,14 @@ For reproducability, we share outputs of the hyperparameter optimization
 on [zenodo](https://zenodo.org/records/10567437) as `outputs.zip`. You can simply unzip its contents to the `outputs`
 folder and run the consequent evaluation steps.
 
+If you want to train a single model using the best hyperparameters found during the optimization, run
+
+```bash
+cd TerpeneMiner
+conda activate terpene_miner
+terpene_miner_main --select-single-experiment run --load-hyperparameters
+```
+
 #### 6 - Evaluating performance
 
 To evaluate all configured models, run
