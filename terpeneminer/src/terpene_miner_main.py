@@ -29,6 +29,7 @@ def parse_args() -> argparse.Namespace:
     subparsers = parser.add_subparsers()
     parser_run = subparsers.add_parser("run", help="Run experiment(s)")
     parser_run.set_defaults(cmd="run")
+    parser_run.add_argument("--load-hyperparameters", action="store_true")
 
     parser_eval = subparsers.add_parser("evaluate", help="Evaluate experiment(s)")
     parser_eval.set_defaults(cmd="evaluate")
@@ -196,12 +197,12 @@ def run_selected_experiments(args: argparse.Namespace):
     if args.select_single_experiment:
         experiment_kwargs = collect_single_experiment_arguments(config_root_path)
         experiment_info = ExperimentInfo(**experiment_kwargs)
-        run_experiment(experiment_info)
+        run_experiment(experiment_info, load_hyperparameters=args.load_hyperparameters)
     else:
         all_enabled_experiments_df = discover_experiments_from_configs(config_root_path)
         for _, experiment_info_row in all_enabled_experiments_df.iterrows():
             experiment_info = ExperimentInfo(**experiment_info_row.to_dict())
-            run_experiment(experiment_info)
+            run_experiment(experiment_info, load_hyperparameters=args.load_hyperparameters)
 
 
 def tune_hyperparameters(args: argparse.Namespace):
