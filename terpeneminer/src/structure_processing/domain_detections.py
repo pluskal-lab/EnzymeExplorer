@@ -40,7 +40,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--needed-proteins-csv-path",
         type=str,
-        default="data/TPS-Nov19_2023_verified_all_reactions_with_neg_with_folds.csv",
+        default=None,
     )
     parser.add_argument(
         "--input-directory-with-structures",
@@ -312,8 +312,9 @@ def get_confident_af_residues(
 if __name__ == "__main__":
     args = parse_args()
     # reading the needed proteins
-    proteins_df = pd.read_csv(args.needed_proteins_csv_path)
-    relevant_protein_ids = set(proteins_df["Uniprot ID"].values)
+    if args.needed_proteins_csv_path is not None:
+        proteins_df = pd.read_csv(args.needed_proteins_csv_path)
+        relevant_protein_ids = set(proteins_df["Uniprot ID"].values)
 
     input_directory = Path(args.input_directory_with_structures)
     all_secondary_structure_residues_path = input_directory / "file_2_all_residues.pkl"
@@ -337,7 +338,8 @@ if __name__ == "__main__":
         if str(filepath) not in blacklist_files
         and filepath.stem in file_2_all_residues
         and (
-            filepath.stem in relevant_protein_ids
+            args.needed_proteins_csv_path is None
+            or filepath.stem in relevant_protein_ids
             or "".join(filepath.stem.replace("(", "").replace(")", "").replace("-", ""))
             in relevant_protein_ids
         )
