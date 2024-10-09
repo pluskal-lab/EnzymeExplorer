@@ -64,6 +64,7 @@ class BaseModel(ABC, BaseEstimator):
         if experiment_output_folder is None:
             experiment_output_folder = self.output_root
         experiment_output_folder = Path(experiment_output_folder)
+        logger.info("Saving model to %s", experiment_output_folder)
         with open(
             experiment_output_folder
             / f"model_fold_{self.config.experiment_info.fold}.pkl",
