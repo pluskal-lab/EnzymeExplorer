@@ -88,6 +88,22 @@ if __name__ == "__main__":
         with open(fold_class_latest_path / f"model_fold_{fold_i}.pkl", "rb") as file:
             model = pickle.load(file)
         model.classifier.classes_ = model.config.class_names
+        if hasattr(model, "allowed_feat_indices"):
+            with open("data/clustering__domain_dist_based_features.pkl", "rb") as file:
+                domain_module_id_2_dist_matrix_index = pickle.load(file)[-1]
+
+            with open("data/domains_subset.pkl", "rb") as file:
+                feat_indices_subset = pickle.load(file)[-1]
+            domain_module_id_2_dist_matrix_index_subset = {domain_id: [i for i in indices if i in feat_indices_subset]
+                                                           for domain_id, indices in
+                                                           domain_module_id_2_dist_matrix_index.items()
+                                                           if len([i for i in indices if i in feat_indices_subset])}
+            feat_idx_2_module_id = {}
+            for module_id, feat_indices in domain_module_id_2_dist_matrix_index_subset.items():
+                for feat_idx in feat_indices:
+                    feat_idx_2_module_id[feat_idx] = module_id
+            order_of_domain_modules = [feat_idx_2_module_id[feat_i] for feat_i in model.allowed_feat_indices]
+            model.classifier.order_of_domain_modules = order_of_domain_modules
         classifiers.append(model.classifier)
 
     with open(args.output_path, "wb") as file_writer:
