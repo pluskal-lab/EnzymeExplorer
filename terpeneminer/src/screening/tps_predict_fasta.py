@@ -10,6 +10,7 @@ from pathlib import Path
 import esm  # type: ignore
 import numpy as np  # type: ignore
 from tqdm.auto import tqdm  # type: ignore
+
 # import torch  # type: ignore
 # torch.hub.set_dir("/scratch/project_465000659/samusevi")
 # os.environ["TRANSFORMERS_CACHE"] = "/scratch/project_465000659/samusevi/cache"
@@ -186,8 +187,8 @@ def main(arguments: argparse.Namespace):
             ):
                 protein_id_short = protein_id.split()[0].replace("/", "")
                 if class_2_prob["isTPS"] >= detection_threshold or (
-                        arguments.detect_precursor_synthases
-                        and class_2_prob["precursor substr"] >= detection_threshold
+                    arguments.detect_precursor_synthases
+                    and class_2_prob["precursor substr"] >= detection_threshold
                 ):
                     output_file = results_output_root / protein_id_short
                     with open(output_file, "w", encoding="utf-8") as outputs_file:
