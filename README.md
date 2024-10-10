@@ -92,6 +92,8 @@ pip install .
 -----------------------------------------
 
 ## Quick start
+To predict using the model based on TPS language model only, put the sequences of interest into a `.fasta` file and run
+
 ```bash
 cd TerpeneMiner
 conda activate terpene_miner
