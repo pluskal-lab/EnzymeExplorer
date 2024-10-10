@@ -4,7 +4,7 @@ import os
 import argparse
 from pathlib import Path
 from shutil import rmtree
-import gdown
+import gdown  # type: ignore
 import logging
 
 logger = logging.getLogger(__file__)
