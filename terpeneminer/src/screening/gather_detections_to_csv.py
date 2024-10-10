@@ -64,6 +64,8 @@ if __name__ == "__main__":
 
     predicted_class_2_vals.update({"ID": ids})
     df_detections = pd.DataFrame(predicted_class_2_vals)
+    if len(df_detections) and "isTPS" in df_detections.columns:
+        df_detections = df_detections.sort_values("isTPS", ascending=False)
     df_detections.to_csv(args.output_path, index=False)
     logger.info(
         "Screening results gathered into %s with %d rows",

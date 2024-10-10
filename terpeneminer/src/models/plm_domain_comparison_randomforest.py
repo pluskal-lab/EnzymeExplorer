@@ -48,7 +48,7 @@ class PlmDomainsRandomForest(PlmRandomForest):
             with open("data/domains_subset.pkl", "rb") as file:
                 _, self.feat_indices_subset = pickle.load(file)
         else:
-            self.feat_indices_subset = set()
+            self.feat_indices_subset = None
 
     def fit_core(self, train_df: pd.DataFrame, class_name: str = None):
         """
@@ -61,6 +61,7 @@ class PlmDomainsRandomForest(PlmRandomForest):
             self.allowed_feat_indices,
             dom_features_df,
         ) = compare_domains_to_known_instances(train_df, self, self.feat_indices_subset)
+
         dom_features_df["Emb_dom"] = dom_features_df["Emb"]
 
         self.features_df = self.features_df_plm.merge(

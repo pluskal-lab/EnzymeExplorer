@@ -90,6 +90,13 @@ pip install .
 ```
 -----------------------------------------
 
+## Quick start
+```bash
+cd TerpeneMiner
+conda activate terpene_miner
+python scripts/easy_predict_sequence_only.py --input-fasta-path data/af_inputs_test.fasta --output-csv-path test_seqs_pred.csv --detection-threshold 0.2 --detect-precursor-synthase
+-----------------------------------------
+
 ## Workflow
 
 ### Data Preparation
@@ -406,6 +413,31 @@ python -m terpeneminer.src.models.plm_domain_faster.get_domains_feature_importan
     --top-most-important-domain-features-per-model 200 --output-path "data/domains_subset.pkl" > outputs/logs/domains_subset.log 2>&1
 ```
 
+
+###### Troubleshoting
+ - Please note, that if you run into error `FileNotFoundError: [Errno 2] No such file or directory: '<path>/model_fold_0.pkl'`, 
+you might need to re-run the training of the model while specifying the  `save_trained_model: true` in the config. 
+
+  - In case of troubles, download outputs of the hyperparameter optimization
+from [zenodo](https://zenodo.org/records/10567437) as `outputs.zip` and unzip its contents to the `outputs`
+folder. Then the end-to-end derivation of the most important domains can be achieved with the following commands:
+
+```bash
+cd TerpeneMiner
+conda activate terpene_miner
+
+# training the model using pre-computed hyperparameters: select PlmDomainsRandomForest
+terpene_miner_main --select-single-experiment run --load-hyperparameters
+
+# gather the most important domains
+python -m terpeneminer.src.models.plm_domain_faster.get_domains_feature_importances \
+    --top-most-important-domain-features-per-model 200 --output-path "data/domains_subset.pkl" --use-all-folds
+``` 
+
+Also, for the sake of reproducibility, we share the selected domains in `data/domains_subset.pkl` on GitHub.
+
+```bash
+
 #### 5 - Parallelized hyperparameter optimization
 If you want to run hyperparameter optimization in parallel, you can use the following:
 
@@ -419,13 +451,20 @@ For reproducability, we share outputs of the hyperparameter optimization
 on [zenodo](https://zenodo.org/records/10567437) as `outputs.zip`. You can simply unzip its contents to the `outputs`
 folder and run the consequent evaluation steps.
 
-If you want to train a single model using the best hyperparameters found during the optimization, run
+If you want to train a single model using the best hyperparameters found during the previously run optimization, then set `optimize_hyperparams: false` in the config and run
 
 ```bash
 cd TerpeneMiner
 conda activate terpene_miner
 terpene_miner_main --select-single-experiment run --load-hyperparameters
 ```
+
+If you then want to gather the corresponding checkpoints into an easy-to-use pickle file, run
+
+```bash
+python -m terpeneminer.src.screening.gather_classifier_checkpoints --output-path data/classifier_domain_and_plm_checkpoints.pkl --use-all-folds
+```
+
 
 #### 6 - Evaluating performance
 

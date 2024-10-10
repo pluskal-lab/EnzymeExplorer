@@ -168,7 +168,7 @@ if __name__ == "__main__":
             [
                 "python",
                 "-m",
-                "src.screening.tps_predict_fasta",
+                "terpeneminer.src.screening.tps_predict_fasta",
                 "--gpu",
                 str(gpu_i),
                 "--starting-i",

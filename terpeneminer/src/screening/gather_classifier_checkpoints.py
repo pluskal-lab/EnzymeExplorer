@@ -3,6 +3,8 @@
 import argparse
 import pickle
 
+# pylint: disable=unused-import
+import scipy.stats  # type: ignore
 from terpeneminer.src.experiments_orchestration.experiment_selector import (
     collect_single_experiment_arguments,
 )
@@ -30,6 +32,11 @@ def parse_args() -> argparse.Namespace:
         type=str,
         default="data/classifier_checkpoints.pkl",
     )
+    parser.add_argument(
+        "--use-all-folds",
+        help="A flag to use all folds instead of individual fold checkpoints",
+        action="store_true",
+    )
     return parser.parse_args()
 
 
@@ -50,7 +57,7 @@ if __name__ == "__main__":
     model_version_fold_folders = {
         x.stem for x in experiment_output_folder_root.glob("*")
     }
-    if (
+    if not args.use_all_folds and (
         len(model_version_fold_folders.intersection(set(map(str, range(n_folds)))))
         == n_folds
     ):
