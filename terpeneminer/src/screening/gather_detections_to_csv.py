@@ -51,7 +51,6 @@ if __name__ == "__main__":
     ids = []
     predicted_class_2_vals = defaultdict(list)
 
-
     processed_files = []
     all_files = [file for file in screening_results_root.glob("*") if file.is_file()]
     for detected_file in tqdm(all_files, desc="Processing detection files"):

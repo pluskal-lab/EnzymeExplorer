@@ -163,6 +163,6 @@ if __name__ == "__main__":
         if uni_id in ids_rare_set:
             domains_subset.add(domain_id)
 
-    print('feat_indices_subset: ', feat_indices_subset)
+    print("feat_indices_subset: ", feat_indices_subset)
     with open(args.output_path, "wb") as file_write:
         pickle.dump((domains_subset, feat_indices_subset), file_write)

@@ -2,6 +2,7 @@
 """A helper script to gather classifier checkpoints from an output directory"""
 import argparse
 import pickle
+
 # pylint: disable=unused-import
 import scipy.stats  # type: ignore
 from terpeneminer.src.experiments_orchestration.experiment_selector import (

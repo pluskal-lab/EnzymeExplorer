@@ -7,6 +7,17 @@ import json
 import pickle
 from functools import partial
 from pathlib import Path
+import esm  # type: ignore
+import numpy as np  # type: ignore
+from tqdm.auto import tqdm  # type: ignore
+# import torch  # type: ignore
+# torch.hub.set_dir("/scratch/project_465000659/samusevi")
+# os.environ["TRANSFORMERS_CACHE"] = "/scratch/project_465000659/samusevi/cache"
+
+from terpeneminer.src.embeddings_extraction.esm_transformer_utils import (
+    compute_embeddings,
+    get_model_and_tokenizer,
+)
 
 
 def _extract_id_from_entry(entry: tuple) -> str:
@@ -56,11 +67,40 @@ class PredictionResults:
     confidence: list[float]
 
 
-def main(args: argparse.Namespace):
+def main(arguments: argparse.Namespace):
+    """
+    Main function for processing protein sequences and predicting class probabilities using pre-trained PLM embeddings
+    and downstream classifiers.
+
+    This function performs the following steps:
+    1. Loads the pre-trained model and necessary utilities for embedding computation.
+    2. Reads the input FASTA file containing protein sequences.
+    3. Processes the sequences in batches to generate embeddings using a pre-trained PLM model.
+    4. Applies trained classifiers on the generated embeddings to predict class probabilities.
+    5. Outputs prediction results for each sequence, saving them to the specified directory.
+
+    Args:
+        arguments (argparse.Namespace): Parsed command-line arguments that include:
+            - model: The pre-trained model to be used for generating embeddings.
+            - max_len: Maximum sequence length for embeddings.
+            - fasta_path: Path to the input FASTA file containing sequences.
+            - batch_size: Number of sequences to process per batch.
+            - detection_threshold: Threshold for considering a prediction as positive.
+            - clf_batch_size: Number of samples processed in each classification batch.
+            - output_root: Directory to store prediction outputs.
+            - ckpt_root_path: Path to the checkpoint file containing pre-trained classifiers.
+            - detect_precursor_synthases: Boolean flag to detect precursor synthases.
+            - starting_i, end_i: Range of indices to process sequences.
+            - gpu: GPU identifier for processing sequences.
+
+    Returns:
+        None. The function writes the prediction results as JSON files for each processed sequence
+        in the specified output directory.
+    """
+
     model, batch_converter, alphabet = get_model_and_tokenizer(
-        args.model, return_alphabet=True
+        arguments.model, return_alphabet=True
     )
-    MAX_LEN = args.max_len
 
     compute_embeddings_partial = partial(
         compute_embeddings,
@@ -68,17 +108,16 @@ def main(args: argparse.Namespace):
         converter=batch_converter,
         padding_idx=alphabet.padding_idx,
         model_repr_layer=33,
-        max_len=MAX_LEN,
+        max_len=arguments.max_len,
     )
 
-    uniprot_generator = esm.data.read_fasta(args.fasta_path)
+    uniprot_generator = esm.data.read_fasta(arguments.fasta_path)
 
-    BATCH_SIZE = args.batch_size
-    detection_threshold = args.detection_threshold
-    clf_batch_size = args.clf_batch_size
+    detection_threshold = arguments.detection_threshold
+    clf_batch_size = arguments.clf_batch_size
 
-    output_root = Path(args.output_root)
-    with open(args.ckpt_root_path, "rb") as file:
+    output_root = Path(arguments.output_root)
+    with open(arguments.ckpt_root_path, "rb") as file:
         all_classifiers = pickle.load(file)
 
     def process_embeddings(
@@ -147,8 +186,8 @@ def main(args: argparse.Namespace):
             ):
                 protein_id_short = protein_id.split()[0].replace("/", "")
                 if class_2_prob["isTPS"] >= detection_threshold or (
-                    args.detect_precursor_synthases
-                    and class_2_prob["precursor substr"] >= detection_threshold
+                        arguments.detect_precursor_synthases
+                        and class_2_prob["precursor substr"] >= detection_threshold
                 ):
                     output_file = results_output_root / protein_id_short
                     with open(output_file, "w", encoding="utf-8") as outputs_file:
@@ -161,21 +200,21 @@ def main(args: argparse.Namespace):
     enzyme_ids_list: list[str] = []
     for i, uniprot_entry in tqdm(
         enumerate(uniprot_generator),
-        total=args.end_i,
-        desc=f"Processing sequences on GPU {args.gpu}",
+        total=arguments.end_i,
+        desc=f"Processing sequences on GPU {arguments.gpu}",
     ):
-        if i < args.starting_i:
+        if i < arguments.starting_i:
             continue
-        if i == args.end_i:
+        if i == arguments.end_i:
             break
         uniprot_id = _extract_id_from_entry(uniprot_entry)
         seq = _extract_seq_from_entry(uniprot_entry)
-        if not _is_sequence_good(uniprot_entry[1], max_seq_len=MAX_LEN):
-            seq = seq[: (MAX_LEN - 2)]
+        if not _is_sequence_good(uniprot_entry[1], max_seq_len=arguments.max_len):
+            seq = seq[: (arguments.max_len - 2)]
         next_batch.append(seq)
         next_batch_ids.append(uniprot_id)
 
-        if len(next_batch) == BATCH_SIZE:
+        if len(next_batch) == arguments.batch_size:
             enzyme_encodings_list, enzyme_ids_list = _batch_predict(
                 next_batch, next_batch_ids, enzyme_encodings_list, enzyme_ids_list
             )
@@ -194,19 +233,7 @@ def main(args: argparse.Namespace):
 
 if __name__ == "__main__":
     args = parse_args()
+    # for AMD GPUs
     os.environ["HIP_VISIBLE_DEVICES"] = args.gpu
-    import esm  # type: ignore
-    import numpy as np  # type: ignore
-    from tqdm.auto import tqdm  # type: ignore
-    import torch  # type: ignore
-
-    # torch.hub.set_dir("/scratch/project_465000659/samusevi")
-    # os.environ["TRANSFORMERS_CACHE"] = "/scratch/project_465000659/samusevi/cache"
-
-    from terpeneminer.src.embeddings_extraction.esm_transformer_utils import (
-        compute_embeddings,
-        get_model_and_tokenizer,
-    )
-
     os.environ["AMD_SERIALIZE_KERNEL"] = "3"
     main(args)
