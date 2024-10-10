@@ -16,6 +16,7 @@ Table of contents
 <!--ts-->
 - [Introduction](#introduction)
 - [Installation](#installation)
+- [Quick start](#quick-start)
 - [Workflow](#workflow)
   - [Data Preparation](#data-preparation)
     - [1 - Sampling negative examples from Swiss-Prot](#1---sampling-negative-examples-from-swiss-prot)
@@ -95,6 +96,7 @@ pip install .
 cd TerpeneMiner
 conda activate terpene_miner
 python scripts/easy_predict_sequence_only.py --input-fasta-path data/af_inputs_test.fasta --output-csv-path test_seqs_pred.csv --detection-threshold 0.2 --detect-precursor-synthase
+```
 -----------------------------------------
 
 ## Workflow
