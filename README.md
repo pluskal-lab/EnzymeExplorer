@@ -106,6 +106,8 @@ pip install .
 -----------------------------------------
 
 ## Quick start locally
+To predict using the model based on TPS language model only, put the sequences of interest into a `.fasta` file and run
+
 ```bash
 cd EnzymeExplorer
 conda activate enzyme_explorer
