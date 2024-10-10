@@ -56,23 +56,7 @@ class PredictionResults:
     confidence: list[float]
 
 
-if __name__ == "__main__":
-    args = parse_args()
-    os.environ["HIP_VISIBLE_DEVICES"] = args.gpu
-    import esm  # type: ignore
-    import numpy as np  # type: ignore
-    from tqdm.auto import tqdm  # type: ignore
-    import torch  # type: ignore
-
-    torch.hub.set_dir("/scratch/project_465000659/samusevi")
-    os.environ["TRANSFORMERS_CACHE"] = "/scratch/project_465000659/samusevi/cache"
-
-    from terpeneminer.src.embeddings_extraction.esm_transformer_utils import (
-        compute_embeddings,
-        get_model_and_tokenizer,
-    )
-
-    os.environ["AMD_SERIALIZE_KERNEL"] = "3"
+def main(args: argparse.Namespace):
     model, batch_converter, alphabet = get_model_and_tokenizer(
         args.model, return_alphabet=True
     )
@@ -158,7 +142,6 @@ if __name__ == "__main__":
             predictions = process_embeddings(
                 np.stack(enzyme_encodings_list_to_process), all_classifiers
             )
-
             for protein_id, class_2_prob in zip(
                 enzyme_ids_list_to_process, predictions
             ):
@@ -207,3 +190,23 @@ if __name__ == "__main__":
             enzyme_ids_list,
             last_call=True,
         )
+
+
+if __name__ == "__main__":
+    args = parse_args()
+    os.environ["HIP_VISIBLE_DEVICES"] = args.gpu
+    import esm  # type: ignore
+    import numpy as np  # type: ignore
+    from tqdm.auto import tqdm  # type: ignore
+    import torch  # type: ignore
+
+    # torch.hub.set_dir("/scratch/project_465000659/samusevi")
+    # os.environ["TRANSFORMERS_CACHE"] = "/scratch/project_465000659/samusevi/cache"
+
+    from terpeneminer.src.embeddings_extraction.esm_transformer_utils import (
+        compute_embeddings,
+        get_model_and_tokenizer,
+    )
+
+    os.environ["AMD_SERIALIZE_KERNEL"] = "3"
+    main(args)
