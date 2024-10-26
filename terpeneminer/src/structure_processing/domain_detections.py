@@ -9,9 +9,9 @@ import time
 import logging
 import subprocess
 from datetime import datetime
+from pymol import cmd  # type: ignore
 import pandas as pd  # type: ignore
 from Bio import PDB  # type: ignore
-from pymol import cmd  # type: ignore
 from tqdm.auto import tqdm  # type: ignore
 from terpeneminer.src.structure_processing.structural_algorithms import (
     SUPPORTED_DOMAINS,
@@ -28,6 +28,11 @@ from terpeneminer.src.structure_processing.structural_algorithms import (
 
 logger = logging.getLogger(__file__)
 logger.setLevel(logging.INFO)
+if not logger.hasHandlers():
+    handler = logging.StreamHandler()
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
 
 
 def parse_args() -> argparse.Namespace:
@@ -40,6 +45,11 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--needed-proteins-csv-path",
+        type=str,
+        default=None,
+    )
+    parser.add_argument(
+        "--csv-id-column",
         type=str,
         default=None,
     )
@@ -61,12 +71,16 @@ def parse_args() -> argparse.Namespace:
         help="A flag to store detected domains",
         action="store_true",
     )
+    parser.add_argument("--detected-regions-root-path", type=str, default="data/alphafold_structs/")
     parser.add_argument(
         "--domains-output-path",
         help="A root path for saving the detected domains to",
         type=str,
         default="data/detected_domains",
     )
+    parser.add_argument("--is-bfactor-confidence", action="store_true")
+    parser.add_argument("--do-not-store-intermediate-files", action="store_true")
+    parser.add_argument("--recompute-existing-secondary-structure-residues", action="store_true")
     return parser.parse_args()
 
 
@@ -108,7 +122,7 @@ def detect_domains_roughly(
         )
 
         execution_timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-        if len(file_2_tmscore_residues_domain):
+        if len(file_2_tmscore_residues_domain) and not args.do_not_store_intermediate_files:
             plot_aligned_domains(
                 file_2_tmscore_residues_domain,
                 title=f"{domain_this} domain detections",
@@ -136,12 +150,13 @@ def detect_domains_roughly(
             "Detected %d %s domains", len(regions_of_possible_domain), domain_this
         )
 
-        with open(
-            output_root
-            / f"final_regions_{domain_this}s_tm_ALL_{execution_timestamp}.pkl",
-            "wb",
-        ) as result_file:
-            pickle.dump(regions_of_possible_domain, result_file)
+        if not args.do_not_store_intermediate_files:
+            with open(
+                output_root
+                / f"final_regions_{domain_this}s_tm_ALL_{execution_timestamp}.pkl",
+                "wb",
+            ) as result_file:
+                pickle.dump(regions_of_possible_domain, result_file)
 
         domain_2_possible_regions[domain_this] = regions_of_possible_domain
 
@@ -178,20 +193,21 @@ def detect_domains_roughly(
                     )
                     regions_of_possible_2nd_alphas.append(new_tuple)
             execution_timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-            if len(file_2_tmscore_residues_2nd_alpha):
-                plot_aligned_domains(
-                    file_2_tmscore_residues_2nd_alpha,
-                    title="2nd alpha domain detections",
-                    save_path=output_root
-                    / f"2nd_alpha_detections_{execution_timestamp}.png",
-                )
+            if not args.do_not_store_intermediate_files:
+                if len(file_2_tmscore_residues_2nd_alpha):
+                    plot_aligned_domains(
+                        file_2_tmscore_residues_2nd_alpha,
+                        title="2nd alpha domain detections",
+                        save_path=output_root
+                        / f"2nd_alpha_detections_{execution_timestamp}.png",
+                    )
 
-            with open(
-                output_root
-                / f"final_regions_2nd_alphas_tm_ALL_{execution_timestamp}.pkl",
-                "wb",
-            ) as result_file:
-                pickle.dump(regions_of_possible_2nd_alphas, result_file)
+                with open(
+                    output_root
+                    / f"final_regions_2nd_alphas_tm_ALL_{execution_timestamp}.pkl",
+                    "wb",
+                ) as result_file:
+                    pickle.dump(regions_of_possible_2nd_alphas, result_file)
             domain_2_possible_regions[domain_this] += regions_of_possible_2nd_alphas
 
     file_2_known_regions: dict = defaultdict(list)
@@ -319,13 +335,14 @@ if __name__ == "__main__":
     # reading the needed proteins
     if args.needed_proteins_csv_path is not None:
         proteins_df = pd.read_csv(args.needed_proteins_csv_path)
-        relevant_protein_ids = set(proteins_df["Uniprot ID"].values)
+        relevant_protein_ids = set(proteins_df[args.csv_id_column].values)
 
     input_directory = Path(args.input_directory_with_structures)
     all_secondary_structure_residues_path = input_directory / "file_2_all_residues.pkl"
-    secondary_structure_computation_output = subprocess.check_output(
-        f"python -m terpeneminer.src.structure_processing.compute_secondary_structure_residues --input-directory {input_directory} --output-path {all_secondary_structure_residues_path}".split(),
-    )
+    if not all_secondary_structure_residues_path.exists() or args.recompute_existing_secondary_structure_residues:
+        secondary_structure_computation_output = subprocess.check_output(
+            f"python -m terpeneminer.src.structure_processing.compute_secondary_structure_residues --input-directory {input_directory} --output-path {all_secondary_structure_residues_path}".split(),
+        )
     with open(all_secondary_structure_residues_path, "rb") as file:
         file_2_all_residues = pickle.load(file)
 
@@ -333,7 +350,7 @@ if __name__ == "__main__":
     cwd = os.getcwd()
     os.chdir(input_directory)
     blacklist_files = (
-        {"1ps1.pdb", "5eat.pdb", "3p5r.pdb", "P48449.pdb"}
+        {"1ps1.pdb", "5eat.pdb", "3p5r.pdb"}
         .union({f"{domain}.pdb" for domain in SUPPORTED_DOMAINS})
         .union({f"{domain}_object.pdb" for domain in SUPPORTED_DOMAINS})
     )
@@ -430,23 +447,26 @@ if __name__ == "__main__":
     # Getting confident residues
     filename_2_known_regions_completed_confident = {}
     for filename, regions in tqdm(filename_2_known_regions_completed.items()):
-        conf_residues = get_confident_af_residues(filename)
-        new_regions = []
-        for mapped_region_init in regions:
-            new_residues_mapping = {
-                res: res_dom
-                for res, res_dom in mapped_region_init.residues_mapping.items()
-                if res in conf_residues
-            }
-            new_regions.append(
-                MappedRegion(  # pylint: disable=R0801
-                    module_id=mapped_region_init.module_id,
-                    domain=mapped_region_init.domain,
-                    tmscore=mapped_region_init.tmscore,
-                    residues_mapping=new_residues_mapping,
+        if args.is_bfactor_confidence:
+            conf_residues = get_confident_af_residues(filename)
+            new_regions = []
+            for mapped_region_init in regions:
+                new_residues_mapping = {
+                    res: res_dom
+                    for res, res_dom in mapped_region_init.residues_mapping.items()
+                    if res in conf_residues
+                }
+                new_regions.append(
+                    MappedRegion(  # pylint: disable=R0801
+                        module_id=mapped_region_init.module_id,
+                        domain=mapped_region_init.domain,
+                        tmscore=mapped_region_init.tmscore,
+                        residues_mapping=new_residues_mapping,
+                    )
                 )
-            )
-        filename_2_known_regions_completed_confident[filename] = new_regions
+            filename_2_known_regions_completed_confident[filename] = new_regions
+        else:
+            filename_2_known_regions_completed_confident[filename] = regions
 
     # for further convenience, storing also regions separately per domain
     domain_2_regions_completed_confident = defaultdict(list)
@@ -461,31 +481,26 @@ if __name__ == "__main__":
                 (filename, region)
             )
 
-    with open("regions_completed_very_confident_all_ALL.pkl", "wb") as f:
+    with open(Path(cwd) / args.detected_regions_root_path / "regions_completed_very_confident_all_ALL.pkl", "wb") as f:
         pickle.dump(domain_2_regions_completed_confident["all"], f)
     for domain_name in SUPPORTED_DOMAINS:
-        with open(f"regions_completed_very_confident_{domain_name}_ALL.pkl", "wb") as f:
+        with open(Path(cwd) / args.detected_regions_root_path / f"regions_completed_very_confident_{domain_name}_ALL.pkl", "wb") as f:
             pickle.dump(domain_2_regions_completed_confident[domain_name], f)
 
-    os.chdir(cwd)
-    # save the confident regions
-    with open(args.detections_output_path, "wb") as f:
-        pickle.dump(filename_2_known_regions_completed_confident, f)
-
     if args.store_domains:
-        domains_output_path = Path(args.domains_output_path)
+        domains_output_path = Path(cwd) / args.domains_output_path
         if not domains_output_path.exists():
             domains_output_path.mkdir(parents=True)
         for domain_name in SUPPORTED_DOMAINS:
             PATH = domains_output_path / f"tps_domain_detections_{domain_name}"
-            if not os.path.exists(PATH):
-                os.mkdir(PATH)
+            if not PATH.exists():
+                PATH.mkdir(parents=True)
 
         for filename, protein_regions in tqdm(
             filename_2_known_regions_completed_confident.items()
         ):
             for region in protein_regions:
-                PATH = Path(f"../tps_domain_detections_{region.domain}")
+                PATH = Path(domains_output_path / f"tps_domain_detections_{region.domain}")
                 mapped_residues = list(set(region.residues_mapping.keys()))
                 cmd.delete(filename)
                 cmd.load(f"{filename}.pdb")
@@ -494,4 +509,11 @@ if __name__ == "__main__":
                     f"{filename} & resi {compress_selection_list(mapped_residues)}",
                 )
                 cmd.save(f"{PATH}/{region.module_id}.pdb", f"{region.module_id}")
+                print('saving to : ', f"{domains_output_path}/{region.module_id}.pdb")
+                cmd.save(f"{domains_output_path}/{region.module_id}.pdb", f"{region.module_id}")
                 cmd.delete(filename)
+
+    os.chdir(cwd)
+    # save the confident regions
+    with open(args.detections_output_path, "wb") as f:
+        pickle.dump(filename_2_known_regions_completed_confident, f)

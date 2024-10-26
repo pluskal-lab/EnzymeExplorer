@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Create env and install required packages
-conda create -n terpene_miner python==3.10.0 scikit-learn==1.5.1 pandas==2.2.2 numpy==1.26.4 scipy==1.13.0 jupyter matplotlib seaborn pymol==3.0.2 pymol-psico==3.4.19 tmalign==20170708 -c schrodinger -c speleo3 -c conda-forge -y
+conda create -n terpene_miner python==3.10.0 scikit-learn==1.5.1 pandas==2.2.2 numpy==1.26.4 scipy==1.13.0 jupyter matplotlib seaborn foldseek pymol==3.0.2 pymol-psico==3.4.19 tmalign==20170708 -c schrodinger -c speleo3 -c conda-forge -c bioconda -y
 
 conda activate terpene_miner
 pip install torch --index-url https://download.pytorch.org/whl/cu121

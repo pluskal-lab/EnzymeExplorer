@@ -11,6 +11,7 @@ from multiprocessing import Pool
 from pathlib import Path
 from typing import Optional
 from uuid import uuid4
+import logging
 
 import matplotlib.pyplot as plt  # type: ignore
 import numpy as np  # type: ignore
@@ -18,6 +19,14 @@ from psico.fitting import tmalign  # type: ignore
 from pymol import CmdException, cmd, stored  # type: ignore
 from scipy.spatial import KDTree  # type: ignore
 from tqdm.auto import tqdm  # type: ignore
+
+logger = logging.getLogger(__file__)
+logger.setLevel(logging.INFO)
+if not logger.hasHandlers():
+    handler = logging.StreamHandler()
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
 
 SUPPORTED_DOMAINS = {"alpha", "beta", "gamma", "delta", "epsilon"}
 DOMAIN_2_THRESHOLD = {
@@ -78,7 +87,7 @@ def prepare_domain(pymol_cmd, domain_name: str) -> tuple:
     required_file = domain_2_standard[domain_name]
     if not exists_in_pymol(pymol_cmd, required_file):
         if not os.path.exists(f"{required_file}.pdb"):
-            raise FileNotFoundError
+            raise FileNotFoundError(f"{required_file}.pdb while being in {os.getcwd()}")
         pymol_cmd.load(f"{required_file}.pdb")
 
     if "_" in domain_name:
@@ -179,7 +188,6 @@ def compute_full_mapping(
     obj_residues_set = set(map(int, file_2_all_residues[larger_obj]))
     residues_mapping_full = {}
     for domain_res in sorted_domain_residues:
-        #         print('domain_res', domain_res)
         if domain_res in obj_res_2_mapped_shift:
             shift = obj_res_2_mapped_shift[domain_res]
         else:
@@ -192,9 +200,7 @@ def compute_full_mapping(
                 )
             )
         mapped_res = int(domain_res) + shift
-        #         print('mapped_res', mapped_res)
         if mapped_res not in mapped_residues and mapped_res in obj_residues_set:
-            #             print('added!')
             residues_mapping_full[mapped_res] = domain_res
             _temp1.append(domain_res)
             _temp2.append(mapped_res)
@@ -262,7 +268,7 @@ def get_super_res_alignment(
 
     if not exists_in_pymol(pymol_cmd, larger_obj):
         if not os.path.exists(f"{larger_obj}.pdb"):
-            raise FileNotFoundError
+            raise FileNotFoundError(f"{larger_obj}.pdb while being in {os.getcwd()}")
         pymol_cmd.load(f"{larger_obj}.pdb")
         file_2_all_residues[larger_obj] = get_secondary_structure_residues_set(
             larger_obj, pymol_cmd
@@ -494,7 +500,7 @@ def get_pairwise_tmscore(
     for filename in [filename_1, filename_2]:
         if not exists_in_pymol(pymol_cmd, filename):
             if not os.path.exists(f"{filename}.pdb"):
-                raise FileNotFoundError
+                raise FileNotFoundError(f"{filename}.pdb while being in {os.getcwd()}")
             pymol_cmd.load(f"{filename}.pdb")
 
     region_residues_1 = set(fill_short_gaps(set(region_1.residues_mapping.keys())))
@@ -650,6 +656,7 @@ def get_alignments(
     pdb_filenames = [filepath.stem for filepath in pdb_filepaths]
     with Pool(n_jobs) as pool:
         list_of_alignment_results = pool.map(align_partial, pdb_filenames)
+
     file_2_tmscore_residues = defaultdict(list)
 
     for pdb_path, (tmscore, residues_mapping) in zip(
@@ -886,7 +893,7 @@ def get_mapped_regions_with_surroundings(
 
     if not exists_in_pymol(cmd, filename):
         if not os.path.exists(f"{filename}.pdb"):
-            raise FileNotFoundError(f"{filename}.pdb")
+            raise FileNotFoundError(f"{filename}.pdb while being in {os.getcwd()}")
         cmd.load(f"{filename}.pdb")
 
     # for each mapped region, compute alpha helixes
