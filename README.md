@@ -292,9 +292,12 @@ cd EnzymeExplorer
 conda activate enzyme_explorer
 python -m enzymeexplorer.src.structure_processing.domain_detections \
     --needed-proteins-csv-path "data/TPS-Nov19_2023_verified_all_reactions_with_neg_with_folds.csv" \
+    --csv-id-column "Uniprot ID" \
     --input-directory-with-structures "data/alphafold_structs/" \
+    --is-bfactor-confidence \
+    --recompute-existing-secondary-structure-residues \
     --n-jobs 16 --detections-output-path "data/filename_2_detected_domains_completed_confident.pkl" \
-    --store-domains --domains-output-path "data/detected domains" > outputs/logs/tps_structures_segmentation.log 2>&1
+    --store-domains --domains-output-path "data/detected_domains" > outputs/logs/tps_structures_segmentation.log 2>&1
 ```
 
 #### 2 - Pairwise comparison of the detected domains
@@ -307,8 +310,9 @@ cd EnzymeExplorer
 conda activate enzyme_explorer
 python -m enzymeexplorer.src.structure_processing.compute_pairwise_similarities_of_domains \
     --name all \
-    --n-jobs 64 \
-    --precomputed-scores-path "data/precomputed_tmscores.pkl" > outputs/logs/pairwise_comparisons.log 2>&1
+    --needed-proteins-csv-path "data/TPS-Nov19_2023_verified_all_reactions_with_neg_with_folds.csv" \
+    --csv-id-column "Uniprot ID" \
+    --n-jobs 64 > outputs/logs/pairwise_comparisons.log 2>&1
 ```
 Note the `--precomputed-scores-path` argument. It is used to store the previously computed TM-scores. 
 For the efficiency of any future extensions of the project, we share the precomputed TM-scores in `data/precomputed_tmscores.pkl` on GitHub.
@@ -377,6 +381,13 @@ jupyter notebook
 
 Then, execute the notebook `notebooks/notebook_3_clustering_domains.ipynb`.
 
+#### 4 - Train classifiers of domain types and novel-domain detectors
+```bash
+cd EnzymeExplorer
+conda activate terpene_miner
+python -m enzymeexplorer.structure_processing.train_domain_type_classifiers > outputs/logs/domain_type_classifier_training.log 2>&1
+```
+
 -----------------------------------------
 
 ### Predictive Modeling
@@ -432,7 +443,7 @@ python -m enzymeexplorer.src.models.plm_domain_faster.get_domains_feature_import
 ```
 
 
-###### Troubleshoting
+###### Troubleshooting
  - Please note, that if you run into error `FileNotFoundError: [Errno 2] No such file or directory: '<path>/model_fold_0.pkl'`, 
 you might need to re-run the training of the model while specifying the  `save_trained_model: true` in the config. 
 

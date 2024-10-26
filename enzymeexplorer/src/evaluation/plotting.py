@@ -162,6 +162,7 @@ def plot_boxplots_per_type(
     class_list = []
     val_list = []
 
+    print(model_2_class_2_metric_vals.keys())
     present_type_names = set()
     for model_i, model_name in enumerate(models):
         class_dicts = model_2_class_2_metric_vals[model_name]
