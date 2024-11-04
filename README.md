@@ -3,6 +3,9 @@
 [![Checks for coding standard, code smells and typing](https://github.com/pluskal-lab/TerpeneMiner/actions/workflows/ci.yml/badge.svg)](https://github.com/pluskal-lab/TerpeneMiner/actions/workflows/ci.yml)
 
 [![DOI:10.1101/2024.01.29.577750](http://img.shields.io/badge/DOI-10.1101/2024.01.29.577750-B31B1B.svg)](https://doi.org/10.1101/2024.01.29.577750)
+
+[![](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/SamusRam/ProFun/blob/main/TerpeneMiner_(input_UniProt_ID).ipynb)
+
 <div align="center">
 
 # Highly accurate discovery of terpene synthases powered by machine learning
@@ -10,13 +13,24 @@
 ![](data/readme_figures/fig_overview.png)
 </div>
 
+-----------------------------------------
+
+# 🚀 Quick Start: Get Predictions with Colab Notebooks
+
+| Required input | Colab Notebook  |
+|-----------|--------------|
+| Uniprot ID    | [![](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/SamusRam/ProFun/blob/main/TerpeneMiner_(input_UniProt_ID).ipynb) |
+| Structure  | [![](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/SamusRam/ProFun/blob/main/TerpeneMiner_(upload_your_structure).ipynb) |
+| Sequence (structure will be predicted in Colab)  | [![](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/SamusRam/ProFun/blob/main/TerpeneMiner_%2B_ColabFold_(input_sequence).ipynb)|
+
+
 Table of contents
 =================
 
 <!--ts-->
 - [Introduction](#introduction)
 - [Installation](#installation)
-- [Quick start](#quick-start)
+- [Quick start locally](#quick-start-locally)
 - [Workflow](#workflow)
   - [Data Preparation](#data-preparation)
     - [1 - Sampling negative examples from Swiss-Prot](#1---sampling-negative-examples-from-swiss-prot)
@@ -91,7 +105,7 @@ pip install .
 ```
 -----------------------------------------
 
-## Quick start
+## Quick start locally
 ```bash
 cd TerpeneMiner
 conda activate terpene_miner
