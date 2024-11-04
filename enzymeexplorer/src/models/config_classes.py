@@ -38,10 +38,27 @@ class FeaturesRandomForestConfig(SklearnBaseConfig):
 
 
 @dataclass
+class DomainFeaturesRandomForestConfig(FeaturesRandomForestConfig):
+    """
+    A data class to store model attributes
+    """
+
+    foldseek_distances: bool
+
+
+@dataclass
 class EmbRandomForestConfig(EmbSklearnBaseConfig, FeaturesRandomForestConfig):
     """
     A data class to store the corresponding model attributes
     """
+    requires_multioutputwrapper_for_multilabel: bool = False
+
+@dataclass
+class EmbWithDomainsRandomForestConfig(EmbSklearnBaseConfig, DomainFeaturesRandomForestConfig):
+    """
+    A data class to store the corresponding model attributes
+    """
+    requires_multioutputwrapper_for_multilabel: bool = False
 
 
 @dataclass

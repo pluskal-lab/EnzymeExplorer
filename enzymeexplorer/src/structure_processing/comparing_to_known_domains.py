@@ -65,6 +65,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--number-of-workers", type=int, default=16)
     parser.add_argument("--output-path", type=str, default="_temp/filename_2_regions_vs_known_reg_dists.pkl")
     parser.add_argument("--pdb-filepath", type=str, default="")
+    parser.add_argument("--same-domain-only", action="store_true")
     return parser.parse_args()
 
 
@@ -149,7 +150,8 @@ if __name__ == "__main__":
     # preparing the data for parallel processing
     n_workers = args.number_of_workers
     temp_struct_name = input_directory / Path(args.pdb_filepath).name
-    if args.pdb_filepath != str(temp_struct_name):
+    temp_filepath_name_to_delete = not temp_struct_name.exists()
+    if args.pdb_filepath != str(temp_struct_name) and temp_filepath_name_to_delete:
         copyfile(args.pdb_filepath, temp_struct_name)
 
     # loading detected domains
@@ -164,22 +166,20 @@ if __name__ == "__main__":
     for filename, regions in filename_2_detected_regions_completed_confident.items():
         region_2_known_reg_dists = defaultdict(list)
         for region in regions:
-            domain_type = region.domain
-            if domain_type not in type_2_regions:
-                type_2_regions[domain_type] = [el for el in regions_all if el[1].domain == domain_type]
-            regions_all_current_type = type_2_regions[domain_type]
+            if args.same_domain_only:
+                domain_type = region.domain
+                if domain_type not in type_2_regions:
+                    type_2_regions[domain_type] = [el for el in regions_all if el[1].domain == domain_type]
+                regions_all_current_type = type_2_regions[domain_type]
+            else:
+                regions_all_current_type = regions_all
 
             regions_segment_len = len(regions_all_current_type) // n_workers + 1
             region_segments = []
             start_i = 0
-            print('len(regions_all): ', len(regions_all))
             while start_i < len(regions_all):
                 region_segments.append(regions_all_current_type[start_i:start_i + regions_segment_len])
-                print()
                 start_i += regions_segment_len
-
-
-            print('region_segments cout: ', sum([len(x) for x in region_segments]))
 
             computations_id = str(uuid4())
             partial_dist_compute = partial(
@@ -189,7 +189,6 @@ if __name__ == "__main__":
                 filename_2_all_residues=file_2_all_residues,
                 computation_id=computations_id
             )
-            print('list(range(len(region_segments))): ', list(range(len(region_segments))))
             with Pool(n_workers - 2) as p:
                 list_of_distances_list = p.map(partial_dist_compute, list(range(len(region_segments))))
             for results_path in Path('.').glob(f'*{computations_id}.pkl'):
@@ -202,5 +201,5 @@ if __name__ == "__main__":
 
     with open(args.output_path, "wb") as file:
         pickle.dump(filename_2_regions_vs_known_reg_dists, file)
-
-    os.remove(temp_struct_name)
+    if temp_filepath_name_to_delete:
+        os.remove(temp_struct_name)

@@ -8,6 +8,8 @@ import pandas as pd  # type: ignore
 import sklearn.base  # type: ignore
 from sklearn.multioutput import MultiOutputClassifier  # type: ignore
 from sklearn.preprocessing import MultiLabelBinarizer  # type: ignore
+from sklearn.calibration import CalibratedClassifierCV  # type: ignore
+from sklearn.ensemble import RandomForestClassifier  # type: ignore
 
 from .config_baseclasses import SklearnBaseConfig
 from .model_baseclass import BaseModel
@@ -85,9 +87,17 @@ class FeaturesSklearnModel(BaseModel):
                 )
             except AttributeError:
                 requires_multioutputwrapper_for_multilabel = False
+            model_params = self.get_model_specific_params()
+            # if self.classifier_class == RandomForestClassifier:
+            #     model_params["class_weight"] = "balanced"
+            #     logger.info("Balanced class weights are used")
             if requires_multioutputwrapper_for_multilabel:
+                logger.info("Fitting the model with MultiOutputClassifier...")
                 self.classifier = MultiOutputClassifier(
-                    self.classifier_class(**self.get_model_specific_params())
+                    CalibratedClassifierCV(self.classifier_class(**model_params), cv=10)
+                )
+                self.classifier = MultiOutputClassifier(
+                    self.classifier_class(**model_params)
                 )
             else:
                 self.classifier = self.classifier_class(
@@ -171,6 +181,9 @@ class FeaturesSklearnModel(BaseModel):
             test_df = val_df.merge(
                 self.features_df, on=self.config.id_col_name, copy=False, how="left"
             ).set_index(self.config.id_col_name)
+
+            # if 'Q9FXV8' in test_df.index:
+            #     print('################################################', list(test_df.loc['Q9FXV8', 'Emb']))
             logger.info(
                 "In predict_proba(), features DF shape is: %d x %d",
                 *self.features_df.shape,
@@ -211,6 +224,11 @@ class FeaturesSklearnModel(BaseModel):
                     if isinstance(y_pred_proba, list)
                     else y_pred_proba[:, class_i]
                 )
+
+                # if 'Q9FXV8' in test_df.index:
+                #     bool_idx = test_df.index == 'Q9FXV8'
+                #     print('$$$$$$$$$$$$$$$$$$$$' * 100, self.config.class_names[class_i], val_proba_np[bool_idx, class_i])
+
         else:
             for class_i, class_name in enumerate(self.config.class_names):
                 if (
@@ -226,3 +244,6 @@ class FeaturesSklearnModel(BaseModel):
                         else y_pred_proba[:, 1]
                     )
         return val_proba_np
+
+
+

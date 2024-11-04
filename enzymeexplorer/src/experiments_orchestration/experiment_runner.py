@@ -264,7 +264,7 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
                             elif (fold_root_dir / "all_classes").exists():
                                 fold_class_path = fold_root_dir / "all_classes"
                             else:
-                                raise ValueError("No fold_class_path found")
+                                raise ValueError(f"No fold_class_path found for class {class_name} in folder {fold_root_dir}")
                             previous_results = list(
                                 fold_class_path.glob(
                                     "*/hyperparameters_optimization/optimization_results_detailed_*.pkl"

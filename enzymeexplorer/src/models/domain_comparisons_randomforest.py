@@ -17,15 +17,15 @@ class DomainsRandomForest(DomainsSklearnModel):
 
     def __init__(
         self,
-        config: FeaturesRandomForestConfig,
+        config: DomainFeaturesRandomForestConfig,
     ):
         super().__init__(config=config)
         self.classifier_class = RandomForestClassifier
 
     @classmethod
-    def config_class(cls) -> Type[FeaturesRandomForestConfig]:
+    def config_class(cls) -> Type[DomainFeaturesRandomForestConfig]:
         """
         A getter of the model-specific config class
         :return:  A dataclass for config storage
         """
-        return FeaturesRandomForestConfig
+        return DomainFeaturesRandomForestConfig
