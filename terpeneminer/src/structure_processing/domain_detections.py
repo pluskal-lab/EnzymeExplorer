@@ -11,6 +11,7 @@ import subprocess
 from datetime import datetime
 from pymol import cmd  # type: ignore
 import pandas as pd  # type: ignore
+import numpy as np  # type: ignore
 from Bio import PDB  # type: ignore
 from tqdm.auto import tqdm  # type: ignore
 from terpeneminer.src.structure_processing.structural_algorithms import (
@@ -131,9 +132,13 @@ def detect_domains_roughly(
             )
         regions_of_possible_domain = []
 
+
+
         for uniprot_id, current_detections in file_2_tmscore_residues_domain.items():
             for i, (tm_score, res_mapping) in enumerate(current_detections):
-                if tm_score >= domain_2_threshold[domain_this][0]:
+                logger.info(f'tm_score: {tm_score:.2f}')
+                logger.info(f'len of res_mapping: {len(res_mapping)}')
+                if tm_score >= domain_2_threshold[domain_this][0] and len(res_mapping) >= domain_2_threshold[domain_this][1]:
                     regions_of_possible_domain.append(
                         (
                             uniprot_id,
@@ -160,7 +165,7 @@ def detect_domains_roughly(
 
         domain_2_possible_regions[domain_this] = regions_of_possible_domain
 
-        if domain_this == "alpha":
+        if "alpha" in domain_this:
             file_2_mapped_regions = get_mapped_regions_per_file(
                 {"alpha": file_2_tmscore_residues_domain}, domain_2_threshold
             )
@@ -211,7 +216,7 @@ def detect_domains_roughly(
             domain_2_possible_regions[domain_this] += regions_of_possible_2nd_alphas
 
     file_2_known_regions: dict = defaultdict(list)
-    for domain_name_to_include in ["alpha", "epsilon", "delta", "beta", "gamma"]:
+    for domain_name_to_include in ["alpha", "epsilon", "delta", "beta", "gamma", "alphaWeird"]:
         potential_regions = domain_2_possible_regions[domain_name_to_include]
         # filter clashes with already loaded domains
         regions_of_possible_domain_to_include = [
@@ -274,7 +279,7 @@ def can_there_be_unassigned_domain(
     file_name: str,
     filename_2_remaining_residues_mapping: dict[str, set[str]],
     filename_2_known_regions_mapping: dict[str, list[MappedRegion]],
-    min_len: int = 90,
+    min_continuous_len: int = 15,
     max_allowed_gap: int = 3,
 ) -> bool:
     """
@@ -283,7 +288,7 @@ def can_there_be_unassigned_domain(
     :param file_name: The name of the file to check for unassigned domains
     :param filename_2_remaining_residues_mapping: A dictionary mapping filenames to sets of remaining residues not yet assigned to any domain
     :param filename_2_known_regions_mapping: A dictionary mapping filenames to lists of known MappedRegion objects
-    :param min_len: The minimum length of residues required to consider the presence of an unassigned domain, defaults to 90
+    :param min_continuous_len: The minimum length of residues required to consider the presence of an unassigned domain, defaults to 15
     :param max_allowed_gap: The maximum gap allowed between residues in a continuous segment, defaults to 3
 
     :return: True if there could be an unassigned domain in the file, otherwise False
@@ -292,12 +297,12 @@ def can_there_be_unassigned_domain(
         return False
     region_types = {reg.domain for reg in filename_2_known_regions_mapping[file_name]}
     if "alpha" not in region_types:
-        return len(filename_2_remaining_residues_mapping[file_name]) > min_len
+        return len(filename_2_remaining_residues_mapping[file_name]) > min_continuous_len
     return (
         len(
             find_continuous_segments_longer_than(
                 filename_2_remaining_residues_mapping[file_name],
-                min_secondary_struct_len=min_len,
+                min_secondary_struct_len=min_continuous_len,
                 max_allowed_gap=max_allowed_gap,
             )
         )
@@ -328,6 +333,30 @@ def get_confident_af_residues(
                         confident_residues.add(residue.get_id()[1])
                     break
     return confident_residues
+
+
+def get_all_confidence_values(
+    uniprot_id: str
+) -> list[int]:
+    """
+    Retrieves a set of residues from an AlphaFold PDB file that have a confidence score (B-factor) above the specified threshold.
+
+    :param uniprot_id: The UniProt ID of the protein for which the PDB file is to be parsed
+    :param confidence_threshold: The minimum B-factor required for a residue to be considered confident, defaults to 70
+
+    :return: A set of residue numbers that have a confidence score above the specified threshold
+    """
+    parser = PDB.PDBParser()
+    structure = parser.get_structure(uniprot_id, f"{uniprot_id}.pdb")
+
+    values = []
+    for model in structure:
+        for chain in model:
+            for residue in chain:
+                for atom in residue:
+                    values.append(atom.get_bfactor())
+                    break
+    return values
 
 
 if __name__ == "__main__":
@@ -377,40 +406,31 @@ if __name__ == "__main__":
         n_jobs=args.n_jobs,
     )
 
-    # Assigning missed secondary structure parts to the closest domains
-    filename_2_known_regions_completed = get_mapped_regions_with_surroundings_parallel(
-        list(filename_2_known_regions.keys()),
-        file_2_all_residues,
-        filename_2_known_regions,
-        n_jobs=args.n_jobs,
-    )
-
-    # Get unsegmented parts and iterate over all domain types for best hit
+    # Get unsegmented parts
     file_2_remaining_residues = get_remaining_residues(
-        filename_2_known_regions_completed, file_2_all_residues
+        filename_2_known_regions, file_2_all_residues
     )
+    file_2_remaining_residues_unassigned = file_2_remaining_residues.copy()
+    for filename in filename_2_known_regions.keys():
+        segments = find_continuous_segments_longer_than(
+                    file_2_remaining_residues[filename],
+                    min_secondary_struct_len=120,
+                    max_allowed_gap=25,
+                )
+        residues = set(map(str, sum(segments, [])))
+        if residues:
+            file_2_remaining_residues_unassigned[filename] = residues
 
-    pdb_files_with_poteintial_unsegmented_domains = [
-        filename
-        for filename in pdb_files
-        if can_there_be_unassigned_domain(
-            filename.stem,
-            file_2_remaining_residues,
-            filename_2_known_regions_completed,
-            min_len=70,
-            max_allowed_gap=5,
-        )
-    ]
-
+    # attempt to detect additional domains in the remaining parts
     domain_2_file_2_tmscore_residues = {}
     for domain_type, (
         tmscore_threshold,
         mapping_size_threshold,
     ) in DOMAIN_2_THRESHOLD.items():
         domain_2_file_2_tmscore_residues[domain_type] = get_alignments(
-            pdb_files_with_poteintial_unsegmented_domains,
+            pdb_files,
             domain_type,
-            file_2_remaining_residues,
+            file_2_remaining_residues_unassigned,
             tmscore_threshold,
             mapping_size_threshold,
             n_jobs=args.n_jobs,
@@ -444,11 +464,25 @@ if __name__ == "__main__":
                 ):
                     filename_2_known_regions[uni_id].append(new_region)
 
+
+
+    # Assigning missed secondary structure parts to the closest domains
+    filename_2_known_regions_completed = get_mapped_regions_with_surroundings_parallel(
+        list(filename_2_known_regions.keys()),
+        file_2_all_residues,
+        filename_2_known_regions,
+        n_jobs=args.n_jobs,
+    )
+
     # Getting confident residues
     filename_2_known_regions_completed_confident = {}
     for filename, regions in tqdm(filename_2_known_regions_completed.items()):
         if args.is_bfactor_confidence:
             conf_residues = get_confident_af_residues(filename)
+            if len(conf_residues) < 0.6 * len(file_2_all_residues[filename]):
+                logger.warning("Too few confident residues, leaving top-80% most confident residues")
+                all_confidence_values = get_all_confidence_values(filename)
+                conf_residues = get_confident_af_residues(filename, np.percentile(all_confidence_values, 20))
             new_regions = []
             for mapped_region_init in regions:
                 new_residues_mapping = {
@@ -504,12 +538,13 @@ if __name__ == "__main__":
                 mapped_residues = list(set(region.residues_mapping.keys()))
                 cmd.delete(filename)
                 cmd.load(f"{filename}.pdb")
+                print(f"{region.module_id}",
+                    f"{filename} & resi {compress_selection_list(mapped_residues)}")
                 cmd.select(
                     f"{region.module_id}",
                     f"{filename} & resi {compress_selection_list(mapped_residues)}",
                 )
                 cmd.save(f"{PATH}/{region.module_id}.pdb", f"{region.module_id}")
-                print('saving to : ', f"{domains_output_path}/{region.module_id}.pdb")
                 cmd.save(f"{domains_output_path}/{region.module_id}.pdb", f"{region.module_id}")
                 cmd.delete(filename)
 

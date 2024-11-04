@@ -46,7 +46,7 @@ if __name__ == "__main__":
     with open(args.tps_classifiers_path, "rb") as file:
         tps_classifiers = pickle.load(file)
     with open(args.domain_classifiers_path, "rb") as file:
-        novel_domain_detectors, domain_type_classifiers = pickle.load(file)
+        domain_type_classifiers = pickle.load(file)
     with open(args.path_to_domain_comparisons, "rb") as file:
         comparison_results = pickle.load(file)
     comparison_results = comparison_results[args.id]
@@ -71,14 +71,11 @@ if __name__ == "__main__":
             for class_name, pred_val in zip(classifier.classes_, domain_type_pred[0]):
                 domain_type_2_pred_values[class_name].append(pred_val)
         domain_type_2_pred = {dom_type: np.mean(vals) for dom_type, vals in domain_type_2_pred_values.items()}
-        # max_pred = -float('inf')
-        # gen_type_2_pred = {}
-        # for domain_type, type_preds in domain_type_2_pred.items():
-        #     if
-        #     gen_type_2_pred[domain_type_gen] = novel_domain_detectors[domain_type].predict_proba(X_np)[0][1]
-        # for type_preds in domain_type_2_pred.values():
-        #     max_pred = max(max_pred, np.max(type_preds))
-        # domain_type_2_pred.update({"novel": 1 - max_pred})
+        max_pred = -float('inf')
+        gen_type_2_pred = {}
+        for type_preds in domain_type_2_pred.values():
+            max_pred = max(max_pred, np.max(type_preds))
+        domain_type_2_pred.update({"novel": 1 - max_pred})
         domain_id_2_predictions[new_protein_domain_id] = domain_type_2_pred
 
     with open(args.output_path, "wb") as file:

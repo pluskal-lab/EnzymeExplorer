@@ -13,6 +13,16 @@ from tqdm import tqdm  # type: ignore
 logger = logging.getLogger(__file__)
 logger.setLevel(logging.INFO)
 
+SUBSTR_2_NAME = {"CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O": "Farnesyl pyrophosphate",
+                            "CC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O": "Geranyl pyrophosphate",
+                            "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O":  "Geranylgeranyl pyrophosphate",
+                            "CC(C)=CCCC(C)=CCCC(C)=CCCC=C(C)CCC=C(C)CCC1OC1(C)C": "(S)-2,3-epoxysqualene",
+                            "CC1(C)CCCC2(C)C1CCC(=C)C2CCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O": "copalyl diphosphate",
+                            "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O": "Geranylfarnesyl pyrophosphate",
+                            "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O.CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O":  "2x Farnesyl pyrophosphate",
+                            "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O.CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O": "2x Geranylgeranyl pyrophosphate",
+                 }
+
 
 def parse_args() -> argparse.Namespace:
     """
@@ -63,7 +73,7 @@ if __name__ == "__main__":
             processed_files.append(str(detected_file))
 
     predicted_class_2_vals.update({"ID": ids})
-    df_detections = pd.DataFrame(predicted_class_2_vals)
+    df_detections = pd.DataFrame({f"{class_name} {('(' if class_name in SUBSTR_2_NAME else '') + SUBSTR_2_NAME.get(class_name, '') + (')' if class_name in SUBSTR_2_NAME else '')}": values for class_name, values in predicted_class_2_vals.items()})
     if len(df_detections) and "isTPS" in df_detections.columns:
         df_detections = df_detections.sort_values("isTPS", ascending=False)
     df_detections.to_csv(args.output_path, index=False)

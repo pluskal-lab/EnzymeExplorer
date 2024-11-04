@@ -5,7 +5,7 @@ from typing import Type
 from sklearn.ensemble import RandomForestClassifier  # type: ignore
 
 from terpeneminer.src.models.ifaces import DomainsSklearnModel
-from terpeneminer.src.models.config_classes import FeaturesRandomForestConfig
+from terpeneminer.src.models.config_classes import DomainFeaturesRandomForestConfig
 
 logger = logging.getLogger(__file__)
 logger.setLevel(logging.INFO)
@@ -17,15 +17,15 @@ class DomainsRandomForest(DomainsSklearnModel):
 
     def __init__(
         self,
-        config: FeaturesRandomForestConfig,
+        config: DomainFeaturesRandomForestConfig,
     ):
         super().__init__(config=config)
         self.classifier_class = RandomForestClassifier
 
     @classmethod
-    def config_class(cls) -> Type[FeaturesRandomForestConfig]:
+    def config_class(cls) -> Type[DomainFeaturesRandomForestConfig]:
         """
         A getter of the model-specific config class
         :return:  A dataclass for config storage
         """
-        return FeaturesRandomForestConfig
+        return DomainFeaturesRandomForestConfig

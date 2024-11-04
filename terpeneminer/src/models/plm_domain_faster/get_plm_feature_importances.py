@@ -30,16 +30,16 @@ def parse_args() -> argparse.Namespace:
         description="A script to gather classifier checkpoints from an output directory"
     )
     parser.add_argument(
-        "--top-most-important-domain-features-per-model",
-        help="A number of top features computed from domains to take from each model (for 5-fold CV, there are 5 models)",
+        "--top-most-important-plm-features-per-model",
+        help="A number of top features to take from each model (for 5-fold CV, there are 5 models)",
         type=int,
-        default=200,
+        default=100,
     )
     parser.add_argument(
         "--output-path",
         help="A file to save the selected domains",
         type=str,
-        default="data/domains_subset.pkl",
+        default="data/plm_feats_subset.pkl",
     )
     parser.add_argument(
         "--domain-features-path",
@@ -77,7 +77,6 @@ if __name__ == "__main__":
             "model_version": args.model_version,
         }
     experiment_info = ExperimentInfo(**experiment_kwargs)
-
 
     with open(args.domain_features_path, "rb") as file:
         (
@@ -120,7 +119,6 @@ if __name__ == "__main__":
             f"Not all fold outputs found. Please run corresponding experiments ({experiment_info}) before evaluation"
         )
 
-    domains_subset: set = set()
     feat_indices_subset: set = set()
     for fold_i, fold_root_dir in fold_2_root_dir.items():
         fold_class_path = fold_root_dir / "all_classes"
@@ -147,37 +145,28 @@ if __name__ == "__main__":
                             classifiers_fold.append(calibrated_classifier.estimator)
         for classifier_ in classifiers_fold:
             importances = classifier_.feature_importances_
-            number_of_domain_comparisons = len(model.allowed_feat_indices)
+            try:
+                number_of_domain_comparisons = len(model.allowed_feat_indices)
+            except AttributeError:
+                number_of_domain_comparisons = 0
             plm_embedding_size = len(importances) - number_of_domain_comparisons
-            feature_names = [f"tps_{i}" for i in range(plm_embedding_size)] + [
-                f"dom_{feat_i}" for feat_i in model.allowed_feat_indices
-            ]
+            feature_names = [f"tps_{i}" for i in range(plm_embedding_size)]
+            if number_of_domain_comparisons:
+                feature_names += [
+                    idx_2_domain_id[feat_i] for feat_i in model.allowed_feat_indices
+                ]
             forest_importances = pd.Series(importances, index=feature_names)
             forest_importances_indices = pd.Series(
-                importances[plm_embedding_size:],
-                index=model.allowed_feat_indices,
+                importances[:plm_embedding_size],
+                index=list(range(plm_embedding_size)),
             )
-            domains_subset = domains_subset.union({idx_2_domain_id[feat_i] for feat_i in model.allowed_feat_indices})
             feat_indices_subset = feat_indices_subset.union(
                 set(
                     forest_importances_indices.sort_values(ascending=False)
-                    .iloc[: args.top_most_important_domain_features_per_model]
+                    .iloc[: args.top_most_important_plm_features_per_model]
                     .index
                 )
             )
-
-    terpene_synthases_df = pd.read_csv(args.tps_file_path)
-    ids_rare_set = set(
-        terpene_synthases_df.loc[
-            terpene_synthases_df["Type (mono, sesq, di, …)"].isin({"tetra", "sester"}),
-            "Uniprot ID",
-        ].unique()
-    ).union({"D5SJ87", "B0Y565"})
-    for domain_id in domain_module_id_2_dist_matrix_index.keys():
-        uni_id = domain_id.split("_")[0]
-        if uni_id in ids_rare_set:
-            domains_subset.add(domain_id)
-
-    print("feat_indices_subset: ", feat_indices_subset)
+    print('feat_indices_subset size: ', len(feat_indices_subset))
     with open(args.output_path, "wb") as file_write:
-        pickle.dump((domains_subset, feat_indices_subset), file_write)
+        pickle.dump(feat_indices_subset, file_write)

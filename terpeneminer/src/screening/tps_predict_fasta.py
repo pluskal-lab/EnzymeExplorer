@@ -19,6 +19,10 @@ from terpeneminer.src.embeddings_extraction.esm_transformer_utils import (
     compute_embeddings,
     get_model_and_tokenizer,
 )
+from terpeneminer.src.embeddings_extraction.ankh_transformer_utils import (
+    compute_embeddings as ankh_compute_embeddings,
+    get_model_and_tokenizer as ankh_get_model_and_tokenizer
+)
 
 
 def _extract_id_from_entry(entry: tuple) -> str:
@@ -99,18 +103,28 @@ def main(arguments: argparse.Namespace):
         in the specified output directory.
     """
 
-    model, batch_converter, alphabet = get_model_and_tokenizer(
-        arguments.model, return_alphabet=True
-    )
+    if "esm" in args.model:
+        model, batch_converter, alphabet = get_model_and_tokenizer(
+            arguments.model, return_alphabet=True
+        )
 
-    compute_embeddings_partial = partial(
-        compute_embeddings,
-        bert_model=model,
-        converter=batch_converter,
-        padding_idx=alphabet.padding_idx,
-        model_repr_layer=33,
-        max_len=arguments.max_len,
-    )
+        compute_embeddings_partial = partial(
+            compute_embeddings,
+            bert_model=model,
+            converter=batch_converter,
+            padding_idx=alphabet.padding_idx,
+            model_repr_layer=33,
+            max_len=arguments.max_len,
+        )
+    elif "ankh" in args.model:
+        model, tokenizer = ankh_get_model_and_tokenizer(args.model)
+        compute_embeddings_partial = partial(
+            ankh_compute_embeddings, bert_model=model, tokenizer=tokenizer
+        )
+    else:
+        raise NotImplementedError(
+            f"Model {args.model} is not supported. Currently only esm, ankh model families are supported"
+        )
 
     uniprot_generator = esm.data.read_fasta(arguments.fasta_path)
 
@@ -133,25 +147,44 @@ def main(arguments: argparse.Namespace):
         predictions = []
         n_samples = len(enzyme_encodings_np_batch)
         for classifier_i, classifier in enumerate(classifiers):
-            y_pred_proba = classifier.predict_proba(enzyme_encodings_np_batch)
+            if hasattr(classifier, "plm_feat_indices_subset") and classifier.plm_feat_indices_subset is not None:
+                emb_plm = np.apply_along_axis(lambda i: i[classifier.plm_feat_indices_subset], 1,
+                                              enzyme_encodings_np_batch)
+            else:
+                emb_plm = enzyme_encodings_np_batch
+            y_pred_proba = classifier.predict_proba(emb_plm)
             for sample_i in range(n_samples):
                 predictions_raw = {}
                 for class_i, class_name in enumerate(classifier.classes_):
                     if class_name != "Unknown":
                         predictions_raw[class_name] = y_pred_proba[class_i][sample_i, 1]
+                if sample_i == 0:
+                    print('predictions_raw: ', predictions_raw)
                 if classifier_i == 0:
                     predictions.append(
                         {
-                            class_name.replace("-", "_"): value / len(classifiers)
+                            class_name: [value]
                             for class_name, value in predictions_raw.items()
                         }
                     )
                 else:
                     for class_name, value in predictions_raw.items():
-                        predictions[sample_i][
-                            class_name.replace("-", "_")
-                        ] += value / len(classifiers)
-        return predictions
+                        predictions[sample_i][class_name].append(value)
+        # average the predictions
+        predictions_avg = []
+        for prediction in predictions:
+            predictions_avg.append(
+                {
+                    class_name: np.mean(values)
+                    for class_name, values in prediction.items()
+                }
+            )
+            print({
+                    class_name: len(values)
+                    for class_name, values in prediction.items()
+                })
+        print('predictions_avg: ', predictions_avg)
+        return predictions_avg
 
     next_batch = []
     next_batch_ids = []

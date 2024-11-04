@@ -54,7 +54,7 @@ if __name__ == "__main__":
     tsv_path = working_dir / f'aln_all_domains_vs_all_{uuid4()}.tsv'
     tmp_path = working_dir / f'tmp_all_{uuid4()}'
     foldseek_comparison_output = subprocess.check_output(
-        f'foldseek easy-search {args.detected_domain_structures_root} {args.known_domain_structures_root} {tsv_path} {tmp_path} --max-seqs 3000 -e 0.1 --format-output query,target,fident,alnlen,mismatch,gapopen,qstart,qend,tstart,tend,evalue,bits,alntmscore'.split())
+        f'foldseek easy-search {args.detected_domain_structures_root} {args.known_domain_structures_root} {tsv_path} {tmp_path} --max-seqs 5000 -e 1 -s 10 --exhaustive-search --format-output query,target,fident,alnlen,mismatch,gapopen,qstart,qend,tstart,tend,evalue,bits,alntmscore'.split())
     df_foldseek = pd.read_csv(tsv_path, sep='\t', header=None,
                               names=['query', 'target', 'fident', 'alnlen', 'mismatch', 'gapopen', 'qstart', 'qend',
                                      'tstart', 'tend', 'evalue', 'bits', 'alntmscore'])

@@ -147,6 +147,7 @@ def eval_experiment(
                                     average_precision = average_precision_score(
                                         y_true_category, y_pred_category
                                     )
+                                    print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ', class_name_to_record, y_pred_category[y_true_category == 1].mean(), y_pred_category[y_true_category == 0].mean())
                                     mccf1 = summary_mccf1(
                                         y_true_category, y_pred_category
                                     )["mccf1_metric"]

@@ -23,7 +23,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output-csv-path", type=str, default="trembl_screening")
     parser.add_argument("--detection-threshold", type=float, default=0.3)
     parser.add_argument("--detect-precursor-synthases", action="store_true")
-
+    parser.add_argument("--model", type=str, default="esm-1v-finetuned-subseq")
     return parser.parse_args()
 
 
@@ -33,7 +33,13 @@ def main():
     plm_chkpt_path = Path("data/plm_checkpoints")
     if not plm_chkpt_path.exists():
         plm_chkpt_path.mkdir(parents=True)
-    plm_path = plm_chkpt_path / "checkpoint-tps-esm1v-t33-subseq.ckpt"
+    assert args.model in {
+        "esm-1v",
+        "esm-1v-finetuned-subseq",
+        "ankh_tps",
+        "ankh_base",
+    }, f"Model {args.model} is not supported. Choose between esm-1v, esm-1v-finetuned-subseq, ankh_base, and ankh_tps"
+    plm_path = plm_chkpt_path / ("checkpoint-tps-esm1v-t33-subseq.ckpt" if args.model == "esm-1v-finetuned-subseq" else "tps_ankh_lr=5e-05_bs=32.pth")
     if not plm_path.exists():
         logger.info("Downloading TPS language model checkpoint..")
         url = "https://drive.google.com/uc?id=1jU76oUl0-CmiB9m3XhaKmI2HorFhyxC7"
@@ -48,7 +54,7 @@ def main():
     if not Path(intermediate_outputs_root).exists():
         Path(intermediate_outputs_root).mkdir(parents=True)
     os.system(
-        "python -m terpeneminer.src.screening.tps_predict_fasta --model esm-1v-finetuned-subseq"
+        f"python -m terpeneminer.src.screening.tps_predict_fasta --model {args.model}"
         f" --fasta-path {args.input_fasta_path} --output-root {intermediate_outputs_root}"
         f" --detect-precursor-synthases {args.detect_precursor_synthases}"
         f" --detection-threshold {args.detection_threshold}"
