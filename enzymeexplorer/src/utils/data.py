@@ -5,7 +5,7 @@ import logging
 import numpy as np  # type: ignore
 import pandas as pd  # type: ignore
 from indigo import Indigo  # type: ignore
-
+from Bio.PDB import PDBParser, PPBuilder  # type: ignore
 logging.getLogger("h5py").setLevel(logging.INFO)
 import h5py  # type: ignore # pylint: disable=C0413
 
@@ -224,3 +224,39 @@ def get_canonical_smiles(smiles: str, without_stereo: bool = True):
         mol.clearCisTrans()
         mol.clearStereocenters()
     return mol.canonicalSmiles()
+
+
+def extract_sequences_from_pdb(pdb_filepath: str):
+    """
+    Extract amino acid sequences from a PDB file for each chain.
+
+    Parameters:
+    pdb_file (str): Path to the PDB file.
+
+    Returns:
+    dict: A dictionary where keys are chain IDs and values are amino acid sequences.
+    """
+    # Create a PDBParser object
+    parser = PDBParser()
+
+    # Parse the PDB file
+    structure = parser.get_structure('protein_structure', pdb_filepath)
+
+    # Create a Polypeptide builder
+    ppb = PPBuilder()
+
+    sequences = {}
+
+    # Iterate over each model (usually there's only one)
+    for model in structure:
+        # Iterate over each chain in the model
+        for chain in model:
+            # Build polypeptides (sequences) from the chain
+            polypeptides = ppb.build_peptides(chain)
+            # Concatenate sequences if there are multiple polypeptides
+            sequence = ''.join([str(pp.get_sequence()) for pp in polypeptides])
+            sequences[chain.id] = sequence
+    return sequences
+
+
+

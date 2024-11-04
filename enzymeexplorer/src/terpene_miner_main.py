@@ -30,6 +30,8 @@ def parse_args() -> argparse.Namespace:
     parser_run = subparsers.add_parser("run", help="Run experiment(s)")
     parser_run.set_defaults(cmd="run")
     parser_run.add_argument("--load-hyperparameters", action="store_true")
+    parser_run.add_argument("--model", type=str, default=None)
+    parser_run.add_argument("--model-version", type=str, default=None)
 
     parser_eval = subparsers.add_parser("evaluate", help="Evaluate experiment(s)")
     parser_eval.set_defaults(cmd="evaluate")
@@ -195,7 +197,13 @@ def run_selected_experiments(args: argparse.Namespace):
 
     config_root_path = get_config_root()
     if args.select_single_experiment:
-        experiment_kwargs = collect_single_experiment_arguments(config_root_path)
+        if args.model is None or args.model_version is None:
+            experiment_kwargs = collect_single_experiment_arguments(config_root_path)
+        else:
+            experiment_kwargs = {
+                "model_type": args.model,
+                "model_version": args.model_version,
+            }
         experiment_info = ExperimentInfo(**experiment_kwargs)
         run_experiment(experiment_info, load_hyperparameters=args.load_hyperparameters)
     else:

@@ -32,7 +32,8 @@ def compare_domains_to_known_instances(
     for trn_id in trn_uni_ids:
         allowed_feat_indices.extend(model.uniid_2_column_ids[trn_id])
     if domain_indices_subset is not None:
-        allowed_feat_indices = list(set(allowed_feat_indices) & domain_indices_subset)
+        allowed_feat_indices = list(set(allowed_feat_indices).intersection(domain_indices_subset))
+    allowed_feat_indices = sorted(allowed_feat_indices)
     features_df_domain_detections = pd.DataFrame(
         {
             model.config.id_col_name: model.all_ids_list_dom,
@@ -55,7 +56,11 @@ class DomainsSklearnModel(FeaturesSklearnModel):
         for param, value in config.__dict__.items():
             setattr(self, param, value)
         self.config = config
-        with open("data/clustering__domain_dist_based_features.pkl", "rb") as file:
+        if hasattr(config, "foldseek_distances") and config.foldseek_distances:
+            domain_dist_path = "data/clustering__domain_dist_based_features_foldseek.pkl"
+        else:
+            domain_dist_path = "data/clustering__domain_dist_based_features.pkl"
+        with open(domain_dist_path, "rb") as file:
             (
                 self.feats_dom_dists,
                 self.all_ids_list_dom,
@@ -77,7 +82,7 @@ class DomainsSklearnModel(FeaturesSklearnModel):
             {
                 "Uniprot ID": ids_without_domain_detections,
                 "Emb": [
-                    np.zeros(len(self.allowed_feat_indices))
+                    np.ones(len(self.allowed_feat_indices))
                     for _ in range(len(ids_without_domain_detections))
                 ],
             }
