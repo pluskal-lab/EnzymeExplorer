@@ -509,6 +509,7 @@ conda activate enzyme_explorer
 enzyme_explorer_main evaluate
 ```
 
+<<<<<<< HEAD
 Again, if you want to evaluate a single model, run
 
 ```bash
@@ -520,6 +521,9 @@ enzyme_explorer_main --select-single-experiment evaluate --output-filename singl
 and select the experiment you are interested in.
 
 To evaluate detection of the TPSs, run
+=======
+Next, to evaluate detection of the TPSs, run
+>>>>>>> 2d2d5bf (readme modifications)
 
 ```bash
 enzyme_explorer_main evaluate --classes "isTPS" --output-filename tps_detection
@@ -538,6 +542,16 @@ Finally, to evaluate results separately per entries with and without Pfam/SUPFAM
 ```bash
 enzyme_explorer_main evaluate --id-2-category-path data/id_2_domains_presence.pkl --output-filename per_interpro_signatures
 ```
+
+Again, if you want to evaluate a single model, run
+
+```bash
+cd EnzymeExplorer
+conda activate terpene_miner
+terpene_miner_main --select-single-experiment evaluate --output-filename single_model_specific_name
+```
+
+and select the experiment you are interested in.
 
 #### 7 - Visualization of performance
 
