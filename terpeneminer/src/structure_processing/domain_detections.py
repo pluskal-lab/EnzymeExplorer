@@ -406,6 +406,14 @@ if __name__ == "__main__":
         n_jobs=args.n_jobs,
     )
 
+    # Assigning missed secondary structure parts to the closest domains
+    filename_2_known_regions_completed = get_mapped_regions_with_surroundings_parallel(
+        list(filename_2_known_regions.keys()),
+        file_2_all_residues,
+        filename_2_known_regions,
+        n_jobs=args.n_jobs,
+    )
+
     # Get unsegmented parts
     file_2_remaining_residues = get_remaining_residues(
         filename_2_known_regions, file_2_all_residues
@@ -463,16 +471,6 @@ if __name__ == "__main__":
                     uni_id, new_region, filename_2_known_regions
                 ):
                     filename_2_known_regions[uni_id].append(new_region)
-
-
-
-    # Assigning missed secondary structure parts to the closest domains
-    filename_2_known_regions_completed = get_mapped_regions_with_surroundings_parallel(
-        list(filename_2_known_regions.keys()),
-        file_2_all_residues,
-        filename_2_known_regions,
-        n_jobs=args.n_jobs,
-    )
 
     # Getting confident residues
     filename_2_known_regions_completed_confident = {}

@@ -50,11 +50,26 @@ compute_embeddings_partial = partial(
     max_len=1022,
 )
 
+model_fallback, batch_converter_fallback, alphabet_fallback = get_model_and_tokenizer(
+        "esm-1v", return_alphabet=True
+    )
+compute_embeddings_partial_fallback = partial(
+    compute_embeddings,
+    bert_model=model_fallback,
+    converter=batch_converter_fallback,
+    padding_idx=alphabet_fallback.padding_idx,
+    model_repr_layer=33,
+    max_len=1022,
+)
+
 with open('data/classifier_domain_and_plm_checkpoints.pkl', 'rb') as file:
     fold_classifiers = pickle.load(file)
 
 with open('data/classifier_plm_checkpoints.pkl', 'rb') as file:
     fold_plm_classifiers = pickle.load(file)
+
+with open('data/classifier_plm_checkpoints_esm1v.pkl', 'rb') as file:
+    fold_plm_classifiers_fallback = pickle.load(file)
 
 # Create FastAPI app instance
 app = FastAPI()
@@ -338,18 +353,8 @@ async def upload_file(file: UploadFile = File(...),
                     dom_feat[dom_feat_idx] = known_domain_id_2_tmscore.get(known_module_id, 0)
         if np.max(dom_feat) < 0.4:
             logger.warning("No meaningful domain comparisons. Skipping the model.. ")
-            if hasattr(classifier, "domain_feature_novelty_detector") and getattr(classifier,
-                                                                                  "domain_feature_novelty_detector") is not None:
-                novelty_prediction = classifier.domain_feature_novelty_detector.predict(dom_feat)[0]
-                logger.warning(
-                    f"Novelty prediction would have been {novelty_prediction}")
             continue
         dom_feat = 1 - dom_feat.reshape(1, -1)
-        if hasattr(classifier, "domain_feature_novelty_detector") and getattr(classifier, "domain_feature_novelty_detector") is not None:
-            novelty_prediction = classifier.domain_feature_novelty_detector.predict(dom_feat)[0]
-            if novelty_prediction == -1:
-                logger.warning("Data drift detected in domain comparisons. Skipping the model..")
-                continue
         if classifier.plm_feat_indices_subset is not None:
             emb_plm = np.apply_along_axis(lambda i: i[classifier.plm_feat_indices_subset], 1, enzyme_encodings_np_batch)
         else:
@@ -374,15 +379,15 @@ async def upload_file(file: UploadFile = File(...),
                     predictions[sample_i][class_name].append(value)
         print('predictions: ', predictions)
     if len(predictions) == 0:
-        logger.warning("Falling back to PLM features only due to severe data drift in domain comparisons")
+        logger.warning("Falling back to generic PLM features due to severe data drift")
         predictions = []
-        for classifier_i, classifier in enumerate(fold_plm_classifiers):
+        for classifier_i, classifier in enumerate(fold_plm_classifiers_fallback):
             logger.info(f"Predicting with plm classifier {classifier_i + 1}/{len(fold_classifiers)}..")
-            if hasattr(classifier, "plm_feature_novelty_detector") and getattr(classifier,
-                                                                                  "plm_feature_novelty_detector") is not None:
-                novelty_prediction = classifier.plm_feature_novelty_detector.predict(enzyme_encodings_np_batch)[0]
-                logger.warning(
-                    f"PLM emb novelty prediction is {novelty_prediction}")
+            (
+                enzyme_encodings_np_batch,
+                _,
+            ) = compute_embeddings_partial_fallback(input_seqs=input_seq)
+
             y_pred_proba = classifier.predict_proba(enzyme_encodings_np_batch)
             for sample_i in range(n_samples):
                 predictions_raw = {}
