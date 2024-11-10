@@ -495,17 +495,7 @@ conda activate terpene_miner
 terpene_miner_main evaluate
 ```
 
-Again, if you want to evaluate a single model, run
-
-```bash
-cd TerpeneMiner
-conda activate terpene_miner
-terpene_miner_main --select-single-experiment evaluate --output-filename single_model_specific_name
-```
-
-and select the experiment you are interested in.
-
-To evaluate detection of the TPSs, run
+Next, to evaluate detection of the TPSs, run
 
 ```bash
 terpene_miner_main evaluate --classes "isTPS" --output-filename tps_detection
@@ -524,6 +514,16 @@ Finally, to evaluate results separately per entries with and without Pfam/SUPFAM
 ```bash
 terpene_miner_main evaluate --id-2-category-path data/id_2_domains_presence.pkl --output-filename per_interpro_signatures
 ```
+
+Again, if you want to evaluate a single model, run
+
+```bash
+cd TerpeneMiner
+conda activate terpene_miner
+terpene_miner_main --select-single-experiment evaluate --output-filename single_model_specific_name
+```
+
+and select the experiment you are interested in.
 
 #### 7 - Visualization of performance
 
