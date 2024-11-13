@@ -163,7 +163,7 @@ def parse_args() -> argparse.Namespace:
         type=str,
         default=None,
     )
-    parser_vis.add_argument("--plot-barplots-per-category", action="store_true")
+    parser_vis.add_argument("--plot-per-category", action="store_true")
     parser_vis.add_argument(
         "--category-name",
         help="A name of category to be evaluated separately (e.g., Kingdom)",

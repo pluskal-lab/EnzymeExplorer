@@ -3,6 +3,9 @@
 [![Checks for coding standard, code smells and typing](https://github.com/pluskal-lab/TerpeneMiner/actions/workflows/ci.yml/badge.svg)](https://github.com/pluskal-lab/TerpeneMiner/actions/workflows/ci.yml)
 
 [![DOI:10.1101/2024.01.29.577750](http://img.shields.io/badge/DOI-10.1101/2024.01.29.577750-B31B1B.svg)](https://doi.org/10.1101/2024.01.29.577750)
+
+[![](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/SamusRam/ProFun/blob/main/TerpeneMiner_(input_UniProt_ID).ipynb)
+
 <div align="center">
 
 # Highly accurate discovery of terpene synthases powered by machine learning
@@ -10,13 +13,24 @@
 ![](data/readme_figures/fig_overview.png)
 </div>
 
+-----------------------------------------
+
+# 🚀 Quick Start: Get Predictions with Colab Notebooks
+
+| Required input | Colab Notebook  |
+|-----------|--------------|
+| Uniprot ID    | [![](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/SamusRam/ProFun/blob/main/TerpeneMiner_(input_UniProt_ID).ipynb) |
+| Structure  | [![](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/SamusRam/ProFun/blob/main/TerpeneMiner_(upload_your_structure).ipynb) |
+| Sequence (structure will be predicted in Colab)  | [![](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/SamusRam/ProFun/blob/main/TerpeneMiner_%2B_ColabFold_(input_sequence).ipynb)|
+
+
 Table of contents
 =================
 
 <!--ts-->
 - [Introduction](#introduction)
 - [Installation](#installation)
-- [Quick start](#quick-start)
+- [Quick start locally](#quick-start-locally)
 - [Workflow](#workflow)
   - [Data Preparation](#data-preparation)
     - [1 - Sampling negative examples from Swiss-Prot](#1---sampling-negative-examples-from-swiss-prot)
@@ -33,8 +47,9 @@ Table of contents
     - [3 - Training a single model](#3---training-a-single-model)
     - [4 - Descriminative structural domains selection](#4---descriminative-structural-domains-selection)
     - [5 - Parallelized hyperparameter optimization](#5---parallelized-hyperparameter-optimization)
-    - [6 - Evaluating performance](#6---evaluating-performance)
-    - [7 - Visualization of performance](#7---visualization-of-performance)
+    - [6 - Quick-start reproduction of paper evaluation](#6---quick-start-reproduction-of-paper-evaluation)
+    - [7 - Evaluating performance](#7---evaluating-performance)
+    - [8 - Visualization of performance](#8---visualization-of-performance)
   - [Screening large databases](#screening-large-databases)
   - [TerpeneMiner deployment as a backend service](#terpeneminer-deployment-as-a-backend-service)
 - [Reference](#reference)
@@ -92,11 +107,7 @@ pip install .
 ```
 -----------------------------------------
 
-## Quick start
-
-### Running sequence-based TPS detection and classification
-To predict using the model based on TPS language model only, put the sequences of interest into a `.fasta` file and run
-
+## Quick start locally
 ```bash
 cd TerpeneMiner
 conda activate terpene_miner
@@ -483,9 +494,22 @@ If you then want to gather the corresponding checkpoints into an easy-to-use pic
 ```bash
 python -m terpeneminer.src.screening.gather_classifier_checkpoints --output-path data/classifier_domain_and_plm_checkpoints.pkl --use-all-folds
 ```
+#### 6 - Quick-start reproduction of paper evaluation
+For a quick reproduction of the paper evaluation, run
 
+```bash
+cd TerpeneMiner
+conda activate terpene_miner
+python scripts/easy_eval.py
+```
 
-#### 6 - Evaluating performance
+If you want to leave the downloaded outputs and configs after the evaluation, run
+
+```bash
+python scripts/easy_eval.py --leave-downloaded-workflow-outputs --leave-downloaded-configs
+```
+
+#### 7 - Evaluating performance
 
 To evaluate all configured models, run
 
@@ -525,7 +549,7 @@ terpene_miner_main --select-single-experiment evaluate --output-filename single_
 
 and select the experiment you are interested in.
 
-#### 7 - Visualization of performance
+#### 8 - Visualization of performance
 
 Once the performance evaluation is done, you can visualize the results.
 
@@ -778,28 +802,7 @@ Start backend:
 export PORT=<..>
 nohup uvicorn app_faster_with_foldseek:app --host 0.0.0.0 --port $PORT &> webserver_app.log &
 ```
-For significantly slower but slightly more accurate predictions:
-```bash
-cd TerpeneMiner
-conda activate terpene_miner
-terpene_miner_main --select-single-experiment run --model PlmDomainsRandomForest --model-version tps_esm-1v-subseq_with_minor_reactions_global_tuning 
-python -m terpeneminer.src.models.plm_domain_faster.get_domains_feature_importances \
-    --model PlmDomainsRandomForest --model-version tps_esm-1v-subseq_with_minor_reactions_global_tuning \
-    --top-most-important-domain-features-per-model 50 --use-all-folds 
-python -m terpeneminer.src.models.plm_domain_faster.get_plm_feature_importances \
-    --model PlmDomainsRandomForest --model-version tps_esm-1v-subseq_with_minor_reactions_global_tuning \
-    --top-most-important-plm-features-per-model 400 --use-all-folds 
-terpene_miner_main --select-single-experiment run --model PlmDomainsRandomForest --model-version tps_esm-1v-subseq_with_minor_reactions_global_tuning_domains_subset_plm_subset
-python -m terpeneminer.src.screening.gather_classifier_checkpoints --output-path data/classifier_domain_and_plm_checkpoints.pkl --use-all-folds \
-    --model PlmDomainsRandomForest --model-version tps_esm-1v-subseq_with_minor_reactions_global_tuning_domains_subset_plm_subset
-python -m terpeneminer.src.structure_processing.train_domain_type_classifiers
-```
-and then start the backend:
-```bash
-# specify port
-export PORT=<..>
-nohup uvicorn app:app --host 0.0.0.0 --port $PORT &> webserver_app.log &
-```
+
 
 -----------------------------------------
 

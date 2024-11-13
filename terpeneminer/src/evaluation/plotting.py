@@ -114,7 +114,7 @@ def plot_bars(
 
     :return: None. Saves the bar chart to the specified output path.
     """
-    _, ax = plt.subplots(figsize=(5, 5))
+    _, ax = plt.subplots(figsize=(5, 2.5))
     ax.bar(
         list(range(len(model_names_plots))),
         means,
@@ -177,7 +177,7 @@ def plot_boxplots_per_type(
     ap_per_class_df = pd.DataFrame(
         {"Model": model_list, "TPS Type": class_list, metric_name: val_list}
     )
-    _, ax = plt.subplots(figsize=(15, 8))
+    _, ax = plt.subplots(figsize=(14, 4))
     boxplot(
         x="TPS Type",
         y=metric_name,
@@ -241,7 +241,7 @@ def plot_type_boxplots_per_model(
         {"Model": model_list, "TPS Type": class_list, metric_name: val_list}
     )
 
-    _, ax = plt.subplots(figsize=(15, 8))
+    _, ax = plt.subplots(figsize=(14, 4))
     boxplot(
         x="Model",
         y=metric_name,
@@ -322,7 +322,7 @@ def plot_barplots_per_categories(
     metric_per_category_df = pd.DataFrame(
         {"Model": model_list, category_name: category_list, metric_name: val_list}
     )
-    _, ax = plt.subplots(figsize=(15, 8))
+    _, ax = plt.subplots(figsize=(13, 4))
     barplot(
         x=category_name,
         y=metric_name,
@@ -368,9 +368,6 @@ def plot_category_boxplots_per_model(
     :return: None. Saves the bar plot to the specified output path.
     """
 
-    print("!!!: ", models)
-    print("!!!!@@@@@@@@@@@@@@ model keys: ", model_2_class_2_metric_vals.keys())
-
     model_list = []
     category_list = []
     val_list = []
@@ -391,12 +388,7 @@ def plot_category_boxplots_per_model(
     metric_per_category_df = pd.DataFrame(
         {"Model": model_list, category_name: category_list, metric_name: val_list}
     )
-
-    print(
-        "###############################################################################metric_per_category_df: ",
-        metric_per_category_df,
-    )
-    _, ax = plt.subplots(figsize=(15, 8))
+    _, ax = plt.subplots(figsize=(14, 4))
     kingdom_2_color = dict(
         zip(
             [
@@ -572,7 +564,7 @@ def plot_selected_results(args: argparse.Namespace):
                     / f"{plots_name}_{metric_name}_per_type_boxplot.{extension}",
                     model_names_plots=args.model_names,
                 )
-    elif args.plot_barplots_per_category:
+    elif args.plot_per_category:
         with open(
             eval_output_path
             / f"model_2_class_2_metric_vals_{args.eval_output_filename}.pkl",
@@ -641,7 +633,7 @@ def plot_selected_results(args: argparse.Namespace):
                     means,
                     stds,
                     args.model_names,
-                    "TPS classes detection",
+                    "TPS substrate classification",
                     metric,
                     eval_output_path / f"{plots_name}_{metric}.{extension}",
                 )
