@@ -503,7 +503,7 @@ conda activate terpene_miner
 python scripts/easy_eval.py
 ```
 
-If you want to leave the downloaded outputs and configs after the evaluation, run
+If you want to leave the paper-version outputs and configs after the evaluation, run
 
 ```bash
 python scripts/easy_eval.py --leave-downloaded-workflow-outputs --leave-downloaded-configs

@@ -1,0 +1,1568 @@
+IQ-TREE multicore version 2.3.0 COVID-edition for Linux 64-bit built Mar 14 2024
+Developed by Bui Quang Minh, James Barbetti, Nguyen Lam Tung,
+Olga Chernomor, Heiko Schmidt, Dominik Schrempf, Michael Woodhams, Ly Trong Nhan.
+
+Host:    terka.uochb.cas.cz (AVX2, FMA3, 125 GB RAM)
+Command: iqtree -s data/_mafft_msa_tps_all.fasta -st AA -m TEST -bb 1000 -alrt 1000 -T 64
+Seed:    964832 (Using SPRNG - Scalable Parallel Random Number Generator)
+Time:    Mon Jul  1 10:29:07 2024
+Kernel:  AVX+FMA - 64 threads (64 CPU cores detected)
+
+Reading alignment file data/_mafft_msa_tps_all.fasta ... Fasta format detected
+Reading fasta file: done in 0.139312 secs using 98.33% CPU
+Alignment most likely contains protein sequences
+Alignment has 1248 sequences with 5796 columns, 4469 distinct patterns
+2728 parsimony-informative, 1225 singleton sites, 1843 constant sites
+                 Gap/Ambiguity  Composition  p-value
+Analyzing sequences: done in 0.00290036 secs using 5579% CPU
+   1  A0A6P6W6H5        89.54%    failed      3.39%
+   2  XsTC-1            92.94%    failed      0.01%
+   3  X5AHD9            89.87%    failed      0.29%
+   4  X5A4D6            86.44%    passed     12.76%
+   5  X5A2Z7            89.68%    failed      0.27%
+   6  X4ZWN5            86.66%    failed      0.79%
+   7  WP_092528762.1    93.74%    failed      0.00%
+   8  WP_089795910.1    94.22%    failed      1.54%
+   9  WKM69310.1        94.36%    passed     11.93%
+  10  WDE20680.1        94.24%    failed      0.27%
+  11  WDE20679.1        94.31%    failed      0.05%
+  12  WDE20678.1        94.22%    failed      0.10%
+  13  WDE20677.1        94.22%    passed      9.54%
+  14  WDE20676.1        94.13%    failed      4.47%
+  15  W8QMF8            89.79%    failed      0.10%
+  16  W8QEG7            89.82%    failed      0.05%
+  17  W8NXF3            90.48%    failed      0.01%
+  18  W6QAE7            87.20%    failed      0.04%
+  19  W6Q4Q9            94.10%    passed     10.39%
+  20  W6HUT3            89.77%    failed      0.85%
+  21  W4JX79            94.05%    passed     23.04%
+  22  W0FFD7            90.36%    failed      0.80%
+  23  UTU07507          86.65%    failed      4.60%
+  24  UTU07506          86.85%    passed      9.62%
+  25  UPI41567.1        93.17%    failed      2.23%
+  26  UPI41561.1        93.00%    passed     69.30%
+  27  U5Y4T6            90.55%    failed      0.52%
+  28  U5PZT6            89.80%    failed      3.13%
+  29  U5N1F1            90.36%    failed      0.23%
+  30  U5N0S4            89.73%    failed      0.44%
+  31  U3LW50            90.42%    passed     12.61%
+  32  U3LVZ7            90.55%    failed      0.17%
+  33  U3LVL5            90.53%    failed      1.00%
+  34  U3KYL2            90.41%    failed      0.03%
+  35  TpdiTPS3          85.08%    failed      0.07%
+  36  TpdiTPS2          84.83%    failed      0.01%
+  37  TpdiTPS1          85.40%    failed      0.09%
+  38  TmTC-2            92.89%    passed     16.39%
+  39  TmTC-1            92.93%    passed      8.69%
+  40  T2HPZ3            90.55%    failed      0.10%
+  41  T1WGD9            90.70%    passed     27.35%
+  42  T1RRS0            90.65%    failed      0.03%
+  43  T1RRR9            89.75%    failed      0.25%
+  44  T1RRJ6            90.63%    failed      0.03%
+  45  T1RRJ4            89.75%    failed      0.23%
+  46  T1RRI8            89.65%    failed      0.22%
+  47  T1RRI5            90.56%    failed      0.00%
+  48  T1RR72            89.75%    failed      0.23%
+  49  T1RR71            89.65%    failed      0.23%
+  50  SRA.SRR18681978   94.32%    passed     56.44%
+  51  SptA              93.75%    passed      5.15%
+  52  S0ENM8            93.08%    failed      4.63%
+  53  S0EGZ9            93.60%    failed      1.44%
+  54  S0ECT9            93.70%    passed     67.66%
+  55  S0EA85            83.57%    failed      0.00%
+  56  S0E627            93.22%    failed      0.00%
+  57  S0DX56            93.84%    passed     14.87%
+  58  RmTC-1            93.17%    failed      0.44%
+  59  R9WSX5            90.32%    failed      0.01%
+  60  R9W377            89.65%    passed      6.56%
+  61  R9UPX9            86.80%    failed      2.46%
+  62  R9UPX6            86.49%    failed      0.13%
+  63  R9UM72            85.89%    failed      2.33%
+  64  R9QMZ0            89.37%    failed      3.98%
+  65  R9QMY9            89.15%    failed      2.45%
+  66  R9QMY8            89.32%    passed      5.75%
+  67  R9QMW8            89.20%    failed      1.30%
+  68  R9QMW7            89.29%    passed      5.83%
+  69  R9QMW5            89.18%    failed      4.11%
+  70  R9QMW4            89.20%    failed      1.07%
+  71  R9QMW3            89.23%    passed      6.53%
+  72  R9QMW2            89.16%    failed      1.11%
+  73  R9QMW1            89.25%    passed      9.70%
+  74  R9QMR6            89.20%    failed      0.75%
+  75  R9QMR5            89.20%    failed      3.55%
+  76  R9QMR4            89.29%    passed      5.93%
+  77  R9QMR3            89.15%    failed      1.56%
+  78  R9QMR1            89.16%    failed      0.75%
+  79  R9QMR0            89.16%    failed      4.36%
+  80  R9QMQ9            89.18%    failed      3.15%
+  81  R4YZC3            89.72%    passed      5.09%
+  82  R4YXW8            90.56%    passed      5.26%
+  83  R4YVJ5            90.23%    failed      2.23%
+  84  R4JQT5            89.70%    failed      0.10%
+  85  R4JQS8            89.63%    failed      0.31%
+  86  R4JQS2            89.63%    failed      0.24%
+  87  R4JND9            89.70%    failed      0.51%
+  88  R4JND2            89.80%    failed      0.17%
+  89  R4JJJ6            89.72%    failed      0.36%
+  90  R4JJJ1            89.63%    failed      0.33%
+  91  R4JHV9            90.41%    failed      0.18%
+  92  R4JHV6            89.72%    failed      0.19%
+  93  R4JGM2            90.49%    failed      0.04%
+  94  R4JGL8            89.70%    failed      0.19%
+  95  R4I3I0            91.96%    failed      0.65%
+  96  R4HEK6            90.79%    failed      0.76%
+  97  QNC49769.1        89.51%    failed      0.69%
+  98  Q9ZUH4            89.80%    failed      1.53%
+  99  Q9ZU77            94.01%    failed      0.00%
+ 100  Q9ZTN8            85.80%    failed      0.76%
+ 101  Q9Y753            92.32%    failed      3.39%
+ 102  Q9XJ32            90.41%    failed      0.07%
+ 103  Q9XEI0            86.47%    failed      0.00%
+ 104  Q9XEH9            86.47%    failed      0.00%
+ 105  Q9X839            87.47%    failed      0.00%
+ 106  Q9WTN0            94.82%    failed      3.62%
+ 107  Q9UWR6            94.51%    failed      0.00%
+ 108  Q9UVY5            83.57%    failed      0.00%
+ 109  Q9UR08            94.48%    failed      2.79%
+ 110  Q9T0K1            90.44%    failed      0.00%
+ 111  Q9T0J9            90.44%    failed      0.00%
+ 112  Q9SYN1            86.77%    passed     18.14%
+ 113  Q9SXV6            86.94%    passed      5.55%
+ 114  Q9SW77            91.24%    passed     14.33%
+ 115  Q9SW76            89.67%    failed      1.43%
+ 116  Q9SSZ2            86.85%    failed      1.39%
+ 117  Q9SSU8            93.13%    failed      0.02%
+ 118  Q9SSU5            86.89%    passed      7.25%
+ 119  Q9SPN1            89.94%    failed      0.01%
+ 120  Q9SLW3            86.92%    passed     12.22%
+ 121  Q9SLW1            86.92%    passed     44.44%
+ 122  Q9SLW0            86.92%    failed      0.03%
+ 123  Q9SLP9            86.80%    passed      9.51%
+ 124  Q9SLG2            93.58%    failed      0.00%
+ 125  Q9SDW9            92.05%    failed      4.65%
+ 126  Q9SAK2            86.46%    failed      0.00%
+ 127  Q9P885            94.77%    failed      3.14%
+ 128  Q9NH03            93.41%    failed      1.00%
+ 129  Q9MB42            86.80%    passed      8.09%
+ 130  Q9M7D1            89.13%    failed      0.01%
+ 131  Q9M7D0            89.13%    failed      0.01%
+ 132  Q9M7C9            89.01%    failed      0.08%
+ 133  Q9LVY2            86.89%    passed     25.35%
+ 134  Q9LVP7            89.73%    failed      0.11%
+ 135  Q9LUE2            89.56%    failed      0.39%
+ 136  Q9LUE1            93.79%    failed      0.00%
+ 137  Q9LUE0            89.61%    failed      0.02%
+ 138  Q9LUD9            93.79%    failed      0.00%
+ 139  Q9LRZ6            89.68%    passed     22.87%
+ 140  Q9LRR2            89.63%    failed      1.87%
+ 141  Q9LRH8            86.92%    failed      1.76%
+ 142  Q9LRH7            86.82%    passed     30.08%
+ 143  Q9LLR9            90.56%    failed      1.17%
+ 144  Q9LJY2            94.06%    failed      0.03%
+ 145  Q9LIA0            93.84%    failed      0.00%
+ 146  Q9LHR4            93.79%    failed      0.00%
+ 147  Q9K499            93.77%    failed      0.00%
+ 148  Q9HGZ6            92.36%    failed      0.06%
+ 149  Q9FZI2            86.84%    passed     68.50%
+ 150  Q9FXY7            90.04%    failed      0.16%
+ 151  Q9FXV8            86.40%    failed      0.00%
+ 152  Q9FV72            89.60%    passed     14.80%
+ 153  Q9FUW5            89.30%    failed      0.83%
+ 154  Q9FT37            85.13%    failed      1.23%
+ 155  Q9FR95            86.78%    passed     20.66%
+ 156  Q9FQM1            86.96%    failed      3.92%
+ 157  Q9FQ27            90.61%    failed      0.48%
+ 158  Q9FQ26            90.58%    failed      0.59%
+ 159  Q9FJV8            86.87%    passed     22.45%
+ 160  Q9FI37            86.78%    passed     15.05%
+ 161  Q9F1Y6            92.41%    failed      0.00%
+ 162  Q9F1V8            92.46%    failed      0.00%
+ 163  Q9C748            89.60%    failed      0.04%
+ 164  Q9C5M3            86.94%    passed     41.08%
+ 165  Q9C446            93.60%    failed      0.11%
+ 166  Q9AXM7            89.58%    passed     20.10%
+ 167  Q9AR86            89.73%    failed      0.00%
+ 168  Q9AR67            90.53%    failed      0.45%
+ 169  Q9AR04            90.58%    failed      1.73%
+ 170  Q9AJE4            91.39%    failed      0.00%
+ 171  Q9AJE3            94.63%    failed      0.00%
+ 172  Q96WT2            83.71%    failed      0.00%
+ 173  Q96WJ0            87.59%    passed     28.18%
+ 174  Q96376            84.99%    failed      0.00%
+ 175  Q94JS8            90.34%    failed      0.00%
+ 176  Q94ID7            93.62%    failed      0.00%
+ 177  Q94G53            89.96%    failed      2.85%
+ 178  Q948Z0            89.34%    failed      4.74%
+ 179  Q948R6            86.90%    passed     62.90%
+ 180  Q947C4            84.94%    failed      1.30%
+ 181  Q941S0            86.90%    failed      1.98%
+ 182  Q940E7            89.42%    failed      0.81%
+ 183  Q93YV0            84.87%    failed      0.04%
+ 184  Q93YA3            85.13%    failed      1.32%
+ 185  Q93X23            89.70%    passed     10.75%
+ 186  Q93WU1            86.94%    passed     44.57%
+ 187  Q92250            94.01%    failed      0.15%
+ 188  Q92236            92.79%    failed      0.30%
+ 189  Q92235            94.01%    failed      0.35%
+ 190  Q920E5            93.91%    failed      0.04%
+ 191  Q8YN85            94.44%    failed      2.90%
+ 192  Q8W3Z4            86.77%    failed      1.25%
+ 193  Q8W3Z3            86.96%    failed      2.48%
+ 194  Q8W3Z2            86.97%    failed      0.76%
+ 195  Q8W3Z1            86.56%    passed     16.86%
+ 196  Q8W3Z0            87.32%    passed     10.24%
+ 197  Q8W1D0            89.11%    failed      0.00%
+ 198  Q8VWY4            86.90%    failed      3.68%
+ 199  Q8VWY3            86.90%    failed      3.46%
+ 200  Q8SA63            90.55%    failed      0.12%
+ 201  Q8S948            93.00%    failed      0.00%
+ 202  Q8S3A6            90.36%    failed      0.06%
+ 203  Q8S3A5            90.39%    failed      0.02%
+ 204  Q8RWT0            86.84%    passed     24.02%
+ 205  Q8PYS1            94.91%    failed      0.03%
+ 206  Q8PW34            94.41%    failed      0.00%
+ 207  Q8NJA1            93.53%    passed     73.40%
+ 208  Q8NIH6            93.53%    passed     70.82%
+ 209  Q8NIH3            93.53%    passed     70.74%
+ 210  Q8NIH0            93.53%    passed     69.67%
+ 211  Q8NIG9            93.53%    passed     67.12%
+ 212  Q8NID7            93.53%    passed     72.80%
+ 213  Q8NIC8            93.53%    passed     54.70%
+ 214  Q8NIC1            93.53%    passed     53.79%
+ 215  Q8LSC3            89.94%    failed      0.01%
+ 216  Q8LSC2            90.37%    failed      0.05%
+ 217  Q8L5K4            89.65%    passed     18.23%
+ 218  Q8L5K3            89.54%    failed      2.41%
+ 219  Q8L5K2            89.61%    passed     51.60%
+ 220  Q8L5K1            89.54%    failed      2.72%
+ 221  Q8L5J7            89.70%    passed      8.40%
+ 222  Q8H2B4            89.54%    failed      0.03%
+ 223  Q8GUE4            89.60%    failed      3.11%
+ 224  Q8GSL7            86.85%    passed      9.96%
+ 225  Q8BLN5            87.35%    failed      0.05%
+ 226  Q84ZW8            89.82%    failed      0.00%
+ 227  Q84UV0            90.18%    failed      0.07%
+ 228  Q84UU9            89.46%    failed      0.30%
+ 229  Q84UU4            90.56%    failed      0.35%
+ 230  Q84SM8            89.18%    failed      4.40%
+ 231  Q84PE3            86.85%    passed      9.90%
+ 232  Q84PE1            86.85%    passed     20.89%
+ 233  Q84ND0            89.98%    failed      0.22%
+ 234  Q84NC9            89.92%    failed      0.34%
+ 235  Q84NC8            90.01%    failed      2.90%
+ 236  Q84LG0            90.55%    failed      0.22%
+ 237  Q84LF2            90.55%    failed      0.07%
+ 238  Q84LF1            90.55%    failed      0.53%
+ 239  Q84LF0            90.55%    failed      0.12%
+ 240  Q84LB2            90.06%    failed      0.06%
+ 241  Q84KL6            89.15%    failed      3.42%
+ 242  Q84KL5            90.10%    failed      0.67%
+ 243  Q84KL4            89.18%    passed     10.16%
+ 244  Q84KL3            89.16%    failed      0.66%
+ 245  Q82RR7            94.22%    failed      0.00%
+ 246  Q82IY4            94.20%    failed      0.00%
+ 247  Q7Z859            88.39%    failed      0.00%
+ 248  Q7XYT0            94.10%    failed      0.25%
+ 249  Q7XYS9            94.03%    failed      0.08%
+ 250  Q7XYS8            93.20%    passed     37.78%
+ 251  Q7XAS7            89.73%    failed      0.00%
+ 252  Q7X9A3            90.55%    failed      0.13%
+ 253  Q7LJR6            93.53%    passed     64.87%
+ 254  Q7LJF8            93.53%    passed     54.70%
+ 255  Q796C3            89.10%    failed      0.51%
+ 256  Q764T8            86.92%    passed      5.16%
+ 257  Q75WN1            89.56%    failed      0.16%
+ 258  Q71MJ3            90.55%    failed      2.03%
+ 259  Q70EZ7            90.49%    failed      0.20%
+ 260  Q70EZ6            90.49%    failed      0.07%
+ 261  Q6ZJL3            90.06%    failed      2.08%
+ 262  Q6ZH94            89.73%    failed      0.00%
+ 263  Q6Z5J6            85.84%    failed      0.02%
+ 264  Q6Z5I0            86.20%    failed      0.00%
+ 265  Q6Z2X6            86.90%    failed      0.04%
+ 266  Q6YN71            89.92%    failed      0.01%
+ 267  Q6XDB5            89.18%    failed      0.06%
+ 268  Q6WP50            93.12%    failed      1.13%
+ 269  Q6USK1            90.22%    failed      0.00%
+ 270  Q6TH92            90.49%    failed      0.23%
+ 271  Q6TH91            90.49%    failed      0.06%
+ 272  Q6TBY0            85.13%    failed      1.13%
+ 273  Q6SA60            85.13%    failed      1.05%
+ 274  Q6QZW8            86.89%    failed      1.09%
+ 275  Q6QZW7            86.94%    passed      5.69%
+ 276  Q6Q3H3            90.39%    failed      0.61%
+ 277  Q6Q3H2            90.41%    failed      2.59%
+ 278  Q6PWU2            89.82%    failed      4.75%
+ 279  Q6N3F2            95.19%    failed      0.00%
+ 280  Q6N3F1            94.96%    failed      0.02%
+ 281  Q6JD73            90.44%    failed      0.07%
+ 282  Q6JD71            92.06%    failed      0.91%
+ 283  Q6JD70            90.44%    failed      0.13%
+ 284  Q6IWA3            86.90%    failed      0.83%
+ 285  Q6IW97            86.94%    passed     48.98%
+ 286  Q6F5H3            89.54%    passed      5.72%
+ 287  Q6F5H2            89.51%    failed      3.85%
+ 288  Q6F5H1            89.65%    passed     13.84%
+ 289  Q6F5H0            89.65%    passed     15.07%
+ 290  Q6F5G9            89.63%    passed     30.69%
+ 291  Q6F5E6            94.08%    passed      8.29%
+ 292  Q6F596            94.82%    failed      1.45%
+ 293  Q6ET36            85.04%    failed      0.23%
+ 294  Q6EJ97            89.51%    failed      0.00%
+ 295  Q6EI12            93.06%    failed      0.00%
+ 296  Q6E7D7            86.77%    failed      0.09%
+ 297  Q6BE25            86.78%    passed     11.47%
+ 298  Q6BE24            86.82%    failed      0.07%
+ 299  Q6BDZ9            85.82%    failed      0.00%
+ 300  Q6A1B7            93.31%    passed     84.96%
+ 301  Q67DX4            85.13%    failed      1.51%
+ 302  Q675L6            86.08%    failed      0.00%
+ 303  Q675L5            85.04%    failed      0.01%
+ 304  Q675L4            85.18%    failed      0.22%
+ 305  Q675L1            89.06%    failed      0.53%
+ 306  Q675L0            90.03%    failed      0.27%
+ 307  Q673F9            85.33%    failed      0.00%
+ 308  Q672F7            89.73%    failed      0.47%
+ 309  Q66QH3            85.51%    failed      0.00%
+ 310  Q66PX8            90.22%    failed      0.33%
+ 311  Q65164            94.51%    failed      0.50%
+ 312  Q64K29            90.32%    failed      1.09%
+ 313  Q5Z5B7            92.75%    failed      0.04%
+ 314  Q5W283            90.49%    failed      0.52%
+ 315  Q5UB07            89.99%    failed      0.02%
+ 316  Q5SBP7            90.51%    failed      0.16%
+ 317  Q5SBP6            90.58%    failed      0.28%
+ 318  Q5SBP5            90.68%    failed      0.73%
+ 319  Q5SBP4            90.67%    failed      4.26%
+ 320  Q5SBP3            90.10%    failed      0.00%
+ 321  Q5SBP2            89.68%    failed      1.92%
+ 322  Q5SBP1            89.67%    failed      0.30%
+ 323  Q5SBP0            89.63%    failed      0.16%
+ 324  Q5R6U3            92.81%    passed     61.78%
+ 325  Q5NP67            94.88%    failed      0.95%
+ 326  Q5MQ85            86.20%    failed      0.00%
+ 327  Q5KSN5            91.18%    failed      0.00%
+ 328  Q5KSN4            94.91%    failed      0.00%
+ 329  Q5GJ60            90.55%    failed      0.00%
+ 330  Q5GJ59            90.55%    failed      1.25%
+ 331  Q5D7Q8            86.87%    passed      8.61%
+ 332  Q5CD82            89.61%    passed     18.87%
+ 333  Q58GE8            92.82%    failed      3.75%
+ 334  Q55D85            87.87%    passed      8.16%
+ 335  Q55012            94.19%    failed      0.00%
+ 336  Q54DR1            92.82%    passed      5.13%
+ 337  Q54BE5            94.62%    failed      0.00%
+ 338  Q52QW5            92.89%    failed      3.37%
+ 339  Q50L36            89.73%    failed      0.00%
+ 340  Q50EK2            85.33%    failed      2.86%
+ 341  Q4WR16            87.32%    failed      0.00%
+ 342  Q4WQ95            87.66%    failed      0.24%
+ 343  Q4WES9            87.04%    failed      2.25%
+ 344  Q4WAG4            91.87%    failed      0.08%
+ 345  Q4VP12            90.44%    failed      4.88%
+ 346  Q4VP11            90.44%    failed      1.69%
+ 347  Q4U3F7            90.36%    failed      0.01%
+ 348  Q4U3F6            90.42%    failed      0.06%
+ 349  Q4QSN6            89.22%    passed      7.58%
+ 350  Q4QSN4            85.94%    failed      0.00%
+ 351  Q4QSN3            89.32%    failed      1.87%
+ 352  Q4KSH9            90.39%    failed      0.00%
+ 353  Q4JHN6            94.10%    failed      0.16%
+ 354  Q4JHG3            89.60%    failed      0.41%
+ 355  Q49SP7            90.60%    failed      0.23%
+ 356  Q49SP6            90.44%    failed      0.24%
+ 357  Q49SP5            90.44%    failed      0.01%
+ 358  Q49SP4            90.60%    failed      0.00%
+ 359  Q49SP3            90.48%    failed      0.02%
+ 360  Q45220            94.27%    failed      0.00%
+ 361  Q43714            90.42%    passed      9.25%
+ 362  Q43315            94.10%    failed      1.35%
+ 363  Q43133            93.69%    failed      0.00%
+ 364  Q42698            93.84%    failed      0.00%
+ 365  Q41771            85.78%    failed      3.15%
+ 366  Q41594            85.13%    failed      4.18%
+ 367  Q40577            90.55%    failed      0.34%
+ 368  Q40322            89.67%    failed      1.31%
+ 369  Q401R6            86.85%    passed     21.67%
+ 370  Q401R5            86.78%    failed      2.87%
+ 371  Q3IPL1            94.12%    failed      0.00%
+ 372  Q39978            90.42%    failed      0.02%
+ 373  Q39761            90.44%    passed      6.60%
+ 374  Q39760            90.44%    failed      2.42%
+ 375  Q39548            86.39%    failed      0.02%
+ 376  Q38802            86.16%    failed      1.08%
+ 377  Q38710            85.02%    failed      0.76%
+ 378  Q32W37            90.25%    passed     11.11%
+ 379  Q32KR6            92.81%    passed     59.86%
+ 380  Q308N0            89.60%    failed      0.35%
+ 381  Q2XSC6            89.61%    failed      0.09%
+ 382  Q2XSC5            90.27%    failed      0.12%
+ 383  Q2XSC4            90.72%    passed      5.37%
+ 384  Q2XPU7            86.73%    passed      7.57%
+ 385  Q2XPU6            86.90%    failed      3.69%
+ 386  Q2WGL8            86.85%    passed      8.54%
+ 387  Q2WGL7            86.97%    passed     23.41%
+ 388  Q2WGL6            86.94%    failed      4.01%
+ 389  Q2R712            86.89%    passed      7.35%
+ 390  Q2QQJ5            85.94%    failed      0.04%
+ 391  Q2QLV9            93.13%    failed      0.00%
+ 392  Q2NM15            90.80%    failed      0.05%
+ 393  Q2FV59            95.05%    failed      0.04%
+ 394  Q29VN3            90.70%    failed      0.08%
+ 395  Q29VN2            89.98%    failed      0.00%
+ 396  Q20HU7            89.06%    failed      0.13%
+ 397  Q1XBU5            89.49%    failed      0.00%
+ 398  Q1XBU4            89.82%    failed      0.57%
+ 399  Q1PDD2            90.30%    failed      0.06%
+ 400  Q1G1A4            86.96%    failed      0.07%
+ 401  Q1ERD3            86.77%    failed      0.33%
+ 402  Q1EG72            90.55%    failed      0.01%
+ 403  Q1AHB2            85.92%    failed      0.00%
+ 404  Q12051            94.22%    failed      0.00%
+ 405  Q10231            87.56%    failed      2.36%
+ 406  Q0VHD6            90.51%    failed      0.00%
+ 407  Q0JF02            86.77%    failed      0.11%
+ 408  Q0JEZ8            85.47%    failed      0.00%
+ 409  Q0JA82            86.96%    failed      0.05%
+ 410  Q0E088            85.70%    failed      0.00%
+ 411  Q09152            93.37%    failed      2.39%
+ 412  Q08IT1            86.73%    passed      6.78%
+ 413  Q08291            94.88%    failed      0.00%
+ 414  Q04782            87.44%    failed      4.66%
+ 415  Q03471            94.10%    passed     10.39%
+ 416  Q02769            92.82%    passed     64.24%
+ 417  Q00G37            85.68%    failed      0.00%
+ 418  Q00909            93.53%    passed     61.42%
+ 419  Q00835            93.50%    passed     53.55%
+ 420  PhTS-1            94.22%    passed     49.02%
+ 421  PbTC-1            92.84%    passed      5.52%
+ 422  P9WKH1            93.81%    failed      0.00%
+ 423  P9WJ61            94.89%    passed     13.45%
+ 424  P9WEY7            94.24%    passed     20.43%
+ 425  P9WEY4            94.19%    passed     32.93%
+ 426  P9WEX3            94.27%    passed      9.68%
+ 427  P9WEW2            93.63%    failed      2.50%
+ 428  P9WEW1            93.96%    passed      9.08%
+ 429  P9WEW0            93.94%    passed     58.55%
+ 430  P9WEV7            87.16%    failed      0.00%
+ 431  P9WEV6            87.44%    failed      0.00%
+ 432  P9WEV2            86.58%    passed      8.25%
+ 433  P9WEQ2            94.25%    failed      0.04%
+ 434  P9WEP0            87.75%    failed      3.86%
+ 435  P95999            94.27%    failed      0.00%
+ 436  P93665            90.44%    passed      8.82%
+ 437  P84466            87.37%    failed      0.09%
+ 438  P80042            93.63%    failed      0.00%
+ 439  P78589            92.27%    failed      0.19%
+ 440  P59287            89.65%    failed      0.21%
+ 441  P56966            94.82%    failed      1.11%
+ 442  P55350            95.19%    failed      0.00%
+ 443  P55348            88.84%    failed      0.00%
+ 444  P54976            95.03%    failed      0.00%
+ 445  P54975            94.76%    failed      0.00%
+ 446  P54924            88.61%    failed      0.00%
+ 447  P53800            92.91%    passed     19.29%
+ 448  P53799            92.93%    passed     39.68%
+ 449  P53798            92.82%    passed     38.37%
+ 450  P53797            92.70%    failed      0.00%
+ 451  P49352            94.10%    failed      4.76%
+ 452  P49351            94.10%    failed      0.95%
+ 453  P49350            94.08%    failed      0.10%
+ 454  P49085            92.93%    failed      0.01%
+ 455  P48450            87.35%    failed      0.04%
+ 456  P48449            87.37%    failed      0.00%
+ 457  P39464            94.31%    failed      0.00%
+ 458  P38605            86.90%    failed      0.76%
+ 459  P38604            87.39%    failed      1.65%
+ 460  P37295            89.61%    failed      0.00%
+ 461  P37294            94.19%    failed      0.01%
+ 462  P37272            92.77%    failed      0.00%
+ 463  P37271            92.72%    failed      0.00%
+ 464  P37269            94.69%    failed      0.00%
+ 465  P37268            92.81%    passed     61.78%
+ 466  P36596            92.06%    failed      0.26%
+ 467  P34802            93.60%    failed      0.00%
+ 468  P33990            88.65%    failed      0.00%
+ 469  P33247            89.11%    failed      0.00%
+ 470  P29704            92.34%    failed      0.02%
+ 471  P27679            93.39%    passed     84.04%
+ 472  P24322            92.53%    failed      0.25%
+ 473  P22939            94.84%    failed      0.00%
+ 474  P22873            94.70%    failed      0.00%
+ 475  P21684            94.79%    failed      0.00%
+ 476  P21683            94.67%    failed      0.00%
+ 477  P17060            95.01%    failed      0.00%
+ 478  P14324            92.77%    failed      0.42%
+ 479  P13513            93.55%    passed     55.96%
+ 480  P0DPK6            93.81%    failed      0.00%
+ 481  P0DL13            94.05%    passed     24.92%
+ 482  P0DI77            89.65%    failed      1.70%
+ 483  P0DI76            89.65%    failed      1.70%
+ 484  P0CV96            89.99%    failed      0.85%
+ 485  P0CV95            90.03%    failed      1.22%
+ 486  P0CV94            91.05%    failed      0.17%
+ 487  P0CJ43            89.84%    failed      0.40%
+ 488  P0C8Y0            86.73%    passed     13.64%
+ 489  P0C565            93.22%    passed     30.50%
+ 490  P08836            93.67%    failed      0.04%
+ 491  P08524            93.93%    failed      0.04%
+ 492  P08196            92.89%    failed      0.06%
+ 493  P05369            93.91%    failed      0.03%
+ 494  O95749            94.82%    failed      1.44%
+ 495  O82146            86.87%    passed     87.99%
+ 496  O82141            86.54%    failed      0.05%
+ 497  O82140            86.84%    passed     37.43%
+ 498  O82139            86.92%    passed      6.51%
+ 499  O81923            90.36%    failed      0.10%
+ 500  O81193            89.82%    failed      0.05%
+ 501  O81192            89.68%    failed      3.71%
+ 502  O81191            89.80%    passed      5.35%
+ 503  O81086            85.90%    failed      0.00%
+ 504  O74165            92.36%    failed      0.15%
+ 505  O65435            89.65%    failed      0.00%
+ 506  O65323            90.36%    failed      0.14%
+ 507  O64961            90.55%    failed      0.23%
+ 508  O64405            89.77%    failed      1.23%
+ 509  O64404            89.98%    failed      1.10%
+ 510  O59947            93.39%    passed     43.98%
+ 511  O59703            93.94%    failed      0.01%
+ 512  O53507            93.93%    failed      0.00%
+ 513  O50410            93.96%    failed      0.00%
+ 514  O50406            91.36%    failed      0.00%
+ 515  O49853            90.44%    passed      8.21%
+ 516  O48935            90.51%    failed      0.57%
+ 517  O48666            92.84%    passed     12.42%
+ 518  O24475            89.16%    failed      0.20%
+ 519  O24474            89.18%    failed      1.12%
+ 520  O24242            94.10%    failed      1.18%
+ 521  O24241            94.10%    failed      0.65%
+ 522  O23945            90.41%    failed      0.77%
+ 523  O23909            86.96%    passed      7.02%
+ 524  O23390            86.90%    passed     17.38%
+ 525  O22340            89.01%    failed      0.23%
+ 526  O22043            94.20%    failed      0.00%
+ 527  O14230            94.01%    failed      1.28%
+ 528  O13489            93.36%    passed     43.46%
+ 529  O13284            83.68%    failed      0.00%
+ 530  O07854            95.05%    failed      0.04%
+ 531  O06728            95.39%    failed      0.00%
+ 532  O06428            94.22%    failed      0.00%
+ 533  O05572            94.39%    failed      0.00%
+ 534  O04806            89.60%    passed     15.65%
+ 535  O04408            86.18%    failed      0.05%
+ 536  O04046            93.51%    failed      0.00%
+ 537  N4V6D4            87.72%    failed      0.00%
+ 538  MW446505.1        87.65%    failed      0.19%
+ 539  M5AW86            93.93%    failed      0.35%
+ 540  M4HZ33            90.58%    failed      0.01%
+ 541  M4HYP3            84.89%    failed      0.26%
+ 542  M4HYC8            85.02%    passed      5.58%
+ 543  M4HYC6            85.33%    failed      2.72%
+ 544  M4HY08            85.02%    failed      2.89%
+ 545  M4HY05            85.21%    failed      2.05%
+ 546  M4HXW5            84.89%    failed      0.19%
+ 547  M4HXU6            85.21%    failed      2.71%
+ 548  M4GGS1            90.29%    failed      0.17%
+ 549  M4GGS0            90.29%    failed      0.08%
+ 550  M2V8C1            87.56%    failed      0.36%
+ 551  M2U578            87.85%    failed      0.01%
+ 552  M1VDX3            94.08%    failed      0.00%
+ 553  M1V9Q0            93.60%    failed      0.00%
+ 554  LdSTS7            94.03%    passed     36.55%
+ 555  LdSTS6            93.36%    failed      0.02%
+ 556  LdSTS3            94.12%    failed      2.26%
+ 557  LdSTS11           94.08%    passed     12.29%
+ 558  LdSTS1            94.12%    passed     11.16%
+ 559  L7XCQ7            90.36%    failed      0.00%
+ 560  L0I7F9            90.44%    failed      0.14%
+ 561  L0I517            90.46%    failed      0.39%
+ 562  L0HP52            90.30%    failed      0.39%
+ 563  L0HLH2            90.29%    failed      0.12%
+ 564  L0HB77            89.70%    failed      0.40%
+ 565  L0HAM7            89.60%    failed      2.90%
+ 566  KUL85185.1        88.42%    failed      0.01%
+ 567  K9Y6Y9            89.72%    failed      0.04%
+ 568  K9Y645            89.72%    failed      0.04%
+ 569  K7WTQ7            90.18%    passed      7.31%
+ 570  K7WDC8            94.88%    failed      0.00%
+ 571  K7TR87            86.58%    failed      0.00%
+ 572  K7TKS3            90.53%    failed      0.01%
+ 573  K7PRF2            90.60%    failed      2.65%
+ 574  K7NBZ9            86.90%    failed      1.88%
+ 575  K4LMW2            90.32%    passed      7.41%
+ 576  K4L9M2            90.32%    failed      2.41%
+ 577  K2SUY0            87.96%    failed      0.01%
+ 578  K0K750            93.91%    failed      0.00%
+ 579  J9RLZ7            90.29%    failed      0.10%
+ 580  J9R5V4            90.30%    failed      0.42%
+ 581  J9R388            87.23%    passed      7.83%
+ 582  J9R1J8            93.98%    failed      0.10%
+ 583  J9QS25            93.67%    passed      7.39%
+ 584  J9QS23            87.25%    failed      4.27%
+ 585  J7LQ09            90.65%    failed      0.07%
+ 586  J7LP58            90.27%    failed      0.90%
+ 587  J7LMP2            90.25%    failed      0.07%
+ 588  J7LJN5            90.42%    failed      1.61%
+ 589  J7LH11            90.58%    failed      0.57%
+ 590  J7FIX8            94.24%    failed      1.47%
+ 591  J3MQP7            90.61%    failed      0.04%
+ 592  IIIS              93.67%    passed     12.30%
+ 593  I7H727            90.41%    passed      6.53%
+ 594  I7GPX8            89.73%    passed     24.76%
+ 595  I6RE61            89.72%    failed      0.04%
+ 596  I6RAQ6            90.56%    failed      0.47%
+ 597  I6R4V5            90.58%    passed     11.53%
+ 598  I6QSN0            90.29%    failed      0.02%
+ 599  I6QPS5            90.53%    failed      0.16%
+ 600  I3WEW0            89.96%    failed      0.25%
+ 601  I2N045            94.27%    failed      0.00%
+ 602  I2CM69            86.58%    failed      0.00%
+ 603  I2CM59            86.59%    failed      0.00%
+ 604  I2CM56            86.59%    failed      0.00%
+ 605  I2CM55            86.59%    failed      0.00%
+ 606  I1ZHA5            89.60%    failed      0.08%
+ 607  I1TE91            90.36%    failed      0.05%
+ 608  I1S104            94.15%    passed      8.36%
+ 609  I1RL14            93.65%    failed      0.55%
+ 610  I1M2G5            90.79%    failed      0.48%
+ 611  HcTC-3            92.93%    passed      6.36%
+ 612  HcTC-2            93.01%    failed      2.22%
+ 613  HcTC-1            92.81%    passed     12.48%
+ 614  H9L9E5            90.41%    passed     14.10%
+ 615  H9C6R1            90.22%    failed      4.89%
+ 616  H8ZM73            85.04%    failed      0.38%
+ 617  H6WZF2            90.63%    failed      4.93%
+ 618  H6VLG5            86.01%    failed      0.01%
+ 619  H6VLG0            86.94%    failed      2.20%
+ 620  H2VFR7            94.98%    failed      0.03%
+ 621  H2KWF1            86.90%    failed      0.84%
+ 622  G9MAN7            85.04%    failed      0.06%
+ 623  G9M5S9            85.30%    failed      0.00%
+ 624  G9M5S6            85.23%    failed      0.03%
+ 625  G9M5S5            85.28%    failed      0.00%
+ 626  G9M5S4            85.56%    failed      0.19%
+ 627  G8H5N2            90.68%    failed      0.02%
+ 628  G8H5N1            90.44%    failed      0.03%
+ 629  G8H5N0            90.44%    failed      0.02%
+ 630  G8H5M9            90.44%    failed      0.02%
+ 631  G8H5M8            90.60%    failed      0.50%
+ 632  G8H5M7            90.61%    failed      0.45%
+ 633  G8GJ96            86.47%    failed      0.07%
+ 634  G8GJ95            86.46%    failed      0.08%
+ 635  G8GJ94            90.08%    failed      0.11%
+ 636  G7LHE5            95.32%    passed     35.87%
+ 637  G7K980            86.94%    passed     25.61%
+ 638  G5CV56            90.42%    failed      0.02%
+ 639  G5CV54            90.20%    failed      0.00%
+ 640  G5CV52            90.44%    failed      0.01%
+ 641  G5CV51            86.47%    failed      0.00%
+ 642  G5CV50            85.85%    failed      0.00%
+ 643  G5CV48            90.44%    failed      0.06%
+ 644  G5CV46            90.42%    failed      0.37%
+ 645  G5CV45            90.55%    failed      0.08%
+ 646  G5CV44            90.48%    failed      0.08%
+ 647  G5CV43            90.41%    failed      0.00%
+ 648  G5CV42            89.80%    failed      0.74%
+ 649  G5CV40            90.58%    failed      0.04%
+ 650  G5CV38            85.85%    failed      1.31%
+ 651  G5CV35            86.58%    failed      0.00%
+ 652  G3E4M6            87.75%    failed      1.53%
+ 653  G3E4M4            86.30%    failed      2.85%
+ 654  G3CCC1            86.34%    failed      0.89%
+ 655  G3CCC0            86.16%    failed      0.06%
+ 656  G2P5T1            93.37%    failed      0.00%
+ 657  G1JUH6            90.55%    failed      0.23%
+ 658  G1JUH5            89.70%    failed      0.19%
+ 659  G1JUH4            89.79%    failed      0.28%
+ 660  G1JUH1            89.53%    failed      0.04%
+ 661  G1DGI7            87.06%    failed      0.04%
+ 662  G0Y7D3            89.99%    failed      3.24%
+ 663  G0Y7D2            89.99%    failed      2.40%
+ 664  G0Y7D1            89.96%    passed      7.74%
+ 665  G0Y288            93.39%    failed      0.12%
+ 666  G0Y287            91.98%    failed      0.01%
+ 667  G0Y286            93.05%    passed     19.31%
+ 668  G0LES5            93.31%    passed     84.96%
+ 669  F8WQD0            86.87%    passed     11.69%
+ 670  F8UL81            90.55%    failed      0.75%
+ 671  F8UL80            90.36%    failed      0.01%
+ 672  F8TWC9            90.32%    failed      1.15%
+ 673  F8JSS1            90.82%    failed      0.00%
+ 674  F6I4Y2            90.30%    failed      0.53%
+ 675  F2XFB2            85.18%    failed      0.05%
+ 676  F2XFA8            89.18%    failed      0.15%
+ 677  F2XFA6            89.18%    failed      1.57%
+ 678  F2XFA5            89.23%    failed      2.21%
+ 679  F2XFA4            89.23%    failed      2.50%
+ 680  F2XFA2            89.44%    passed      6.98%
+ 681  F2XFA1            89.23%    failed      3.07%
+ 682  F2XFA0            90.03%    failed      0.27%
+ 683  F2XF99            89.99%    failed      0.48%
+ 684  F2XF98            89.44%    failed      2.79%
+ 685  F2XF97            90.08%    failed      0.12%
+ 686  F2XF96            89.18%    failed      2.18%
+ 687  F2XF95            89.18%    failed      1.62%
+ 688  F2XF94            89.18%    failed      0.53%
+ 689  F2XF93            89.18%    failed      2.12%
+ 690  F2XF92            84.92%    failed      0.32%
+ 691  F1CKJ1            89.18%    failed      0.19%
+ 692  F1CKI9            89.18%    passed      7.05%
+ 693  F1CKI8            89.18%    passed      5.07%
+ 694  F1CKI6            89.18%    failed      0.62%
+ 695  F1A1D4            93.69%    failed      0.00%
+ 696  F0ZPL2            94.53%    failed      0.14%
+ 697  F0ZLU4            93.50%    failed      0.03%
+ 698  F0ZL92            94.25%    failed      0.00%
+ 699  F0ZK52            94.12%    passed     10.35%
+ 700  F0ZDD0            94.65%    failed      0.00%
+ 701  ErTC-2            93.22%    failed      0.42%
+ 702  ErTC-1            92.81%    failed      0.18%
+ 703  E9N3U9            89.98%    failed      0.35%
+ 704  E9F8R9            93.88%    failed      0.17%
+ 705  E9F5E9            94.19%    passed      6.76%
+ 706  E9E766            93.98%    failed      1.19%
+ 707  E8W6C7            93.86%    failed      0.00%
+ 708  E7DN64            86.84%    passed     80.77%
+ 709  E7DN63            86.87%    passed     32.29%
+ 710  E5RM29            90.41%    failed      1.63%
+ 711  E5L4Y4            90.42%    failed      0.54%
+ 712  E5GAG4            89.77%    passed      7.60%
+ 713  E5GAG2            89.77%    passed      6.00%
+ 714  E5GAG1            90.36%    failed      2.98%
+ 715  E5GAG0            89.92%    failed      2.15%
+ 716  E5GAF8            89.92%    failed      0.13%
+ 717  E5GAF7            90.42%    failed      0.11%
+ 718  E5GAF6            90.32%    failed      1.22%
+ 719  E5GAF5            90.42%    failed      0.93%
+ 720  E5GAF4            90.39%    failed      0.03%
+ 721  E5GAF3            90.42%    failed      0.70%
+ 722  E4V6I8            87.32%    failed      0.46%
+ 723  E4N7E5            94.48%    failed      0.00%
+ 724  E4MYY0            94.17%    failed      0.00%
+ 725  E3WDE2            84.71%    failed      0.01%
+ 726  E3W326            90.06%    failed      0.36%
+ 727  E3W208            90.30%    failed      0.76%
+ 728  E3W207            90.36%    failed      1.26%
+ 729  E3W206            90.06%    failed      0.05%
+ 730  E3W205            90.06%    failed      0.46%
+ 731  E3W204            90.18%    passed     15.26%
+ 732  E3W203            90.18%    passed     13.09%
+ 733  E3W202            90.18%    passed      7.31%
+ 734  E3VWJ0            94.19%    failed      0.00%
+ 735  E2IUB0            86.82%    failed      2.05%
+ 736  E2IUA9            86.80%    passed     33.64%
+ 737  E2IUA8            86.77%    passed     73.26%
+ 738  E2IUA7            86.77%    passed     51.97%
+ 739  E2IUA6            86.56%    passed     15.21%
+ 740  E2IHE0            86.06%    failed      0.49%
+ 741  E2E2P2            89.63%    failed      0.13%
+ 742  E2E2P0            89.75%    failed      0.11%
+ 743  E2E2N8            90.29%    failed      0.08%
+ 744  E2E2N7            90.42%    failed      0.04%
+ 745  E2E2N5            90.44%    failed      0.00%
+ 746  E2E2N4            90.44%    failed      0.00%
+ 747  E2E2N3            90.63%    failed      0.06%
+ 748  DgTC-2            93.13%    failed      0.22%
+ 749  DgTC-1            92.91%    failed      0.01%
+ 750  D9XDR8            94.17%    failed      0.00%
+ 751  D9XD61            94.08%    failed      0.00%
+ 752  D9J0D5            89.68%    failed      0.25%
+ 753  D9J0D4            89.68%    failed      0.29%
+ 754  D9J0D3            89.68%    failed      0.47%
+ 755  D8RNZ9            93.65%    passed      5.41%
+ 756  D8RLD3            94.00%    failed      2.05%
+ 757  D7T0P8            86.89%    failed      2.72%
+ 758  D7PHZ5            93.98%    failed      0.00%
+ 759  D7NJ68            87.47%    failed      0.01%
+ 760  D5SL78            94.32%    failed      0.00%
+ 761  D5SJ87            90.60%    failed      0.00%
+ 762  D5KXJ0            94.91%    failed      0.00%
+ 763  D5KXD2            90.55%    failed      0.22%
+ 764  D4IIJ1            86.68%    failed      0.01%
+ 765  D4IIJ0            86.65%    failed      0.01%
+ 766  D3KYU2            91.70%    failed      0.00%
+ 767  D2YZP9            90.51%    failed      0.01%
+ 768  D2XEB3            86.94%    failed      0.70%
+ 769  D2X8Y8            86.94%    failed      0.77%
+ 770  D2X8G2            86.87%    passed      9.62%
+ 771  D2X8G1            86.94%    failed      0.60%
+ 772  D2X8G0            86.87%    passed     10.49%
+ 773  D2K762            92.84%    passed      5.60%
+ 774  D2B747            94.31%    failed      0.00%
+ 775  D1MJ52            90.39%    failed      0.02%
+ 776  D0VMR8            90.56%    failed      0.00%
+ 777  D0VMR7            90.56%    failed      0.01%
+ 778  D0VMR6            90.56%    failed      0.01%
+ 779  D0VMR5            90.56%    failed      0.05%
+ 780  D0VFU8            92.91%    passed     14.14%
+ 781  D0UZK2            90.55%    failed      1.05%
+ 782  CiTC-1            92.82%    failed      3.07%
+ 783  CgCS              86.94%    failed      0.00%
+ 784  C9K2Q3            87.97%    failed      0.00%
+ 785  C9K1X5            94.70%    failed      2.23%
+ 786  C9E894            92.84%    passed      5.99%
+ 787  C8XPS0            89.75%    failed      0.36%
+ 788  C7SCX0            86.89%    failed      4.42%
+ 789  C7PLV2            94.46%    failed      2.74%
+ 790  C7E5W0            90.80%    failed      0.05%
+ 791  C7E5V9            90.80%    failed      0.07%
+ 792  C7E5V8            90.80%    failed      0.13%
+ 793  C7E5V7            90.79%    failed      0.05%
+ 794  C7ASI9            89.18%    failed      0.56%
+ 795  C5YN30            89.30%    failed      0.00%
+ 796  C5YHZ9            90.58%    failed      0.06%
+ 797  C5YHI2            90.60%    failed      0.00%
+ 798  C5YHH7            90.67%    failed      0.05%
+ 799  C5I6F7            90.60%    failed      0.17%
+ 800  C5H3I7            90.58%    failed      0.00%
+ 801  C3RSF5            89.16%    failed      0.02%
+ 802  C1K5M3            86.58%    failed      0.01%
+ 803  C0SSW7            85.66%    failed      2.57%
+ 804  C0PTH8            89.23%    failed      2.42%
+ 805  C0PT35            89.44%    failed      2.41%
+ 806  C0PPR1            89.20%    failed      1.31%
+ 807  C0PPM5            90.01%    failed      0.40%
+ 808  C0KWV7            89.58%    failed      0.00%
+ 809  C0KWV6            89.60%    failed      0.44%
+ 810  C0KWV5            89.58%    failed      0.01%
+ 811  C0KWV4            89.60%    failed      0.15%
+ 812  C0KWV3            89.60%    failed      0.01%
+ 813  BDO24661.1        94.06%    passed      7.76%
+ 814  BDI63124.1        93.77%    failed      0.09%
+ 815  BDI63123.1        94.53%    failed      0.02%
+ 816  BDI63121.1        93.01%    failed      0.04%
+ 817  BDI63118.1        94.25%    failed      0.01%
+ 818  BDI63117.1        94.25%    failed      0.02%
+ 819  BDI63116.1        94.10%    passed     41.53%
+ 820  BDI63114.1        94.17%    failed      0.80%
+ 821  BDI63113.1        94.41%    failed      1.25%
+ 822  BDI63111.1        93.22%    passed     11.58%
+ 823  BDI63110.1        94.15%    passed     40.14%
+ 824  BDI63109.1        93.69%    passed     53.04%
+ 825  BDI63108.1        94.20%    passed     34.17%
+ 826  BDI63107.1        94.12%    passed     40.94%
+ 827  BDI63106.1        93.58%    failed      1.29%
+ 828  BDI63105.1        94.77%    passed      7.79%
+ 829  BDI63103.1        94.67%    passed     30.74%
+ 830  BDI63099.1        94.06%    passed     23.30%
+ 831  BDI63096.1        93.43%    passed     21.07%
+ 832  BDI63095.1        93.18%    passed     11.64%
+ 833  BDI63091.1        94.20%    passed     20.85%
+ 834  BDI63087.1        94.01%    passed     28.85%
+ 835  BDI63085.1        94.62%    failed      3.58%
+ 836  BDI63084.1        94.65%    passed      8.73%
+ 837  BDI63083.1        94.13%    failed      1.44%
+ 838  BaTC-2            93.00%    passed     39.62%
+ 839  BaTC-1            92.75%    failed      1.43%
+ 840  BAR94033.1        94.41%    passed     26.59%
+ 841  B9X0J1            86.87%    passed      9.89%
+ 842  B9T625            86.06%    failed      0.02%
+ 843  B9S9Z3            90.37%    failed      0.04%
+ 844  B9RXW0            90.27%    failed      0.02%
+ 845  B9RHW5            89.41%    failed      0.86%
+ 846  B9GSM9            86.28%    passed      6.22%
+ 847  B8XA41            86.59%    failed      0.00%
+ 848  B8PQ84            86.32%    failed      1.84%
+ 849  B8PD44            94.20%    passed      6.59%
+ 850  B6UV92            92.34%    failed      0.00%
+ 851  B6SCF6            90.29%    failed      0.00%
+ 852  B6SCF5            90.29%    failed      0.00%
+ 853  B6SCF4            89.42%    failed      0.49%
+ 854  B6K412            88.68%    failed      0.10%
+ 855  B6HFX8            87.37%    failed      2.47%
+ 856  B6H063            94.10%    passed     10.55%
+ 857  B6EXY6            86.90%    passed     17.28%
+ 858  B5HDJ6            93.70%    failed      0.00%
+ 859  B5H7H3            93.58%    failed      0.00%
+ 860  B5GW45            92.79%    failed      0.00%
+ 861  B5GS26            94.36%    failed      0.00%
+ 862  B5GRC8            94.08%    failed      0.00%
+ 863  B5GMG2            94.31%    failed      0.00%
+ 864  B5A435            90.36%    failed      0.14%
+ 865  B5A434            90.06%    failed      0.39%
+ 866  B4YYR2            90.13%    passed     13.07%
+ 867  B4YA15            93.79%    failed      0.04%
+ 868  B4XAK6            89.99%    failed      1.71%
+ 869  B4XAK5            89.22%    passed      8.73%
+ 870  B4XAK4            90.08%    failed      0.46%
+ 871  B3Y522            88.20%    failed      0.22%
+ 872  B3TPQ7            89.79%    failed      0.82%
+ 873  B3TPQ6            90.51%    failed      0.12%
+ 874  B2KSJ6            90.34%    failed      0.12%
+ 875  B2KSJ5            90.15%    failed      0.09%
+ 876  B2J4A4            94.43%    failed      0.70%
+ 877  B2DBF1            83.04%    failed      0.00%
+ 878  B2DBF0            82.68%    failed      0.00%
+ 879  B2DBE9            92.68%    failed      0.53%
+ 880  B2DBE8            93.29%    failed      0.01%
+ 881  B2C4D8            90.56%    failed      0.31%
+ 882  B2C4D7            90.56%    failed      0.49%
+ 883  B2C4D6            90.56%    failed      0.33%
+ 884  B2C4D5            90.56%    failed      0.55%
+ 885  B2C4D4            90.56%    failed      0.87%
+ 886  B2C4D3            90.56%    failed      0.32%
+ 887  B2C4D0            90.56%    failed      0.41%
+ 888  B1XJV9            94.79%    failed      0.00%
+ 889  B1W019            94.22%    failed      0.00%
+ 890  B1PLH3            86.94%    failed      3.05%
+ 891  B1B1U4            90.44%    failed      0.00%
+ 892  B1B1U3            90.55%    failed      0.00%
+ 893  B0Y5B4            87.32%    failed      0.00%
+ 894  B0Y565            87.27%    failed      0.00%
+ 895  B0KZ40            92.65%    failed      0.00%
+ 896  B0FGA9            90.36%    failed      0.01%
+ 897  A9JQL9            95.05%    failed      0.06%
+ 898  A9GK58            94.57%    failed      0.04%
+ 899  A9FZ87            94.32%    failed      0.04%
+ 900  A9AWD5            91.01%    failed      0.00%
+ 901  A8R7G3            86.92%    passed     16.37%
+ 902  A8NU13            94.05%    failed      1.72%
+ 903  A8NE23            92.67%    passed      5.48%
+ 904  A8NCK5            94.39%    passed      5.20%
+ 905  A8CDT3            86.87%    passed     12.04%
+ 906  A8CDT2            86.90%    passed     35.02%
+ 907  A8C981            86.70%    failed      3.39%
+ 908  A8C980            86.90%    passed     58.23%
+ 909  A7NH01            94.38%    failed      0.00%
+ 910  A7IZZ2            89.39%    failed      0.07%
+ 911  A7IZZ1            89.27%    failed      0.01%
+ 912  A7BJ36            86.92%    failed      3.33%
+ 913  A7BJ35            86.92%    failed      1.27%
+ 914  A7BG60            89.61%    passed     29.90%
+ 915  A6XH05            89.80%    failed      1.01%
+ 916  A5YZT7            89.29%    failed      0.81%
+ 917  A5Y5L5            89.48%    failed      2.27%
+ 918  A5LHW8            86.85%    failed      1.25%
+ 919  A5BEB8            90.36%    failed      0.99%
+ 920  A5AQH7            90.42%    failed      4.78%
+ 921  A5A8G0            84.80%    passed     45.68%
+ 922  A4VB63            86.90%    passed      9.84%
+ 923  A4UUM6            89.67%    failed      0.03%
+ 924  A4KAG8            85.84%    failed      0.05%
+ 925  A4KAG7            85.84%    failed      0.09%
+ 926  A4FVP2            90.25%    failed      0.90%
+ 927  A4FG19            93.89%    failed      0.00%
+ 928  A3KI17            92.41%    failed      0.00%
+ 929  A2PZA54           87.59%    failed      0.34%
+ 930  A1JH12            89.70%    passed      8.11%
+ 931  A1E4D1            86.85%    passed     28.78%
+ 932  A1DN30            86.82%    failed      0.12%
+ 933  A1CVK0            87.27%    failed      0.00%
+ 934  A1C8C3            87.61%    failed      0.28%
+ 935  A0SJQ5            91.94%    passed      5.21%
+ 936  A0RZI3            90.22%    failed      0.01%
+ 937  A0RZI2            90.46%    failed      0.79%
+ 938  A0A8K1AY78        86.82%    failed      0.16%
+ 939  A0A8F4SPZ5        87.72%    failed      0.00%
+ 940  A0A8F4SPY9        88.18%    failed      0.00%
+ 941  A0A8F4SNK9        87.56%    failed      0.36%
+ 942  A0A8F4SNK4        86.94%    failed      0.00%
+ 943  A0A8F4SKU0        87.73%    failed      0.00%
+ 944  A0A8F4SKT7        86.84%    failed      0.00%
+ 945  A0A8F4SK87        87.68%    failed      0.00%
+ 946  A0A8F4SK84        88.01%    failed      0.14%
+ 947  A0A8F4SK83        87.66%    failed      0.01%
+ 948  A0A8F4SK79        87.44%    failed      0.00%
+ 949  A0A8F4PQP7        87.13%    failed      0.45%
+ 950  A0A8F4PQI4        87.59%    failed      0.44%
+ 951  A0A8F4PQH5        87.13%    failed      0.00%
+ 952  A0A8F4PPJ2        87.87%    failed      0.00%
+ 953  A0A8F4PPI6        87.61%    failed      0.86%
+ 954  A0A8F4PPH7        87.70%    failed      0.00%
+ 955  A0A8F4PP18        87.16%    failed      0.04%
+ 956  A0A8F4PNT7        86.58%    failed      0.01%
+ 957  A0A8F4PNT1        87.72%    failed      0.00%
+ 958  A0A8F4PNJ7        87.20%    failed      0.57%
+ 959  A0A8F4PMY5        87.72%    failed      0.18%
+ 960  A0A8F4PMX6        87.68%    failed      0.16%
+ 961  A0A8F4PMV8        87.61%    failed      1.26%
+ 962  A0A7S5L3J3        90.41%    failed      0.21%
+ 963  A0A7S5L3H2        90.48%    failed      3.88%
+ 964  A0A7S5L324        90.41%    failed      0.11%
+ 965  A0A7S5GI44        90.41%    failed      0.06%
+ 966  A0A7S5GI43        90.96%    failed      2.02%
+ 967  A0A7L7SG75        90.27%    failed      0.73%
+ 968  A0A7L7SES4        89.60%    passed      6.32%
+ 969  A0A7L7SCQ9        90.53%    failed      0.00%
+ 970  A0A7L7S8U7        90.18%    failed      4.59%
+ 971  A0A7L7S5T2        90.42%    failed      0.00%
+ 972  A0A7G5KLV3        89.89%    failed      0.00%
+ 973  A0A7G5KLV2        90.56%    failed      0.07%
+ 974  A0A7G5KLV1        90.32%    failed      0.01%
+ 975  A0A7G5KLV0        89.82%    passed     16.65%
+ 976  A0A7D0AGU9        94.77%    failed      2.30%
+ 977  A0A6S6QR11        83.45%    failed      0.00%
+ 978  A0A6P8ANR6        87.92%    failed      3.24%
+ 979  A0A6M6CDA0        89.72%    passed     14.44%
+ 980  A0A6M6CCT4        89.82%    failed      0.05%
+ 981  A0A6M6CCF6        89.72%    failed      3.07%
+ 982  A0A6G7GHF5        87.49%    failed      0.00%
+ 983  A0A6C0TLK1        90.04%    failed      0.10%
+ 984  A0A6C0TL59        90.01%    failed      0.01%
+ 985  A0A6C0TJK8        90.06%    failed      0.03%
+ 986  A0A6C0THV5        89.54%    failed      2.80%
+ 987  A0A6C0QES1        90.03%    failed      0.11%
+ 988  A0A6B8N4Y9        89.79%    failed      0.04%
+ 989  A0A6B8N100        89.72%    failed      1.27%
+ 990  A0A6B8MS60        89.91%    failed      0.00%
+ 991  A0A6A6W5M9        88.39%    failed      0.00%
+ 992  A0A678QA10        89.84%    failed      2.19%
+ 993  A0A650A872        90.58%    failed      0.00%
+ 994  A0A650A7N9        90.58%    failed      0.00%
+ 995  A0A650A7N6        90.51%    failed      0.00%
+ 996  A0A650A7M1        90.51%    failed      0.00%
+ 997  A0A650A7K4        90.58%    failed      0.00%
+ 998  A0A650A7I8        90.51%    failed      0.00%
+ 999  A0A650A7H3        90.58%    failed      0.00%
+1000  A0A5S9I252        93.34%    passed     11.68%
+1001  A0A5Q0QU70        93.82%    passed     47.20%
+1002  A0A5Q0QSI8        92.58%    failed      0.40%
+1003  A0A5Q0QRJ3        94.03%    passed     61.41%
+1004  A0A5Q0QP64        94.10%    failed      4.42%
+1005  A0A5Q0QNJ2        93.29%    passed      5.00%
+1006  A0A5Q0QNH9        93.32%    passed     56.62%
+1007  A0A5Q0QN66        88.63%    failed      0.00%
+1008  A0A5Q0QMX1        93.91%    passed      5.84%
+1009  A0A5Q0QMX0        93.58%    failed      0.62%
+1010  A0A5K6WHY7        90.22%    failed      0.01%
+1011  A0A4Y5QVX6        90.49%    failed      0.00%
+1012  A0A4Y5QVX4        89.27%    failed      0.02%
+1013  A0A4Y5L9K3        90.15%    failed      0.00%
+1014  A0A4S8MAF3        93.91%    passed     22.60%
+1015  A0A482IC14        90.53%    failed      3.00%
+1016  A0A482AJV9        90.37%    failed      0.26%
+1017  A0A411JJ93        86.92%    passed      5.22%
+1018  A0A3S9GVB5        94.34%    failed      0.00%
+1019  A0A3S9GV71        94.24%    failed      0.59%
+1020  A0A3Q9FFM1        86.99%    failed      0.02%
+1021  A0A3L6G998        90.56%    failed      0.59%
+1022  A0A3L6G2C1        90.39%    failed      0.00%
+1023  A0A3G9F1F9        90.56%    failed      0.00%
+1024  A0A3G9EY38        90.56%    failed      0.00%
+1025  A0A3G9EJV0        90.49%    failed      0.00%
+1026  A0A3G9EJT8        90.42%    passed      8.60%
+1027  A0A3G9ED98        90.42%    passed      6.03%
+1028  A0A3G9EAS3        90.41%    passed      7.48%
+1029  A0A3G1QTS7        86.30%    failed      0.01%
+1030  A0A3G1HQN7        93.22%    passed      9.53%
+1031  A0A3G1DJL2        92.77%    passed     19.58%
+1032  A0A396GKK7        90.99%    passed     14.00%
+1033  A0A386JV86        93.48%    passed      8.53%
+1034  A0A385AJN0        94.39%    failed      0.00%
+1035  A0A385AJM7        93.74%    passed     17.91%
+1036  A0A385AJM6        93.82%    failed      0.00%
+1037  A0A385AJM4        94.41%    failed      3.33%
+1038  A0A385AJM2        94.27%    passed     24.09%
+1039  A0A385AJL4        94.17%    passed     10.42%
+1040  A0A348FUE1        83.39%    failed      0.00%
+1041  A0A348DU52        86.71%    failed      0.21%
+1042  A0A348B793        94.27%    failed      0.00%
+1043  A0A348B790        94.00%    failed      3.48%
+1044  A0A348B788        93.94%    passed     44.04%
+1045  A0A348B784        94.10%    failed      4.69%
+1046  A0A348B782        94.13%    passed     12.17%
+1047  A0A348B781        93.70%    passed     14.44%
+1048  A0A348B780        94.17%    passed     74.96%
+1049  A0A348B779        94.17%    passed     80.26%
+1050  A0A348AUW1        90.44%    failed      0.49%
+1051  A0A348AUW0        90.44%    failed      1.48%
+1052  A0A348AUV9        90.44%    failed      1.08%
+1053  A0A348AUV7        90.44%    failed      1.19%
+1054  A0A348AUV6        90.44%    failed      1.53%
+1055  A0A348AUV5        90.44%    failed      0.74%
+1056  A0A345ZQ22        85.71%    failed      3.12%
+1057  A0A343W970        93.01%    passed      7.93%
+1058  A0A343W969        93.36%    passed     20.63%
+1059  A0A2Z6FZ31        87.49%    failed      0.00%
+1060  A0A2Z6E9F0        89.48%    failed      0.24%
+1061  A0A2Z6E967        90.44%    failed      0.10%
+1062  A0A2Z6AQX7        87.37%    failed      0.30%
+1063  A0A2Z6AQX6        86.58%    failed      0.00%
+1064  A0A2R4QKX7        90.32%    failed      3.22%
+1065  A0A2P2MRY0        90.99%    passed     85.13%
+1066  A0A2P2GK84        90.80%    failed      0.00%
+1067  A0A2L0VXR5        93.96%    failed      0.33%
+1068  A0A2L0VXR0        83.45%    failed      0.00%
+1069  A0A2K9RG07        86.20%    failed      2.49%
+1070  A0A2K9RFZ7        86.23%    failed      0.33%
+1071  A0A2K9RFZ2        89.84%    failed      0.01%
+1072  A0A2K9RFY0        86.39%    failed      0.01%
+1073  A0A2A2D8W5        93.63%    failed      0.00%
+1074  A0A291SJC7        93.18%    failed      0.00%
+1075  A0A291LSD6        90.15%    failed      0.00%
+1076  A0A290U6P6        90.42%    failed      0.23%
+1077  A0A290U6N1        90.36%    failed      4.81%
+1078  A0A290U6M6        90.30%    passed      5.93%
+1079  A0A290U6M0        90.42%    failed      0.58%
+1080  A0A286R621        94.12%    failed      1.22%
+1081  A0A284RNH4        94.10%    passed     29.30%
+1082  A0A1Z3GCD1        86.63%    failed      0.00%
+1083  A0A1Z3GC64        86.30%    failed      0.01%
+1084  A0A1Z3GBK8        86.09%    failed      0.01%
+1085  A0A1Y1C7Q5        87.13%    failed      0.06%
+1086  A0A1X9ISH5        86.51%    failed      1.18%
+1087  A0A1X9IRQ7        86.23%    failed      1.87%
+1088  A0A1W6QDJ1        86.27%    failed      2.13%
+1089  A0A1W6QDI7        89.20%    failed      0.06%
+1090  A0A1W6GW32        90.58%    failed      0.01%
+1091  A0A1W6GW18        90.58%    failed      0.01%
+1092  A0A1W6GW06        90.58%    failed      0.02%
+1093  A0A1V1FVQ6        87.44%    failed      0.00%
+1094  A0A1V0QSG6        90.22%    failed      0.00%
+1095  A0A1V0QSF6        90.49%    failed      0.00%
+1096  A0A1V0QSF3        90.49%    failed      0.00%
+1097  A0A1V0QSF2        90.41%    failed      0.01%
+1098  A0A1V0QSA8        94.15%    passed      5.95%
+1099  A0A1V0E4A6        90.30%    failed      0.41%
+1100  A0A1V0E492        90.36%    failed      0.02%
+1101  A0A1V0D8Y5        89.67%    failed      0.22%
+1102  A0A1U8QLG8        93.15%    passed     24.09%
+1103  A0A1U8QHE3        83.11%    failed      0.00%
+1104  A0A1U8I4V5        87.49%    passed      7.85%
+1105  A0A1S5RW73        86.42%    failed      0.23%
+1106  A0A1S4CZT8        86.25%    failed      0.00%
+1107  A0A1S4C9W7        87.11%    failed      1.17%
+1108  A0A1S3ZET1        89.51%    failed      0.14%
+1109  A0A1P8B2H6        88.47%    failed      0.34%
+1110  A0A1P8AW29        86.68%    passed     63.01%
+1111  A0A1P8AVI0        87.27%    passed     27.66%
+1112  A0A1P7Y0D4        92.84%    passed      5.93%
+1113  A0A1P7Y0C9        93.25%    passed     17.37%
+1114  A0A1P7Y0A2        92.84%    passed      7.20%
+1115  A0A1N7T9S7        89.82%    failed      0.35%
+1116  A0A1M6RNB3        94.05%    failed      0.19%
+1117  A0A1L9WUI2        92.37%    failed      2.73%
+1118  A0A1L9UKS1        88.01%    failed      0.14%
+1119  A0A1L7VZE7        93.08%    failed      3.37%
+1120  A0A1L7U8F2        93.08%    failed      4.32%
+1121  A0A1L7NYG3        90.58%    failed      0.02%
+1122  A0A1L7NYG2        90.58%    failed      1.37%
+1123  A0A1L7NYF8        90.58%    failed      0.02%
+1124  A0A1L6Z3A5        85.96%    failed      0.00%
+1125  A0A1L6Z3A0        85.40%    failed      0.02%
+1126  A0A1L5YKS7        92.56%    passed     45.50%
+1127  A0A1L2D3T3        90.29%    failed      0.01%
+1128  A0A1L1WGF5        90.42%    failed      0.16%
+1129  A0A1L1WGD9        90.36%    failed      0.07%
+1130  A0A1L1WGC4        90.32%    failed      0.10%
+1131  A0A1L1WGB8        90.11%    failed      2.66%
+1132  A0A1J0CQA6        92.55%    failed      0.17%
+1133  A0A1J0CQA2        92.84%    failed      0.00%
+1134  A0A1J0CQ97        92.63%    failed      0.28%
+1135  A0A1J0CQ92        91.86%    failed      0.77%
+1136  A0A1J0CQ90        93.41%    failed      2.16%
+1137  A0A1J0CQ86        92.10%    failed      4.84%
+1138  A0A1I9LTE4        86.82%    failed      0.04%
+1139  A0A1H0BVV7        94.17%    failed      0.00%
+1140  A0A1G9S4L4        93.96%    failed      0.00%
+1141  A0A1F5LDE4        87.27%    failed      0.04%
+1142  A0A1D8PI71        92.27%    failed      0.09%
+1143  A0A1D8PH78        93.94%    failed      0.00%
+1144  A0A1D6LTV0        89.18%    failed      1.22%
+1145  A0A1D6KUI6        85.37%    failed      0.00%
+1146  A0A1D6K6U5        85.77%    failed      0.00%
+1147  A0A1D6IY18        91.05%    failed      0.02%
+1148  A0A1D6EFT8        90.39%    failed      0.00%
+1149  A0A1C9J6A7        89.53%    failed      4.10%
+1150  A0A1C7AAN2        85.94%    failed      1.51%
+1151  A0A1B4XBG5        93.67%    failed      0.43%
+1152  A0A178U9Y5        89.79%    failed      0.04%
+1153  A0A177DNJ5        87.35%    failed      0.00%
+1154  A0A169T193        87.65%    failed      0.00%
+1155  A0A167V661        90.44%    failed      0.78%
+1156  A0A167CIH5        87.66%    failed      0.01%
+1157  A0A162QA28        87.68%    failed      0.14%
+1158  A0A151ZEA6        93.91%    failed      3.27%
+1159  A0A144YEA5        92.03%    failed      0.00%
+1160  A0A142ZC57        92.34%    failed      0.03%
+1161  A0A142BX74        90.55%    failed      0.01%
+1162  A0A142BX72        89.84%    failed      0.01%
+1163  A0A142BX71        92.06%    failed      0.73%
+1164  A0A142BX70        90.55%    failed      0.00%
+1165  A0A140KFG9        90.44%    failed      0.70%
+1166  A0A140AZ72        93.34%    failed      0.00%
+1167  A0A140AZ69        93.50%    failed      0.00%
+1168  A0A140AZ66        94.05%    failed      0.00%
+1169  A0A140AZ63        93.46%    failed      4.12%
+1170  A0A135LYJ9        87.94%    failed      2.40%
+1171  A0A125SXN3        86.99%    failed      0.55%
+1172  A0A125SXN2        86.78%    failed      1.15%
+1173  A0A125SXN1        86.96%    passed      7.75%
+1174  A0A125S8N2        90.25%    failed      0.00%
+1175  A0A125S8N1        90.25%    failed      0.00%
+1176  A0A100IAT3        88.20%    failed      0.00%
+1177  A0A0U5GNT1        90.89%    failed      0.00%
+1178  A0A0U5GLI1        87.63%    failed      0.54%
+1179  A0A0U5G0B1        87.49%    failed      0.00%
+1180  A0A0U4KG90        89.94%    failed      0.00%
+1181  A0A0U4IMN4        90.36%    failed      0.09%
+1182  A0A0U4CDK4        86.09%    failed      0.01%
+1183  A0A0U3LQ20        86.32%    failed      2.66%
+1184  A0A0U3BRC5        93.72%    failed      0.00%
+1185  A0A0U2U4F3        86.85%    passed     45.19%
+1186  A0A0U2D9C5        86.61%    failed      0.40%
+1187  A0A0U1XRI2        90.44%    failed      0.08%
+1188  A0A0U1XNG2        90.01%    failed      0.00%
+1189  A0A0S2IHL6        86.84%    passed      7.40%
+1190  A0A0P0ZEM1        87.68%    failed      0.18%
+1191  A0A0P0ZD79        87.84%    failed      0.69%
+1192  A0A0M5L832        85.94%    failed      4.48%
+1193  A0A0M4MMY1        87.35%    failed      0.30%
+1194  A0A0M4M0T9        85.94%    failed      2.15%
+1195  A0A0M3Q1Q3        90.65%    failed      0.02%
+1196  A0A0H5BN61        94.44%    failed      0.00%
+1197  A0A0H5BN57        94.32%    failed      0.00%
+1198  A0A0H5BB10        90.82%    failed      0.00%
+1199  A0A0H4U9R8        89.96%    failed      3.41%
+1200  A0A0G7ZNT4        90.08%    failed      0.27%
+1201  A0A0F6P1F4        86.54%    failed      0.02%
+1202  A0A0F4GLU2        87.44%    failed      0.02%
+1203  A0A0E3KJK7        90.65%    failed      0.20%
+1204  A0A0E3D8P4        94.12%    failed      0.76%
+1205  A0A0E0SP71        86.78%    failed      1.06%
+1206  A0A0E0LRP1        90.60%    failed      0.01%
+1207  A0A0D4D912        90.36%    failed      0.00%
+1208  A0A0D2L718        94.36%    passed     76.17%
+1209  A0A0C9VD04        94.01%    passed      7.62%
+1210  A0A0C3FBR2        94.05%    passed     15.08%
+1211  A0A0B5KP67        90.23%    failed      4.12%
+1212  A0A0B4IF96        93.88%    failed      0.05%
+1213  A0A0B4GN88        94.00%    failed      0.04%
+1214  A0A0B4G504        94.29%    passed     14.97%
+1215  A0A0B4G3Q7        94.10%    failed      0.00%
+1216  A0A0B4FWC3        94.27%    failed      0.03%
+1217  A0A0B4EB91        93.88%    failed      0.11%
+1218  A0A0A7GEY4        94.50%    failed      0.00%
+1219  A0A0A7DNH6        89.68%    failed      1.44%
+1220  A0A0A0RDZ8        90.06%    failed      0.46%
+1221  A0A0A0RDR2        90.23%    failed      2.11%
+1222  A0A0A0RCB5        90.23%    failed      2.40%
+1223  A0A0A0QUT9        90.41%    failed      0.09%
+1224  A0A097ZIE0        90.29%    failed      3.78%
+1225  A0A076L784        90.08%    failed      2.08%
+1226  A0A076L503        90.10%    failed      2.53%
+1227  A0A076L4Z9        90.08%    passed      5.79%
+1228  A0A076L4M0        90.10%    failed      2.23%
+1229  A0A076KZS5        90.08%    failed      2.68%
+1230  A0A076KZH5        90.08%    failed      3.54%
+1231  A0A076GBT5        90.18%    passed      7.58%
+1232  A0A076GAU9        89.84%    failed      0.37%
+1233  A0A076GAU5        90.46%    failed      4.02%
+1234  A0A076GAR6        90.49%    failed      4.27%
+1235  A0A075W3D9        90.55%    failed      0.97%
+1236  A0A075W0Z3        90.13%    failed      0.33%
+1237  A0A075FBG7        89.99%    failed      0.93%
+1238  A0A075FAK4        86.61%    failed      4.85%
+1239  A0A075FA51        86.46%    passed     14.12%
+1240  A0A067SEC9        94.05%    passed     10.45%
+1241  A0A059PYD5        90.51%    failed      0.15%
+1242  A0A023J8Z5        90.56%    failed      0.01%
+1243  LcIMS1            86.90%    passed     62.90%
+1244  Q9PDX7            71.69%    failed      0.00%
+1245  P0C0L4            69.91%    failed      0.00%
+1246  P06238            74.60%    failed      0.00%
+1247  P20742            74.43%    failed      0.00%
+1248  Q9GYW4            76.88%    failed      0.00%
+WARNING: 1248 sequences contain more than 50% gaps/ambiguity
+****  TOTAL             90.18%  989 sequences failed composition chi2 test (p-value<5%; df=19)
+NOTE: Q03471 is identical to W6Q4Q9 but kept for subsequent analysis
+NOTE: LcIMS1 is identical to Q948R6 but kept for subsequent analysis
+NOTE: Q7LJF8 is identical to Q8NIC8 but kept for subsequent analysis
+NOTE: G0LES5 is identical to Q6A1B7 but kept for subsequent analysis
+NOTE: P37268 is identical to Q5R6U3 but kept for subsequent analysis
+NOTE: B0Y5B4 is identical to Q4WR16 but kept for subsequent analysis
+NOTE: O07854 is identical to Q2FV59 but kept for subsequent analysis
+NOTE: P0DI76 is identical to P0DI77 but kept for subsequent analysis
+NOTE: A0A6M6CCT4 is identical to O81193 but kept for subsequent analysis
+NOTE: G1JUH6 is identical to O64961 but kept for subsequent analysis
+NOTE: A0A8F4PNT1 is identical to N4V6D4 but kept for subsequent analysis
+NOTE: A0A8F4SNK9 is identical to M2V8C1 but kept for subsequent analysis
+NOTE: E3W202 is identical to K7WTQ7 but kept for subsequent analysis
+NOTE: I2CM55 is identical to I2CM56 but kept for subsequent analysis
+NOTE: A0A1L9UKS1 is identical to A0A8F4SK84 but kept for subsequent analysis
+NOTE: A0A0U5G0B1 is identical to A0A6G7GHF5 but kept for subsequent analysis
+NOTE: A0A650A7K4 is identical to A0A650A872 but kept for subsequent analysis
+
+NOTE: Restoring information from model checkpoint file data/_mafft_msa_tps_all.fasta.model.gz
+
+CHECKPOINT: Initial tree restored
+Perform fast likelihood tree search using LG+I+G model...
+CHECKPOINT: Tree restored, LogL: -777495.427
+NOTE: ModelFinder requires 3481 MB RAM!
+ModelFinder will test up to 224 protein models (sample size: 5796) ...
+ No. Model         -LnL         df  AIC          AICc         BIC
+  1  LG            788076.213   2493 1581138.427  1584904.351  1597754.080
+  2  LG+I          788074.914   2494 1581137.827  1584907.915  1597760.146
+  3  LG+G4         777467.858   2494 1559923.717  1563693.805  1576546.036
+  4  LG+I+G4       777468.101   2495 1559926.203  1563700.457  1576555.186
+  7  LG+F+G4       779958.111   2513 1564942.222  1568792.119  1581691.174
+  8  LG+F+I+G4     779958.230   2514 1564944.460  1568798.596  1581700.077
+ 11  WAG+G4        777223.333   2494 1559434.666  1563204.754  1576056.985
+ 12  WAG+I+G4      777223.481   2495 1559436.962  1563211.217  1576065.946
+ 15  WAG+F+G4      778714.186   2513 1562454.372  1566304.270  1579203.325
+ 16  WAG+F+I+G4    778714.341   2514 1562456.682  1566310.818  1579212.299
+ 19  JTT+G4        776903.707   2494 1558795.414  1562565.502  1575417.733
+ 20  JTT+I+G4      776903.913   2495 1558797.826  1562572.080  1575426.809
+ 23  JTT+F+G4      777127.497   2513 1559280.993  1563130.891  1576029.945
+ 24  JTT+F+I+G4    777127.628   2514 1559283.255  1563137.391  1576038.873
+WARNING: Normalizing state frequencies so that sum of them equals to 1
+ 27  Q.pfam+G4     776605.113   2494 1558198.226  1561968.313  1574820.544
+WARNING: Normalizing state frequencies so that sum of them equals to 1
+ 28  Q.pfam+I+G4   776605.450   2495 1558200.900  1561975.154  1574829.883
+WARNING: Normalizing state frequencies so that sum of them equals to 1
+ 31  Q.pfam+F+G4   779381.189   2513 1563788.378  1567638.276  1580537.330
+WARNING: Normalizing state frequencies so that sum of them equals to 1
+ 32  Q.pfam+F+I+G4 779381.491   2514 1563790.983  1567645.119  1580546.600
+WARNING: Normalizing state frequencies so that sum of them equals to 1
+ 35  Q.bird+G4     787609.365   2494 1580206.730  1583976.818  1596829.049
+WARNING: Normalizing state frequencies so that sum of them equals to 1
+ 36  Q.bird+I+G4   787609.260   2495 1580208.520  1583982.774  1596837.503
+WARNING: Normalizing state frequencies so that sum of them equals to 1
+ 39  Q.bird+F+G4   788804.107   2513 1582634.213  1586484.111  1599383.165
+WARNING: Normalizing state frequencies so that sum of them equals to 1
+ 40  Q.bird+F+I+G4 788804.231   2514 1582636.461  1586490.597  1599392.079
+WARNING: Normalizing state frequencies so that sum of them equals to 1
+ 43  Q.mammal+G4   783556.530   2494 1572101.061  1575871.149  1588723.380
+WARNING: Normalizing state frequencies so that sum of them equals to 1
+ 44  Q.mammal+I+G4 783556.750   2495 1572103.501  1575877.755  1588732.484
+WARNING: Normalizing state frequencies so that sum of them equals to 1
+ 47  Q.mammal+F+G4 784581.928   2513 1574189.855  1578039.753  1590938.808
+WARNING: Normalizing state frequencies so that sum of them equals to 1
+ 48  Q.mammal+F+I+G4 784582.119   2514 1574192.237  1578046.373  1590947.854
+ 51  Q.insect+G4   779279.863   2494 1563547.726  1567317.813  1580170.044
+ 52  Q.insect+I+G4 779280.170   2495 1563550.341  1567324.595  1580179.324
+ 55  Q.insect+F+G4 780980.890   2513 1566987.781  1570837.678  1583736.733
+ 56  Q.insect+F+I+G4 780981.060   2514 1566990.120  1570844.256  1583745.737
+WARNING: Normalizing state frequencies so that sum of them equals to 1
+ 59  Q.plant+G4    778687.938   2494 1562363.875  1566133.963  1578986.194
+WARNING: Normalizing state frequencies so that sum of them equals to 1
+ 60  Q.plant+I+G4  778687.811   2495 1562365.623  1566139.878  1578994.607
+WARNING: Normalizing state frequencies so that sum of them equals to 1
+ 63  Q.plant+F+G4  781070.215   2513 1567166.430  1571016.328  1583915.383
+WARNING: Normalizing state frequencies so that sum of them equals to 1
+ 64  Q.plant+F+I+G4 781070.419   2514 1567168.838  1571022.974  1583924.455
+WARNING: Normalizing state frequencies so that sum of them equals to 1
+ 67  Q.yeast+G4    781121.481   2494 1567230.961  1571001.049  1583853.280
+WARNING: Normalizing state frequencies so that sum of them equals to 1
+ 68  Q.yeast+I+G4  781121.873   2495 1567233.746  1571008.001  1583862.730
+WARNING: Normalizing state frequencies so that sum of them equals to 1
+ 71  Q.yeast+F+G4  780322.873   2513 1565671.745  1569521.643  1582420.697
+WARNING: Normalizing state frequencies so that sum of them equals to 1
+ 72  Q.yeast+F+I+G4 780323.088   2514 1565674.176  1569528.312  1582429.793
+ 75  JTTDCMut+G4   777023.840   2494 1559035.681  1562805.768  1575657.999
+ 76  JTTDCMut+I+G4 777023.980   2495 1559037.961  1562812.215  1575666.944
+ 79  JTTDCMut+F+G4 777257.287   2513 1559540.575  1563390.472  1576289.527
+ 80  JTTDCMut+F+I+G4 777257.412   2514 1559542.823  1563396.959  1576298.440
+ 83  DCMut+G4      789082.027   2494 1583152.054  1586922.142  1599774.373
+ 84  DCMut+I+G4    789082.085   2495 1583154.170  1586928.424  1599783.153
+ 87  DCMut+F+G4    786757.284   2513 1578540.569  1582390.467  1595289.521
+ 88  DCMut+F+I+G4  786757.390   2514 1578542.779  1582396.915  1595298.397
+ 91  VT+G4         777900.776   2494 1560789.552  1564559.640  1577411.871
+ 92  VT+I+G4       777900.907   2495 1560791.814  1564566.069  1577420.798
+ 95  VT+F+G4       779418.830   2513 1563863.661  1567713.558  1580612.613
+ 96  VT+F+I+G4     779418.942   2514 1563865.885  1567720.021  1580621.502
+ 99  PMB+G4        784275.384   2494 1573538.768  1577308.856  1590161.087
+100  PMB+I+G4      784275.492   2495 1573540.984  1577315.239  1590169.968
+103  PMB+F+G4      786855.733   2513 1578737.466  1582587.364  1595486.419
+104  PMB+F+I+G4    786855.829   2514 1578739.657  1582593.793  1595495.275
+107  Blosum62+G4   784598.356   2494 1574184.713  1577954.801  1590807.032
+108  Blosum62+I+G4 784598.474   2495 1574186.949  1577961.203  1590815.932
+111  Blosum62+F+G4 787037.274   2513 1579100.548  1582950.445  1595849.500
+112  Blosum62+F+I+G4 787037.370   2514 1579102.740  1582956.876  1595858.357
+115  Dayhoff+G4    789092.707   2494 1583173.414  1586943.502  1599795.733
+116  Dayhoff+I+G4  789092.768   2495 1583175.536  1586949.790  1599804.519
+119  Dayhoff+F+G4  786776.447   2513 1578578.895  1582428.792  1595327.847
+120  Dayhoff+F+I+G4 786776.551   2514 1578581.103  1582435.239  1595336.720
+123  mtREV+G4      816008.072   2494 1637004.143  1640774.231  1653626.462
+124  mtREV+I+G4    816008.192   2495 1637006.383  1640780.638  1653635.367
+127  mtREV+F+G4    791528.842   2513 1588083.684  1591933.582  1604832.636
+128  mtREV+F+I+G4  791529.096   2514 1588086.192  1591940.328  1604841.809
+131  mtART+G4      836519.421   2494 1678026.841  1681796.929  1694649.160
+132  mtART+I+G4    836519.637   2495 1678029.274  1681803.529  1694658.258
+135  mtART+F+G4    808652.698   2513 1622331.396  1626181.293  1639080.348
+136  mtART+F+I+G4  808652.895   2514 1622333.791  1626187.927  1639089.408
+139  mtZOA+G4      811905.776   2494 1628799.553  1632569.641  1645421.872
+140  mtZOA+I+G4    811905.857   2495 1628801.714  1632575.969  1645430.698
+143  mtZOA+F+G4    793608.034   2513 1592242.068  1596091.966  1608991.020
+144  mtZOA+F+I+G4  793608.163   2514 1592244.326  1596098.462  1608999.943
+147  mtMet+G4      815203.622   2494 1635395.244  1639165.331  1652017.562
+148  mtMet+I+G4    815203.748   2495 1635397.496  1639171.750  1652026.479
+151  mtMet+F+G4    788193.198   2513 1581412.395  1585262.293  1598161.347
+152  mtMet+F+I+G4  788193.397   2514 1581414.793  1585268.929  1598170.410
+155  mtVer+G4      820902.779   2494 1646793.558  1650563.646  1663415.877
+156  mtVer+I+G4    820902.997   2495 1646795.994  1650570.249  1663424.978
+159  mtVer+F+G4    798352.049   2513 1601730.099  1605579.996  1618479.051
+160  mtVer+F+I+G4  798352.221   2514 1601732.443  1605586.579  1618488.060
+163  mtInv+G4      820217.481   2494 1645422.962  1649193.049  1662045.280
+164  mtInv+I+G4    820217.553   2495 1645425.105  1649199.360  1662054.089
+167  mtInv+F+G4    785036.701   2513 1575099.401  1578949.299  1591848.354
+168  mtInv+F+I+G4  785036.818   2514 1575101.636  1578955.772  1591857.253
+171  mtMAM+G4      835788.905   2494 1676565.811  1680335.899  1693188.130
+172  mtMAM+I+G4    835789.027   2495 1676568.055  1680342.309  1693197.038
+175  mtMAM+F+G4    809367.135   2513 1623760.270  1627610.168  1640509.223
+176  mtMAM+F+I+G4  809367.151   2514 1623762.302  1627616.438  1640517.919
+WARNING: Normalizing state frequencies so that sum of them equals to 1
+179  FLAVI+G4      807958.919   2494 1620905.839  1624675.927  1637528.158
+WARNING: Normalizing state frequencies so that sum of them equals to 1
+180  FLAVI+I+G4    807959.115   2495 1620908.231  1624682.485  1637537.214
+WARNING: Normalizing state frequencies so that sum of them equals to 1
+183  FLAVI+F+G4    805088.384   2513 1615202.768  1619052.666  1631951.720
+WARNING: Normalizing state frequencies so that sum of them equals to 1
+184  FLAVI+F+I+G4  805088.651   2514 1615205.302  1619059.438  1631960.919
+187  HIVb+G4       791758.591   2494 1588505.182  1592275.270  1605127.501
+188  HIVb+I+G4     791758.889   2495 1588507.779  1592282.033  1605136.762
+191  HIVb+F+G4     790011.099   2513 1585048.198  1588898.096  1601797.150
+192  HIVb+F+I+G4   790011.391   2514 1585050.782  1588904.918  1601806.399
+195  HIVw+G4       825188.389   2494 1655364.778  1659134.866  1671987.097
+196  HIVw+I+G4     825188.602   2495 1655367.204  1659141.459  1671996.188
+199  HIVw+F+G4     807870.230   2513 1620766.461  1624616.358  1637515.413
+200  HIVw+F+I+G4   807870.446   2514 1620768.892  1624623.028  1637524.509
+203  FLU+G4        795334.068   2494 1595656.135  1599426.223  1612278.454
+204  FLU+I+G4      795334.232   2495 1595658.465  1599432.719  1612287.448
+207  FLU+F+G4      790131.056   2513 1585288.112  1589138.009  1602037.064
+208  FLU+F+I+G4    790131.413   2514 1585290.826  1589144.962  1602046.443
+211  rtREV+G4      787496.826   2494 1579981.652  1583751.740  1596603.971
+212  rtREV+I+G4    787497.053   2495 1579984.107  1583758.361  1596613.090
+215  rtREV+F+G4    786415.263   2513 1577856.527  1581706.425  1594605.479
+216  rtREV+F+I+G4  786415.380   2514 1577858.760  1581712.896  1594614.377
+219  cpREV+G4      780903.449   2494 1566794.897  1570564.985  1583417.216
+220  cpREV+I+G4    780903.573   2495 1566797.147  1570571.401  1583426.131
+223  cpREV+F+G4    781106.824   2513 1567239.647  1571089.545  1583988.600
+224  cpREV+F+I+G4  781107.010   2514 1567242.021  1571096.157  1583997.638
+Akaike Information Criterion:           Q.pfam+G4
+Corrected Akaike Information Criterion: Q.pfam+G4
+Bayesian Information Criterion:         Q.pfam+G4
+Best-fit model: Q.pfam+G4 chosen according to BIC
+
+All model information printed to data/_mafft_msa_tps_all.fasta.model.gz
+CPU time for ModelFinder: 28932.637 seconds (8h:2m:12s)
+Wall-clock time for ModelFinder: 478.136 seconds (0h:7m:58s)
+Generating 1000 samples for ultrafast bootstrap (seed: 964832)...
+WARNING: Normalizing state frequencies so that sum of them equals to 1
+
+NOTE: 3481 MB RAM (3 GB) is required!
+Estimate model parameters (epsilon = 0.100)
+1. Initial log-likelihood: -776605.113
+Optimal log-likelihood: -776605.104
+Gamma shape alpha: 3.104
+Parameters optimization took 1 rounds (9.583 sec)
+Wrote distance file to... 
+Computing ML distances based on estimated model parameters...
+Calculating distance matrix: done in 4.7186 secs using 6385% CPU
+Computing ML distances took 4.737924 sec (of wall-clock time) 301.837891 sec (of CPU time)
+WARNING: Some pairwise ML distances are too long (saturated)
+Setting up auxiliary I and S matrices: done in 0.0132445 secs using 159.4% CPU
+Computing RapidNJ tree took 13.285146 sec (of wall-clock time) 3.123342 sec (of CPU time)
+Log-likelihood of RapidNJ tree: -781068.362
+--------------------------------------------------------------------
+|             INITIALIZING CANDIDATE TREE SET                      |
+--------------------------------------------------------------------
+Generating 98 parsimony trees... 637.258 second
+Computing log-likelihood of 98 initial trees ... 427.715 seconds
+Current best score: -776605.104
+
+Do NNI search on 20 best initial trees
+Estimate model parameters (epsilon = 0.100)
+BETTER TREE FOUND at iteration 1: -776532.524
+Iteration 10 / LogL: -776562.684 / Time: 0h:40m:39s
+Estimate model parameters (epsilon = 0.100)
+BETTER TREE FOUND at iteration 16: -776516.831
+Iteration 20 / LogL: -776566.520 / Time: 1h:3m:13s
+Finish initializing candidate tree set (20)
+Current best tree score: -776516.831 / CPU time: 3686.686
+Number of iterations: 20
+--------------------------------------------------------------------
+|               OPTIMIZING CANDIDATE TREE SET                      |
+--------------------------------------------------------------------
+Estimate model parameters (epsilon = 0.100)
+BETTER TREE FOUND at iteration 21: -776502.479
+Estimate model parameters (epsilon = 0.100)
+BETTER TREE FOUND at iteration 25: -776482.083
+Iteration 30 / LogL: -776506.857 / Time: 1h:22m:52s (4h:31m:29s left)
+Estimate model parameters (epsilon = 0.100)
+BETTER TREE FOUND at iteration 38: -776467.047
+Iteration 40 / LogL: -776817.619 / Time: 1h:41m:58s (4h:16m:15s left)
+Iteration 50 / LogL: -776645.627 / Time: 2h:0m:19s (3h:36m:5s left)
+Log-likelihood cutoff on original alignment: -776641.729
+Estimate model parameters (epsilon = 0.100)
+BETTER TREE FOUND at iteration 53: -776461.292
+Estimate model parameters (epsilon = 0.100)
+BETTER TREE FOUND at iteration 60: -776439.656
+Iteration 60 / LogL: -776439.656 / Time: 2h:18m:47s (3h:55m:14s left)
+Iteration 70 / LogL: -776838.156 / Time: 2h:37m:4s (3h:24m:52s left)
+Iteration 80 / LogL: -776850.730 / Time: 2h:54m:39s (2h:56m:52s left)
+Iteration 90 / LogL: -776516.492 / Time: 3h:12m:43s (2h:31m:35s left)
+Estimate model parameters (epsilon = 0.100)
+BETTER TREE FOUND at iteration 95: -776423.992
+Estimate model parameters (epsilon = 0.100)
+BETTER TREE FOUND at iteration 97: -776403.978
+Iteration 100 / LogL: -776440.044 / Time: 3h:30m:44s (3h:26m:28s left)
+Log-likelihood cutoff on original alignment: -776625.506
+NOTE: Bootstrap correlation coefficient of split occurrence frequencies: 0.974
+NOTE: UFBoot does not converge, continue at least 100 more iterations
+Iteration 110 / LogL: -776648.706 / Time: 3h:47m:58s (3h:8m:14s left)
+Estimate model parameters (epsilon = 0.100)
+BETTER TREE FOUND at iteration 120: -776389.501
+Iteration 120 / LogL: -776389.501 / Time: 4h:4m:39s (3h:25m:35s left)
+Iteration 130 / LogL: -776782.382 / Time: 4h:21m:13s (3h:2m:15s left)
+Iteration 140 / LogL: -776880.600 / Time: 4h:38m:12s (2h:40m:7s left)
+Iteration 150 / LogL: -776823.003 / Time: 4h:55m:52s (2h:19m:0s left)
+Log-likelihood cutoff on original alignment: -776625.506
+Iteration 160 / LogL: -776459.225 / Time: 5h:13m:9s (1h:58m:10s left)
+Iteration 170 / LogL: -776715.629 / Time: 5h:31m:38s (1h:38m:7s left)
+Iteration 180 / LogL: -776460.551 / Time: 5h:49m:45s (1h:18m:9s left)
+Iteration 190 / LogL: -776953.497 / Time: 6h:7m:9s (0h:58m:16s left)
+Iteration 200 / LogL: -776617.153 / Time: 6h:23m:56s (0h:38m:35s left)
+Log-likelihood cutoff on original alignment: -776625.506
+NOTE: Bootstrap correlation coefficient of split occurrence frequencies: 0.991
+Iteration 210 / LogL: -776484.422 / Time: 6h:41m:41s (2h:52m:58s left)
+Iteration 220 / LogL: -776552.142 / Time: 7h:1m:1s (2h:33m:47s left)
+TREE SEARCH COMPLETED AFTER 221 ITERATIONS / Time: 7h:2m:48s
+
+--------------------------------------------------------------------
+|                    FINALIZING TREE SEARCH                        |
+--------------------------------------------------------------------
+Performs final model parameters optimization
+Estimate model parameters (epsilon = 0.010)
+1. Initial log-likelihood: -776389.501
+Optimal log-likelihood: -776389.493
+Gamma shape alpha: 3.081
+Parameters optimization took 1 rounds (7.635 sec)
+BEST SCORE FOUND : -776389.493
+
+Testing tree branches by SH-like aLRT with 1000 replicates...
+Alternative NNI shows better log-likelihood -776389.471 > -776389.493
+Alternative NNI shows better log-likelihood -776389.013 > -776389.493
+Alternative NNI shows better log-likelihood -776389.368 > -776389.493
+Alternative NNI shows better log-likelihood -776389.392 > -776389.493
+Alternative NNI shows better log-likelihood -776389.150 > -776389.493
+Alternative NNI shows better log-likelihood -776389.480 > -776389.493
+15.844 sec.
+Creating bootstrap support values...
+Split supports printed to NEXUS file data/_mafft_msa_tps_all.fasta.splits.nex
+Total tree length: 550.815
+
+Total number of iterations: 221
+CPU time used for tree search: 1565769.937 sec (434h:56m:9s)
+Wall-clock time used for tree search: 25260.864 sec (7h:1m:0s)
+Total CPU time used: 1573129.527 sec (436h:58m:49s)
+Total wall-clock time used: 25395.490 sec (7h:3m:15s)
+
+Computing bootstrap consensus tree...
+Reading input file data/_mafft_msa_tps_all.fasta.splits.nex...
+1248 taxa and 4124 splits.
+Consensus tree written to data/_mafft_msa_tps_all.fasta.contree
+Reading input trees file data/_mafft_msa_tps_all.fasta.contree
+Log-likelihood of consensus tree: -776384.411
+
+Analysis results written to: 
+  IQ-TREE report:                data/_mafft_msa_tps_all.fasta.iqtree
+  Maximum-likelihood tree:       data/_mafft_msa_tps_all.fasta.treefile
+  Likelihood distances:          data/_mafft_msa_tps_all.fasta.mldist
+
+Ultrafast bootstrap approximation results written to:
+  Split support values:          data/_mafft_msa_tps_all.fasta.splits.nex
+  Consensus tree:                data/_mafft_msa_tps_all.fasta.contree
+  Screen log file:               data/_mafft_msa_tps_all.fasta.log
+
+Date and Time: Mon Jul  1 17:41:25 2024

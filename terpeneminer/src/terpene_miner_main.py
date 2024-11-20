@@ -151,6 +151,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser_vis.add_argument("--plot-tps-detection", action="store_true")
     parser_vis.add_argument("--plot-boxplots-per-type", action="store_true")
+    parser_vis.add_argument("--detailed-y-axis", action="store_true")
     parser_vis.add_argument(
         "--type-detected",
         help="A TPS type to evaluate detection",

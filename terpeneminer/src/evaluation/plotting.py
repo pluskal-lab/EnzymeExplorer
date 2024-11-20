@@ -99,7 +99,7 @@ def plot_avg_pr_curves_per_class(
 
 
 def plot_bars(
-    means, std, model_names_plots, title, metric_name, output_path, highlighted_count=1
+    means, std, model_names_plots, title, metric_name, output_path, highlighted_count=1, detailed_y_axis=False
 ):
     """
     Function to plot a bar chart with error bars representing standard deviation.
@@ -111,6 +111,7 @@ def plot_bars(
     :param metric_name: The name of the metric being plotted, used as the y-axis label.
     :param output_path: The file path where the bar chart image will be saved.
     :param highlighted_count: The number of bars to be highlighted with a different color (default is 1).
+    :param detailed_y_axis: Whether to plot a detailed y-axis (default is False).
 
     :return: None. Saves the bar chart to the specified output path.
     """
@@ -128,7 +129,10 @@ def plot_bars(
     )
 
     ax.set_xticks(list(range(len(model_names_plots))))
-    ax.set_ylim([0, 1.001])
+    if detailed_y_axis:
+        ax.set_ylim([np.min(means)*0.95, min(1.001, np.max(means)*1.05)])
+    else:
+        ax.set_ylim([0, 1.001])
     ax.set_xticklabels(model_names_plots, rotation=90)
     ax.set_ylabel(metric_name, fontsize=15)
     ax.set_title(title, fontsize=19)
@@ -495,6 +499,7 @@ def plot_selected_results(args: argparse.Namespace):
                     metric,
                     eval_output_path
                     / f"{plots_name}_{metric}_{detection_specification}TPS.{extension}",
+                    detailed_y_axis=args.detailed_y_axis,
                 )
 
         with open(
@@ -636,4 +641,5 @@ def plot_selected_results(args: argparse.Namespace):
                     "TPS substrate classification",
                     metric,
                     eval_output_path / f"{plots_name}_{metric}.{extension}",
+                    detailed_y_axis=args.detailed_y_axis,
                 )

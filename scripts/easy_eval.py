@@ -70,8 +70,43 @@ def main():
         "PlmRandomForest__tps_esm-1v-subseq_with_minor_reactions_global_tuning "
         "PlmDomainsRandomForest__tps_esm-1v-subseq_foldseek_with_minor_reactions_global_tuning_domains_subset_plm_subset "
         "--model-names \"Domain comparisons only\" \"PLM only\" \"Finetuned PLM only\" \"Finetuned PLM + Domain comparisons\" "
-        "--subset-name \"ablation_study\""
+        "--subset-name \"ablation_study\" --detailed-y-axis"
     )
+    
+    # Visualize TPS detection ablation study
+    os.system("terpene_miner_main visualize --eval-output-filename tps_detection --plot-tps-detection --models "
+            "DomainsRandomForest__with_minor_reactions_global_tuning "
+            "PlmRandomForest__esm-1v_with_minor_reactions_global_tuning "
+            "PlmRandomForest__tps_esm-1v-subseq_with_minor_reactions_global_tuning "
+            "PlmDomainsRandomForest__tps_esm-1v-subseq_foldseek_with_minor_reactions_global_tuning_domains_subset_plm_subset "
+            "--model-names \"Domain comparisons only\" \"PLM only\" \"Finetuned PLM only\" \"Finetuned PLM + Domain comparisons\" "
+            "--subset-name \"ablation_study_tps_detection\" --detailed-y-axis")
+    
+    # Visualize different models detection evaluation
+    os.system(
+        "terpene_miner_main visualize --eval-output-filename tps_detection --plot-tps-detection --models "
+        "PlmDomainsMLP__tps_esm-1v-subseq_with_minor_reactions_global_tuning "
+        "PlmDomainsLogisticRegression__tps_esm-1v-subseq_with_minor_reactions_global_tuning "
+        "PlmDomainsRandomForest__tps_esm-1v-subseq_foldseek_with_minor_reactions_global_tuning_domains_subset_plm_subset "
+        "--model-names \"Feed-Forward Neural Net\" \"Logistic Regression\" \"Random Forest\" "
+        "--subset-name \"different_models_detection\" --detailed-y-axis"
+    )
+    # Visualize different models boxplots per type
+    os.system("terpene_miner_main visualize --plot-boxplots-per-type --models "
+            "PlmDomainsMLP__tps_esm-1v-subseq_with_minor_reactions_global_tuning "
+            "PlmDomainsLogisticRegression__tps_esm-1v-subseq_with_minor_reactions_global_tuning "
+            "PlmDomainsRandomForest__tps_esm-1v-subseq_foldseek_with_minor_reactions_global_tuning_domains_subset_plm_subset "
+            "--model-names \"Feed-Forward Neural Net\" \"Logistic Regression\" \"Random Forest\" "
+            "--subset-name \"different_models_detection_boxplots\"")
+    
+    # Visualize ablation study boxplots per type
+    os.system("terpene_miner_main visualize --plot-boxplots-per-type --models "
+            "DomainsRandomForest__with_minor_reactions_global_tuning "
+            "PlmRandomForest__esm-1v_with_minor_reactions_global_tuning "
+            "PlmRandomForest__tps_esm-1v-subseq_with_minor_reactions_global_tuning "
+            "PlmDomainsRandomForest__tps_esm-1v-subseq_foldseek_with_minor_reactions_global_tuning_domains_subset_plm_subset "
+            "--model-names \"Domain comparisons only\" \"PLM only\" \"Finetuned PLM only\" \"Finetuned PLM + Domain comparisons\" "
+            "--subset-name \"ablation_study_boxplots\"")
 
     # Visualize different models comparison
     os.system(
@@ -80,7 +115,7 @@ def main():
         "PlmDomainsLogisticRegression__tps_esm-1v-subseq_with_minor_reactions_global_tuning "
         "PlmDomainsRandomForest__tps_esm-1v-subseq_with_minor_reactions_global_tuning "
         "--model-names \"Feed-Forward Neural Net\" \"Logistic Regression\" \"Random Forest\" "
-        "--subset-name \"different_models_best_feats\""
+        "--subset-name \"different_models_best_feats\" --detailed-y-axis"
     )
     
     os.system("terpene_miner_main visualize --plot-boxplots-per-type --models  "
