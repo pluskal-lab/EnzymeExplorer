@@ -17,38 +17,44 @@ def parse_args() -> argparse.Namespace:
     :return: current argparse.Namespace
     """
     parser = argparse.ArgumentParser()
+    parser.add_argument("--download-precomputed-outputs", action="store_true")
     parser.add_argument("--leave-downloaded-configs", action="store_true")
     parser.add_argument("--leave-downloaded-workflow-outputs", action="store_true")
     return parser.parse_args()
 
 
 def main():
+    args = parse_args()
     # moving the current "outputs" folder to "outputs_old"
-    if Path("outputs").exists():
+    if not Path("outputs").exists() and not args.download_precomputed_outputs:
+        logger.warning("Outputs folder does not exist and --download-precomputed-outputs is not set, skipping download.")
+        exit(1)
+
+    if args.download_precomputed_outputs:
         if Path("outputs_old").exists():
             rmtree("outputs_old")
         os.rename("outputs", "outputs_old")
+        logger.info("Downloading the precomputed outputs..")
+        url = "https://drive.google.com/uc?id=11lLiYRGR5kA2ceqFHb8vhCE4uiF6P6Eu"
+        output_path = Path("outputs.zip")
+        if output_path.exists():
+            os.remove(output_path)
+        gdown.download(url, str(output_path), quiet=False)
+        os.system(f"unzip {output_path}")
 
-    logger.info("Downloading the precomputed outputs..")
-    url = "https://drive.google.com/uc?id=11lLiYRGR5kA2ceqFHb8vhCE4uiF6P6Eu"
-    output_path = Path("outputs.zip")
-    if output_path.exists():
-        os.remove(output_path)
-    gdown.download(url, str(output_path), quiet=False)
-    os.system(f"unzip {output_path}")
-
-    # moving the current "configs" folder to "configs_old"
-    if Path("terpeneminer/configs").exists():
-        if Path("terpeneminer/configs_old").exists():
-            rmtree("terpeneminer/configs_old")
-        os.rename("terpeneminer/configs", "terpeneminer/configs_old")
-        
-    url = "https://drive.google.com/uc?id=1TEMxUlnIHyc3RiXko10boLUgrofe47Xf"
-    output_path = Path("terpeneminer/configs.zip")
-    if output_path.exists():
-        os.remove(output_path)
-    gdown.download(url, str(output_path), quiet=False)
-    os.system(f"unzip {output_path} -d terpeneminer")
+        # moving the current "configs" folder to "configs_old"
+        if Path("terpeneminer/configs").exists():
+            if Path("terpeneminer/configs_old").exists():
+                rmtree("terpeneminer/configs_old")
+            os.rename("terpeneminer/configs", "terpeneminer/configs_old")
+            
+        url = "https://drive.google.com/uc?id=1TEMxUlnIHyc3RiXko10boLUgrofe47Xf"
+        output_path = Path("terpeneminer/configs.zip")
+        if output_path.exists():
+            os.remove(output_path)
+        gdown.download(url, str(output_path), quiet=False)
+        os.system(f"unzip {output_path} -d terpeneminer")
+    
     # Evaluate all models
     os.system("terpene_miner_main evaluate")
 
@@ -135,7 +141,6 @@ def main():
             "--model-names \"CLEAN*\" \"Foldseek\" \"BLASTp\" \"pHMM\" \"SUPFAM\" \"Pfam\" \"Ours\" ")
     
     # Clean up downloaded folders and restore old ones
-    args = parse_args()
     if not args.leave_downloaded_workflow_outputs:
         if Path("outputs").exists():
             # Create outputs_old directory if it doesn't exist
