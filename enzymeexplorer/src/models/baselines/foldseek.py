@@ -17,6 +17,7 @@ class FoldseekConfig(BlastConfig):
     """
 
     local_pdb_storage_path: Optional[str | Path] = None
+    is_halo: bool = False
 
 
 class Foldseek(BaseModel):

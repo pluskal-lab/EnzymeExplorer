@@ -81,25 +81,6 @@ def parse_args() -> argparse.Namespace:
         type=str,
         default="Uniprot ID",
     )
-    parser_eval.add_argument(
-        "--blast-identities-path",
-        help="A path to file containing BLAST identities",
-        type=str,
-        default="data/blast_identities_per_fold.pkl",
-    )
-    parser_eval.add_argument(
-        "--models",
-        help="A list of models for visualization",
-        type=str,
-        nargs="+",
-        default=[
-            "CLEAN__with_minor_reactions",
-            "HMM__with_minor_reactions",
-            "Foldseek__with_minor_reactions",
-            "Blastp__with_minor_reactions",
-            "PlmDomainsRandomForest__tps_esm-1v-subseq_with_minor_reactions_global_tuning_domains_subset",
-        ],
-    )
 
     parser_tune = subparsers.add_parser(
         "tune", help="Run experiments with hyper-parameter tuning"
@@ -176,6 +157,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser_vis.add_argument("--plot-tps-detection", action="store_true")
     parser_vis.add_argument("--plot-boxplots-per-type", action="store_true")
+    parser_vis.add_argument("--detailed-y-axis", action="store_true")
     parser_vis.add_argument(
         "--type-detected",
         help="A TPS type to evaluate detection",
@@ -188,7 +170,7 @@ def parse_args() -> argparse.Namespace:
         type=str,
         default=None,
     )
-    parser_vis.add_argument("--plot-barplots-per-category", action="store_true")
+    parser_vis.add_argument("--plot-per-category", action="store_true")
     parser_vis.add_argument(
         "--category-name",
         help="A name of category to be evaluated separately (e.g., Kingdom)",

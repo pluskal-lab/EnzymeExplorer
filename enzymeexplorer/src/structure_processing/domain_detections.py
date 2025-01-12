@@ -135,6 +135,7 @@ def detect_domains_roughly(
 
 
         for uniprot_id, current_detections in file_2_tmscore_residues_domain.items():
+            logger.info(uniprot_id)
             for i, (tm_score, res_mapping) in enumerate(current_detections):
                 logger.info(f'tm_score: {tm_score:.2f}')
                 logger.info(f'len of res_mapping: {len(res_mapping)}')

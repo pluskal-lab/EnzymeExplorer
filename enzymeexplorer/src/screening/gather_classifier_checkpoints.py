@@ -34,6 +34,12 @@ def parse_args() -> argparse.Namespace:
         default="data/classifier_checkpoints.pkl",
     )
     parser.add_argument(
+        "--domain-features-path",
+        help="A file with precomputed domain features",
+        type=str,
+        default="data/clustering__domain_dist_based_features.pkl",
+    )
+    parser.add_argument(
         "--use-all-folds",
         help="A flag to use all folds instead of individual fold checkpoints",
         action="store_true",
@@ -98,7 +104,7 @@ if __name__ == "__main__":
             model = pickle.load(file)
         model.classifier.classes_ = model.config.class_names
         if hasattr(model, "allowed_feat_indices"):
-            with open("data/clustering__domain_dist_based_features.pkl", "rb") as file:
+            with open(args.domain_features_path, "rb") as file:
                 domain_module_id_2_dist_matrix_index = pickle.load(file)[-1]
 
             with open('data/domain_2_start_end_cols.pkl', 'rb') as file:
