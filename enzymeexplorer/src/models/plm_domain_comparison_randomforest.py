@@ -86,16 +86,7 @@ class PlmDomainsRandomForest(PlmRandomForest):
         nineth_percentile = dom_features_df["Emb_dom"].apply(lambda x: np.percentile(1 - x, 90))
         logger.info(f"Average 90th percentile of the tm-score: {nineth_percentile.mean()}")
 
-        # novelty detector to check for data drift
-        dom_feats_trn = np.stack(dom_features_df["Emb_dom"].values)
-
-        self.domain_feature_novelty_detector = IsolationForest(contamination=0.02, n_estimators=400).fit(dom_feats_trn)
-        logger.info(f"Novelty detector for domain features is trained. Proportion of outliers: {np.mean(self.domain_feature_novelty_detector.predict(dom_feats_trn) == -1):.2f}")
-
-        plm_feats = np.stack(self.features_df_plm["Emb"].values)
-        self.plm_feature_novelty_detector = IsolationForest(n_estimators=400).fit(plm_feats)
-        logger.info(f"Novelty detector for plm features is trained. Proportion of outliers: {np.mean(self.plm_feature_novelty_detector.predict(plm_feats) == -1):.2f}")
-
+        
         self.features_df = self.features_df_plm.merge(
             dom_features_df[[self.config.id_col_name, "Emb_dom"]],
             on=self.config.id_col_name,

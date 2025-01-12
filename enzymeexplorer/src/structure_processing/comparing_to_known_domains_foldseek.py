@@ -41,7 +41,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--path-to-known-domains-subset", type=str, default="data/domains_subset.pkl")
     parser.add_argument("--output-path", type=str, default="_temp/filename_2_regions_vs_known_reg_dists.pkl")
-    parser.add_argument("--pdb-id", type=str, default="")
+    parser.add_argument("--pdb-id", type=str, default="") # for backward compatibility, to be refactored away
     return parser.parse_args()
 
 
@@ -59,14 +59,16 @@ if __name__ == "__main__":
                               names=['query', 'target', 'fident', 'alnlen', 'mismatch', 'gapopen', 'qstart', 'qend',
                                      'tstart', 'tend', 'evalue', 'bits', 'alntmscore'])
 
-    region_2_known_reg_dists = defaultdict(list)
+    filename_2_regions_vs_known_reg_dists = {}
     with open(args.path_to_known_domains_subset, "rb") as file:
-        dom_subset, feat_indices_subset = pickle.load(file)
+        dom_subset, _ = pickle.load(file)
 
     for _, row in df_foldseek.iterrows():
         if row['target'] in dom_subset:
-            region_2_known_reg_dists[row['query']].append([row['target'], float(row['alntmscore'])])
-    filename_2_regions_vs_known_reg_dists = {args.pdb_id: region_2_known_reg_dists}
+            uni_id = row['query'].split('_')[0]
+            if uni_id not in filename_2_regions_vs_known_reg_dists:
+                filename_2_regions_vs_known_reg_dists[uni_id] = defaultdict(list)
+            filename_2_regions_vs_known_reg_dists[uni_id][row['query']].append([row['target'], float(row['alntmscore'])])
 
     os.remove(tsv_path)
     rmtree(tmp_path)

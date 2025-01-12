@@ -31,11 +31,11 @@ if not logger.hasHandlers():
 SUPPORTED_DOMAINS = {"alpha", "beta", "gamma", "delta", "epsilon", "alphaWeird"}
 DOMAIN_2_THRESHOLD = {
     "beta": (0.6, 50),
-    "delta": (0.6, 50),
+    "delta": (0.4, 50),
     "epsilon": (0.6, 50),
-    "gamma": (0.55, 50),
-    "alpha": (0.35, 130),
-    "alphaWeird": (0.5, 100),
+    "gamma": (0.6, 50),
+    "alpha": (0.4, 80),
+    "alphaWeird": (0.5, 80),
 }
 
 
@@ -77,12 +77,12 @@ def prepare_domain(pymol_cmd, domain_name: str) -> tuple:
     domain_2_standard = {dom_name_: f"{dom_name_}" for dom_name_ in SUPPORTED_DOMAINS}
     domain_2_standard.update(
         {
-            "alpha": "1ps1",
-            "beta": "5eat",
-            "gamma": "3p5r",
-            "delta": "P48449",
-            "epsilon": "P48449",
-            "alphaWeird": "Q7Z859",
+            "alpha": "UPI0004CAEF9E",
+            "beta": "W8JNL4",
+            "gamma": "W8JNL4",
+            "delta": "A7KH27",
+            "epsilon": "Q4KCZ0",
+            "alphaWeird": "Q4KCZ0",
         }
     )
     assert domain_name in domain_2_standard, f"Domain {domain_name} is not supported"
@@ -97,11 +97,11 @@ def prepare_domain(pymol_cmd, domain_name: str) -> tuple:
     else:
         selection_condition = {
             "alpha": " & chain A & ss H+S",
-            "beta": " & resi 37-57+64-97+104-117+123-129+138-156+162-195+203-213+223-239 & chain A & ss H+S",
-            "gamma": " & resi 138-151+157-171+185-222+233-248+258-275+281-304+313-339 & chain A & ss H+S",
-            "delta": " & resi 73-87+385-399+401-403+405-421+454-470+480-493+531-547+553-570+585-599+610-622+633-638+649-662+667-680+707-722+727-729 & chain A & ss H+S",
-            "epsilon": " & resi 103-115+123-134+151-164+171-183+191-200+213-217+226-228+231-246+254-263+268-270+273-277+291-306+309-330+337-351+356-371+376-378+510-515 & chain A & ss H+S",
-            "alphaWeird": " & resi 6-23+38-58+66-68+81-96+118-136+152-177+183-208+229-239+241-246 & chain A & ss H+S"
+            "beta": " & resi 221-300 & chain A & ss H+S",
+            "gamma": " & resi 1-186 & chain A & ss H+S",
+            "delta": " & chain A & ss H+S",
+            "epsilon": " & resi 73-110+195-300 & chain A & ss H+S",
+            "alphaWeird": " & resi 1-73+110-195+300-382 & chain A & ss H+S"
         }[domain_name]
     domain_name_new = f"{domain_name}_domain_{uuid4()}"
     pymol_cmd.select(domain_name_new, f"{required_file} {selection_condition}")
@@ -314,10 +314,18 @@ def get_super_res_alignment(
     aln_name, domain_obj_secondary_structure, larger_obj_secondary_structure = [
         str(uuid4()) for _ in range(3)
     ]
-    needs_clone = (
-        pymol_cmd.get_object_list(domain_obj)[0]
-        == pymol_cmd.get_object_list(larger_obj)[0]
-    )
+    try:
+        needs_clone = (
+            pymol_cmd.get_object_list(domain_obj)[0]
+            == pymol_cmd.get_object_list(larger_obj)[0]
+        )
+    except IndexError as e:
+        print(f"IndexError for {domain_obj} and {larger_obj}")
+        print('domain_obj ', pymol_cmd.get_object_list(domain_obj))
+        print('larger_obj ', pymol_cmd.get_object_list(larger_obj))
+        print('orig_obj_to_remove ', orig_obj_to_remove)
+        print('orig_obj_to_remove ', pymol_cmd.get_object_list(orig_obj_to_remove))
+        raise e
     if needs_clone:
         object_name = pymol_cmd.get_object_list(domain_obj)[0]
         new_object_name = f"{object_name}_new"
@@ -565,6 +573,7 @@ def compute_region_distances(
     save_output: bool = True,
     output_name: str = "all",
     precomputed_scores: dict[tuple[str, str], float] = None,
+    name_tag: str = "",
 ) -> list[tuple[int, int, float]]:
     """
     Computes pairwise alignment TM-scores between the i-th structural domain in the list `regions` and all subsequent domains.
@@ -581,7 +590,7 @@ def compute_region_distances(
     """
     results = []
     region_1 = regions[i]
-    results_path = f"{output_name}_tm_region_very_conf_{i}_{region_1[1].module_id}.pkl"
+    results_path = f"{output_name}_tm_region_{name_tag}_{i}_{region_1[1].module_id}.pkl"
     if os.path.exists(results_path):
         return []
     j = i + 1

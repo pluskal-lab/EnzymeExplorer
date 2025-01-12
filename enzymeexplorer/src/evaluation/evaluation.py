@@ -33,6 +33,9 @@ def eval_experiment(
     n_folds: int,
     classes: list[str],
     id_2_category_path: Optional[str] = None,
+    blast_identities_path: Optional[str] = None,
+    id_col_name: Optional[str] = "Uniprot ID",
+    max_allowed_blast_identity: Optional[int] = 60,
 ) -> tuple[list, list, list, list]:
     """
     Function for evaluating results of the specified experiment
@@ -43,6 +46,7 @@ def eval_experiment(
     :param n_folds: The number of folds used in the experiment
     :param classes: A list of class names for which separate evaluations are conducted
     :param id_2_category_path: Optional path to a file mapping IDs to categories
+    :param blast_identities_path: Optional path to a file mapping IDs to BLAST identities
 
     :return: A tuple containing lists of average precision values, ROC AUC values, MCC F1 values, and precision-recall curves
     """
@@ -86,6 +90,12 @@ def eval_experiment(
             id_2_category = pickle.load(file)
     else:
         id_2_category = None
+    if blast_identities_path is not None:
+        with open(blast_identities_path, "rb") as file:
+            fold_2_id_max_blast_identity = pickle.load(file)
+    else:
+        fold_2_id_max_blast_identity = None
+    print(fold_2_id_max_blast_identity)
     # pylint: disable=R1702
     for fold_i, fold_root_dir in fold_2_root_dir.items():
         logger.info("Processing fold %d with root dir %s", fold_i, str(fold_root_dir))
@@ -125,43 +135,57 @@ def eval_experiment(
                             y_pred = val_proba_np[
                                 :, class_names_in_fold.index(class_name)
                             ]
-                            current_categories = test_df["Uniprot ID"].map(
+                            current_categories = test_df[id_col_name].map(
                                 lambda x: id_2_category.get(x, "Unknown")
                                 if id_2_category is not None
                                 else ""
                             )
+                            current_blast_identities = test_df[id_col_name].map(
+                                lambda x: fold_2_id_max_blast_identity[fold_i].get(x, 0)
+                                if fold_2_id_max_blast_identity is not None
+                                else 100
+                            )
                             for category in set(current_categories).difference(
                                 {"Unknown"}
                             ):
-                                is_category_bool = current_categories.isin(
-                                    {category, "Unknown"}
-                                )
-                                y_true_category = y_true[is_category_bool]
-                                y_pred_category = y_pred[is_category_bool]
-                                class_name_to_record = (
-                                    class_name
-                                    if category == ""
-                                    else f"{category}_|_{class_name}"
-                                )
-                                if y_true_category.sum() >= min_sample_count_for_eval:
-                                    average_precision = average_precision_score(
-                                        y_true_category, y_pred_category
+                                for blast_identity_bucket_lb in range(-10, max_allowed_blast_identity + 1, 10):
+                                    print('blast_identity_bucket_lb: ', blast_identity_bucket_lb)
+                                    is_category_bool = current_categories.isin(
+                                        {category, "Unknown"}
                                     )
-                                    print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ', class_name_to_record, y_pred_category[y_true_category == 1].mean(), y_pred_category[y_true_category == 0].mean())
-                                    mccf1 = summary_mccf1(
-                                        y_true_category, y_pred_category
-                                    )["mccf1_metric"]
-                                    auc = roc_auc_score(
-                                        y_true_category, y_pred_category
+                                    is_blast_identity_bucket_bool = current_blast_identities.map(
+                                        lambda x: blast_identity_bucket_lb < 0  or (blast_identity_bucket_lb <= x < blast_identity_bucket_lb + 10)
                                     )
-                                    class_2_mccf1[class_name_to_record] = mccf1
-                                    class_2_ap[class_name_to_record] = average_precision
-                                    class_2_auc[class_name_to_record] = auc
-                                    class_2_pr[
-                                        class_name_to_record
-                                    ] = precision_recall_curve(
-                                        y_true_category, y_pred_category
+                                    y_true_category = y_true[is_category_bool & is_blast_identity_bucket_bool]
+                                    y_pred_category = y_pred[is_category_bool & is_blast_identity_bucket_bool]
+                                    class_name_to_record_with_category = (
+                                        class_name
+                                        if category == ""
+                                        else f"{category}_|_{class_name}"
                                     )
+                                    class_name_to_record_with_category_and_blast_identity_bucket = (
+                                        class_name_to_record_with_category
+                                        if blast_identity_bucket_lb < 0
+                                        else f"{blast_identity_bucket_lb}_||_{class_name_to_record_with_category}"
+                                    )
+                                    if y_true_category.sum() >= min_sample_count_for_eval:
+                                        average_precision = average_precision_score(
+                                            y_true_category, y_pred_category
+                                        )
+                                        mccf1 = summary_mccf1(
+                                            y_true_category, y_pred_category
+                                        )["mccf1_metric"]
+                                        auc = roc_auc_score(
+                                            y_true_category, y_pred_category
+                                        )
+                                        class_2_mccf1[class_name_to_record_with_category_and_blast_identity_bucket] = mccf1
+                                        class_2_ap[class_name_to_record_with_category_and_blast_identity_bucket] = average_precision
+                                        class_2_auc[class_name_to_record_with_category_and_blast_identity_bucket] = auc
+                                        class_2_pr[
+                                            class_name_to_record_with_category_and_blast_identity_bucket
+                                        ] = precision_recall_curve(
+                                            y_true_category, y_pred_category
+                                        )
                     except FileNotFoundError:
                         logger.warning(
                             "Fold %d results were not found for (%s)",
@@ -215,6 +239,8 @@ def evaluate_selected_experiments(args: argparse.Namespace):
                 n_folds=args.n_folds,
                 classes=args.classes,
                 id_2_category_path=args.id_2_category_path,
+                blast_identities_path=args.blast_identities_path,
+                id_col_name=args.id_col_name,
             )
         except AssertionError as error:
             raise NotImplementedError(
@@ -229,6 +255,13 @@ def evaluate_selected_experiments(args: argparse.Namespace):
         all_enabled_experiments_df = discover_experiments_from_configs(config_root_path)
         for _, experiment_info_row in all_enabled_experiments_df.iterrows():
             experiment_info = ExperimentInfo(**experiment_info_row.to_dict())
+            model_name = (
+                f"{experiment_info.model_type}__{experiment_info.model_version}"
+            )
+            if model_name not in args.models:
+                logger.info("Skipping %s, with all models %s", model_name, ', '.join(args.models))
+                continue
+            logger.info("Evaluating %s/%s", experiment_info.model_type, experiment_info.model_version)
             config_path = (
                 config_root_path
                 / experiment_info.model_type
@@ -254,15 +287,15 @@ def evaluate_selected_experiments(args: argparse.Namespace):
                     n_folds=args.n_folds,
                     classes=args.classes,
                     id_2_category_path=args.id_2_category_path,
+                    blast_identities_path=args.blast_identities_path,
+                    id_col_name=args.id_col_name,
                 )
             except (AssertionError, NotImplementedError):
-                # raise NotImplementedError(
-                #     f"Please run corresponding experiments ({experiment_info}) before evaluation"
-                # )
+                raise NotImplementedError(
+                    f"Please run corresponding experiments ({experiment_info}) before evaluation"
+                )
                 continue
-            model_name = (
-                f"{experiment_info.model_type}__{experiment_info.model_version}"
-            )
+            
             model_2_class_2_ap_vals[model_name] = class_2_ap_vals
             model_2_class_2_rocauc_vals[model_name] = class_2_rocauc_vals
             model_2_class_2_mccf1_vals[model_name] = class_2_mccf1_vals
