@@ -166,6 +166,9 @@ class FeaturesSklearnModel(BaseModel):
                             y_binary,
                         )
                         self.class_2_classifier[class_name] = classifier
+                    else:
+                        logger.warning("Class %s has no positive samples, skipping...", class_name)
+                        self.class_2_classifier[class_name] = None
             else:
                 raise ValueError(
                     f"During per-class optimization class {class_name} had no parameters specified."
@@ -233,7 +236,7 @@ class FeaturesSklearnModel(BaseModel):
             for class_i, class_name in enumerate(self.config.class_names):
                 if (
                     selected_class_name is None or class_name == selected_class_name
-                ) and class_name in self.class_2_classifier:
+                ) and class_name in self.class_2_classifier and self.class_2_classifier[class_name] is not None:
                     logger.info("Predicting proba for class %s...", class_name)
                     y_pred_proba = self.class_2_classifier[class_name].predict_proba(
                         test_embs_np

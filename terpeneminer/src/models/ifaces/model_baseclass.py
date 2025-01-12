@@ -23,6 +23,7 @@ from skopt.utils import use_named_args  # type: ignore
 
 from terpeneminer.src.models.ifaces.config_baseclasses import BaseConfig
 from terpeneminer.src.utils.project_info import get_output_root
+from terpeneminer.src.utils.data import compute_mmseqs2_clusters
 
 logger = logging.getLogger(__file__)
 logger.setLevel(logging.INFO)
@@ -171,6 +172,17 @@ class BaseModel(ABC, BaseEstimator):
             )
         else:
             class_names = ["all_classes"]
+        if hasattr(self.config, "seq_col_name"):
+            id_2_group = compute_mmseqs2_clusters(
+                train_df,
+                id_column=self.config.id_col_name,
+                sequence_column=self.config.seq_col_name,
+                output_dir=self.output_root,
+                identity_threshold=0.95,
+            ) 
+        else:
+            with open(phylogenetic_clusters_path, "rb") as file:
+                id_2_group, _ = pickle.load(file)
         for class_name in class_names:
             logger.info("Optimization of hyperparameters for %s", class_name)
             prefix = "" if class_name == "all_classes" else f"{class_name}_"
@@ -278,10 +290,11 @@ class BaseModel(ABC, BaseEstimator):
                         selected_class_name = (
                             class_name if per_class_optimization else None
                         )
-                        self.fit_core(
-                            trn_df,
-                            class_name=selected_class_name,
-                        )
+                        if not per_class_optimization or sum(trn_df[self.config.target_col_name].map(lambda x: class_name in x)) > 0:
+                            self.fit_core(
+                                trn_df,
+                                class_name=selected_class_name,
+                            )
                         map_scores.append(
                             eval_model_mean_average_precision_neg(
                                 self,
@@ -290,6 +303,9 @@ class BaseModel(ABC, BaseEstimator):
                             )
                         )
                     score = np.nanmean(map_scores)
+                    if np.isnan(score):
+                        score = 1
+                        logger.warning("Score is nan, setting mAP to 0 (score -> 1)")
 
                     ckpts = list(params_output_root.glob("*_params.json"))
                     if len(ckpts) > 0:
@@ -327,8 +343,7 @@ class BaseModel(ABC, BaseEstimator):
             k_fold = StratifiedGroupKFold(
                 n_splits=n_fold_splits, shuffle=True, random_state=42
             )
-            with open(phylogenetic_clusters_path, "rb") as file:
-                id_2_group, _ = pickle.load(file)
+            
             train_df["seq_group"] = train_df[self.config.id_col_name].map(
                 lambda x: str(id_2_group[x])
                 if x in id_2_group
@@ -459,13 +474,5 @@ def eval_model_mean_average_precision_neg(
             if sum(y_true) >= min_number_of_positive_cases:
                 average_precision = average_precision_score(y_true, y_pred[:, class_i])
                 average_precisions.append(average_precision)
-                print(
-                    selected_class_name,
-                    class_name,
-                    " !!!: ",
-                    np.mean(y_true),
-                    np.mean(y_pred[:, class_i]),
-                    average_precision,
-                )
 
     return 1 - np.mean(average_precisions)

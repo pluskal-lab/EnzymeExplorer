@@ -66,7 +66,7 @@ million by 2025 [[3]](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7309871/), or
 anticancer medicine taxol with billion-dollar pick annual sales [[4]](https://pubmed.ncbi.nlm.nih.gov/33348838/).
 
 Welcome to the GitHub repository showcasing state-of-the-art computational methods for Terpene Synthase (TPS) discovery
-and characterization.
+and characterization. The pipeline can be easily repurposed for other enzyme families, by simply changing the config files.
 
 TPSs generate the scaffolds of the largest class of natural products (more than 96.000 compounds), including several
 first-line
@@ -103,7 +103,7 @@ git clone https://github.com/pluskal-lab/TerpeneMiner.git
 cd TerpeneMiner
 . scripts/setup_env.sh
 conda activate terpene_miner
-pip install .
+pip install -e .
 ```
 -----------------------------------------
 
@@ -246,6 +246,15 @@ python -m terpeneminer.src.data_preparation.store_folds_into_csv \
     --kfolds-path data/tps_folds_nov2023.h5 \
     --split-description stratified_phylogeny_based_split_with_minor_products \
     > outputs/logs/kfold_with_minors_to_csv.log 2>&1
+```
+
+To compute BLAST identities for each fold, run
+
+```bash
+cd TerpeneMiner
+conda activate terpene_miner
+python -m terpeneminer.src.data_preparation.get_blast_identities_per_split \
+    --csv-with-folds-path data/TPS-Nov19_2023_verified_all_reactions_with_neg_with_folds.csv
 ```
 -----------------------------------------
 
@@ -500,7 +509,7 @@ For a quick reproduction of the paper evaluation, run
 ```bash
 cd TerpeneMiner
 conda activate terpene_miner
-python scripts/easy_eval.py
+python scripts/easy_eval.py --download-precomputed-outputs
 ```
 
 If you want to leave the paper-version outputs and configs after the evaluation, run
@@ -511,7 +520,15 @@ python scripts/easy_eval.py --leave-downloaded-workflow-outputs --leave-download
 
 #### 7 - Evaluating performance
 
-To evaluate all configured models, run
+To perform all evaluations and visualize the results, run
+
+```bash
+cd TerpeneMiner
+conda activate terpene_miner
+python scripts/easy_eval.py
+```
+
+Otherwise, to evaluate all configured models, run
 
 ```bash
 cd TerpeneMiner
@@ -787,18 +804,24 @@ conda activate terpene_miner
 terpene_miner_main --select-single-experiment run --model PlmDomainsRandomForest --model-version tps_esm-1v-subseq_foldseek_with_minor_reactions_global_tuning 
 python -m terpeneminer.src.models.plm_domain_faster.get_domains_feature_importances \
     --model PlmDomainsRandomForest --model-version tps_esm-1v-subseq_foldseek_with_minor_reactions_global_tuning \
-    --top-most-important-domain-features-per-model 50 --use-all-folds 
+    --top-most-important-domain-features-per-model 50 --use-all-folds \
+    --domain-features-path data/clustering__domain_dist_based_features_foldseek.pkl
 python -m terpeneminer.src.models.plm_domain_faster.get_plm_feature_importances \
     --model PlmDomainsRandomForest --model-version tps_esm-1v-subseq_foldseek_with_minor_reactions_global_tuning \
-    --top-most-important-plm-features-per-model 400 --use-all-folds 
+    --top-most-important-plm-features-per-model 400 --use-all-folds \
+    --domain-features-path data/clustering__domain_dist_based_features_foldseek.pkl
 terpene_miner_main --select-single-experiment run --model PlmDomainsRandomForest --model-version tps_esm-1v-subseq_foldseek_with_minor_reactions_global_tuning_domains_subset_plm_subset
 python -m terpeneminer.src.screening.gather_classifier_checkpoints --output-path data/classifier_domain_and_plm_checkpoints.pkl --use-all-folds \
-    --model PlmDomainsRandomForest --model-version tps_esm-1v-subseq_foldseek_with_minor_reactions_global_tuning_domains_subset_plm_subset
+    --model PlmDomainsRandomForest --model-version tps_esm-1v-subseq_foldseek_with_minor_reactions_global_tuning_domains_subset_plm_subset \
+    --domain-features-path data/clustering__domain_dist_based_features_foldseek.pkl
 python -m terpeneminer.src.structure_processing.train_domain_type_classifiers
 ```
 Start backend:
 ```bash
 # specify port
+# check if _temp directory exists, and delete if yes
+rm -rf _temp
+
 export PORT=<..>
 nohup uvicorn app_faster_with_foldseek:app --host 0.0.0.0 --port $PORT &> webserver_app.log &
 ```

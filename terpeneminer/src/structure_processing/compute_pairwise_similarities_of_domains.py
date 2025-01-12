@@ -26,6 +26,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--end-i", type=int, default=1000000)
     parser.add_argument("--precomputed-scores-path", type=str, default="")
     parser.add_argument("--n-jobs", type=int, default=64)
+    parser.add_argument("--name-tag", type=str, default="")
     args = parser.parse_args()
     return args
 
@@ -61,6 +62,7 @@ if __name__ == "__main__":
         regions=regions_all,
         file_2_all_residues=file_2_all_residues,
         output_name=cli_args.name,
+        name_tag=cli_args.name_tag,
         precomputed_scores=PRECOMPUTED_SCORES,
     )
     region_indices = list(range(len(regions_all)))[cli_args.start_i : cli_args.end_i]

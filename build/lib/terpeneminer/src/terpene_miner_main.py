@@ -81,25 +81,6 @@ def parse_args() -> argparse.Namespace:
         type=str,
         default="Uniprot ID",
     )
-    parser_eval.add_argument(
-        "--blast-identities-path",
-        help="A path to file containing BLAST identities",
-        type=str,
-        default="data/blast_identities_per_fold.pkl",
-    )
-    parser_eval.add_argument(
-        "--models",
-        help="A list of models for visualization",
-        type=str,
-        nargs="+",
-        default=[
-            "CLEAN__with_minor_reactions",
-            "HMM__with_minor_reactions",
-            "Foldseek__with_minor_reactions",
-            "Blastp__with_minor_reactions",
-            "PlmDomainsRandomForest__tps_esm-1v-subseq_with_minor_reactions_global_tuning_domains_subset",
-        ],
-    )
 
     parser_tune = subparsers.add_parser(
         "tune", help="Run experiments with hyper-parameter tuning"

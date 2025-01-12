@@ -179,11 +179,6 @@ def main(arguments: argparse.Namespace):
                     for class_name, values in prediction.items()
                 }
             )
-            print({
-                    class_name: len(values)
-                    for class_name, values in prediction.items()
-                })
-        print('predictions_avg: ', predictions_avg)
         return predictions_avg
 
     next_batch = []

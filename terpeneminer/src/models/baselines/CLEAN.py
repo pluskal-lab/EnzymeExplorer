@@ -13,6 +13,7 @@ import sys
 import numpy as np  # type: ignore
 import pandas as pd  # type: ignore
 import wget  # type: ignore
+import logging
 
 from rdkit.Chem import MolToSmiles, rdChemReactions  # type: ignore
 
@@ -30,6 +31,9 @@ from terpeneminer.src.models.ifaces import BaseModel, BaseConfig
 from terpeneminer.src.utils.msa import get_fasta_seqs
 from terpeneminer.src.utils.data import get_canonical_smiles
 
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
 
 @dataclass
 class CLEANConfig(BaseConfig):
@@ -43,6 +47,7 @@ class CLEANConfig(BaseConfig):
     rhea_directions_link: str
     clean_working_dir: str
     seq_col_name: str
+    is_halo: bool
 
 
 class CLEAN(BaseModel):
@@ -101,25 +106,32 @@ class CLEAN(BaseModel):
                         ec_class
                     ].union(substrates_canonical)
 
-        tps_df = pd.read_csv(config.tps_cleaned_csv_path)
-        tps_df.loc[
-            tps_df["Type (mono, sesq, di, …)"].isin(
+        data_df = pd.read_csv(config.tps_cleaned_csv_path)
+        if hasattr(config, "is_halo"):
+            self.is_halo = config.is_halo
+        else:
+            self.is_halo = False
+        if not self.is_halo:
+            data_df.loc[
+                data_df["Type (mono, sesq, di, …)"].isin(
                 {"ggpps", "fpps", "gpps", "gfpps", "hsqs"}
             ),
             config.target_col_name,
-        ] = "precursor substr"
-        self.precursor_smiles = set(
-            tps_df.loc[
-                tps_df["Type (mono, sesq, di, …)"].isin(
-                    {"ggpps", "fpps", "gpps", "gfpps", "hsqs"}
-                ),
-                config.target_col_name,
-            ].values
-        )
+            ] = "precursor substr"
+            self.precursor_smiles = set(
+                data_df.loc[
+                    data_df["Type (mono, sesq, di, …)"].isin(
+                        {"ggpps", "fpps", "gpps", "gfpps", "hsqs"}
+                    ),
+                    config.target_col_name,
+                ].values
+            )
+        else:
+            self.precursor_smiles = set()
 
         self.tps_substrate_smiles = {
             substr
-            for substr in tps_df[config.target_col_name].values
+            for substr in data_df[config.target_col_name].values
             if substr not in {"Unknown", "Negative"}
         }
         sys.path.insert(0, str(self.config.clean_installation_root / "app" / "src"))
@@ -174,6 +186,7 @@ class CLEAN(BaseModel):
         os.chdir(self.config.clean_installation_root / "app")
 
         clean_name_convention = str(temp_fasta_path.stem)
+        logger.info(f"Running CLEAN on {clean_name_convention}")
         prepare_infer_fasta(clean_name_convention)
         infer_maxsep(
             "split100",
@@ -196,20 +209,28 @@ class CLEAN(BaseModel):
                 ec_class, dist = ec_classes.replace("\n", "").split("/")
                 id_2_class_2_conf[line_splitted[0]][ec_class] = 10 - float(dist)
 
-        id_2_substr_2_conf: dict = defaultdict(dict)
-        for uni_id, ec_num_2_conf in id_2_class_2_conf.items():
-            for ec_num, conf in ec_num_2_conf.items():
-                if ec_num in self.ec_2_substrates and len(
-                    self.ec_2_substrates[ec_num].intersection(self.tps_substrate_smiles)
-                ):
-                    ec_num_substrates = self.ec_2_substrates[ec_num]
-                    if len(self.precursor_smiles.intersection(ec_num_substrates)):
-                        ec_num_substrates.add("precursor substr")
-                    substrates = ec_num_substrates.intersection(
-                        self.tps_substrate_smiles
-                    )
-                    for substr in substrates:
-                        id_2_substr_2_conf[uni_id][substr] = conf
+        if not self.is_halo:
+            id_2_substr_2_conf: dict = defaultdict(dict)
+            for uni_id, ec_num_2_conf in id_2_class_2_conf.items():
+                for ec_num, conf in ec_num_2_conf.items():
+                    if ec_num in self.ec_2_substrates and len(
+                        self.ec_2_substrates[ec_num].intersection(self.tps_substrate_smiles)
+                    ):
+                        ec_num_substrates = self.ec_2_substrates[ec_num]
+                        if len(self.precursor_smiles.intersection(ec_num_substrates)):
+                            ec_num_substrates.add("precursor substr")
+                        substrates = ec_num_substrates.intersection(
+                            self.tps_substrate_smiles
+                        )
+                        for substr in substrates:
+                            id_2_substr_2_conf[uni_id][substr] = conf
+        else:
+            id_2_substr_2_conf: dict = defaultdict(dict)
+            for uni_id, ec_num_2_conf in id_2_class_2_conf.items():
+                for ec_num, conf in ec_num_2_conf.items():                    
+                    ec_num = ec_num.replace("EC:", "")
+                    if ec_num in self.config.class_names:
+                        id_2_substr_2_conf[uni_id][ec_num] = conf
         assert isinstance(
             val_df, pd.DataFrame
         ), "the CLEAN requires Uniprot ID and sequences, np.array of numerical representations is not a possible input"

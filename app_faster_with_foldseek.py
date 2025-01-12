@@ -16,7 +16,7 @@ from terpeneminer.src.embeddings_extraction.esm_transformer_utils import (
     compute_embeddings,
     get_model_and_tokenizer,
 )
-from terpeneminer.src.utils.data import extract_sequences_from_pdb
+from terpeneminer.src.utils.pdb import _extract_sequences_from_pdb
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -81,7 +81,7 @@ def detect_domains(file_contents, filename, is_bfactor_confidence):
     if not pdb_directory_temp.exists():
         pdb_directory_temp.mkdir()
         af_source_path = Path("/home/samusevich/TerpeneMiner/data/alphafold_structs")
-        for pdb_standard_id in ["1ps1", "5eat", "3p5r", "P48449"]:
+        for pdb_standard_id in ["1ps1", "5eat", "3p5r", "P48449", "Q7Z859"]:
             pdb_standard_file_path = af_source_path / f"{pdb_standard_id}.pdb"
             copyfile(pdb_standard_file_path, pdb_directory_temp / f"{pdb_standard_id}.pdb")
 
@@ -194,7 +194,7 @@ async def upload_file(file: UploadFile = File(...),
             pdb_id_current = detected_domain_id.split('_')[0]
             closest_known_domain_id, foldseek_tm_score = max([(known_domain_id, tmscore)
                                                               for known_domain_id, tmscore in comparison_results[pdb_id][detected_domain_id]
-                                                              if known_domain_id.split('_')[0] != pdb_id_current],
+                                                              if known_domain_id.split('_')[0] != pdb_id_current and known_domain_id.split('_')[0] in id_2_domain_config],
                                                              key=lambda x: x[1])
             closest_known_domain_id_pdb_id = closest_known_domain_id.split('_')[0]
             closest_known_domain_file_path = Path("data/detected_domains/all") / f"{closest_known_domain_id}.pdb"
@@ -247,7 +247,7 @@ async def upload_file(file: UploadFile = File(...),
         os.remove(domain_predictions_path)
 
         # detecting motifs
-        chain_2_seq = extract_sequences_from_pdb(pdb_file_path)
+        chain_2_seq = _extract_sequences_from_pdb(pdb_file_path)
         input_seq = list(set(chain_2_seq.values()))
         if len(input_seq) > 1:
             logger.warning(f"Multiple chains in the file {pdb_file_path} are not supported")
@@ -314,7 +314,7 @@ async def upload_file(file: UploadFile = File(...),
         comparison_results = None
 
     logger.info("Computing embeddings..")
-    chain_2_seq = extract_sequences_from_pdb(pdb_file_path)
+    chain_2_seq = _extract_sequences_from_pdb(pdb_file_path)
     input_seq = list(set(chain_2_seq.values()))
     if len(input_seq) > 1:
         logger.warning(f"Multiple chains in the file {pdb_file_path} are not supported")
@@ -423,7 +423,6 @@ async def upload_file(file: UploadFile = File(...),
     os.remove(domain_detections_path)
     rmtree(detected_domain_structures_root)
     return {'predictions': predictions_avg}
-
 
 
 

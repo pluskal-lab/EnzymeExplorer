@@ -21,6 +21,7 @@ class HmmConfig(BaseConfig):
     group_column_name: Optional[str] = None
     n_jobs: Optional[int] = 56
     pred_batch_size: Optional[int] = 10000
+    is_halo: bool = False
 
 
 class HMM(BaseModel):

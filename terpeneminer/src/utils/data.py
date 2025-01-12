@@ -8,6 +8,11 @@ from indigo import Indigo  # type: ignore
 from Bio.PDB import PDBParser, PPBuilder  # type: ignore
 logging.getLogger("h5py").setLevel(logging.INFO)
 import h5py  # type: ignore # pylint: disable=C0413
+from pathlib import Path
+import subprocess
+import pickle
+from typing import Dict, Tuple
+import pandas as pd
 
 logger = logging.getLogger(__file__)
 logger.setLevel(level=logging.INFO)
@@ -226,37 +231,82 @@ def get_canonical_smiles(smiles: str, without_stereo: bool = True):
     return mol.canonicalSmiles()
 
 
-def extract_sequences_from_pdb(pdb_filepath: str):
+
+def compute_mmseqs2_clusters(
+    sequences_df: pd.DataFrame,
+    id_column: str,
+    sequence_column: str,
+    output_dir: Path,
+    identity_threshold: float = 0.3,
+    coverage_threshold: float = 0.8,
+) -> Tuple[Dict[str, int], list[list[str]]]:
     """
-    Extract amino acid sequences from a PDB file for each chain.
-
-    Parameters:
-    pdb_file (str): Path to the PDB file.
-
+    Create phylogenetic clusters using MMseqs2 and return id_2_group mapping.
+    
+    Args:
+        sequences_df: DataFrame containing sequences and their IDs
+        id_column: Name of the column containing sequence IDs
+        sequence_column: Name of the column containing sequences
+        output_dir: Directory to store temporary files
+        identity_threshold: Sequence identity threshold (default: 0.3)
+        coverage_threshold: Alignment coverage threshold (default: 0.8)
+    
     Returns:
-    dict: A dictionary where keys are chain IDs and values are amino acid sequences.
+        Tuple containing:
+        - Dictionary mapping sequence IDs to cluster groups
+        - List of clusters where each cluster is a list of sequence IDs
     """
-    # Create a PDBParser object
-    parser = PDBParser()
-
-    # Parse the PDB file
-    structure = parser.get_structure('protein_structure', pdb_filepath)
-
-    # Create a Polypeptide builder
-    ppb = PPBuilder()
-
-    sequences = {}
-
-    # Iterate over each model (usually there's only one)
-    for model in structure:
-        # Iterate over each chain in the model
-        for chain in model:
-            # Build polypeptides (sequences) from the chain
-            polypeptides = ppb.build_peptides(chain)
-            # Concatenate sequences if there are multiple polypeptides
-            sequence = ''.join([str(pp.get_sequence()) for pp in polypeptides])
-            sequences[chain.id] = sequence
-    return sequences
-
-
-
+    output_dir = Path(output_dir)
+    output_dir.mkdir(exist_ok=True, parents=True)
+    
+    # Create FASTA file
+    fasta_path: Path = output_dir / "sequences.fasta"
+    with open(fasta_path, "w") as f:
+        for _, row in sequences_df.iterrows():
+            f.write(f">{row[id_column]}\n{row[sequence_column]}\n")
+    
+    # Run easy-cluster with memory-efficient parameters
+    cluster_result_path: Path = output_dir / "clusterRes"
+    tmp_path: Path = output_dir / "tmp"
+    tmp_path.mkdir(exist_ok=True)
+    
+    subprocess.run([
+        "mmseqs", "easy-cluster",
+        str(fasta_path),
+        str(cluster_result_path),
+        str(tmp_path),
+        "--min-seq-id", str(identity_threshold),
+        "-c", str(coverage_threshold),
+        "--cov-mode", "1",  # bidirectional coverage mode
+        "--max-seqs", "5000",  # limit number of sequences per query
+        "--split-memory-limit", "60G",  # memory limit per split
+        "-s", "7.5",  # sensitivity, lower = faster but less sensitive
+        "--remove-tmp-files", "1"  # clean up temporary files
+    ], check=True)
+    
+    # Parse clustering results from the TSV file
+    tsv_path: Path = output_dir / "clusterRes_cluster.tsv"
+    id_2_group: dict[str, int] = {}
+    clusters: list[list[str]] = []
+    
+    with open(tsv_path) as f:
+        current_cluster: list[str] = []
+        current_representative: str | None = None
+        
+        for line in f:
+            representative, member = line.strip().split("\t")
+            
+            if current_representative != representative:
+                if current_cluster:
+                    clusters.append(current_cluster)
+                current_cluster = []
+                current_representative = representative
+            
+            current_cluster.append(member)
+            id_2_group[member] = len(clusters)
+    
+    if current_cluster:
+        clusters.append(current_cluster)
+    
+    
+    return id_2_group, clusters

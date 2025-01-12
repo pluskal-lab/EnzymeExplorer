@@ -75,6 +75,11 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
 
     if hasattr(config, "gpu_id"):
         os.environ["CUDA_VISIBLE_DEVICES"] = str(config.gpu_id)
+        
+    if hasattr(config, "is_halo"):
+        is_halo = config.is_halo
+    else:
+        is_halo = False
 
     # instantiating model
     model = model_class(config)
@@ -130,9 +135,10 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
         "Instantiated the model %s", model.config.experiment_info.get_experiment_name()
     )
 
-    tps_df = pd.read_csv(config.tps_cleaned_csv_path)
-    tps_df.loc[
-        tps_df["Type (mono, sesq, di, …)"].isin(
+    data_df = pd.read_csv(config.tps_cleaned_csv_path)
+    if not is_halo:
+        data_df.loc[
+            data_df["Type (mono, sesq, di, …)"].isin(
             {"ggpps", "fpps", "gpps", "gfpps", "hsqs"}
         ),
         "SMILES_substrate_canonical_no_stereo",
@@ -148,7 +154,7 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
         for test_fold in tqdm(
             get_folds(
                 split_desc=config.split_col_name,
-            ),
+            ) if not is_halo else [0],
             desc=f"Iterating over validation folds per {config.split_col_name}..",
         ):
             # selecting a single fold to run if specified
@@ -156,18 +162,21 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
                 logger.info("Fold: %s", test_fold)
                 fold_needs_resetting = experiment_info.fold == "all_folds"
                 model.config.experiment_info.fold = test_fold
-                trn_folds = [
-                    f"fold_{fold_trn}"
+                if not is_halo:
+                    trn_folds = [
+                        f"fold_{fold_trn}"
                     for fold_trn in get_folds(
                         split_desc=config.split_col_name,
                     )
-                    if fold_trn != test_fold
-                ]
-                trn_df = tps_df[tps_df[config.split_col_name].isin(set(trn_folds))]
-                trn_df.loc[
-                    trn_df[f"{config.split_col_name}_ignore_in_eval"] == 1,
+                        if fold_trn != test_fold
+                    ]
+                    trn_df.loc[
+                        trn_df[f"{config.split_col_name}_ignore_in_eval"] == 1,
                     config.target_col_name,
-                ] = "other"
+                    ] = "other"
+                else:
+                    trn_folds = ['train']                    
+                trn_df = data_df[data_df[config.split_col_name].isin(set(trn_folds))]
                 trn_df = (
                     trn_df.groupby(config.id_col_name)[config.target_col_name]
                     .agg(set)
@@ -175,8 +184,8 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
                 )
                 trn_df[config.target_col_name] = trn_df[config.target_col_name].map(
                     lambda x: x
-                    if len(x.intersection({"Unknown", "precursor substr"}))
-                    else x.union({"isTPS"})
+                if len(x.intersection({"Unknown", "precursor substr"}))
+                else x.union({"isTPS"})
                 )
 
                 if config.run_against_wetlab:
@@ -189,16 +198,17 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
                     test_id_column_name = "ID"
                     raw_dataset_id_colunm_name = config.id_col_name
                     trn_df[test_id_column_name] = trn_df[raw_dataset_id_colunm_name]
-                    tps_df[test_id_column_name] = tps_df[raw_dataset_id_colunm_name]
+                    data_df[test_id_column_name] = data_df[raw_dataset_id_colunm_name]
                     model.config.id_col_name = test_id_column_name
                 else:
-                    test_df_raw = tps_df[
-                        tps_df[config.split_col_name] == f"fold_{test_fold}"
+                    test_df_raw = data_df[
+                        data_df[config.split_col_name] == f"fold_{test_fold}"
                     ]
-                    test_df_raw.loc[
-                        test_df_raw[f"{config.split_col_name}_ignore_in_eval"] == 1,
+                    if not is_halo: 
+                        test_df_raw.loc[
+                            test_df_raw[f"{config.split_col_name}_ignore_in_eval"] == 1,
                         config.target_col_name,
-                    ] = "other"
+                        ] = "other"
                     test_id_column_name = config.id_col_name
                     model.config.id_col_name = test_id_column_name
                 test_df = (
@@ -208,8 +218,8 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
                 )
                 test_df[config.target_col_name] = test_df[config.target_col_name].map(
                     lambda x: x
-                    if len(x.intersection({"Unknown", "precursor substr"}))
-                    else x.union({"isTPS"})
+                if len(x.intersection({"Unknown", "precursor substr"}))
+                else x.union({"isTPS"})
                 )
 
                 # checking if the model requires an amino acid sequence or a group (kingdom) column
@@ -218,15 +228,15 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
                         hasattr(config, optional_column_attribute)
                         and getattr(config, optional_column_attribute) is not None
                     ):
-                        id_seq_df = tps_df[
+                        id_seq_df = data_df[
                             [
-                                raw_dataset_id_colunm_name,
+                                config.id_col_name,
                                 getattr(config, optional_column_attribute),
                             ]
-                        ].drop_duplicates(raw_dataset_id_colunm_name)
+                        ].drop_duplicates(config.id_col_name)
                         trn_df = trn_df.merge(
                             id_seq_df,
-                            on=raw_dataset_id_colunm_name,
+                            on=config.id_col_name,
                         )
                         test_id_seq_df = test_df_raw[
                             [
@@ -238,6 +248,8 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
                             test_id_seq_df,
                             on=test_id_column_name,
                         )
+                logger.info(f"A number of training samples: {len(trn_df)}")
+                logger.info(f"A number of testing samples: {len(test_df)}")
 
                 # retrieving hyperparameters
                 if load_hyperparameters:
