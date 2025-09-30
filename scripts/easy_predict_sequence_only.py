@@ -6,6 +6,8 @@ from pathlib import Path
 from shutil import rmtree
 import gdown  # type: ignore
 import logging
+from time import time
+from uuid import uuid4
 
 logger = logging.getLogger(__file__)
 logger.setLevel(logging.INFO)
@@ -44,7 +46,8 @@ def main():
         url = "https://drive.google.com/uc?id=15_OFrrVUy9r9Urj-R2CjTRj_DHcazdAl"
         gdown.download(url, str(clf_chkpt_path), quiet=False)
 
-    intermediate_outputs_root = "_temp_dir"
+    run_id = f"{int(time() * 1000)}-{uuid4()}"
+    intermediate_outputs_root = f"_temp_dir_{run_id}"
     if not Path(intermediate_outputs_root).exists():
         Path(intermediate_outputs_root).mkdir(parents=True)
     os.system(
