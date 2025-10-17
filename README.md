@@ -4,7 +4,7 @@
 
 [![DOI:10.1101/2024.01.29.577750](http://img.shields.io/badge/DOI-10.1101/2024.01.29.577750-B31B1B.svg)](https://doi.org/10.1101/2024.01.29.577750)
 
-[![](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/SamusRam/colab_notebooks/blob/main/TerpeneMiner_(input_UniProt_ID).ipynb)
+[![](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/pluskal-lab/EnzymeExplorer/blob/main/notebooks/EnzymeExplorer_(input_UniProt_ID).ipynb)
 
 <div align="center">
 
@@ -19,9 +19,9 @@
 
 | Required input | Colab Notebook  |
 |-----------|--------------|
-| Uniprot ID    | [![](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/SamusRam/colab_notebooks/blob/main/TerpeneMiner_(input_UniProt_ID).ipynb) |
-| Structure  | [![](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/SamusRam/colab_notebooks/blob/main/TerpeneMiner_(upload_your_structure).ipynb) |
-| Sequence (structure will be predicted in Colab)  | [![](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/SamusRam/colab_notebooks/blob/main/TerpeneMiner_%2B_ColabFold_(input_sequence).ipynb)|
+| Uniprot ID    | [![](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/pluskal-lab/EnzymeExplorer/blob/main/notebooks/EnzymeExplorer_(input_UniProt_ID).ipynb) |
+| Structure  | [![](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/pluskal-lab/EnzymeExplorer/blob/main/notebooks/EnzymeExplorer_(upload_your_structure).ipynb) |
+| Sequence (structure will be predicted in Colab)  | [![](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/pluskal-lab/EnzymeExplorer/blob/main/notebooks/EnzymeExplorer_%2B_ColabFold_(input_sequence).ipynb)|
 
 
 Table of contents
