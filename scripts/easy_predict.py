@@ -1,8 +1,10 @@
 from functools import partial
 from uuid import uuid4
+import argparse
+import gdown
+import pandas as pd
+import torch
 
-from fastapi import FastAPI, File, UploadFile, BackgroundTasks, Form
-from fastapi.responses import FileResponse
 from pathlib import Path
 import os
 import pickle
@@ -16,7 +18,7 @@ from enzymeexplorer.src.embeddings_extraction.esm_transformer_utils import (
     compute_embeddings,
     get_model_and_tokenizer,
 )
-from enzymeexplorer.src.utils.pdb import _extract_sequences_from_pdb
+from Bio import SeqIO
 from tqdm import tqdm
 import json
 
@@ -32,6 +34,8 @@ logging.basicConfig(
     ]
 )
 
+logger.info(f'Cuda available is {torch.cuda.is_available()}')
+
 def parse_args() -> argparse.Namespace:
     """
     This function parses arguments
@@ -43,11 +47,12 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--needed-proteins-csv-path", help="Path to the CSV file containing proteins to be screened", type=str)
     parser.add_argument("--csv-id-column", help="Name of the column with IDs in the CSV file", type=str)
-    parser.add_argument("--n-jobs", help="Number of jobs to run in parallel", type=int, default=16)
-    parser.add_argument("--is-bfactor-confidence", action="store_true")
     parser.add_argument("--output-csv-path", help="Path to the output CSV file with the results", type=str)
-    parser.add_argument("--detection-threshold", help="Threshold for detection", type=float, default=0.3)
+
+    parser.add_argument("--is-bfactor-confidence", action="store_true")
     parser.add_argument("--detect-precursor-synthases", help="Boolean flag to detect precursor synthases as well", action="store_true")
+    parser.add_argument("--detection-threshold", help="Threshold for detection", type=float, default=0.0)
+    parser.add_argument("--n-jobs", help="Number of jobs to run in parallel", type=int, default=16)
     parser.add_argument("--plm-batch-size", help="Batch size for embeddings computation", type=int, default=4)
     parser.add_argument("--plm-max-seq-len", help="Max sequence length for embeddings computation", type=int, default=1022)
     parser.add_argument("--clf-batch-size", help="Batch size for classifier", type=int, default=4096)
@@ -55,8 +60,10 @@ def parse_args() -> argparse.Namespace:
 
 
 def main():
+
     args = parse_args()
-    # checking TPS language model checkpoint presence
+
+    logger.info("checking TPS language model checkpoint presence")
     plm_chkpt_path = Path("data/plm_checkpoints")
     if not plm_chkpt_path.exists():
         plm_chkpt_path.mkdir(parents=True)
@@ -119,19 +126,25 @@ def main():
     url = "https://drive.google.com/uc?id=1oEdqSf9iXhfjGtCADPqebFwTKeV_Jhd1"
     output_path = Path("data/domain_templates.zip")
     if output_path.exists():
-        os.remove(output_path)
-    gdown.download(url, str(output_path), quiet=False)
-    os.system(f"unzip {output_path} -d {args.input_directory_with_structures}")
+        logger.info("domain_templates.zip exists and will be unzipped")
+    else:
+        logger.info("Downloading domain_templates.zip")
+        gdown.download(url, str(output_path), quiet=False)
+    os.system(f"unzip -o {output_path} -d {args.input_directory_with_structures}")
     
     url = "https://drive.google.com/uc?id=1x_7DT4NIZSimwJo2HLhOmoGoFL55jwFC"
     output_path = Path("data/tps_detected_domains.zip")
-    if output_path.exists():
-        os.remove(output_path)
     tps_detected_domains_path = Path("data/tps_detected_domains")
-    if not tps_detected_domains_path.exists():
+    if tps_detected_domains_path.exists():
+        logger.info("tps_detected_domains already exists")
+    else:
+        logger.info("tps_detected_domains does not exist")
+        if output_path.exists():
+            logger.info("tps_detected_domains.zip exists and will be unzipped")
+        else:
+            logger.info("Downloading tps_detected_domains.zip")
+            gdown.download(url, str(output_path), quiet=False)
         tps_detected_domains_path.mkdir(parents=True)
-        logger.info("Downloading known TPS domain structures..")
-        gdown.download(url, str(output_path), quiet=False)
         os.system(f"unzip {output_path} -d {tps_detected_domains_path}")
     domains_subset_path = Path("data/domains_subset.pkl")
     if not domains_subset_path.exists():
@@ -147,11 +160,12 @@ def main():
     working_dir_temp = Path("_temp")
     if not working_dir_temp.exists():
         working_dir_temp.mkdir()
-    domain_detections_path = working_dir_temp / f"/filename_2_detected_domains_completed_confident_{uuid4()}.pkl"
-    detected_domain_structures_root = working_dir_temp / "detected_domains"
+    domain_detections_path = working_dir_temp / f"filename_2_detected_domains_completed_confident_{uuid4()}.pkl"
+    detected_domain_structures_root = working_dir_temp / f"detected_domains_{uuid4()}"
+    logger.info(f"domain_detections_path: {domain_detections_path}")
     if not detected_domain_structures_root.exists():
         detected_domain_structures_root.mkdir()
-    os.system(
+    domain_detection_out = os.system(
         "python -m enzymeexplorer.src.structure_processing.domain_detections "
         f'--needed-proteins-csv-path "{args.needed_proteins_csv_path}" '
         f'--csv-id-column {args.csv_id_column} '
@@ -159,12 +173,13 @@ def main():
         f'--input-directory-with-structures {args.input_directory_with_structures} '
         f"{'--is-bfactor-confidence ' if args.is_bfactor_confidence else ''}"
         f'--detections-output-path "{domain_detections_path}" '
-        f'--detected-regions-root-path _temp '
+        f'--detected-regions-root-path "{detected_domain_structures_root}" '
         f'--domains-output-path "{detected_domain_structures_root}" '
         "--store-domains "
         "--recompute-existing-secondary-structure-residues "
         "--do-not-store-intermediate-files"
     )
+    logger.info(f"domain_detections output: {domain_detection_out}")
     
     ############################################################
     # comparing detected domains to the known ones
@@ -177,7 +192,7 @@ def main():
         current_computation_id = uuid4()
         comparison_results_path = working_dir_temp / f"filename_2_regions_vs_known_reg_dists_{current_computation_id}.pkl"
         os.system("python -m enzymeexplorer.src.structure_processing.comparing_to_known_domains_foldseek "
-                  f'--known-domain-structures-root data/detected_domains/all '
+                  f'--known-domain-structures-root data/tps_detected_domains/all '
                   f'--detected-domain-structures-root "{detected_domain_structures_root}" '
                   '--path-to-known-domains-subset data/domains_subset.pkl '
                   f'--output-path "{comparison_results_path}" ')
@@ -202,9 +217,10 @@ def main():
 
     # getting the files
     blacklist_files = {"1ps1.pdb", "5eat.pdb", "3p5r.pdb"}
+    pdb_files_to_process = list(input_directory.glob("*.pdb")) + list(input_directory.glob("*.cif"))
     pdb_files_to_process = [
         filepath
-        for filepath in input_directory.glob("*.pdb")
+        for filepath in pdb_files_to_process
         if str(filepath.name) not in blacklist_files
         and (
             filepath.stem in relevant_protein_ids
@@ -213,38 +229,55 @@ def main():
         )
     ]
     
-    results_output_root = Path(args.output_csv_path).parent / "detections_plm"
+    results_output_root = Path(args.output_csv_path).parent / f"detections_plm_{uuid4()}"
     if not results_output_root.exists():
         results_output_root.mkdir(parents=True)
     
+    # First, get proteins that have domain features and proteins that do not
+    with_domain_comparisons = []
+    no_domain_comparisons = []
     for pdb_file_path in tqdm(
         pdb_files_to_process,
         total=len(pdb_files_to_process),
-        desc=f"Generating PLM embeddings and TPS-activity predictions..."
+        desc=f"Getting proteins with meaningful domain comparisons..."
     ):
         pdb_id = pdb_file_path.stem
-        chain_2_seq = _extract_sequences_from_pdb(pdb_file_path)
-        input_seq = list(set(chain_2_seq.values()))
-        if len(input_seq) > 1:
-            logger.warning(f"Multiple chains in the file {pdb_file_path} are not supported. Taking the first chain..")
-        input_seq = input_seq[:1]
-        
-        if len(input_seq[0]) > args.plm_max_seq_len:
-            input_seq[0] = input_seq[0][: (args.plm_max_seq_len - 2)]            
-        (
-            enzyme_encodings_np_batch,
-            _,
-        ) = compute_embeddings_partial(input_seqs=input_seq)
+        if pdb_id in comparison_results:
+            with_domain_comparisons.append(pdb_file_path)
+        else:
+            no_domain_comparisons.append(pdb_file_path)
+
+    logger.info(f"Found {len(with_domain_comparisons)} proteins with domain comparisons and {len(no_domain_comparisons)} with none.")
+
+    #First take those with domain comparisons
+    next_batch = []
+    next_batch_embeddings = []
+    batch_domain_features = {}
+    next_batch_ids = []
+    batch_counter = 0
+    final_cycle = len(with_domain_comparisons)
+    counter = 0
+    for pdb_file_path in tqdm(
+        with_domain_comparisons,
+        total=len(with_domain_comparisons),
+        desc=f"Generating PLM embeddings and TPS-activity predictions for proteins with domain comparisons..."
+    ):
+        pdb_id = pdb_file_path.stem
+        file_type = pdb_file_path.suffix[1:]
+        counter += 1
 
         predictions = []
-        n_samples = len(enzyme_encodings_np_batch)
-        assert n_samples == 1, "Currently, batching is not supported"
+        # Extract sequence from pdb file
+        input_seq = str(SeqIO.read(pdb_file_path, file_type + "-atom").seq)
+        if len(input_seq) > args.plm_max_seq_len:
+            input_seq = input_seq[: (args.plm_max_seq_len - 2)]
+        # Get domain features from every classifier
+        meaningful_comparison = True
         for classifier_i, classifier in enumerate(fold_classifiers):
-            logger.info(f"Predicting with classifier {classifier_i + 1}/{len(fold_classifiers)}..")
             logger.info("Comparing domain detections to the selected known examples")
             dom_features_count = sum(map(len, classifier.domain_type_2_order_of_domain_modules.values()))
             dom_feat = np.zeros(dom_features_count)
-            if comparison_results is not None and comparison_results[pdb_id]:
+            if comparison_results is not None:
                 current_comparison_results = comparison_results[pdb_id]
                 was_alpha_observed = False
                 for domain_detection in detected_domains[pdb_id]:
@@ -262,77 +295,165 @@ def main():
                         # assert known_module_id in known_domain_id_2_tmscore, f"Known module {known_module_id} not found in comparison results"
                         dom_feat[dom_feat_idx] = known_domain_id_2_tmscore.get(known_module_id, 0)
             if np.max(dom_feat) < 0.4:
-                logger.warning("No meaningful domain comparisons. Skipping the model.. ")
-                continue
-            dom_feat = 1 - dom_feat.reshape(1, -1)
-            if classifier.plm_feat_indices_subset is not None:
-                emb_plm = np.apply_along_axis(lambda i: i[classifier.plm_feat_indices_subset], 1, enzyme_encodings_np_batch)
+                logger.warning(f"No meaningful domain comparisons in a model for {pdb_id}")
+                # This protein will be predicted in no domain comparisons
+                no_domain_comparisons.append(pdb_file_path)
+                meaningful_comparison = False
+                break
             else:
-                emb_plm = enzyme_encodings_np_batch
-            emb = np.concatenate((emb_plm, dom_feat), axis=1)
-
-            y_pred_proba = classifier.predict_proba(emb)
-            for sample_i in range(n_samples):
-                predictions_raw = {}
-                for class_i, class_name in enumerate(classifier.classes_):
-                    if class_name != "Unknown":
-                        predictions_raw[class_name] = y_pred_proba[class_i][sample_i, 1]
-                if len(predictions) == 0:
-                    predictions.append(
-                        {
-                            class_name: [value]
-                            for class_name, value in predictions_raw.items()
-                        }
-                    )
+                dom_feat = 1 - dom_feat.reshape(1, -1)
+                batch_domain_features[(pdb_id, classifier_i)] = dom_feat
+        if meaningful_comparison:
+            next_batch.append(input_seq)
+            next_batch_ids.append(pdb_id)
+        #Do embedding by batch
+        if len(next_batch) == args.plm_batch_size or (counter == final_cycle and next_batch):
+            logger.info(f"Creating embedding for batch")
+            (enzyme_encodings_np_batch,_,) = compute_embeddings_partial(input_seqs=next_batch)
+            next_batch_embeddings.append(enzyme_encodings_np_batch)
+            next_batch = []
+        #Classifier by batch
+        if len(next_batch_embeddings) == args.clf_batch_size or (counter == final_cycle and next_batch_embeddings):
+            logger.info(f"Predicting for batch {batch_counter}")
+            #Concatenate the embeddings
+            next_batch_embeddings = np.concatenate(next_batch_embeddings, axis=0)
+            batch_counter += 1         
+            n_samples = len(next_batch_embeddings)
+            for classifier_i, classifier in enumerate(fold_classifiers):
+                logger.info(f"Predicting with classifier {classifier_i + 1}/{len(fold_classifiers)}..")
+                if classifier.plm_feat_indices_subset is not None:
+                    emb_plm = np.apply_along_axis(lambda i: i[classifier.plm_feat_indices_subset], 1, next_batch_embeddings)
                 else:
-                    for class_name, value in predictions_raw.items():
-                        predictions[sample_i][class_name].append(value)
-        if len(predictions) == 0:
-            logger.warning("Falling back to generic PLM features due to severe data drift")
-            predictions = []
-            for classifier_i, classifier in enumerate(fold_plm_classifiers_fallback):
-                logger.info(f"Predicting with plm classifier {classifier_i + 1}/{len(fold_classifiers)}..")
-                (
-                    enzyme_encodings_np_batch,
-                    _,
-                ) = compute_embeddings_partial_fallback(input_seqs=input_seq)
-
-                y_pred_proba = classifier.predict_proba(enzyme_encodings_np_batch)
+                    emb_plm = next_batch_embeddings                
+                domain_features = list()
+                #Get previously selected domain features for this classifier and concatonate to every emebdding in this batch
+                for one_id in next_batch_ids:
+                    domain_features.append(batch_domain_features[(one_id, classifier_i)])
+                embs = [np.concatenate((embedding, other[0])) for embedding, other in zip(emb_plm, domain_features)]
+                embs = np.stack(embs, axis=0)
+                y_pred_proba = classifier.predict_proba(embs)
+                #stroe to predictions list
                 for sample_i in range(n_samples):
                     predictions_raw = {}
                     for class_i, class_name in enumerate(classifier.classes_):
                         if class_name != "Unknown":
                             predictions_raw[class_name] = y_pred_proba[class_i][sample_i, 1]
-                    if classifier_i == 0:
+                    if len(predictions) < sample_i + 1:
                         predictions.append(
                             {
                                 class_name: [value]
-                                for class_name, value
-                                in predictions_raw.items()
+                                for class_name, value in predictions_raw.items()
+                            }
+                        )
+                    else:
+                        for class_name, value in predictions_raw.items():
+                            predictions[sample_i][class_name].append(value)
+            logger.info("Averaging predictions over all models..")
+            predictions_avg = []
+            for prediction in predictions:
+                predictions_avg.append(
+                    {
+                        class_name: np.mean(values)
+                        for class_name, values in prediction.items()
+                    }
+                )
+            for protein_id, avg_pred in zip(next_batch_ids, predictions_avg):
+                protein_id_short = protein_id.replace("/", "")
+                if avg_pred["isTPS"] >= args.detection_threshold or (
+                    args.detect_precursor_synthases
+                    and avg_pred["precursor substr"] >= args.detection_threshold
+                ):
+                    output_file = results_output_root / protein_id_short
+                    with open(output_file, "w", encoding="utf-8") as outputs_file:
+                        json.dump(avg_pred, outputs_file)
+            #After predicting the batch, start a new one:
+            next_batch_embeddings = []
+            next_batch_ids = []
+            batch_domain_features = {}
+    
+
+    #Now bathces without any domain comparisons
+    next_batch = []
+    next_batch_embeddings = []
+    batch_domain_features = {}
+    next_batch_ids = []
+    batch_counter = 0
+    final_cycle = len(no_domain_comparisons)
+    counter = 0 
+    for pdb_file_path in tqdm(
+        no_domain_comparisons,
+        total=len(no_domain_comparisons),
+        desc=f"Generating PLM embeddings and TPS-activity predictions for proteins with no domain comparisons..."
+    ):
+        pdb_id = pdb_file_path.stem
+        file_type = pdb_file_path.suffix[1:]
+        counter += 1
+        predictions = []
+        # Extract sequence from pdb file
+        input_seq = str(SeqIO.read(pdb_file_path, file_type + "-atom").seq)
+        if len(input_seq) > args.plm_max_seq_len:
+            input_seq = input_seq[: (args.plm_max_seq_len - 2)]
+
+        next_batch.append(input_seq)
+        next_batch_ids.append(pdb_id) 
+
+        #Do embedding by batch
+        if len(next_batch) == args.plm_batch_size or (counter == final_cycle and next_batch):
+            logger.info(f"Creating embedding for batch")
+            (enzyme_encodings_np_batch,_,) = compute_embeddings_partial_fallback(input_seqs=next_batch)
+            next_batch_embeddings.append(enzyme_encodings_np_batch)
+            next_batch = [] 
+
+        #Predict batch              
+        if len(next_batch_embeddings) == args.clf_batch_size or (counter == final_cycle and next_batch_embeddings):
+            logger.info(f"Predicting for batch {batch_counter}")
+            batch_counter += 1
+            #Concatenate the embeddings
+            next_batch_embeddings = np.concatenate(next_batch_embeddings, axis=0)
+            #Batch compute embeddings
+            n_samples = len(next_batch_embeddings)
+            for classifier_i, classifier in enumerate(fold_plm_classifiers_fallback):
+                logger.info(f"Predicting with classifier {classifier_i + 1}/{len(fold_classifiers)}...")
+                y_pred_proba = classifier.predict_proba(next_batch_embeddings)          
+                #Store to predictions list
+                for sample_i in range(n_samples):
+                    predictions_raw = {}
+                    for class_i, class_name in enumerate(classifier.classes_):
+                        if class_name != "Unknown":
+                            predictions_raw[class_name] = y_pred_proba[class_i][sample_i, 1]
+                    if len(predictions) < sample_i + 1:
+                        predictions.append(
+                            {
+                                class_name: [value]
+                                for class_name, value in predictions_raw.items()
                             }
                         )
                     else:
                         for class_name, value in predictions_raw.items():
                             predictions[sample_i][class_name].append(value)
 
-        logger.info("Averaging predictions over all models..")
-        predictions_avg = []
-        for prediction in predictions:
-            predictions_avg.append(
-                {
-                    class_name: np.mean(values)
-                    for class_name, values in prediction.items()
-                }
-            )
-        assert len(predictions_avg) == 1, "Currently, batching is not supported"
-        protein_id_short = pdb_file_path.stem.replace("/", "")
-        if predictions_avg[0]["isTPS"] >= args.detection_threshold or (
-            args.detect_precursor_synthases
-            and predictions_avg[0]["precursor substr"] >= args.detection_threshold
-        ):
-            output_file = results_output_root / protein_id_short
-            with open(output_file, "w", encoding="utf-8") as outputs_file:
-                json.dump(predictions_avg[0], outputs_file)
+            logger.info("Averaging predictions over all models...")
+            predictions_avg = []
+            for prediction in predictions:
+                predictions_avg.append(
+                    {
+                        class_name: np.mean(values)
+                        for class_name, values in prediction.items()
+                    }
+                )
+            for protein_id, avg_pred in zip(next_batch_ids, predictions_avg):
+                protein_id_short = protein_id.replace("/", "")
+                if avg_pred["isTPS"] >= args.detection_threshold or (
+                    args.detect_precursor_synthases
+                    and avg_pred["precursor substr"] >= args.detection_threshold
+                ):
+                    output_file = results_output_root / protein_id_short
+                    with open(output_file, "w", encoding="utf-8") as outputs_file:
+                        json.dump(avg_pred, outputs_file)
+            #After predicting the batch, start a new one:
+            next_batch_ids = []
+            next_batch_embeddings = []
+            batch_domain_features = {}
     
     os.system(
         f"python -m enzymeexplorer.src.screening.gather_detections_to_csv --screening-results-root {results_output_root} --output-path {args.output_csv_path} --delete-individual-files"
@@ -340,10 +461,5 @@ def main():
     os.remove(domain_detections_path)
     rmtree(detected_domain_structures_root)
         
-    
-
-
-
-
-
-
+if __name__ == "__main__":
+    main()
