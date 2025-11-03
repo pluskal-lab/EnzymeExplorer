@@ -43,14 +43,14 @@ def parse_args() -> argparse.Namespace:
     """
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--input-directory-with-structures", help="Path to the directory with input PDB files", type=str
+        "--input-directory-with-structures", required=True, help="Path to the directory with input PDB files", type=str
     )
-    parser.add_argument("--needed-proteins-csv-path", help="Path to the CSV file containing proteins to be screened", type=str)
-    parser.add_argument("--csv-id-column", help="Name of the column with IDs in the CSV file", type=str)
-    parser.add_argument("--output-csv-path", help="Path to the output CSV file with the results", type=str)
+    parser.add_argument("--needed-proteins-csv-path", required=True, help="Path to the CSV file containing proteins to be screened", type=str)
+    parser.add_argument("--csv-id-column", required=True, help="Name of the column with IDs in the CSV file", type=str)
+    parser.add_argument("--output-csv-path", required=True, help="Path to the output CSV file with the results", type=str)
 
     parser.add_argument("--is-bfactor-confidence", action="store_true")
-    parser.add_argument("--detect-precursor-synthases", help="Boolean flag to detect precursor synthases as well", action="store_true")
+    parser.add_argument("--detect-precursor-synthases", help="Boolean flag to detect precursor synthases as well", type=bool, default=True)
     parser.add_argument("--detection-threshold", help="Threshold for detection", type=float, default=0.0)
     parser.add_argument("--n-jobs", help="Number of jobs to run in parallel", type=int, default=16)
     parser.add_argument("--plm-batch-size", help="Batch size for embeddings computation", type=int, default=4)
