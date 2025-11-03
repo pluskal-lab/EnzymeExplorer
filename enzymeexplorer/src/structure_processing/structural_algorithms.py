@@ -77,12 +77,12 @@ def prepare_domain(pymol_cmd, domain_name: str) -> tuple:
     domain_2_standard = {dom_name_: f"{dom_name_}" for dom_name_ in SUPPORTED_DOMAINS}
     domain_2_standard.update(
         {
-            "alpha": "UPI0004CAEF9E",
-            "beta": "W8JNL4",
-            "gamma": "W8JNL4",
-            "delta": "A7KH27",
-            "epsilon": "Q4KCZ0",
-            "alphaWeird": "Q4KCZ0",
+            "alpha": "1ps1",
+            "beta": "5eat",
+            "gamma": "3p5r",
+            "delta": "P48449",
+            "epsilon": "P48449",
+            "alphaWeird": "Q7Z859",
         }
     )
     assert domain_name in domain_2_standard, f"Domain {domain_name} is not supported"
