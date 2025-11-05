@@ -23,8 +23,8 @@ def parse_args() -> argparse.Namespace:
         "--input-fasta-path", type=str, default="data/uniprot_trembl.fasta"
     )
     parser.add_argument("--output-csv-path", type=str, default="trembl_screening")
-    parser.add_argument("--detection-threshold", type=float, default=0.3)
-    parser.add_argument("--detect-precursor-synthases", action="store_true")
+    parser.add_argument("--detection-threshold", type=float, default=0.0)
+    parser.add_argument("--detect-precursor-synthases", type=bool, default=True)
     parser.add_argument("--model", type=str, default="esm-1v-finetuned-subseq")
     return parser.parse_args()
 
