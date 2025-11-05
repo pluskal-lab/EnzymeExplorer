@@ -1,0 +1,8 @@
+# Python
+__pycache__/
+
+# EnzymeExplorer
+/enzymeexplorer.egg-info/
+
+# data
+/scripts/data/
