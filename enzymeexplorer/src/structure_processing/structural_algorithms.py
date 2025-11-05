@@ -95,13 +95,13 @@ def prepare_domain(pymol_cmd, domain_name: str) -> tuple:
     if "_" in domain_name:
         selection_condition = " & chain A & ss H+S"
     else:
-        selection_condition = {
+         selection_condition = {
             "alpha": " & chain A & ss H+S",
-            "beta": " & resi 221-300 & chain A & ss H+S",
-            "gamma": " & resi 1-186 & chain A & ss H+S",
-            "delta": " & chain A & ss H+S",
-            "epsilon": " & resi 73-110+195-300 & chain A & ss H+S",
-            "alphaWeird": " & resi 1-73+110-195+300-382 & chain A & ss H+S"
+            "beta": " & resi 37-57+64-97+104-117+123-129+138-156+162-195+203-213+223-239 & chain A & ss H+S",
+            "gamma": " & resi 138-151+157-171+185-222+233-248+258-275+281-304+313-339 & chain A & ss H+S",
+            "delta": " & resi 73-87+385-399+401-403+405-421+454-470+480-493+531-547+553-570+585-599+610-622+633-638+649-662+667-680+707-722+727-729 & chain A & ss H+S",
+            "epsilon": " & resi 103-115+123-134+151-164+171-183+191-200+213-217+226-228+231-246+254-263+268-270+273-277+291-306+309-330+337-351+356-371+376-378+510-515 & chain A & ss H+S",
+            "alphaWeird": " & resi 6-23+38-58+66-68+81-96+118-136+152-177+183-208+229-239+241-246 & chain A & ss H+S",
         }[domain_name]
     domain_name_new = f"{domain_name}_domain_{uuid4()}"
     pymol_cmd.select(domain_name_new, f"{required_file} {selection_condition}")
