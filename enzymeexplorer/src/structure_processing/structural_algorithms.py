@@ -31,11 +31,11 @@ if not logger.hasHandlers():
 SUPPORTED_DOMAINS = {"alpha", "beta", "gamma", "delta", "epsilon", "alphaWeird"}
 DOMAIN_2_THRESHOLD = {
     "beta": (0.6, 50),
-    "delta": (0.4, 50),
+    "delta": (0.6, 50),
     "epsilon": (0.6, 50),
-    "gamma": (0.6, 50),
-    "alpha": (0.4, 80),
-    "alphaWeird": (0.5, 80),
+    "gamma": (0.55, 50),
+    "alpha": (0.35, 130),
+    "alphaWeird": (0.5, 100),
 }
 
 
