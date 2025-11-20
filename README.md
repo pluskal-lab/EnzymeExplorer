@@ -108,13 +108,22 @@ pip install -e .
 
 ## Quick start locally
 
+### Running full TPS detection and classification
+To predict using the full EnzymeExplorer model, put the sequences of interest into a `.fasta` file and run
+
+```bash
+cd EnzymeExplorer
+conda activate enzyme_explorer
+python scripts/easy_predict.py --needed-proteins-csv-path path/to/input_sequences.csv --csv-id-column sequence_id_columm_name --input-directory-with-structures path/to/dir/with/structures --output-csv-path predictions.csv
+```
+
 ### Running sequence-based TPS detection and classification
 To predict using the model based on TPS language model only, put the sequences of interest into a `.fasta` file and run
 
 ```bash
 cd EnzymeExplorer
 conda activate enzyme_explorer
-python scripts/easy_predict_sequence_only.py --input-fasta-path data/af_inputs_test.fasta --output-csv-path test_seqs_pred.csv --detection-threshold 0.2 --detect-precursor-synthase
+python scripts/easy_predict_sequence_only.py --input-fasta-path path/to/input_sequences.fasta --output-csv-path predictions.csv
 ```
 
 -----------------------------------------

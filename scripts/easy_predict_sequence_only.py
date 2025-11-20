@@ -24,7 +24,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--output-csv-path", type=str, default="trembl_screening")
     parser.add_argument("--detection-threshold", type=float, default=0.0)
-    parser.add_argument("--detect-precursor-synthases", type=bool, default=True)
+    parser.add_argument("--detect-precursor-synthases", help="Flag to detect precursor synthases as well. Set to False with `--no-detect-precursor-synthases`.", default=True, action=argparse.BooleanOptionalAction)
     parser.add_argument("--model", type=str, default="esm-1v-finetuned-subseq")
     return parser.parse_args()
 
@@ -59,7 +59,7 @@ def main():
     os.system(
         f"python -m enzymeexplorer.src.screening.tps_predict_fasta --model {args.model}"
         f" --fasta-path {args.input_fasta_path} --output-root {intermediate_outputs_root}"
-        f" --detect-precursor-synthases {args.detect_precursor_synthases}"
+        f"{' --detect-precursor-synthases' if args.detect_precursor_synthases else ' --no-detect-precursor-synthases'}"
         f" --detection-threshold {args.detection_threshold}"
         f" --ckpt-root-path {clf_chkpt_path}"
     )

@@ -57,7 +57,7 @@ def parse_args() -> argparse.Namespace:
         "--ckpt-root-path", type=str, default="data/classifier_checkpoints.pkl"
     )
     parser.add_argument("--detection-threshold", type=float, default=0.2)
-    parser.add_argument("--detect-precursor-synthases", type=bool, default=False)
+    parser.add_argument("--detect-precursor-synthases", help="Flag to detect precursor synthases as well. Set to False with `--no-detect-precursor-synthases`.", default=True, action=argparse.BooleanOptionalAction)
     parser.add_argument("--gpu", type=str, default="0")
     return parser.parse_args()
 

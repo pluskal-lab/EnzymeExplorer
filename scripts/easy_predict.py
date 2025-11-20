@@ -50,7 +50,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output-csv-path", required=True, help="Path to the output CSV file with the results", type=str)
 
     parser.add_argument("--is-bfactor-confidence", action="store_true")
-    parser.add_argument("--detect-precursor-synthases", help="Boolean flag to detect precursor synthases as well", type=bool, default=True)
+    parser.add_argument("--detect-precursor-synthases", help="Flag to detect precursor synthases as well. Set to False with `--no-detect-precursor-synthases`.", default=True, action=argparse.BooleanOptionalAction)
     parser.add_argument("--detection-threshold", help="Threshold for detection", type=float, default=0.0)
     parser.add_argument("--n-jobs", help="Number of jobs to run in parallel", type=int, default=16)
     parser.add_argument("--plm-batch-size", help="Batch size for embeddings computation", type=int, default=4)

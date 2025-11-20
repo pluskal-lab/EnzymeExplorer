@@ -187,8 +187,7 @@ if __name__ == "__main__":
                 args.model,
                 "--detection-threshold",
                 str(args.detection_threshold),
-                "--detect-precursor-synthases",
-                str(args.detect_precursor_synthases),
+                " --detect-precursor-synthases" if args.detect_precursor_synthases else " --no-detect-precursor-synthases",
             ]
         )
         gpu_allocator.assign_process_to_gpu(current_process, gpu_i)
