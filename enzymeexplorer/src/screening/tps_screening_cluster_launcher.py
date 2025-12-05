@@ -155,9 +155,7 @@ class GpuAllocator:
             time.sleep(120)
 
 
-if __name__ == "__main__":
-    args = parse_args()
-
+def main(args: argparse.Namespace):
     gpu_allocator = GpuAllocator()
 
     starting_i = (args.session_i - 1) * args.n_gpus * args.delta
@@ -193,3 +191,8 @@ if __name__ == "__main__":
         gpu_allocator.assign_process_to_gpu(current_process, gpu_i)
 
     gpu_allocator.wait_for_complete_finish()
+
+
+if __name__ == "__main__":
+    args = parse_args()
+    main(args)

@@ -49,11 +49,9 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-if __name__ == "__main__":
-    config_root_path = get_config_root()
-    args = parse_args()
+def main(args: argparse.Namespace):    
     if args.model is None or args.model_version is None:
-        experiment_kwargs = collect_single_experiment_arguments(config_root_path)
+        experiment_kwargs = collect_single_experiment_arguments(get_config_root())
     else:
         experiment_kwargs = {
             "model_type": args.model,
@@ -152,3 +150,8 @@ if __name__ == "__main__":
 
     with open(args.output_path, "wb") as file_writer:
         pickle.dump(classifiers, file_writer)
+
+
+if __name__ == "__main__":
+    args = parse_args()
+    main(args)

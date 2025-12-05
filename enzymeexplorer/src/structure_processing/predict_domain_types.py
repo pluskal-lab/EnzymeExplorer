@@ -41,8 +41,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output-path", type=str)
     return parser.parse_args()
 
-if __name__ == "__main__":
-    args = parse_args()
+
+def main(args: argparse.Namespace):
     with open(args.tps_classifiers_path, "rb") as file:
         tps_classifiers = pickle.load(file)
     with open(args.domain_classifiers_path, "rb") as file:
@@ -82,5 +82,6 @@ if __name__ == "__main__":
         pickle.dump(domain_id_2_predictions, file)
 
 
-
-
+if __name__ == "__main__":
+    args = parse_args()
+    main(args)

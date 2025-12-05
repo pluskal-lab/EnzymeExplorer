@@ -34,8 +34,7 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-if __name__ == "__main__":
-    args = parse_args()
+def main(args: argparse.Namespace):
     cwd = os.getcwd()
     os.chdir(args.input_directory)
     pdb_files_raw = list(Path(".").glob("*.pdb"))
@@ -54,3 +53,8 @@ if __name__ == "__main__":
     os.chdir(cwd)
     with open(args.output_path, "wb") as f:
         pickle.dump(file_2_all_residues, f)
+
+
+if __name__ == "__main__":
+    args = parse_args()
+    main(args)

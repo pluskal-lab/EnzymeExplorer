@@ -31,10 +31,9 @@ def parse_args() -> argparse.Namespace:
     return args
 
 
-if __name__ == "__main__":
-    cli_args = parse_args()
-    if cli_args.precomputed_scores_path != "":
-        with open(cli_args.precomputed_scores_path, "rb") as file:
+def main(args: argparse.Namespace):
+    if args.precomputed_scores_path != "":
+        with open(args.precomputed_scores_path, "rb") as file:
             PRECOMPUTED_SCORES = pickle.load(file)
     else:
         PRECOMPUTED_SCORES = None
@@ -50,7 +49,7 @@ if __name__ == "__main__":
         "delta": "regions_completed_very_confident_delta_ALL.pkl",
         "epsilon": "regions_completed_very_confident_epsilon_ALL.pkl",
         "all": "regions_completed_very_confident_all_ALL.pkl",
-    }[cli_args.name]
+    }[args.name]
 
     with open(regions_path, "rb") as file:
         regions_all = pickle.load(file)
@@ -61,13 +60,18 @@ if __name__ == "__main__":
         compute_region_distances,
         regions=regions_all,
         file_2_all_residues=file_2_all_residues,
-        output_name=cli_args.name,
-        name_tag=cli_args.name_tag,
+        output_name=args.name,
+        name_tag=args.name_tag,
         precomputed_scores=PRECOMPUTED_SCORES,
     )
-    region_indices = list(range(len(regions_all)))[cli_args.start_i : cli_args.end_i]
+    region_indices = list(range(len(regions_all)))[args.start_i : args.end_i]
     logger.info(
-        "Started parallel pairwise comparison with %d workers.", cli_args.n_jobs
+        "Started parallel pairwise comparison with %d workers.", args.n_jobs
     )
-    with Pool(cli_args.n_jobs) as p:
+    with Pool(args.n_jobs) as p:
         list_of_distances_list = p.map(partial_dist_compute, region_indices)
+
+
+if __name__ == "__main__":
+    args = parse_args()
+    main(args)

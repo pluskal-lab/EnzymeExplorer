@@ -52,8 +52,7 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-if __name__ == "__main__":
-    args = parse_args()
+def main(args: argparse.Namespace):
     screening_results_root = Path(args.screening_results_root)
     assert (
         screening_results_root.exists()
@@ -87,3 +86,8 @@ if __name__ == "__main__":
         for file_to_delete in processed_files:
             os.remove(file_to_delete)
         logger.info("Deleted %d individual files", len(processed_files))
+
+
+if __name__ == "__main__":
+    args = parse_args()
+    main(args)

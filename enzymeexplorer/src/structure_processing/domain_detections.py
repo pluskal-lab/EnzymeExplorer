@@ -360,8 +360,7 @@ def get_all_confidence_values(
     return values
 
 
-if __name__ == "__main__":
-    args = parse_args()
+def main(args: argparse.Namespace):
     # reading the needed proteins
     if args.needed_proteins_csv_path is not None:
         proteins_df = pd.read_csv(args.needed_proteins_csv_path)
@@ -551,3 +550,8 @@ if __name__ == "__main__":
     # save the confident regions
     with open(args.detections_output_path, "wb") as f:
         pickle.dump(filename_2_known_regions_completed_confident, f)
+
+
+if __name__ == "__main__":
+    args = parse_args()
+    main(args)

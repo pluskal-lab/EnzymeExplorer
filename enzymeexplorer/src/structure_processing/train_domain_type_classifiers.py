@@ -134,8 +134,8 @@ def plot_performance_metrics_bars(y_true_per_fold: list[np.ndarray],
                     bbox_inches="tight", dpi=300)
     plt.close()
 
-if __name__ == "__main__":
 
+def main():
     with open('data/classifier_domain_and_plm_checkpoints.pkl', 'rb') as file:
         fold_classifiers = pickle.load(file)
     with open("data/clustering__domain_dist_based_features_foldseek.pkl", "rb") as file:
@@ -258,3 +258,7 @@ if __name__ == "__main__":
 
     with open("data/domain_type_predictors_foldseek.pkl", "wb") as file:
         pickle.dump(domain_type_classifiers, file)
+
+
+if __name__ == "__main__":
+    main()

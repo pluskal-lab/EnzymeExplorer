@@ -45,9 +45,7 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-if __name__ == "__main__":
-    args = parse_args()
-
+def main(args: argparse.Namespace):
     working_dir = Path('_temp')
     if not working_dir.exists():
         working_dir.mkdir()
@@ -75,3 +73,8 @@ if __name__ == "__main__":
 
     with open(args.output_path, "wb") as file:
         pickle.dump(filename_2_regions_vs_known_reg_dists, file)
+
+
+if __name__ == "__main__":
+    args = parse_args()
+    main(args)

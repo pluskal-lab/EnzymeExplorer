@@ -128,9 +128,7 @@ def compute_distances_to_known_regions(
     return results
 
 
-if __name__ == "__main__":
-    args = parse_args()
-
+def main(args: argparse.Namespace):
     # loading secondary structure residues
     input_directory = Path(args.input_directory_with_structures)
     with open(args.domain_detections_residues_path, "rb") as f:
@@ -203,3 +201,8 @@ if __name__ == "__main__":
         pickle.dump(filename_2_regions_vs_known_reg_dists, file)
     if temp_filepath_name_to_delete:
         os.remove(temp_struct_name)
+
+
+if __name__ == "__main__":
+    args = parse_args()
+    main(args)

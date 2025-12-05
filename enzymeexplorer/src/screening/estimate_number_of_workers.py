@@ -21,8 +21,7 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-if __name__ == "__main__":
-    args = parse_args()
+def main(args: argparse.Namespace):
     uniprot_generator = esm.data.read_fasta(args.fasta_path)
     for i, _ in tqdm(enumerate(uniprot_generator), total=300_000_000):
         pass
@@ -37,3 +36,8 @@ if __name__ == "__main__":
         "Estimated number of workers: %s",
         TOTAL_NUMBER_OF_PROTEINS // (args.delta * args.n_gpus) + 1,
     )
+
+
+if __name__ == "__main__":
+    args = parse_args()
+    main(args)

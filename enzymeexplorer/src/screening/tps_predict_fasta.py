@@ -72,7 +72,7 @@ class PredictionResults:
     confidence: list[float]
 
 
-def main(arguments: argparse.Namespace):
+def main(args: argparse.Namespace):
     """
     Main function for processing protein sequences and predicting class probabilities using pre-trained PLM embeddings
     and downstream classifiers.
@@ -85,7 +85,7 @@ def main(arguments: argparse.Namespace):
     5. Outputs prediction results for each sequence, saving them to the specified directory.
 
     Args:
-        arguments (argparse.Namespace): Parsed command-line arguments that include:
+        args (argparse.Namespace): Parsed command-line arguments that include:
             - model: The pre-trained model to be used for generating embeddings.
             - max_len: Maximum sequence length for embeddings.
             - fasta_path: Path to the input FASTA file containing sequences.
@@ -105,7 +105,7 @@ def main(arguments: argparse.Namespace):
 
     if "esm" in args.model:
         model, batch_converter, alphabet = get_model_and_tokenizer(
-            arguments.model, return_alphabet=True
+            args.model, return_alphabet=True
         )
 
         compute_embeddings_partial = partial(
@@ -114,7 +114,7 @@ def main(arguments: argparse.Namespace):
             converter=batch_converter,
             padding_idx=alphabet.padding_idx,
             model_repr_layer=33,
-            max_len=arguments.max_len,
+            max_len=args.max_len,
         )
     elif "ankh" in args.model:
         model, tokenizer = ankh_get_model_and_tokenizer(args.model)
@@ -126,13 +126,13 @@ def main(arguments: argparse.Namespace):
             f"Model {args.model} is not supported. Currently only esm, ankh model families are supported"
         )
 
-    uniprot_generator = esm.data.read_fasta(arguments.fasta_path)
+    uniprot_generator = esm.data.read_fasta(args.fasta_path)
 
-    detection_threshold = arguments.detection_threshold
-    clf_batch_size = arguments.clf_batch_size
+    detection_threshold = args.detection_threshold
+    clf_batch_size = args.clf_batch_size
 
-    output_root = Path(arguments.output_root)
-    with open(arguments.ckpt_root_path, "rb") as file:
+    output_root = Path(args.output_root)
+    with open(args.ckpt_root_path, "rb") as file:
         all_classifiers = pickle.load(file)
 
     def process_embeddings(
@@ -215,7 +215,7 @@ def main(arguments: argparse.Namespace):
             ):
                 protein_id_short = protein_id.split()[0].replace("/", "")
                 if class_2_prob["isTPS"] >= detection_threshold or (
-                    arguments.detect_precursor_synthases
+                    args.detect_precursor_synthases
                     and class_2_prob["precursor substr"] >= detection_threshold
                 ):
                     output_file = results_output_root / protein_id_short
@@ -229,21 +229,21 @@ def main(arguments: argparse.Namespace):
     enzyme_ids_list: list[str] = []
     for i, uniprot_entry in tqdm(
         enumerate(uniprot_generator),
-        total=arguments.end_i,
-        desc=f"Processing sequences on GPU {arguments.gpu}",
+        total=args.end_i,
+        desc=f"Processing sequences on GPU {args.gpu}",
     ):
-        if i < arguments.starting_i:
+        if i < args.starting_i:
             continue
-        if i == arguments.end_i:
+        if i == args.end_i:
             break
         uniprot_id = _extract_id_from_entry(uniprot_entry)
         seq = _extract_seq_from_entry(uniprot_entry)
-        if not _is_sequence_good(uniprot_entry[1], max_seq_len=arguments.max_len):
-            seq = seq[: (arguments.max_len - 2)]
+        if not _is_sequence_good(uniprot_entry[1], max_seq_len=args.max_len):
+            seq = seq[: (args.max_len - 2)]
         next_batch.append(seq)
         next_batch_ids.append(uniprot_id)
 
-        if len(next_batch) == arguments.batch_size:
+        if len(next_batch) == args.batch_size:
             enzyme_encodings_list, enzyme_ids_list = _batch_predict(
                 next_batch, next_batch_ids, enzyme_encodings_list, enzyme_ids_list
             )
