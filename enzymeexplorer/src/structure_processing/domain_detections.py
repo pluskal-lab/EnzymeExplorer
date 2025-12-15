@@ -383,18 +383,28 @@ def main(args: argparse.Namespace):
         .union({f"{domain}.pdb" for domain in SUPPORTED_DOMAINS})
         .union({f"{domain}_object.pdb" for domain in SUPPORTED_DOMAINS})
     )
-    pdb_files = [
-        filepath
-        for filepath in Path(".").glob("*.pdb")
-        if str(filepath) not in blacklist_files
-        and filepath.stem in file_2_all_residues
-        and (
-            args.needed_proteins_csv_path is None
-            or filepath.stem in relevant_protein_ids
-            or "".join(filepath.stem.replace("(", "").replace(")", "").replace("-", ""))
-            in relevant_protein_ids
-        )
-    ]
+    all_pdb_files = [filepath for filepath in Path(".").glob("*.pdb")]
+    pdb_files = []
+    found_relevant_protein_ids = set()
+    for filepath in all_pdb_files:
+        if (str(filepath) in blacklist_files) or (filepath.stem not in file_2_all_residues):
+            continue
+        if args.needed_proteins_csv_path is not None:
+            protein_id = filepath.stem
+            simple_protein_id = "".join(filepath.stem.replace("(", "").replace(")", "").replace("-", ""))
+            if protein_id in relevant_protein_ids:
+                found_relevant_protein_ids.add(protein_id)
+            elif simple_protein_id in relevant_protein_ids:
+                found_relevant_protein_ids.add(simple_protein_id)
+            else:
+                continue
+        pdb_files.append(filepath)
+
+    # Warn user if PDB files are missing for any proteins specified by needed_proteins_csv_path
+    if args.needed_proteins_csv_path is not None:
+        missing_protein_ids = relevant_protein_ids - found_relevant_protein_ids
+        if missing_protein_ids:
+            logger.warning(f"Missing PDB files for the following {len(missing_protein_ids)} protein(s) specified in {args.needed_proteins_csv_path}: {', '.join(missing_protein_ids)}\nProteins with missing PDB files will be skipped.")
 
     # Detecting TPS domains in protein structures
     filename_2_known_regions = detect_domains_roughly(

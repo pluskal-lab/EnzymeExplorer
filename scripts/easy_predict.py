@@ -203,7 +203,7 @@ def main():
             comparison_results = pickle.load(file)
         os.remove(comparison_results_path)
     else:
-        comparison_results = None
+        comparison_results = {}
 
     ############################################################
     # detecting TPS and predicting TPS substrates
@@ -277,23 +277,22 @@ def main():
             logger.info("Comparing domain detections to the selected known examples")
             dom_features_count = sum(map(len, classifier.domain_type_2_order_of_domain_modules.values()))
             dom_feat = np.zeros(dom_features_count)
-            if comparison_results is not None:
-                current_comparison_results = comparison_results[pdb_id]
-                was_alpha_observed = False
-                for domain_detection in detected_domains[pdb_id]:
-                    domain_type = domain_detection.domain
-                    detection_id = domain_detection.module_id
-                    known_domain_id_2_tmscore = dict(current_comparison_results[detection_id])
-                    if domain_type == 'alpha':
-                        if not was_alpha_observed:
-                            alpha_idx = 1
-                            was_alpha_observed = True
-                        else:
-                            alpha_idx = 2
-                        domain_type = f"alpha{alpha_idx}"
-                    for known_module_id, dom_feat_idx in classifier.domain_type_2_order_of_domain_modules[domain_type]:
-                        # assert known_module_id in known_domain_id_2_tmscore, f"Known module {known_module_id} not found in comparison results"
-                        dom_feat[dom_feat_idx] = known_domain_id_2_tmscore.get(known_module_id, 0)
+            current_comparison_results = comparison_results[pdb_id]
+            was_alpha_observed = False
+            for domain_detection in detected_domains[pdb_id]:
+                domain_type = domain_detection.domain
+                detection_id = domain_detection.module_id
+                known_domain_id_2_tmscore = dict(current_comparison_results[detection_id])
+                if domain_type == 'alpha':
+                    if not was_alpha_observed:
+                        alpha_idx = 1
+                        was_alpha_observed = True
+                    else:
+                        alpha_idx = 2
+                    domain_type = f"alpha{alpha_idx}"
+                for known_module_id, dom_feat_idx in classifier.domain_type_2_order_of_domain_modules[domain_type]:
+                    # assert known_module_id in known_domain_id_2_tmscore, f"Known module {known_module_id} not found in comparison results"
+                    dom_feat[dom_feat_idx] = known_domain_id_2_tmscore.get(known_module_id, 0)
             if np.max(dom_feat) < 0.4:
                 logger.warning(f"No meaningful domain comparisons in a model for {pdb_id}")
                 # This protein will be predicted in no domain comparisons
