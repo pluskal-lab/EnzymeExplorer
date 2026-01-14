@@ -13,7 +13,7 @@ from tqdm.contrib.logging import logging_redirect_tqdm  # type: ignore
 
 from enzymeexplorer.src import models
 from enzymeexplorer.src.models.ifaces import BaseConfig, BaseModel
-from enzymeexplorer.src.utils.data import get_folds, get_tps_df
+from enzymeexplorer.src.utils.data import get_folds, get_folds_from_csv, get_tps_df
 from enzymeexplorer.src.utils.project_info import (
     ExperimentInfo,
     get_config_root,
@@ -96,8 +96,9 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
         # pylint: disable=R0801
         logger.info("Looking for hyperparameters optimization results...")
         n_folds = len(
-            get_folds(
-                split_desc=config.split_col_name,
+            get_folds_from_csv(
+                csv_path=config.tps_cleaned_csv_path,
+                split_col_name=config.split_col_name,
             )
         )
         experiment_output_folder_root = (
@@ -152,8 +153,9 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
     with logging_redirect_tqdm([logger]):
         # pylint: disable=too-many-nested-blocks
         for test_fold in tqdm(
-            get_folds(
-                split_desc=config.split_col_name,
+            get_folds_from_csv(
+                csv_path=config.tps_cleaned_csv_path,
+                split_col_name=config.split_col_name,
             ) if not is_halo else [0],
             desc=f"Iterating over validation folds per {config.split_col_name}..",
         ):
@@ -165,18 +167,20 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
                 if not is_halo:
                     trn_folds = [
                         f"fold_{fold_trn}"
-                    for fold_trn in get_folds(
-                        split_desc=config.split_col_name,
+                    for fold_trn in get_folds_from_csv(
+                        csv_path=config.tps_cleaned_csv_path,
+                        split_col_name=config.split_col_name,
                     )
                         if fold_trn != test_fold
                     ]
+                else:
+                    trn_folds = ['train']                    
+                trn_df = data_df[data_df[config.split_col_name].isin(set(trn_folds))].copy()
+                if not is_halo:
                     trn_df.loc[
                         trn_df[f"{config.split_col_name}_ignore_in_eval"] == 1,
                     config.target_col_name,
                     ] = "other"
-                else:
-                    trn_folds = ['train']                    
-                trn_df = data_df[data_df[config.split_col_name].isin(set(trn_folds))]
                 trn_df = (
                     trn_df.groupby(config.id_col_name)[config.target_col_name]
                     .agg(set)

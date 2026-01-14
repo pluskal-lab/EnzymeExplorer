@@ -4,6 +4,14 @@ This script performs grouping of sequences based on mmseqs sequence clustering.
 Unlike phylogenetic clustering (which uses MSA + tree), this approach directly
 clusters sequences based on sequence identity, which is more robust to N-terminal
 extensions and signal peptides.
+
+Default thresholds (30% identity, 50% coverage):
+    - These values were lowered from initial 40%/80% because highly similar 
+      sequences (98%+ identity) with different lengths (e.g., 522 vs 759 aa 
+      due to N-terminal extensions or signal peptides) were not being clustered 
+      together at higher coverage thresholds.
+    - 50% coverage allows length-variant homologs to be grouped together.
+    - 30% identity further reduces singleton clusters.
 """
 
 import argparse
@@ -38,6 +46,8 @@ def parse_args() -> argparse.Namespace:
         default="data/TPS-Nov19_2023_verified_all_reactions.csv",
         help="Path to the TPS CSV file",
     )
+    # Note: 30%/50% thresholds chosen to group length-variant homologs
+    # (e.g., sequences with N-terminal extensions) that would be missed at higher coverage
     parser.add_argument(
         "--min-seq-id",
         type=float,

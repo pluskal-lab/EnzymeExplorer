@@ -54,7 +54,7 @@ def parse_args() -> argparse.Namespace:
         "--tps-file-path",
         help="A path to the TPS file",
         type=str,
-        default="data/TPS-Nov19_2023_verified_all_reactions_with_neg_with_folds.csv",
+        default="data/TPS-Nov19_2023_verified_all_reactions_with_neg_with_folds_mmseqs_30_50.csv",
     )
     parser.add_argument(
         "--use-all-folds",

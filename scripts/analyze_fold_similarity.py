@@ -49,7 +49,7 @@ def load_tps_data(csv_path: str) -> pd.DataFrame:
     """
     df = pd.read_csv(csv_path)
     
-    fold_col = "stratified_phylogeny_based_split_with_minor_products"
+    fold_col = "stratified_mmseqs_based_split_with_minor_products"
     ignore_col = f"{fold_col}_ignore_in_eval"
     
     # Filter for TPS sequences (exclude Unknown type which are non-TPS)
@@ -78,7 +78,7 @@ def get_folds(df: pd.DataFrame) -> list[str]:
     Returns:
         Sorted list of fold names
     """
-    fold_col = "stratified_phylogeny_based_split_with_minor_products"
+    fold_col = "stratified_mmseqs_based_split_with_minor_products"
     folds = sorted(df[fold_col].dropna().unique().tolist())
     return folds
 
@@ -180,7 +180,7 @@ def analyze_fold_similarity(
     folds = get_folds(df)
     print(f"Found {len(folds)} folds: {folds}")
     
-    fold_col = "stratified_phylogeny_based_split_with_minor_products"
+    fold_col = "stratified_mmseqs_based_split_with_minor_products"
     all_best_similarities = []
     high_similarity_pairs = []
     
@@ -356,21 +356,15 @@ def main():
     output_dir = project_root / "outputs" / "fold_similarity_analysis"
     clusters_path = project_root / "data" / "phylogenetic_clusters.pkl"
     
-    # Define both CSV files to analyze
+    # Define CSV files to analyze (now using mmseqs-based folds as default)
     csv_files = [
         {
-            "path": project_root / "data" / "TPS-Nov19_2023_verified_all_reactions_with_neg_with_folds.csv",
-            "label": "CORRUPTED",
-            "title_suffix": "(CORRUPTED folds - with_neg_with_folds.csv)",
-            "output_prefix": "train_test_similarity_histogram_CORRUPTED",
-            "threshold": 95.0,
-        },
-        {
-            "path": project_root / "data" / "TPS-Nov19_2023_verified_all_reactions_with_folds.csv",
-            "label": "CORRECT",
-            "title_suffix": "(CORRECT folds - with_folds.csv)",
-            "output_prefix": "train_test_similarity_histogram_CORRECT",
+            "path": project_root / "data" / "TPS-Nov19_2023_verified_all_reactions_with_neg_with_folds_mmseqs_30_50.csv",
+            "label": "MMSEQS_30_50",
+            "title_suffix": "(mmseqs folds 30%/50%)",
+            "output_prefix": "train_test_similarity_histogram_MMSEQS_30pct_50cov",
             "threshold": 80.0,
+            "fold_col": "stratified_mmseqs_based_split_with_minor_products",
         },
     ]
     

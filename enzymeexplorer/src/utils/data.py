@@ -59,6 +59,21 @@ def get_folds(split_desc: str, path: str = "data/tps_folds_nov2023.h5") -> list[
         ]
 
 
+def get_folds_from_csv(csv_path: str, split_col_name: str) -> list[str]:
+    """
+    Extract fold names from a CSV file's split column.
+    
+    :param csv_path: Path to the CSV file containing fold assignments
+    :param split_col_name: Name of the column containing fold assignments
+    :return: list of fold names (e.g., ['0', '1', '2', '3', '4'])
+    """
+    df = pd.read_csv(csv_path, usecols=[split_col_name])
+    folds = df[split_col_name].dropna().unique()
+    # Filter valid folds (fold_0, fold_1, etc.) and sort
+    valid_folds = sorted([str(f) for f in folds if str(f).startswith("fold_")])
+    return [f.replace("fold_", "") for f in valid_folds]
+
+
 def get_unsplittable_targets(split_desc: str, path: str = "data/tps_folds.h5") -> set:
     """
     This function returns available fold names in the specified split
