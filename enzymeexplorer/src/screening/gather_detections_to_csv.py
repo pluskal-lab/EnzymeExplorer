@@ -85,6 +85,7 @@ def main(args: argparse.Namespace):
     if args.delete_individual_files:
         for file_to_delete in processed_files:
             os.remove(file_to_delete)
+        os.rmdir(args.screening_results_root)
         logger.info("Deleted %d individual files", len(processed_files))
 
 

@@ -49,6 +49,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--csv-id-column", required=True, help="Name of the column with IDs in the CSV file", type=str)
     parser.add_argument("--output-csv-path", required=True, help="Path to the output CSV file with the results", type=str)
 
+    parser.add_argument("--store-intermediate-results", action="store_true", help="Flag to keep files with intermediate results.", default=False)
     parser.add_argument("--is-bfactor-confidence", action="store_true")
     parser.add_argument("--detect-precursor-synthases", help="Flag to detect precursor synthases as well. Set to False with `--no-detect-precursor-synthases`.", default=True, action=argparse.BooleanOptionalAction)
     parser.add_argument("--detection-threshold", help="Threshold for detection", type=float, default=0.0)
@@ -157,11 +158,11 @@ def main():
     # detecting domains
     ############################################################
     logger.info("Detecting domains..")
-    working_dir_temp = Path("_temp")
-    if not working_dir_temp.exists():
-        working_dir_temp.mkdir()
-    domain_detections_path = working_dir_temp / f"filename_2_detected_domains_completed_confident_{uuid4()}.pkl"
-    detected_domain_structures_root = working_dir_temp / f"detected_domains_{uuid4()}"
+    intermediate_results_root = Path(args.output_csv_path).parent / "enzyme_explorer_intermediate_results"
+    if not intermediate_results_root.exists():
+        intermediate_results_root.mkdir()
+    domain_detections_path = intermediate_results_root / f"filename_2_detected_domains_completed_confident_{uuid4()}.pkl"
+    detected_domain_structures_root = intermediate_results_root / f"detected_domains_{uuid4()}"
     logger.info(f"domain_detections_path: {domain_detections_path}")
     if not detected_domain_structures_root.exists():
         detected_domain_structures_root.mkdir()
@@ -177,7 +178,7 @@ def main():
         f'--domains-output-path "{detected_domain_structures_root}" '
         "--store-domains "
         "--recompute-existing-secondary-structure-residues "
-        "--do-not-store-intermediate-files"
+        f'{"" if args.store_intermediate_results else "--do-not-store-intermediate-files"}'
     )
     logger.info(f"domain_detections output: {domain_detection_out}")
     
@@ -190,7 +191,7 @@ def main():
     logger.info("Detected %d domains. Starting comparison to the known domains..", len(detected_domains))
     if detected_domains:
         current_computation_id = uuid4()
-        comparison_results_path = working_dir_temp / f"filename_2_regions_vs_known_reg_dists_{current_computation_id}.pkl"
+        comparison_results_path = intermediate_results_root / f"filename_2_regions_vs_known_reg_dists_{current_computation_id}.pkl"
         os.system("python -m enzymeexplorer.src.structure_processing.comparing_to_known_domains_foldseek "
                   f'--known-domain-structures-root data/tps_detected_domains/all '
                   f'--detected-domain-structures-root "{detected_domain_structures_root}" '
@@ -201,7 +202,8 @@ def main():
 
         with open(comparison_results_path, "rb") as file:
             comparison_results = pickle.load(file)
-        os.remove(comparison_results_path)
+        if not args.store_intermediate_results:
+            os.remove(comparison_results_path)
     else:
         comparison_results = {}
 
@@ -229,7 +231,7 @@ def main():
         )
     ]
     
-    results_output_root = Path(args.output_csv_path).parent / f"detections_plm_{uuid4()}"
+    results_output_root = intermediate_results_root / f"detections_plm_{uuid4()}"
     if not results_output_root.exists():
         results_output_root.mkdir(parents=True)
     
@@ -457,8 +459,10 @@ def main():
     os.system(
         f"python -m enzymeexplorer.src.screening.gather_detections_to_csv --screening-results-root {results_output_root} --output-path {args.output_csv_path} --delete-individual-files"
     )
-    os.remove(domain_detections_path)
-    rmtree(detected_domain_structures_root)
+    if not args.store_intermediate_results:
+        rmtree(intermediate_results_root)
+        # os.remove(domain_detections_path)
+        # rmtree(detected_domain_structures_root)
         
 if __name__ == "__main__":
     main()
