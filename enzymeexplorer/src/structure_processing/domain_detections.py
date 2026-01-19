@@ -361,13 +361,15 @@ def get_all_confidence_values(
 
 
 def main(args: argparse.Namespace):
+    intermediate_results_root = Path(args.detections_output_path).parent
+
     # reading the needed proteins
     if args.needed_proteins_csv_path is not None:
         proteins_df = pd.read_csv(args.needed_proteins_csv_path)
         relevant_protein_ids = set(proteins_df[args.csv_id_column].values)
 
     input_directory = Path(args.input_directory_with_structures)
-    all_secondary_structure_residues_path = input_directory / "file_2_all_residues.pkl"
+    all_secondary_structure_residues_path = intermediate_results_root / "file_2_all_residues.pkl"
     if not all_secondary_structure_residues_path.exists() or args.recompute_existing_secondary_structure_residues:
         secondary_structure_computation_output = subprocess.check_output(
             f"python -m enzymeexplorer.src.structure_processing.compute_secondary_structure_residues --input-directory {input_directory} --output-path {all_secondary_structure_residues_path}".split(),
@@ -412,7 +414,7 @@ def main(args: argparse.Namespace):
         file_2_all_residues,
         DOMAIN_2_THRESHOLD,
         supported_domains=SUPPORTED_DOMAINS,
-        output_root=Path("."),
+        output_root=intermediate_results_root / args.detected_regions_root_path,
         n_jobs=args.n_jobs,
     )
 
@@ -523,14 +525,14 @@ def main(args: argparse.Namespace):
                 (filename, region)
             )
 
-    with open(Path(cwd) / args.detected_regions_root_path / "regions_completed_very_confident_all_ALL.pkl", "wb") as f:
+    with open(intermediate_results_root / args.detected_regions_root_path / "regions_completed_very_confident_all_ALL.pkl", "wb") as f:
         pickle.dump(domain_2_regions_completed_confident["all"], f)
     for domain_name in SUPPORTED_DOMAINS:
-        with open(Path(cwd) / args.detected_regions_root_path / f"regions_completed_very_confident_{domain_name}_ALL.pkl", "wb") as f:
+        with open(intermediate_results_root / args.detected_regions_root_path / f"regions_completed_very_confident_{domain_name}_ALL.pkl", "wb") as f:
             pickle.dump(domain_2_regions_completed_confident[domain_name], f)
 
     if args.store_domains:
-        domains_output_path = Path(cwd) / args.domains_output_path
+        domains_output_path = intermediate_results_root / args.domains_output_path
         if not domains_output_path.exists():
             domains_output_path.mkdir(parents=True)
 
