@@ -533,16 +533,11 @@ def main(args: argparse.Namespace):
         domains_output_path = Path(cwd) / args.domains_output_path
         if not domains_output_path.exists():
             domains_output_path.mkdir(parents=True)
-        for domain_name in SUPPORTED_DOMAINS:
-            PATH = domains_output_path / f"tps_domain_detections_{domain_name}"
-            if not PATH.exists():
-                PATH.mkdir(parents=True)
 
         for filename, protein_regions in tqdm(
             filename_2_known_regions_completed_confident.items()
         ):
             for region in protein_regions:
-                PATH = Path(domains_output_path / f"tps_domain_detections_{region.domain}")
                 mapped_residues = list(set(region.residues_mapping.keys()))
                 cmd.delete(filename)
                 cmd.load(f"{filename}.pdb")
@@ -552,7 +547,6 @@ def main(args: argparse.Namespace):
                     f"{region.module_id}",
                     f"{filename} & resi {compress_selection_list(mapped_residues)}",
                 )
-                cmd.save(f"{PATH}/{region.module_id}.pdb", f"{region.module_id}")
                 cmd.save(f"{domains_output_path}/{region.module_id}.pdb", f"{region.module_id}")
                 cmd.delete(filename)
 
