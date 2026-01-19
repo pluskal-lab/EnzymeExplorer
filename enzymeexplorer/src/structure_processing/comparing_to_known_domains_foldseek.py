@@ -42,15 +42,16 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--path-to-known-domains-subset", type=str, default="data/domains_subset.pkl")
     parser.add_argument("--output-path", type=str, default="_temp/filename_2_regions_vs_known_reg_dists.pkl")
     parser.add_argument("--pdb-id", type=str, default="") # for backward compatibility, to be refactored away
+    parser.add_argument("--store-intermediate-results", action="store_true", help="Flag to keep files with intermediate results.", default=False)
     return parser.parse_args()
 
 
 def main(args: argparse.Namespace):
-    working_dir = Path('_temp')
-    if not working_dir.exists():
-        working_dir.mkdir()
-    tsv_path = working_dir / f'aln_all_domains_vs_all_{uuid4()}.tsv'
-    tmp_path = working_dir / f'tmp_all_{uuid4()}'
+    intermediate_results_root = Path(args.output_path).parent
+    if not intermediate_results_root.exists():
+        intermediate_results_root.mkdir()
+    tsv_path = intermediate_results_root / f'aln_all_domains_vs_all_{uuid4()}.tsv'
+    tmp_path = intermediate_results_root / f'tmp_all_{uuid4()}'
     foldseek_comparison_output = subprocess.check_output(
         f'foldseek easy-search {args.detected_domain_structures_root} {args.known_domain_structures_root} {tsv_path} {tmp_path} --max-seqs 5000 -e 1 -s 10 --exhaustive-search --format-output query,target,fident,alnlen,mismatch,gapopen,qstart,qend,tstart,tend,evalue,bits,alntmscore'.split())
     df_foldseek = pd.read_csv(tsv_path, sep='\t', header=None,
@@ -68,7 +69,8 @@ def main(args: argparse.Namespace):
                 filename_2_regions_vs_known_reg_dists[uni_id] = defaultdict(list)
             filename_2_regions_vs_known_reg_dists[uni_id][row['query']].append([row['target'], float(row['alntmscore'])])
 
-    os.remove(tsv_path)
+    if not args.store_intermediate_results:
+        os.remove(tsv_path)
     rmtree(tmp_path)
 
     with open(args.output_path, "wb") as file:

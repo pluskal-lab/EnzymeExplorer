@@ -196,7 +196,9 @@ def main():
                   f'--known-domain-structures-root data/tps_detected_domains/all '
                   f'--detected-domain-structures-root "{detected_domain_structures_root}" '
                   '--path-to-known-domains-subset data/domains_subset.pkl '
-                  f'--output-path "{comparison_results_path}" ')
+                  f'--output-path "{comparison_results_path}" '
+                  f'{"--store-intermediate-results" if args.store_intermediate_results else ""}'
+                  )
 
         logger.info("Compared detected domains to the known ones!")
 
