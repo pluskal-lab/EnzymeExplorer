@@ -6,10 +6,12 @@ import torch  # type: ignore
 
 def get_model_and_tokenizer(
     model_name: str,
+    checkpoint_dir: Optional[str] = "data/plm_checkpoints"
 ) -> tuple:
     """
     This function returns bert model and batch converter (basically a tokenizer) based on the model name
     :param model_name: model name
+    :param checkpoint_dir: directory where checkpoints are stored
     :return: a pair of the bert protein model and its tokenizer
     """
     assert model_name in {
@@ -22,7 +24,7 @@ def get_model_and_tokenizer(
     elif model_name == "ankh_tps":
         model, tokenizer = ankh.load_base_model(generation=True)
         model.load_state_dict(
-            torch.load("data/plm_checkpoints/tps_ankh_lr=5e-05_bs=32.pth")[
+            torch.load(f"{checkpoint_dir}/tps_ankh_lr=5e-05_bs=32.pth")[
                 "model_state_dict"
             ],
             strict=False,

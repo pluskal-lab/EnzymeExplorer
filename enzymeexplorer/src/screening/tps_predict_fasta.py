@@ -56,6 +56,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--ckpt-root-path", type=str, default="data/classifier_checkpoints.pkl"
     )
+    parser.add_argument("--plm_checkpoint_dir", type=str, default="data/plm_checkpoints")
     parser.add_argument("--detection-threshold", type=float, default=0.2)
     parser.add_argument("--detect-precursor-synthases", help="Flag to detect precursor synthases as well. Set to False with `--no-detect-precursor-synthases`.", default=True, action=argparse.BooleanOptionalAction)
     parser.add_argument("--gpu", type=str, default="0")
@@ -94,6 +95,7 @@ def main(args: argparse.Namespace):
             - clf_batch_size: Number of samples processed in each classification batch.
             - output_root: Directory to store prediction outputs.
             - ckpt_root_path: Path to the checkpoint file containing pre-trained classifiers.
+            - plm_checkpoint_dir: Directory where PLM checkpoints are stored.
             - detect_precursor_synthases: Boolean flag to detect precursor synthases.
             - starting_i, end_i: Range of indices to process sequences.
             - gpu: GPU identifier for processing sequences.
@@ -105,7 +107,7 @@ def main(args: argparse.Namespace):
 
     if "esm" in args.model:
         model, batch_converter, alphabet = get_model_and_tokenizer(
-            args.model, return_alphabet=True
+            args.model, return_alphabet=True, checkpoint_dir=args.plm_checkpoint_dir
         )
 
         compute_embeddings_partial = partial(
@@ -119,7 +121,7 @@ def main(args: argparse.Namespace):
     elif "ankh" in args.model:
         model, tokenizer = ankh_get_model_and_tokenizer(args.model)
         compute_embeddings_partial = partial(
-            ankh_compute_embeddings, bert_model=model, tokenizer=tokenizer
+            ankh_compute_embeddings, bert_model=model, tokenizer=tokenizer, checkpoint_dir=args.plm_checkpoint_dir
         )
     else:
         raise NotImplementedError(

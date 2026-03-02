@@ -24,12 +24,14 @@ def get_model_and_tokenizer(
     model_name: str,
     checkpoint_names: Optional[dict[str, str]] = None,
     return_alphabet: bool = False,
+    checkpoint_dir: Optional[str] = "data/plm_checkpoints",
 ) -> tuple:
     """
     This function returns bert model and batch converter (basically a tokenizer) based on the name
     :param model_name: model name
     :param checkpoint_names: mapping between model name and checkpoint file
     :param return_alphabet: flag to return alphabet object
+    :param checkpoint_dir: directory where checkpoints are stored
     :return: a pair of the bert protein model and its batch converter
     """
     if checkpoint_names is None:
@@ -37,7 +39,7 @@ def get_model_and_tokenizer(
     if model_name in checkpoint_names:
         checkpoint_name = checkpoint_names[model_name]
         ckpt = torch.load(
-            f"data/plm_checkpoints/{checkpoint_name}",
+            f"{checkpoint_dir}/{checkpoint_name}",
             map_location=torch.device("cpu"),
         )
         bert_model, bert_alphabet = getattr(esm.pretrained, "esm1v_t33_650M_UR90S_1")()
