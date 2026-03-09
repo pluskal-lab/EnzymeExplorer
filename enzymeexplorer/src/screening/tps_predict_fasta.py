@@ -104,7 +104,15 @@ def main(args: argparse.Namespace):
         None. The function writes the prediction results as JSON files for each processed sequence
         in the specified output directory.
     """
+    compute_embeddings_partial = get_embedding_extractor(args)
 
+    with open(args.ckpt_root_path, "rb") as file:
+        all_classifiers = pickle.load(file)
+    
+    predict_tps(args, compute_embeddings_partial, all_classifiers)
+
+
+def get_embedding_extractor(args) -> partial:
     if "esm" in args.model:
         model, batch_converter, alphabet = get_model_and_tokenizer(
             args.model, return_alphabet=True, checkpoint_dir=args.plm_checkpoint_dir
@@ -127,15 +135,12 @@ def main(args: argparse.Namespace):
         raise NotImplementedError(
             f"Model {args.model} is not supported. Currently only esm, ankh model families are supported"
         )
+    return compute_embeddings_partial
 
-    uniprot_generator = esm.data.read_fasta(args.fasta_path)
 
-    detection_threshold = args.detection_threshold
-    clf_batch_size = args.clf_batch_size
-
+def predict_tps(args, compute_embeddings_partial, all_classifiers):
     output_root = Path(args.output_root)
-    with open(args.ckpt_root_path, "rb") as file:
-        all_classifiers = pickle.load(file)
+    uniprot_generator = esm.data.read_fasta(args.fasta_path)
 
     def process_embeddings(
         enzyme_encodings_np_batch: np.ndarray, classifiers: list
@@ -208,7 +213,7 @@ def main(args: argparse.Namespace):
             enzyme_encodings_list_to_process.extend(enzyme_encodings_np_batch)
             enzyme_ids_list_to_process.extend(batch_ids)
 
-        if len(enzyme_encodings_list_to_process) >= clf_batch_size or last_call:
+        if len(enzyme_encodings_list_to_process) >= args.clf_batch_size or last_call:
             predictions = process_embeddings(
                 np.stack(enzyme_encodings_list_to_process), all_classifiers
             )
@@ -216,9 +221,9 @@ def main(args: argparse.Namespace):
                 enzyme_ids_list_to_process, predictions
             ):
                 protein_id_short = protein_id.split()[0].replace("/", "")
-                if class_2_prob["isTPS"] >= detection_threshold or (
+                if class_2_prob["isTPS"] >= args.detection_threshold or (
                     args.detect_precursor_synthases
-                    and class_2_prob["precursor substr"] >= detection_threshold
+                    and class_2_prob["precursor substr"] >= args.detection_threshold
                 ):
                     output_file = results_output_root / protein_id_short
                     with open(output_file, "w", encoding="utf-8") as outputs_file:
