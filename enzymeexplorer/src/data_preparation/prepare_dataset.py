@@ -7,8 +7,8 @@ import json
 import pandas as pd
 import numpy as np
 from tqdm.auto import tqdm
-from enzymeexplorer.src.data_preparation.mmseqs import MMSeqs2Wrapper
-from enzymeexplorer.src.data_preparation.hmmer import HMMerWrapper
+from enzymeexplorer.src.data_preparation.mmseqs2_wrapper import MMSeqs2Wrapper
+from enzymeexplorer.src.data_preparation.hmmer_wrapper import HMMerWrapper
 from enzymeexplorer.src.data_preparation.utils import (
     cluster_dataset,
     get_hard_negative_cluster_ids,
