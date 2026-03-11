@@ -5,7 +5,7 @@ from typing import Type
 from sklearn.ensemble import RandomForestClassifier  # type: ignore
 
 from enzymeexplorer.src.models.ifaces import DomainsSklearnModel
-from enzymeexplorer.src.models.config_classes import FeaturesRandomForestConfig
+from enzymeexplorer.src.models.config_classes import DomainFeaturesRandomForestConfig
 
 logger = logging.getLogger(__file__)
 logger.setLevel(logging.INFO)

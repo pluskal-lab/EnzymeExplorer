@@ -48,6 +48,25 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--split-description", type=str, default="stratified_phylogeny_based_split"
     )
+    parser.add_argument(
+        "--cluster-source",
+        type=str,
+        choices=["phylogenetic", "mmseqs"],
+        default="phylogenetic",
+        help="Source of sequence clusters: 'phylogenetic' (MSA-based) or 'mmseqs' (sequence identity-based)",
+    )
+    parser.add_argument(
+        "--phylogenetic-clusters-path",
+        type=str,
+        default="data/phylogenetic_clusters.pkl",
+        help="Path to phylogenetic clusters pickle file",
+    )
+    parser.add_argument(
+        "--mmseqs-clusters-path",
+        type=str,
+        default="data/mmseqs_clusters.pkl",
+        help="Path to mmseqs clusters pickle file",
+    )
     args = parser.parse_args()
     return args
 
@@ -308,6 +327,14 @@ if __name__ == "__main__":
         len(terpene_synthases_df),
     )
 
+    # Determine which cluster file to use
+    if cli_args.cluster_source == "mmseqs":
+        clusters_path = cli_args.mmseqs_clusters_path
+        logger.info("Using mmseqs clusters from %s", clusters_path)
+    else:
+        clusters_path = cli_args.phylogenetic_clusters_path
+        logger.info("Using phylogenetic clusters from %s", clusters_path)
+
     logger.info(
         "Computing a balanced StratifiedGroupKFold for split named %s",
         cli_args.split_description,
@@ -316,6 +343,7 @@ if __name__ == "__main__":
         terpene_synthases_df,
         cli_args,
         target_col_name="SMILES_substrate_canonical_no_stereo",
+        phylogenetic_clusters_path=clusters_path,
         major_classes=[
             {"CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"},
             {"CC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"},

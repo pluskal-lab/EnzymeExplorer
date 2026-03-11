@@ -44,6 +44,7 @@ def parse_args() -> argparse.Namespace:
         choices=[
             "stratified_phylogeny_based_split_with_minor_products",
             "stratified_phylogeny_based_split",
+            "stratified_mmseqs_based_split_with_minor_products",
         ],
     )
     parser.add_argument(
