@@ -1,9 +1,0 @@
-python -m enzymeexplorer.src.structure_processing.domain_detections \
-    --needed-proteins-csv-path "data/martsDB_reactions_2026_02_22_preprocessed.csv" \
-    --csv-id-column "Enzyme_marts_ID" \
-    --input-directory-with-structures "data/beta_domain_test/" \
-    --is-bfactor-confidence \
-    --recompute-existing-secondary-structure-residues \
-    --detected-regions-root-path "data/martsDB_detected_domains_non_alpha/" \
-    --n-jobs 16 --detections-output-path "data/martsDB_detected_domains_non_alpha.pkl" \
-    --store-domains --domains-output-path "data/martsDB_detected_domains_non_alpha" > outputs/logs/martsDB_structures_segmentation_non_alpha.log 2>&1
