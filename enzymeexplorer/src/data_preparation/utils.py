@@ -36,7 +36,7 @@ def download_af_structure(uniprot_id: str, structures_root: str, max_fails_count
     save_name = uniprot_id
     try:
         if Path(f"{structures_root}/{save_name}.pdb").exists():
-            os.remove(f"{structures_root}/{save_name}.pdb")
+            return True
         URL = f"https://alphafold.ebi.ac.uk/files/AF-{uniprot_id}-F1-model_v6.pdb"
         response = requests.get(URL)
         if response.status_code != 200:

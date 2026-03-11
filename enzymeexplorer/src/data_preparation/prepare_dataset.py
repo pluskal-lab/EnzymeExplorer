@@ -61,7 +61,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--swissprot-tsv-path",
         type=str,
-        default="data/swissprot.tsv",
+        default="data/swissprot_with_af_structures.tsv",
         help="Path to the SwissProt TSV file containing EC and GO annotations",
     )
     parser.add_argument(
