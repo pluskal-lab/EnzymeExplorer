@@ -24,18 +24,27 @@ logger = logging.getLogger(__file__)
 logger.setLevel(logging.INFO)
 if not logger.hasHandlers():
     handler = logging.StreamHandler()
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    formatter = logging.Formatter(
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    )
     handler.setFormatter(formatter)
     logger.addHandler(handler)
 
-SUPPORTED_DOMAINS = {"alpha", "beta", "gamma", "delta", "epsilon", "alphaWeird"}
+SUPPORTED_DOMAINS = {
+    "alpha", 
+    "beta", 
+    "gamma", 
+    # "delta", 
+    # "epsilon"
+}
+# SUPPORTED_DOMAINS = {"beta", "gamma", "delta", "epsilon"}
 DOMAIN_2_THRESHOLD = {
-    "beta": (0.6, 50),
-    "delta": (0.6, 50),
-    "epsilon": (0.6, 50),
-    "gamma": (0.55, 50),
-    "alpha": (0.35, 130),
-    "alphaWeird": (0.5, 100),
+    "alpha": (0.2, 70),
+    "beta": (0.2, 50),
+    "gamma": (0.2, 50),
+    # "delta": (0.6, 50),
+    # "epsilon": (0.6, 50),
+    # "alphaWeird": (0.5, 100),
 }
 
 
@@ -80,9 +89,8 @@ def prepare_domain(pymol_cmd, domain_name: str) -> tuple:
             "alpha": "1ps1",
             "beta": "5eat",
             "gamma": "3p5r",
-            "delta": "P48449",
-            "epsilon": "P48449",
-            "alphaWeird": "Q7Z859",
+            # "delta": "1w6j",
+            # "epsilon": "1w6j",
         }
     )
     assert domain_name in domain_2_standard, f"Domain {domain_name} is not supported"
@@ -95,13 +103,12 @@ def prepare_domain(pymol_cmd, domain_name: str) -> tuple:
     if "_" in domain_name:
         selection_condition = " & chain A & ss H+S"
     else:
-         selection_condition = {
+        selection_condition = {
             "alpha": " & chain A & ss H+S",
             "beta": " & resi 37-57+64-97+104-117+123-129+138-156+162-195+203-213+223-239 & chain A & ss H+S",
             "gamma": " & resi 138-151+157-171+185-222+233-248+258-275+281-304+313-339 & chain A & ss H+S",
-            "delta": " & resi 73-87+385-399+401-403+405-421+454-470+480-493+531-547+553-570+585-599+610-622+633-638+649-662+667-680+707-722+727-729 & chain A & ss H+S",
-            "epsilon": " & resi 103-115+123-134+151-164+171-183+191-200+213-217+226-228+231-246+254-263+268-270+273-277+291-306+309-330+337-351+356-371+376-378+510-515 & chain A & ss H+S",
-            "alphaWeird": " & resi 6-23+38-58+66-68+81-96+118-136+152-177+183-208+229-239+241-246 & chain A & ss H+S",
+            # "delta": " & resi 73-87+385-399+401-403+405-421+454-470+480-493+531-547+553-570+585-599+610-622+633-638+649-662+667-680+707-722+727-729 & chain A & ss H+S",
+            # "epsilon": " & resi 103-115+123-134+151-164+171-183+191-200+213-217+226-228+231-246+254-263+268-270+273-277+291-306+309-330+337-351+356-371+376-378+510-515 & chain A & ss H+S",
         }[domain_name]
     domain_name_new = f"{domain_name}_domain_{uuid4()}"
     pymol_cmd.select(domain_name_new, f"{required_file} {selection_condition}")
@@ -321,10 +328,10 @@ def get_super_res_alignment(
         )
     except IndexError as e:
         print(f"IndexError for {domain_obj} and {larger_obj}")
-        print('domain_obj ', pymol_cmd.get_object_list(domain_obj))
-        print('larger_obj ', pymol_cmd.get_object_list(larger_obj))
-        print('orig_obj_to_remove ', orig_obj_to_remove)
-        print('orig_obj_to_remove ', pymol_cmd.get_object_list(orig_obj_to_remove))
+        print("domain_obj ", pymol_cmd.get_object_list(domain_obj))
+        print("larger_obj ", pymol_cmd.get_object_list(larger_obj))
+        print("orig_obj_to_remove ", orig_obj_to_remove)
+        print("orig_obj_to_remove ", pymol_cmd.get_object_list(orig_obj_to_remove))
         raise e
     if needs_clone:
         object_name = pymol_cmd.get_object_list(domain_obj)[0]
@@ -345,7 +352,12 @@ def get_super_res_alignment(
             quiet=1,
             args=f"-L {len(file_2_all_residues[domain_obj])}",
         )
-    except CmdException:
+    except (CmdException , AssertionError) as e:
+        logger.warning(
+            f"Alignment failed for {domain_obj} with error: {e}. Returning -inf TM-score. {file_2_all_residues[larger_obj]} residues were allowed for alignment."
+        )
+        logger.warning(f"domain_obj residues: {file_2_all_residues[domain_obj]}, larger_obj residues: {file_2_all_residues[larger_obj]}")
+        logger.warning(f"orig_obj_to_remove: {orig_obj_to_remove}, needs_clone: {needs_clone}, loaded_new_domain_obj: {loaded_new_domain_obj}")
         pymol_cmd.delete(domain_obj_secondary_structure)
         pymol_cmd.delete(larger_obj_secondary_structure)
         pymol_cmd.delete(larger_obj)
@@ -489,136 +501,6 @@ def get_regions_of_interest(
     return all_mapped_regions_of_interest
 
 
-def get_pairwise_tmscore(
-    pymol_cmd,
-    module_1: tuple[str, MappedRegion],
-    module_2: tuple[str, MappedRegion],
-    file_2_all_residues: dict[str, set],
-) -> float:
-    """
-    Computes the pairwise TM-score between two domains.
-
-    :param pymol_cmd: The PyMOL command object used to interact with the PyMOL session
-    :param module_1: A tuple containing the filename and MappedRegion object for the first domain
-    :param module_2: A tuple containing the filename and MappedRegion object for the second domain
-    :param file_2_all_residues: A dictionary mapping filenames to sets of all residues in those files
-
-    :return: The TM-score representing the structural similarity between the two domains
-    """
-    filename_1, region_1 = module_1
-    filename_2, region_2 = module_2
-    selection_1_id, selection_2_id = str(uuid4()), str(uuid4())
-    for filename in [filename_1, filename_2]:
-        if not exists_in_pymol(pymol_cmd, filename):
-            if not os.path.exists(f"{filename}.pdb"):
-                raise FileNotFoundError(f"{filename}.pdb while being in {os.getcwd()}")
-            pymol_cmd.load(f"{filename}.pdb")
-
-    region_residues_1 = set(fill_short_gaps(set(region_1.residues_mapping.keys())))
-    try:
-        pymol_cmd.select(
-            f"{filename_1}_{selection_1_id}",
-            f"{filename_1} & resi {compress_selection_list(list(region_residues_1))} & chain A & ss H+S",
-        )
-        file_2_all_residues[f"{filename_1}_{selection_1_id}"] = set(
-            map(str, region_residues_1)
-        )
-
-        region_residues_2 = set(fill_short_gaps(set(region_2.residues_mapping.keys())))
-        pymol_cmd.select(
-            f"{filename_2}_{selection_2_id}",
-            f"{filename_2} & resi {compress_selection_list(list(region_residues_2))} & chain A & ss H+S",
-        )
-    except CmdException:
-        pymol_cmd.delete(filename_2)
-        pymol_cmd.delete(filename_1)
-        if exists_in_pymol(pymol_cmd, f"{filename_1}_{selection_1_id}"):
-            pymol_cmd.delete(f"{filename_1}_{selection_1_id}")
-        if f"{filename_1}_{selection_1_id}" in file_2_all_residues:
-            del file_2_all_residues[f"{filename_1}_{selection_1_id}"]
-        return -float("inf")
-    file_2_all_residues[f"{filename_2}_{selection_2_id}"] = set(
-        map(str, region_residues_2)
-    )
-    is_first_shorter = len(region_residues_1) < len(region_residues_2)
-    if is_first_shorter:
-        tmscore, _ = get_super_res_alignment(
-            f"{filename_2}_{selection_2_id}",
-            f"{filename_1}_{selection_1_id}",
-            file_2_all_residues=file_2_all_residues,
-            pymol_cmd=pymol_cmd,
-        )
-    else:
-        tmscore, _ = get_super_res_alignment(
-            f"{filename_1}_{selection_1_id}",
-            f"{filename_2}_{selection_2_id}",
-            file_2_all_residues=file_2_all_residues,
-            pymol_cmd=pymol_cmd,
-        )
-    pymol_cmd.delete(filename_2)
-    pymol_cmd.delete(filename_1)
-    if is_first_shorter:
-        pymol_cmd.delete(f"{filename_1}_{selection_1_id}")
-        del file_2_all_residues[f"{filename_1}_{selection_1_id}"]
-    else:
-        pymol_cmd.delete(f"{filename_2}_{selection_2_id}")
-        del file_2_all_residues[f"{filename_2}_{selection_2_id}"]
-    return tmscore
-
-
-def compute_region_distances(
-    i: int,
-    regions: list[tuple[str, MappedRegion]],
-    file_2_all_residues: dict[str, set],
-    save_output: bool = True,
-    output_name: str = "all",
-    precomputed_scores: dict[tuple[str, str], float] = None,
-    name_tag: str = "",
-) -> list[tuple[int, int, float]]:
-    """
-    Computes pairwise alignment TM-scores between the i-th structural domain in the list `regions` and all subsequent domains.
-    This function effectively computes a single row of an upper-triangle distance matrix.
-
-    :param i: The index of the structural domain in the list `regions` to be compared
-    :param regions: A list of tuples, where each tuple contains a filename and a MappedRegion object
-    :param file_2_all_residues: A dictionary mapping filenames to sets of all residues in those files
-    :param save_output: Whether to save the computed results to a file, defaults to True
-    :param output_name: The base name for the output file, defaults to "all"
-
-    :return: A list of tuples, each containing the index of the first region, the index of the second region,
-             and the computed TM-score between the two regions
-    """
-    results = []
-    region_1 = regions[i]
-    results_path = f"{output_name}_tm_region_{name_tag}_{i}_{region_1[1].module_id}.pkl"
-    if os.path.exists(results_path):
-        return []
-    j = i + 1
-    for region_2 in regions[j:]:
-        if precomputed_scores is not None:
-            if (region_1[1].module_id, region_2[1].module_id) in precomputed_scores:
-                dist = precomputed_scores[
-                    (region_1[1].module_id, region_2[1].module_id)
-                ]
-            elif (region_2[1].module_id, region_1[1].module_id) in precomputed_scores:
-                dist = precomputed_scores[
-                    (region_2[1].module_id, region_1[1].module_id)
-                ]
-            else:
-                dist = get_pairwise_tmscore(
-                    cmd, region_1, region_2, file_2_all_residues
-                )
-        else:
-            dist = get_pairwise_tmscore(cmd, region_1, region_2, file_2_all_residues)
-        results.append((i, j, dist))
-        j += 1
-    if save_output:
-        with open(results_path, "wb") as file:
-            pickle.dump(results, file)
-
-    return results
-
-
 def get_all_residues_per_file(pdb_files: list[Path], pymol_cmd) -> dict[str, set[str]]:
     """
     Computes a set of all residues in each PDB file provided.
@@ -629,7 +511,7 @@ def get_all_residues_per_file(pdb_files: list[Path], pymol_cmd) -> dict[str, set
     :return: A dictionary mapping each PDB filename (without extension) to a set of all residues found in that file
     """
     file_2_all_residues = {}
-    for filepath in tqdm(pdb_files, desc="All residues"):
+    for filepath in tqdm(pdb_files, desc="Loading PDB files and extracting residues"):
         str_name = filepath.stem
         pymol_cmd.load(str(filepath))
         all_residues = get_secondary_structure_residues_set(str_name, pymol_cmd)
@@ -665,63 +547,25 @@ def get_alignments(
         domain_obj=f"{domain_name}_domain",
         file_2_all_residues=file_2_current_residues,
     )
-    pdb_filenames = [filepath.stem for filepath in pdb_filepaths]
+    pdb_filenames = [filepath.stem for filepath in pdb_filepaths if file_2_current_residues.get(filepath.stem)]
     with Pool(n_jobs) as pool:
         list_of_alignment_results = pool.map(align_partial, pdb_filenames)
 
     file_2_tmscore_residues = defaultdict(list)
 
-    for pdb_path, (tmscore, residues_mapping) in zip(
-        pdb_filepaths, list_of_alignment_results
+    for pdb_filename, (tmscore, residues_mapping) in zip(
+        pdb_filenames, list_of_alignment_results
     ):
         if (
             residues_mapping is not None
-            and (tmscore_threshold is None or tmscore >= tmscore_threshold)
+            # and (tmscore_threshold is None or tmscore >= tmscore_threshold)
             and (
                 mapping_size_threshold is None
                 or len(residues_mapping) >= mapping_size_threshold
             )
         ):
-            file_2_tmscore_residues[pdb_path.stem].append((tmscore, residues_mapping))
+            file_2_tmscore_residues[pdb_filename].append((tmscore, residues_mapping))
     return file_2_tmscore_residues
-
-
-def get_mapped_regions_per_file(
-    domain_2_file_2_tmscore_residues: dict[str, dict[str, list]],
-    domain_2_thresholds: dict[str, tuple[float, int]],
-) -> dict[str, list[MappedRegion]]:
-    """
-    Detects reliable alignments of domains per file based on TM-score thresholds provided in `domain_2_thresholds`.
-
-    :param domain_2_file_2_tmscore_residues: A dictionary mapping domain names to another dictionary that maps filenames
-                                             to lists of alignment results, where each result is a tuple containing a TM-score
-                                             and a residue mapping
-    :param domain_2_thresholds: A dictionary mapping domain names to a tuple, where each tuple contains a TM-score detection threshold
-                                and a minimum mapping size threshold
-
-    :return: A dictionary mapping filenames to lists of MappedRegion objects representing the detected reliable domain alignments
-    """
-    file_2_mapped_regions = defaultdict(list)
-    for domain, (
-        tmscore_threshold,
-        mapping_size_threshold,
-    ) in domain_2_thresholds.items():
-        if domain in domain_2_file_2_tmscore_residues:
-            for filename, mappings in domain_2_file_2_tmscore_residues[domain].items():
-                for (tmscore, residues_mapping) in mappings:
-                    if (
-                        tmscore > tmscore_threshold
-                        and len(residues_mapping) >= mapping_size_threshold
-                    ):
-                        file_2_mapped_regions[filename].append(
-                            MappedRegion(
-                                module_id=f"{filename}_{domain}_{int(tmscore * 1000)}",
-                                domain=domain,
-                                tmscore=tmscore,
-                                residues_mapping=residues_mapping,
-                            )
-                        )
-    return file_2_mapped_regions
 
 
 def get_remaining_residues_per_file(
@@ -780,42 +624,6 @@ def plot_aligned_domains(
         plt.savefig(save_path)
     else:
         plt.show()
-
-
-def detect_second_encounter_of_domain(
-    domain_name: str,
-    domain_2_threshold: dict[str, tuple[float, int]],
-    domain_2_file_2_tmscore_residues: dict[str, dict[str, list]],
-    pdb_files: list[Path],
-    file_2_remaining_residues: dict[str, set[str]],
-) -> tuple[dict[str, list[MappedRegion]], dict[str, set[str]]]:
-    """
-    Function to detect second instance of the already present domain-type, e.g., in alpha-alpha architectures
-    """
-    (tmscore_threshold, mapping_size_threshold) = domain_2_threshold[domain_name]
-    file_2_tmscore_residues = get_alignments(
-        pdb_files,
-        domain_name,
-        file_2_remaining_residues,
-        tmscore_threshold,
-        mapping_size_threshold,
-    )
-    for filename, mappings in tqdm(file_2_tmscore_residues.items()):
-        for (tmscore, residues_mapping) in mappings:
-            if (
-                tmscore >= tmscore_threshold
-                and len(residues_mapping) >= mapping_size_threshold
-            ):
-                domain_2_file_2_tmscore_residues[domain_name][filename].append(
-                    (tmscore, residues_mapping)
-                )
-    file_2_mapped_regions = get_mapped_regions_per_file(
-        domain_2_file_2_tmscore_residues, domain_2_threshold
-    )
-    file_2_remaining_residues = get_remaining_residues(
-        file_2_mapped_regions, file_2_remaining_residues
-    )
-    return file_2_mapped_regions, file_2_remaining_residues
 
 
 def get_currently_longest_unmapped_regions(
@@ -903,7 +711,6 @@ def get_mapped_regions_with_surroundings(
         already_mapped_residues
     )
 
-
     if not exists_in_pymol(cmd, filename):
         if not os.path.exists(f"{filename}.pdb"):
             raise FileNotFoundError(f"{filename}.pdb while being in {os.getcwd()}")
@@ -969,10 +776,10 @@ def get_mapped_regions_with_surroundings(
                 if len(all_dists_with_regions) >= 2:
                     # leave unassigned if it is similarly close to two different regions
                     regions_apart_from_the_closest = [
-                            (dist, region)
-                            for (dist, region) in all_dists_with_regions
-                            if dist > min_dist
-                        ]
+                        (dist, region)
+                        for (dist, region) in all_dists_with_regions
+                        if dist > min_dist
+                    ]
                     if regions_apart_from_the_closest:
                         second_closest_dist, second_closest_region_i = min(
                             regions_apart_from_the_closest,
