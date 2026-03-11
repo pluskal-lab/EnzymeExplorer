@@ -103,7 +103,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--structures-root",
         type=str,
-        default="../EnzymeExplorer/data/enzyme_explorer_pdbs",
+        default="data/enzyme_explorer_pdbs",
         help="Root directory to save downloaded AlphaFold structures",
     )
     return parser.parse_args()

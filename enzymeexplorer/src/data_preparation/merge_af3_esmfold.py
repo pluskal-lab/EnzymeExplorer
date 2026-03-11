@@ -25,25 +25,25 @@ def parse_arguments():
         "--martsDB_csv",
         type=str,
         help="Path to martsDB CSV file containing sequence information.",
-        default="../../../data/martsDB_reactions_2026_02_22.csv",
+        default="data/martsDB_reactions_2026_02_22.csv",
     )
     parser.add_argument(
         "--af3_dir",
         type=str,
         help="Directory containing AF3 predictions.",
-        default="../../../data/martsDB_af3",
+        default="data/martsDB_af3",
     )
     parser.add_argument(
         "--esmfold_dir",
         type=str,
         help="Directory containing ESMFold predictions.",
-        default="../../../data/martsDB_esmfold",
+        default="data/martsDB_esmfold",
     )
     parser.add_argument(
         "--output_dir",
         type=str,
         help="Directory to save merged predictions.",
-        default="../../../data/martsDB_merged",
+        default="data/martsDB_merged",
     )
     return parser.parse_args()
 
