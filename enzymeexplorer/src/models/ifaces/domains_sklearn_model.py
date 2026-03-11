@@ -80,7 +80,7 @@ class DomainsSklearnModel(FeaturesSklearnModel):
         ]
         features_df_no_detected_domains = pd.DataFrame(
             {
-                "Uniprot ID": ids_without_domain_detections,
+                "ID": ids_without_domain_detections,
                 "Emb": [
                     np.ones(len(self.allowed_feat_indices))
                     for _ in range(len(ids_without_domain_detections))

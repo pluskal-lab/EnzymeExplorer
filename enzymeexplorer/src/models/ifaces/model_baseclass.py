@@ -270,12 +270,12 @@ class BaseModel(ABC, BaseEstimator):
                     for trn_idx, val_idx in cross_validation.split(
                         available_ids,
                         y=available_ids.map(
-                            lambda uniprot_id: str(sorted(id_2_classes.loc[uniprot_id]))
+                            lambda sequence_id: str(sorted(id_2_classes.loc[sequence_id]))
                         )
                         if not per_class_optimization
                         else available_ids.map(
-                            lambda uniprot_id: class_name
-                            in id_2_classes.loc[uniprot_id]
+                            lambda sequence_id: class_name
+                            in id_2_classes.loc[sequence_id]
                         ).astype(int),
                         groups=train_df["seq_group"],
                     ):

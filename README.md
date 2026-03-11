@@ -278,7 +278,7 @@ from my [ProFun library](https://github.com/SamusRam/ProFun). If you ran the ins
 ```bash
 cd EnzymeExplorer
 conda activate enzyme_explorer
-awk -F, '$1 != "" && $1 != "\"" && $1 != "Uniprot ID" {print $1}' "data/TPS-Nov19_2023_verified_all_reactions_with_neg_with_folds.csv" | sort | uniq > tps_ids.txt
+awk -F, '$1 != "" && $1 != "\"" && $1 != "ID" {print $1}' "data/TPS-Nov19_2023_verified_all_reactions_with_neg_with_folds.csv" | sort | uniq > tps_ids.txt
 alphafold_struct_downloader \
     --path-to-file-with-ids tps_ids.txt \
     --structures-output-path "data/alphafold_structs" \
@@ -314,7 +314,7 @@ cd EnzymeExplorer
 conda activate enzyme_explorer
 python -m enzymeexplorer.src.structure_processing.domain_detections \
     --needed-proteins-csv-path "data/TPS-Nov19_2023_verified_all_reactions_with_neg_with_folds.csv" \
-    --csv-id-column "Uniprot ID" \
+    --csv-id-column "ID" \
     --input-directory-with-structures "data/alphafold_structs/" \
     --is-bfactor-confidence \
     --recompute-existing-secondary-structure-residues \
@@ -333,7 +333,7 @@ conda activate enzyme_explorer
 python -m enzymeexplorer.src.structure_processing.compute_pairwise_similarities_of_domains \
     --name all \
     --needed-proteins-csv-path "data/TPS-Nov19_2023_verified_all_reactions_with_neg_with_folds.csv" \
-    --csv-id-column "Uniprot ID" \
+    --csv-id-column "ID" \
     --n-jobs 64 > outputs/logs/pairwise_comparisons.log 2>&1
 ```
 Note the `--precomputed-scores-path` argument. It is used to store the previously computed TM-scores. 
