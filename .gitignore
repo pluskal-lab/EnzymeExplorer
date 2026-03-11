@@ -9,6 +9,8 @@ __pycache__/
 
 !data/
 data/*
+!data/domain_templates/
+data/domain_templates/
 !data/domain_templates/*.pdb
 !data/pfam_models/*.hmm
 !data/supfam_models/*.hmm
