@@ -11,6 +11,8 @@ __pycache__/
 
 /outputs/
 
+/.idea/
+
 !/outputs/evaluation_results
 !/data/domain_templates/
 !/data/pfam_models/
