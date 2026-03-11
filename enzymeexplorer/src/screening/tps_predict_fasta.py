@@ -56,6 +56,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--ckpt-root-path", type=str, default="data/classifier_checkpoints.pkl"
     )
+    parser.add_argument("--plm_checkpoint_dir", type=str, default="data/plm_checkpoints")
     parser.add_argument("--detection-threshold", type=float, default=0.2)
     parser.add_argument("--detect-precursor-synthases", help="Flag to detect precursor synthases as well. Set to False with `--no-detect-precursor-synthases`.", default=True, action=argparse.BooleanOptionalAction)
     parser.add_argument("--gpu", type=str, default="0")
@@ -94,6 +95,7 @@ def main(args: argparse.Namespace):
             - clf_batch_size: Number of samples processed in each classification batch.
             - output_root: Directory to store prediction outputs.
             - ckpt_root_path: Path to the checkpoint file containing pre-trained classifiers.
+            - plm_checkpoint_dir: Directory where PLM checkpoints are stored.
             - detect_precursor_synthases: Boolean flag to detect precursor synthases.
             - starting_i, end_i: Range of indices to process sequences.
             - gpu: GPU identifier for processing sequences.
@@ -102,10 +104,18 @@ def main(args: argparse.Namespace):
         None. The function writes the prediction results as JSON files for each processed sequence
         in the specified output directory.
     """
+    compute_embeddings_partial = get_embedding_extractor(args)
 
+    with open(args.ckpt_root_path, "rb") as file:
+        all_classifiers = pickle.load(file)
+
+    predict_tps(args, compute_embeddings_partial, all_classifiers)
+
+
+def get_embedding_extractor(args) -> partial:
     if "esm" in args.model:
         model, batch_converter, alphabet = get_model_and_tokenizer(
-            args.model, return_alphabet=True
+            args.model, return_alphabet=True, checkpoint_dir=args.plm_checkpoint_dir
         )
 
         compute_embeddings_partial = partial(
@@ -117,7 +127,7 @@ def main(args: argparse.Namespace):
             max_len=args.max_len,
         )
     elif "ankh" in args.model:
-        model, tokenizer = ankh_get_model_and_tokenizer(args.model)
+        model, tokenizer = ankh_get_model_and_tokenizer(args.model, checkpoint_dir=args.plm_checkpoint_dir)
         compute_embeddings_partial = partial(
             ankh_compute_embeddings, bert_model=model, tokenizer=tokenizer
         )
@@ -125,15 +135,12 @@ def main(args: argparse.Namespace):
         raise NotImplementedError(
             f"Model {args.model} is not supported. Currently only esm, ankh model families are supported"
         )
+    return compute_embeddings_partial
 
-    uniprot_generator = esm.data.read_fasta(args.fasta_path)
 
-    detection_threshold = args.detection_threshold
-    clf_batch_size = args.clf_batch_size
-
+def predict_tps(args, compute_embeddings_partial, all_classifiers):
     output_root = Path(args.output_root)
-    with open(args.ckpt_root_path, "rb") as file:
-        all_classifiers = pickle.load(file)
+    uniprot_generator = esm.data.read_fasta(args.fasta_path)
 
     def process_embeddings(
         enzyme_encodings_np_batch: np.ndarray, classifiers: list
@@ -206,7 +213,7 @@ def main(args: argparse.Namespace):
             enzyme_encodings_list_to_process.extend(enzyme_encodings_np_batch)
             enzyme_ids_list_to_process.extend(batch_ids)
 
-        if len(enzyme_encodings_list_to_process) >= clf_batch_size or last_call:
+        if len(enzyme_encodings_list_to_process) >= args.clf_batch_size or last_call:
             predictions = process_embeddings(
                 np.stack(enzyme_encodings_list_to_process), all_classifiers
             )
@@ -214,9 +221,9 @@ def main(args: argparse.Namespace):
                 enzyme_ids_list_to_process, predictions
             ):
                 protein_id_short = protein_id.split()[0].replace("/", "")
-                if class_2_prob["isTPS"] >= detection_threshold or (
+                if class_2_prob["isTPS"] >= args.detection_threshold or (
                     args.detect_precursor_synthases
-                    and class_2_prob["precursor substr"] >= detection_threshold
+                    and class_2_prob["precursor substr"] >= args.detection_threshold
                 ):
                     output_file = results_output_root / protein_id_short
                     with open(output_file, "w", encoding="utf-8") as outputs_file:
