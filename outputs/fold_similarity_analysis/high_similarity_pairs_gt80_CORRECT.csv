@@ -1,9 +1,0 @@
-test_id,train_id,percent_identity,test_fold,test_cluster,train_cluster,same_cluster,test_substrate,train_substrate,is_major_substrate_used_in_metrics
-R4YVJ5,A0A6P6W6H5,99.8,fold_0,0,595,False,CC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O,CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O,True
-A0A6P6W6H5,R4YVJ5,99.8,fold_1,595,0,False,CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O,CC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O,True
-Q7XYS8,P0C565,90.8,fold_1,392,392,True,CC(C)=CCOP([O-])(=O)OP([O-])([O-])=O.CC(=C)CCOP(O)(=O)OP(O)(O)=O,CC(C)=CC1C(COP([O-])(=O)OP([O-])([O-])=O)C1(C)C,False
-P0C565,Q7XYS8,90.8,fold_3,392,392,True,CC(C)=CC1C(COP([O-])(=O)OP([O-])([O-])=O)C1(C)C,CC(C)=CCOP([O-])(=O)OP([O-])([O-])=O.CC(=C)CCOP(O)(=O)OP(O)(O)=O,False
-BDI63085.1,BDI63084.1,88.7,fold_3,574,573,False,CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O,CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O,True
-BDI63084.1,BDI63085.1,88.1,fold_0,573,574,False,CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O,CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O,True
-D8RLD3,J9R1J8,81.6,fold_1,293,294,False,CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O,CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O,True
-J9R1J8,D8RLD3,81.6,fold_4,294,293,False,CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O,CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O,True

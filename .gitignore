@@ -7,23 +7,21 @@ __pycache__/
 # data
 /scripts/data/
 
-/data/
+data/*
 
-/outputs/
+outputs/*
 
-/.idea/
+.idea/
 
-!/outputs/evaluation_results
-!/data/domain_templates/*.pdb
-!/data/pfam_models/*.hmm
-!/data/supfam_models/*.hmm
-!/data/readme_figures/
-!/data/go-basic.obo
-!/data/marts_DB_reactions_2026_02_22_preprocessed.csv
-!/data/marts_DB_reactions_2026_02_22.csv
-!/data/EnzymeExplorer_Dataset.csv
-!/data/EnzymeExplorer_Dataset_TPS.csv
-!/data/id_2_kingdom_dataset.pkl
-!/data/substrate_2_tps_type.pkl
-!/data/swissprot_with_af_structures.tsv
-!/data/swissprot.tsv
+!outputs/evaluation_results/*
+!data/domain_templates/*.pdb
+!data/pfam_models/*.hmm
+!data/supfam_models/*.hmm
+!data/readme_figures/*
+!data/go-basic.obo
+!data/marts_DB_reactions_2026_02_22_preprocessed.csv
+!data/marts_DB_reactions_2026_02_22.csv
+!data/EnzymeExplorer_Dataset.csv
+!data/EnzymeExplorer_Dataset_TPS.csv
+!data/id_2_kingdom_dataset.pkl
+!data/substrate_2_tps_type.pkl 
