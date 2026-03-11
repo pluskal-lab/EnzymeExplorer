@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 from scipy.spatial.distance import jensenshannon
 from sklearn.model_selection import StratifiedGroupKFold
-from enzymeexplorer.src.data_preparation.hmmer import HMMerWrapper
+from enzymeexplorer.src.data_preparation.hmmer_wrapper import HMMerWrapper
 from enzymeexplorer.src.data_preparation.constants import (
     PUTATIVE_TPS_IDS,
     PUTATIVE_TPS_IDS,
@@ -15,7 +15,7 @@ from enzymeexplorer.src.data_preparation.constants import (
     METRICS_2_FUNC
 )
 from enzymeexplorer.src.utils.data import get_canonical_smiles
-from enzymeexplorer.src.data_preparation.mmseqs import MMSeqs2Wrapper
+from enzymeexplorer.src.data_preparation.mmseqs2_wrapper import MMSeqs2Wrapper
 import os
 import tempfile
 from collections import defaultdict
