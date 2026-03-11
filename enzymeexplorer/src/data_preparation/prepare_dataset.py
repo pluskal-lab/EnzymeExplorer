@@ -109,7 +109,7 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-if __name__ == "__main__":
+def main():
     cli_args = parse_args()
 
     martsDB = pd.read_csv(cli_args.marts_db_csv_path)
@@ -359,3 +359,11 @@ if __name__ == "__main__":
         ),
         index=False,
     )
+    logger.info(
+        f"Final positives subset of size {len(final_positives)} saved to {Path(cli_args.dataset_output_path).with_name(Path(cli_args.dataset_output_path).stem + '_TPS.csv')}"
+    )
+
+
+
+if __name__ == "__main__":
+    main()
