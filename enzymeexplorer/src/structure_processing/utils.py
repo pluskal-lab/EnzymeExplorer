@@ -10,7 +10,7 @@ from pathlib import Path
 import os
 import pickle
 from collections import defaultdict
-from enzymeexplorer.src.structure_processing.foldseek import FoldseekWrapper
+from enzymeexplorer.src.structure_processing.foldseek_wrapper import FoldseekWrapper
 from tqdm.auto import tqdm
 
 FEATURE_DOMAIN_TYPES = ["alpha_1", "alpha_2", "beta", "gamma"]
