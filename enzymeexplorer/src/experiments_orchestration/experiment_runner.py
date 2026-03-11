@@ -137,13 +137,6 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
     )
 
     data_df = pd.read_csv(config.tps_cleaned_csv_path)
-    if not is_halo:
-        data_df.loc[
-            data_df["Type (mono, sesq, di, …)"].isin(
-            {"ggpps", "fpps", "gpps", "gfpps", "hsqs"}
-        ),
-        "SMILES_substrate_canonical_no_stereo",
-    ] = "precursor substr"
 
     try:
         save_trained_model = config.save_trained_model
@@ -192,6 +185,7 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
                 else x.union({"isTPS"})
                 )
 
+                # TODO remove config
                 if config.run_against_wetlab:
                     test_df_raw = get_tps_df(
                         path_to_file="data/df_wetlab_long_clean.csv",

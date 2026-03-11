@@ -90,7 +90,7 @@ class PfamSUPFAM(BaseModel):
                     id_2_min_eval[entries[0]] = max(
                         float(entries[5]), id_2_min_eval.get(entries[0], -1000000)
                     )
-        val_df["isTPS"] = val_df["Uniprot ID"].map(
+        val_df["isTPS"] = val_df["ID"].map(
             lambda x: id_2_min_eval.get(x, -1000000)
         )
         val_proba_np = np.zeros((len(val_df), len(self.config.class_names)))

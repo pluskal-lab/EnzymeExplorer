@@ -80,7 +80,7 @@ def plot_performance_metrics_bars(y_true_per_fold: list[np.ndarray],
     if not metrics_per_fold:
         logger.error("No valid folds to process!")
         return
-        
+    
     # Calculate mean and std for each metric
     mean_metrics = {class_name: {'Precision': [], 'Recall': [], 'F1-score': []} 
                    for class_name in all_classes}
@@ -140,13 +140,11 @@ def main():
         fold_classifiers = pickle.load(file)
     with open("data/clustering__domain_dist_based_features_foldseek.pkl", "rb") as file:
         (
-            feats_dom_dists,
-            all_ids_list_dom,
-            uniid_2_column_ids,
+            _,
+            _,
+            _,
             domain_module_id_2_dist_matrix_index,
         ) = pickle.load(file)
-    with open("data/domains_subset.pkl", "rb") as file:
-        dom_subset, feat_indices_subset = pickle.load(file)
     with open('data/domain_module_id_2_domain_type.pkl', 'rb') as file:
         domain_module_id_2_domain_type = pickle.load(file)
     with open("data/precomputed_tmscores_foldseek.pkl", "rb") as file:

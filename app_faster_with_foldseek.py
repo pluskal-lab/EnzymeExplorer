@@ -96,7 +96,7 @@ def detect_domains(file_contents, filename, is_bfactor_confidence):
 
     # Saving the ID into a csv file
     id_filepath = f'{pdb_directory_temp / "dummy_id.csv"}'
-    with open(id_filepath, "a") as file:
+    with open(id_filepath, "w") as file:
         file.writelines(f"ID\n{pdb_id}\n")
 
     # Save the content as a .pdb file

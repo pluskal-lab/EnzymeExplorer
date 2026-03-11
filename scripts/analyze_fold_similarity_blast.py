@@ -35,24 +35,24 @@ def load_tps_data(csv_path: str) -> pd.DataFrame:
         csv_path: Path to the CSV file with TPS data
         
     Returns:
-        DataFrame with unique TPS sequences per Uniprot ID
+        DataFrame with unique TPS sequences per ID
     """
     df = pd.read_csv(csv_path)
     
-    fold_col = "stratified_mmseqs_based_split_with_minor_products"
+    fold_col = "Fold"
     ignore_col = f"{fold_col}_ignore_in_eval"
     
     # Filter for TPS sequences (exclude Unknown type which are non-TPS)
-    tps_df = df[df["Type (mono, sesq, di, …)"] != "Unknown"].copy()
+    tps_df = df[df["Type"] != "Unknown"].copy()
     
     # Exclude entries marked as ignore_in_eval
     if ignore_col in tps_df.columns:
         tps_df = tps_df[tps_df[ignore_col] != 1].copy()
         print(f"Excluded {len(df) - len(tps_df)} entries marked as ignore_in_eval")
     
-    # Get unique sequences per Uniprot ID
-    unique_df = tps_df.drop_duplicates(subset=["Uniprot ID"])[
-        ["Uniprot ID", "Amino acid sequence", fold_col]
+    # Get unique sequences per ID
+    unique_df = tps_df.drop_duplicates(subset=["ID"])[
+        ["ID", "Aminoacid_sequence", fold_col]
     ].copy()
     
     return unique_df
@@ -68,7 +68,7 @@ def get_folds(df: pd.DataFrame) -> list[str]:
     Returns:
         Sorted list of fold names
     """
-    fold_col = "stratified_mmseqs_based_split_with_minor_products"
+    fold_col = "Fold"
     folds = sorted(df[fold_col].dropna().unique().tolist())
     return folds
 
@@ -79,7 +79,7 @@ def write_fasta(ids: list[str], seqs: list[str], output_path: str) -> None:
     
     Args:
         ids: List of sequence identifiers
-        seqs: List of amino acid sequences
+        seqs: List of Aminoacid_sequences
         output_path: Path to output FASTA file
     """
     fasta_str = get_fasta_seqs(seqs, ids)
@@ -178,7 +178,7 @@ def analyze_fold_similarity(csv_path: str, output_dir: str, num_threads: int = 4
     folds = get_folds(df)
     print(f"Found {len(folds)} folds: {folds}")
     
-    fold_col = "stratified_mmseqs_based_split_with_minor_products"
+    fold_col = "Fold"
     all_best_similarities = []
     high_similarity_pairs = []  # Store pairs with >95% identity
     
@@ -204,13 +204,13 @@ def analyze_fold_similarity(csv_path: str, output_dir: str, num_threads: int = 4
             
             # Write FASTA files
             write_fasta(
-                train_df["Uniprot ID"].tolist(),
-                train_df["Amino acid sequence"].tolist(),
+                train_df["ID"].tolist(),
+                train_df["Aminoacid_sequence"].tolist(),
                 train_fasta
             )
             write_fasta(
-                test_df["Uniprot ID"].tolist(),
-                test_df["Amino acid sequence"].tolist(),
+                test_df["ID"].tolist(),
+                test_df["Aminoacid_sequence"].tolist(),
                 test_fasta
             )
             
@@ -296,7 +296,7 @@ def main():
     script_dir = Path(__file__).parent
     project_root = script_dir.parent
     
-    csv_path = project_root / "data" / "TPS-Nov19_2023_verified_all_reactions_with_neg_with_folds_mmseqs_30_50.csv"
+    csv_path = project_root / "data" / "EnzymeExplorer_Dataset.csv"
     output_dir = project_root / "outputs" / "fold_similarity_analysis_blast"
     
     # Run analysis

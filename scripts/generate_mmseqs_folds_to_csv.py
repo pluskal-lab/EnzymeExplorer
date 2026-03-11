@@ -104,17 +104,17 @@ def load_clusters(pkl_path: str) -> dict[str, int]:
 def add_negatives_to_df(tps_df: pd.DataFrame, neg_id_2_seq: dict[str, str]) -> pd.DataFrame:
     """Add negative samples to the TPS dataframe."""
     # Get existing IDs
-    existing_ids = set(tps_df["Uniprot ID"].str.strip())
+    existing_ids = set(tps_df["ID"].str.strip())
     
     # Create negative rows
     neg_rows = []
     for neg_id, neg_seq in neg_id_2_seq.items():
         if neg_id not in existing_ids:
             neg_rows.append({
-                "Uniprot ID": neg_id,
-                "Amino acid sequence": neg_seq,
+                "ID": neg_id,
+                "Aminoacid_sequence": neg_seq,
                 "SMILES_substrate_canonical_no_stereo": "Negative",
-                "Type (mono, sesq, di, …)": "Unknown",
+                "Type": "Unknown",
             })
     
     if neg_rows:
@@ -140,11 +140,11 @@ def generate_folds(
     target_col = "SMILES_substrate_canonical_no_stereo"
     
     # Get unique sequences per ID
-    unique_df = tps_df.drop_duplicates("Uniprot ID").copy()
-    unique_df["Uniprot ID"] = unique_df["Uniprot ID"].str.strip()
+    unique_df = tps_df.drop_duplicates("ID").copy()
+    unique_df["ID"] = unique_df["ID"].str.strip()
     
     # Separate positives (in clusters) and negatives
-    unique_df["in_cluster"] = unique_df["Uniprot ID"].map(lambda x: x in id_2_cluster)
+    unique_df["in_cluster"] = unique_df["ID"].map(lambda x: x in id_2_cluster)
     
     pos_df = unique_df[unique_df["in_cluster"]].copy()
     neg_df = unique_df[~unique_df["in_cluster"]].copy()
@@ -155,7 +155,7 @@ def generate_folds(
     # Assign cluster groups to positives
     # ALL sequences in the same cluster should stay together to prevent leakage
     def get_group(row):
-        uid = row["Uniprot ID"]
+        uid = row["ID"]
         if uid in id_2_cluster:
             return str(id_2_cluster[uid])
         else:
@@ -194,8 +194,8 @@ def generate_folds(
         pos_train_idx, pos_val_idx = pos_folds[fold_idx]
         neg_train_idx, neg_val_idx = neg_folds[fold_idx]
         
-        train_ids = set(pos_df.iloc[pos_train_idx]["Uniprot ID"]) | set(neg_df.iloc[neg_train_idx]["Uniprot ID"])
-        val_ids = set(pos_df.iloc[pos_val_idx]["Uniprot ID"]) | set(neg_df.iloc[neg_val_idx]["Uniprot ID"])
+        train_ids = set(pos_df.iloc[pos_train_idx]["ID"]) | set(neg_df.iloc[neg_train_idx]["ID"])
+        val_ids = set(pos_df.iloc[pos_val_idx]["ID"]) | set(neg_df.iloc[neg_val_idx]["ID"])
         
         all_folds.append((train_ids, val_ids))
         
@@ -211,7 +211,7 @@ def save_folds_to_csv(
     tps_df: pd.DataFrame,
     folds: list[tuple[set, set]],
     output_path: str,
-    split_name: str = "stratified_mmseqs_based_split",
+    split_name: str = "Fold",
 ):
     """Save fold assignments to CSV."""
     # Add fold column
@@ -220,7 +220,7 @@ def save_folds_to_csv(
     
     for fold_idx, (_, val_ids) in enumerate(folds):
         tps_df.loc[
-            tps_df["Uniprot ID"].isin(val_ids),
+            tps_df["ID"].isin(val_ids),
             split_name
         ] = f"fold_{fold_idx}"
     
@@ -269,7 +269,7 @@ def main():
         
         # Save to CSV
         output_path = args.tps_csv_path.replace(".csv", f"{suffix}.csv")
-        split_name = f"stratified_mmseqs_based_split_with_minor_products"
+        split_name = f"Fold"
         save_folds_to_csv(df, folds, output_path, split_name)
     
     logger.info("\nDone!")

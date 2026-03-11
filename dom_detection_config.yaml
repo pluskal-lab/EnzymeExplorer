@@ -1,0 +1,20 @@
+needed-proteins-csv-path: data/martsDB_reactions_2026_02_22_preprocessed.csv
+input-directory-with-structures: data/martsDB_pdbs/
+csv-id-column: Enzyme_marts_ID
+detected-regions-root-path: data/martsDB_detected_domains_abc
+n-jobs: 16 
+n-iters: 3
+detections-output-path: data/martsDB_detected_domains_abc.pkl
+domains-output-path: data/martsDB_detected_domains_abc
+supported_domains:
+  - alpha: 
+      template: data/martsDB_pdbs/1ps1.pdb
+      condition: "chain A & ss H+S"
+  - beta: 
+      template: data/martsDB_pdbs/5eat.pdb
+      condition: "resi 37-57+64-97+104-117+123-129+138-156+162-195+203-213+223-239 & chain A & ss H+S"
+  - gamma: 
+      template: data/martsDB_pdbs/3p5r.pdb
+      condition: "resi 37-57+64-97+104-117+123-129+138-156+162-195+203-213+223-239 & chain A & ss H+S"
+domain_length_threshold: 50
+domain_tm_score_threshold: 0.15

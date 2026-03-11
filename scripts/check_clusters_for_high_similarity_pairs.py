@@ -22,7 +22,7 @@ def load_phylogenetic_clusters(clusters_path: str) -> dict:
         clusters_path: Path to phylogenetic_clusters.pkl
         
     Returns:
-        Dictionary mapping Uniprot ID to cluster
+        Dictionary mapping ID to cluster
     """
     with open(clusters_path, "rb") as f:
         id_2_group, _ = pickle.load(f)

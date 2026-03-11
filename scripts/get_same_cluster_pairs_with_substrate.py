@@ -38,7 +38,7 @@ def load_phylogenetic_clusters(clusters_path: str) -> dict:
         clusters_path: Path to phylogenetic_clusters.pkl
         
     Returns:
-        Dictionary mapping Uniprot ID to cluster
+        Dictionary mapping ID to cluster
     """
     with open(clusters_path, "rb") as f:
         id_2_group, _ = pickle.load(f)
@@ -53,13 +53,13 @@ def load_substrate_mapping(csv_path: str) -> dict:
         csv_path: Path to TPS CSV file
         
     Returns:
-        Dictionary mapping Uniprot ID to substrate SMILES
+        Dictionary mapping ID to substrate SMILES
     """
     df = pd.read_csv(csv_path)
     
-    # Get unique substrate per Uniprot ID (take first occurrence)
+    # Get unique substrate per ID (take first occurrence)
     id_to_substrate = (
-        df.groupby("Uniprot ID")["SMILES_substrate_canonical_no_stereo"]
+        df.groupby("ID")["SMILES_substrate_canonical_no_stereo"]
         .first()
         .to_dict()
     )
@@ -187,7 +187,7 @@ def main():
         "--tps-csv",
         type=str,
         default=None,
-        help="Path to TPS CSV file (default: data/TPS-Nov19_2023_verified_all_reactions_with_neg_with_folds_mmseqs_30_50.csv)"
+        help="Path to TPS CSV file (default: data/EnzymeExplorer_Dataset.csv)"
     )
     parser.add_argument(
         "--output",
@@ -212,7 +212,7 @@ def main():
         clusters_pkl = Path(args.clusters_pkl)
     
     if args.tps_csv is None:
-        tps_csv = project_root / "data" / "TPS-Nov19_2023_verified_all_reactions_with_neg_with_folds_mmseqs_30_50.csv"
+        tps_csv = project_root / "data" / "EnzymeExplorer_Dataset.csv"
     else:
         tps_csv = Path(args.tps_csv)
     

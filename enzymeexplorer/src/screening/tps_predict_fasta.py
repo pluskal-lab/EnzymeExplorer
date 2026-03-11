@@ -68,7 +68,7 @@ class PredictionResults:
     A data class to store batches of model predictions
     """
 
-    uniprot_id: list[str]
+    sequence_id: list[str]
     confidence: list[float]
 
 
@@ -236,12 +236,12 @@ def main(args: argparse.Namespace):
             continue
         if i == args.end_i:
             break
-        uniprot_id = _extract_id_from_entry(uniprot_entry)
+        sequence_id = _extract_id_from_entry(uniprot_entry)
         seq = _extract_seq_from_entry(uniprot_entry)
         if not _is_sequence_good(uniprot_entry[1], max_seq_len=args.max_len):
             seq = seq[: (args.max_len - 2)]
         next_batch.append(seq)
-        next_batch_ids.append(uniprot_id)
+        next_batch_ids.append(sequence_id)
 
         if len(next_batch) == args.batch_size:
             enzyme_encodings_list, enzyme_ids_list = _batch_predict(

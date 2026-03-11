@@ -79,7 +79,7 @@ def parse_args() -> argparse.Namespace:
         "--id-col-name",
         help="A name of the column containing IDs",
         type=str,
-        default="Uniprot ID",
+        default="ID",
     )
     parser_eval.add_argument(
         "--blast-identities-path",

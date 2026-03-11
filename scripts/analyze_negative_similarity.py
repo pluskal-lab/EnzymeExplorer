@@ -32,20 +32,20 @@ def load_tps_data(csv_path: str) -> pd.DataFrame:
         csv_path: Path to the CSV file with TPS data
         
     Returns:
-        DataFrame with unique TPS sequences per Uniprot ID
+        DataFrame with unique TPS sequences per ID
     """
     df = pd.read_csv(csv_path)
     
     # Filter for TPS sequences (exclude Unknown type which are non-TPS/negatives)
-    tps_df = df[df["Type (mono, sesq, di, …)"] != "Unknown"].copy()
+    tps_df = df[df["Type"] != "Unknown"].copy()
     
-    # Get unique sequences per Uniprot ID
-    unique_df = tps_df.drop_duplicates(subset=["Uniprot ID"])[
-        ["Uniprot ID", "Amino acid sequence"]
+    # Get unique sequences per ID
+    unique_df = tps_df.drop_duplicates(subset=["ID"])[
+        ["ID", "Aminoacid_sequence"]
     ].copy()
     
     # Clean IDs
-    unique_df["Uniprot ID"] = unique_df["Uniprot ID"].str.strip()
+    unique_df["ID"] = unique_df["ID"].str.strip()
     
     return unique_df
 
@@ -71,7 +71,7 @@ def write_fasta(ids: list[str], seqs: list[str], output_path: str) -> None:
     
     Args:
         ids: List of sequence identifiers
-        seqs: List of amino acid sequences
+        seqs: List of Aminoacid_sequences
         output_path: Path to output FASTA file
     """
     fasta_str = get_fasta_seqs(seqs, ids)
@@ -174,8 +174,8 @@ def analyze_negative_similarity(
         os.makedirs(mmseqs_tmp, exist_ok=True)
         
         write_fasta(
-            tps_df["Uniprot ID"].tolist(),
-            tps_df["Amino acid sequence"].tolist(),
+            tps_df["ID"].tolist(),
+            tps_df["Aminoacid_sequence"].tolist(),
             tps_fasta
         )
         

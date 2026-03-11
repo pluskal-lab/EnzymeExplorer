@@ -6,3 +6,20 @@ __pycache__/
 
 # data
 /scripts/data/
+
+/data/
+
+/outputs/
+
+!/outputs/evaluation_results
+!/data/domain_templates/
+!/data/pfam_models/
+!/data/supfam_models/
+!/data/readme_figures/
+!/data/go-basic.obo
+!/data/marts_DB_reactions*.csv
+!/data/EnzymeExplorer_Dataset*.csv
+!/data/id_2_kingdom_dataset.pkl
+!/data/substrate_2_tps_type.pkl
+!/data/swissprot_with_af_structures.tsv
+!/data/swissprot.tsv
