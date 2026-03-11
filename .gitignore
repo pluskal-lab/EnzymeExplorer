@@ -19,8 +19,7 @@ outputs/*
 !data/supfam_models/*.hmm
 !data/readme_figures/*
 !data/go-basic.obo
-!data/marts_DB_reactions_2026_02_22_preprocessed.csv
-!data/marts_DB_reactions_2026_02_22.csv
+!data/marts_DB_reactions_2026_02_22*
 !data/EnzymeExplorer_Dataset.csv
 !data/EnzymeExplorer_Dataset_TPS.csv
 !data/id_2_kingdom_dataset.pkl
