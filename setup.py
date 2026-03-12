@@ -17,6 +17,7 @@ setup(
     entry_points={
         "console_scripts": [
             "prepare_data=enzymeexplorer.src.data_preparation.prepare_dataset:main",
+            "detect_domains=enzymeexplorer.src.structure_processing.domain_detections:main",
             "gather_plm_embeddings=enzymeexplorer.src.embeddings_extraction.gather_required_embs:main",
             "plm_embeddings=enzymeexplorer.src.embeddings_extraction.transformer_embs:main",
             "enzyme_explorer_main=enzymeexplorer.src.enzyme_explorer_main:main",

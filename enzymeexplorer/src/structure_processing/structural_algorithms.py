@@ -30,22 +30,6 @@ if not logger.hasHandlers():
     handler.setFormatter(formatter)
     logger.addHandler(handler)
 
-SUPPORTED_DOMAINS = {
-    "alpha", 
-    "beta", 
-    "gamma", 
-    # "delta", 
-    # "epsilon"
-}
-# SUPPORTED_DOMAINS = {"beta", "gamma", "delta", "epsilon"}
-DOMAIN_2_THRESHOLD = {
-    "alpha": (0.2, 70),
-    "beta": (0.2, 50),
-    "gamma": (0.2, 50),
-    # "delta": (0.6, 50),
-    # "epsilon": (0.6, 50),
-    # "alphaWeird": (0.5, 100),
-}
 
 
 @dataclass(eq=True)
@@ -70,7 +54,7 @@ def exists_in_pymol(pymol_cmd, sele):
     return False
 
 
-def prepare_domain(pymol_cmd, domain_name: str) -> tuple:
+def prepare_domain(pymol_cmd, domain_template: dict) -> tuple:
     """
     Creates a domain object in a PyMOL session based on the provided domain name.
 
@@ -83,36 +67,12 @@ def prepare_domain(pymol_cmd, domain_name: str) -> tuple:
     :return: A tuple containing the modified PyMOL command object and the new domain name string
     :rtype: tuple
     """
-    domain_2_standard = {dom_name_: f"{dom_name_}" for dom_name_ in SUPPORTED_DOMAINS}
-    domain_2_standard.update(
-        {
-            "alpha": "1ps1",
-            "beta": "5eat",
-            "gamma": "3p5r",
-            # "delta": "1w6j",
-            # "epsilon": "1w6j",
-        }
-    )
-    assert domain_name in domain_2_standard, f"Domain {domain_name} is not supported"
-    required_file = domain_2_standard[domain_name]
-    if not exists_in_pymol(pymol_cmd, required_file):
-        if not os.path.exists(f"{required_file}.pdb"):
-            raise FileNotFoundError(f"{required_file}.pdb while being in {os.getcwd()}")
-        pymol_cmd.load(f"{required_file}.pdb")
+    domain_name_new = f"{domain_template['name']}_domain_{str(uuid4()).replace('-', '_')}"
+    pymol_cmd.load(Path(domain_template['path']).absolute(), domain_name_new)
 
-    if "_" in domain_name:
-        selection_condition = " & chain A & ss H+S"
-    else:
-        selection_condition = {
-            "alpha": " & chain A & ss H+S",
-            "beta": " & resi 37-57+64-97+104-117+123-129+138-156+162-195+203-213+223-239 & chain A & ss H+S",
-            "gamma": " & resi 138-151+157-171+185-222+233-248+258-275+281-304+313-339 & chain A & ss H+S",
-            # "delta": " & resi 73-87+385-399+401-403+405-421+454-470+480-493+531-547+553-570+585-599+610-622+633-638+649-662+667-680+707-722+727-729 & chain A & ss H+S",
-            # "epsilon": " & resi 103-115+123-134+151-164+171-183+191-200+213-217+226-228+231-246+254-263+268-270+273-277+291-306+309-330+337-351+356-371+376-378+510-515 & chain A & ss H+S",
-        }[domain_name]
-    domain_name_new = f"{domain_name}_domain_{uuid4()}"
-    pymol_cmd.select(domain_name_new, f"{required_file} {selection_condition}")
-    return pymol_cmd, domain_name_new
+    domain_name_selection = domain_name_new + "_selection"
+    pymol_cmd.select(domain_name_selection, f"{domain_name_new} & {domain_template['residues']}")
+    return pymol_cmd, domain_name_selection, domain_name_new
 
 
 def compress_selection_list(selected_residues: list[int]) -> str:
@@ -252,7 +212,7 @@ def compute_full_mapping(
 
 def get_super_res_alignment(
     larger_obj: str,
-    domain_obj: str,
+    domain_template: dict,
     file_2_all_residues: dict[str, set[str]],
     min_domain_fraction: float = 0.1,
     pymol_cmd=cmd,
@@ -301,23 +261,13 @@ def get_super_res_alignment(
         file_2_all_residues[larger_obj] = residues_permitted
 
     loaded_new_domain_obj = False
-    if not exists_in_pymol(pymol_cmd, domain_obj):
-        if not os.path.exists(f"{domain_obj}.pdb"):
-            if domain_obj.replace("_domain", "") in SUPPORTED_DOMAINS:
-                pymol_cmd, domain_obj = prepare_domain(
-                    pymol_cmd, domain_obj.replace("_domain", "")
-                )
-                file_2_all_residues[domain_obj] = get_secondary_structure_residues_set(
-                    domain_obj, pymol_cmd
-                )
-                loaded_new_domain_obj = True
-            else:
-                raise NotImplementedError(
-                    f"Domain {domain_obj} not supported, {domain_obj}.pdb did not exist"
-                )
-        else:
-            pymol_cmd.load(f"{domain_obj}.pdb")
-            loaded_new_domain_obj = True
+    pymol_cmd, domain_obj, domain_name_new = prepare_domain(
+        pymol_cmd, domain_template
+    )
+    file_2_all_residues[domain_obj] = get_secondary_structure_residues_set(
+        domain_obj, pymol_cmd
+    )
+    loaded_new_domain_obj = True
     aln_name, domain_obj_secondary_structure, larger_obj_secondary_structure = [
         str(uuid4()) for _ in range(3)
     ]
@@ -373,6 +323,7 @@ def get_super_res_alignment(
             pymol_cmd.delete(new_object_name)
         if loaded_new_domain_obj:
             pymol_cmd.delete(domain_obj)
+            pymol_cmd.delete(domain_name_new)
             if domain_obj in file_2_all_residues:
                 del file_2_all_residues[domain_obj]
         return -float("inf"), {}
@@ -414,6 +365,7 @@ def get_super_res_alignment(
         pymol_cmd.delete(new_object_name)
     if loaded_new_domain_obj:
         pymol_cmd.delete(domain_obj)
+        pymol_cmd.delete(domain_name_new)
         if domain_obj in file_2_all_residues:
             del file_2_all_residues[domain_obj]
     return tmscore, residues_mapping_full
@@ -523,10 +475,8 @@ def get_all_residues_per_file(pdb_files: list[Path], pymol_cmd) -> dict[str, set
 
 def get_alignments(
     pdb_filepaths: list[Path],
-    domain_name: str,
+    domain_template: dict,
     file_2_current_residues: dict[str, set[str]],
-    tmscore_threshold: Optional[float] = None,
-    mapping_size_threshold: Optional[int] = None,
     n_jobs: int = 8,
 ) -> dict[str, list[tuple[float, dict]]]:
     """
@@ -544,7 +494,7 @@ def get_alignments(
     """
     align_partial = partial(
         get_super_res_alignment,
-        domain_obj=f"{domain_name}_domain",
+        domain_template=domain_template,
         file_2_all_residues=file_2_current_residues,
     )
     pdb_filenames = [filepath.stem for filepath in pdb_filepaths if file_2_current_residues.get(filepath.stem)]
@@ -556,14 +506,8 @@ def get_alignments(
     for pdb_filename, (tmscore, residues_mapping) in zip(
         pdb_filenames, list_of_alignment_results
     ):
-        if (
-            residues_mapping is not None
-            # and (tmscore_threshold is None or tmscore >= tmscore_threshold)
-            and (
-                mapping_size_threshold is None
-                or len(residues_mapping) >= mapping_size_threshold
-            )
-        ):
+        if (tmscore >= domain_template["thresholds"]["tmscore"]
+                and len(residues_mapping) >= domain_template["thresholds"]["min_align_len"]):
             file_2_tmscore_residues[pdb_filename].append((tmscore, residues_mapping))
     return file_2_tmscore_residues
 

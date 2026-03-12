@@ -1,7 +1,9 @@
 """This script detects TPS domains in protein structures"""
 
 import os
-import argparse
+import tempfile
+import yaml
+import configargparse
 from pathlib import Path
 from collections import defaultdict
 import pickle
@@ -14,9 +16,8 @@ import pandas as pd  # type: ignore
 import numpy as np  # type: ignore
 from Bio import PDB  # type: ignore
 from tqdm.auto import tqdm  # type: ignore
+import re
 from enzymeexplorer.src.structure_processing.structural_algorithms import (
-    SUPPORTED_DOMAINS,
-    DOMAIN_2_THRESHOLD,
     MappedRegion,
     get_alignments,
     plot_aligned_domains,
@@ -37,14 +38,20 @@ if not logger.hasHandlers():
     logger.addHandler(handler)
 
 
-def parse_args() -> argparse.Namespace:
+def parse_args() -> configargparse.Namespace:
     """
     This function parses arguments
     :return: current argparse.Namespace
     """
-    parser = argparse.ArgumentParser(
+    parser = configargparse.ArgumentParser(
         description="A script to detect TPS domains in protein structures"
     )
+ 
+    parser = configargparse.ArgParser(
+        config_file_parser_class=configargparse.YAMLConfigFileParser
+    )
+    parser.add_argument('-c', '--config', is_config_file=True, help='config file path', default="configs/domain_detection_default_config.yaml")
+
     parser.add_argument(
         "--needed-proteins-csv-path",
         type=str,
@@ -59,7 +66,7 @@ def parse_args() -> argparse.Namespace:
         "--input-directory-with-structures",
         help="A directory containing PDB structures",
         type=str,
-        default="data/alphafold_structs/",
+        default="data/structs/",
     )
     parser.add_argument("--n-jobs", type=int, default=16)
     parser.add_argument("--n-iters", type=int, default=3)
@@ -82,7 +89,43 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--is-bfactor-confidence", action="store_true")
     parser.add_argument("--do-not-store-intermediate-files", action="store_true")
     parser.add_argument(
-        "--recompute-existing-secondary-structure-residues", action="store_true"
+        "--secondary-structure-residues-path", type=str, default="data/secondary_structure_residues.pkl"
+    )
+    parser.add_argument(
+        "--recompute-existing-secondary-structure-residues", action="store_true",
+    )
+    parser.add_argument(
+        "--domain-templates",
+        nargs="+",
+        default=[
+            {
+                "name": "alpha",
+                "path": "data/domain_templates/1ps1.pdb",
+                "residues": "chain A & ss H+S",
+                "thresholds": {
+                    "tmscore": 0.2,
+                    "min_align_len": 70
+                }
+            },
+            {
+                "name": "beta",
+                "path": "data/domain_templates/5eat.pdb",
+                "residues": "resi 37-57+64-97+104-117+123-129+138-156+162-195+203-213+223-239 & chain A & ss H+S",
+                "thresholds": {
+                    "tmscore": 0.2,
+                    "min_align_len": 50
+                }
+            },
+            {
+                "name": "gamma",
+                "path": "data/domain_templates/3p5r.pdb",
+                "residues": "resi 138-151+157-171+185-222+233-248+258-275+281-304+313-339 & chain A & ss H+S",
+                "thresholds": {
+                    "tmscore": 0.2,
+                    "min_align_len": 50
+                }
+            }
+        ],
     )
     return parser.parse_args()
 
@@ -90,34 +133,32 @@ def parse_args() -> argparse.Namespace:
 def detect_domains_roughly(
     specified_pdb_files: list[Path],
     file_2_all_residues_mapping: dict[str, set[str]],
-    domain_2_threshold: dict[str, tuple[float, int]],
+    domain_templates: list[dict],
     output_root: Path,
-    supported_domains: set[str],
-    n_jobs: int = 16,
+    args: configargparse.Namespace,
     iteration: int = 0,
 ) -> dict[str, list[MappedRegion]]:
     """
     Detects protein domains in multiple structures based on alignment scores and domain-specific thresholds.
 
     :param file_2_all_residues_mapping: A dictionary mapping file identifiers to sets of residue sequences present in those files
-    :param domain_2_threshold: A dictionary mapping domain names to a tuple containing the TM-score threshold (float)
-                               and the minimum mapping size (int) required to consider a match valid
+    :param domain_templates: A list of dictionaries containing domain template information
     :param output_root: The root directory where output images and serialized results will be saved
-    :param supported_domains: A set of domain names to consider for detection. Defaults to SUPPORTED_DOMAINS
-    :param n_jobs: The number of parallel jobs to use for alignment calculations. Defaults to 16
+    :param args: arguments containing parameters number of iterations and flags for storing intermediate results
 
     :return: A dictionary mapping each filename to a list of known MappedRegion objects representing the detected
              reliable domains, while ensuring that no overlaying domains are included.
     """
     file_2_possible_regions: dict = defaultdict(list)
-    for domain_this in supported_domains:
+    for domain_template in domain_templates:
+        domain_this = domain_template["name"]
         logger.info("Started detection of domain %s", domain_this)
         start_t = time.time()
         file_2_tmscore_residues_domain = get_alignments(
             specified_pdb_files,
-            domain_name=domain_this,
+            domain_template=domain_template,
             file_2_current_residues=file_2_all_residues_mapping,
-            n_jobs=n_jobs,
+            n_jobs=args.n_jobs,
         )
         logger.info(
             "Detection of %s domain. Execution took %d seconds",
@@ -142,7 +183,7 @@ def detect_domains_roughly(
             for i, (tm_score, res_mapping) in enumerate(current_detections):
                 logger.info(f"tm_score: {tm_score:.2f}")
                 logger.info(f"len of res_mapping: {len(res_mapping)}")
-                if len(res_mapping) >= domain_2_threshold[domain_this][1] and tm_score >= domain_2_threshold[domain_this][0]:
+                if len(res_mapping) >= domain_template["thresholds"]["min_align_len"] and tm_score >= domain_template["thresholds"]["tmscore"]:
                     file_2_possible_regions[sequence_id].append(
                         MappedRegion(
                             module_id=f"{sequence_id}_{domain_this}_{i}",
@@ -299,60 +340,80 @@ def get_all_confidence_values(sequence_id: str) -> list[int]:
     return values
 
 
-def main(args: argparse.Namespace):
+def main():
+    args = parse_args()
     # reading the needed proteins
+    relevant_protein_ids = None
     if args.needed_proteins_csv_path is not None:
         proteins_df = pd.read_csv(args.needed_proteins_csv_path)
         relevant_protein_ids = set(proteins_df[args.csv_id_column].values)
+    
+    domain_templates = args.domain_templates
+    domain_templates = [yaml.safe_load(template) for template in domain_templates]
+    for domain_template in domain_templates:
+        domain_template["path"] = Path(domain_template["path"]).absolute()
+    supported_domains = [template["name"] for template in domain_templates]
+    domain_2_threshold = {
+        template["name"]: template["thresholds"]
+        for template in domain_templates
+    }
 
-    input_directory = Path(args.input_directory_with_structures)
-    all_secondary_structure_residues_path = input_directory / "file_2_all_residues.pkl"
-    if (
-        not all_secondary_structure_residues_path.exists()
-        or args.recompute_existing_secondary_structure_residues
-    ):
-        subprocess.check_output(
-            f"python -m enzymeexplorer.src.structure_processing.compute_secondary_structure_residues --input-directory {input_directory} --output-path {all_secondary_structure_residues_path}".split(),
-        )
-    with open(all_secondary_structure_residues_path, "rb") as file:
-        file_2_all_residues = pickle.load(file)
+    input_directory = Path(args.input_directory_with_structures).absolute()
+    secondary_structure_residues_path = Path(args.secondary_structure_residues_path)
+    if not secondary_structure_residues_path.exists() or args.recompute_existing_secondary_structure_residues:
+        logger.info(f"Secondary structure residues file not found at {secondary_structure_residues_path}, computing secondary structure residues.")
+        with tempfile.TemporaryDirectory() as tmpdir:
+            sec_str_input_dir = Path(tmpdir)
+            if relevant_protein_ids is not None:
+                logger.info(f"Filtering PDB files to only include those specified in {args.needed_proteins_csv_path}")
+                for protein_id in relevant_protein_ids:
+                    src_path = input_directory / f"{protein_id}.pdb"
+                    if not src_path.exists():
+                        logger.warning(f"PDB file for {protein_id} not found at {src_path}, skipping this protein.")
+                        continue
+                    dst_path = sec_str_input_dir / f"{protein_id}.pdb"
+                    os.symlink(src_path, dst_path)
+            else:
+                pdb_files = [filepath for filepath in input_directory.glob("*.pdb")]
+                for pdb_file in pdb_files:
+                    dst_path = sec_str_input_dir / pdb_file.name
+                    os.symlink(pdb_file, dst_path)
+            
+            for domain_template in domain_templates:
+                template_dst_path = sec_str_input_dir / f"{Path(domain_template['path']).name}"
+                os.symlink(Path(domain_template["path"]), template_dst_path)
+            
+            subprocess.check_output(
+                f"python -m enzymeexplorer.src.structure_processing.compute_secondary_structure_residues --input-directory {str(sec_str_input_dir)} --output-path {secondary_structure_residues_path}".split(),
+            )
+        with open(secondary_structure_residues_path, "rb") as file:
+            file_2_all_residues = pickle.load(file)
+    else:
+        with open(secondary_structure_residues_path, "rb") as file:
+            file_2_all_residues = pickle.load(file)
 
     # getting the files
     cwd = os.getcwd()
     os.chdir(input_directory)
-    blacklist_files = (
-        {"1ps1.pdb", "5eat.pdb", "3p5r.pdb", "1w6j.pdb", "1ubw.pdb"}
-        .union({f"{domain}.pdb" for domain in SUPPORTED_DOMAINS})
-        .union({f"{domain}_object.pdb" for domain in SUPPORTED_DOMAINS})
-    )
-    all_pdb_files = [filepath for filepath in Path(".").glob("*.pdb")]
+    
     pdb_files = []
-    found_relevant_protein_ids = set()
-    for filepath in all_pdb_files:
-        if (str(filepath) in blacklist_files) or (
-            filepath.stem not in file_2_all_residues
-        ):
-            continue
-        if args.needed_proteins_csv_path is not None:
-            protein_id = filepath.stem
-            simple_protein_id = "".join(
-                filepath.stem.replace("(", "").replace(")", "").replace("-", "")
-            )
-            if protein_id in relevant_protein_ids:
-                found_relevant_protein_ids.add(protein_id)
-            elif simple_protein_id in relevant_protein_ids:
-                found_relevant_protein_ids.add(simple_protein_id)
-            else:
+    if relevant_protein_ids is not None:
+        logger.info(f"Filtering PDB files in {input_directory} to only include those specified in {args.needed_proteins_csv_path}")
+        for protein_id in relevant_protein_ids:
+            pdb_path = Path(".") / f"{protein_id}.pdb"
+            if not pdb_path.exists():
+                logger.warning(f"PDB file for {protein_id} not found at {pdb_path}, skipping this protein.")
                 continue
-        pdb_files.append(filepath)
-
-    # Warn user if PDB files are missing for any proteins specified by needed_proteins_csv_path
-    if args.needed_proteins_csv_path is not None:
-        missing_protein_ids = relevant_protein_ids - found_relevant_protein_ids
-        if missing_protein_ids:
-            logger.warning(
-                f"Missing PDB files for the following {len(missing_protein_ids)} protein(s) specified in {args.needed_proteins_csv_path}: {', '.join(missing_protein_ids)}\nProteins with missing PDB files will be skipped."
-            )
+            pdb_files.append(pdb_path)
+    else:
+        all_pdb_files = [filepath for filepath in Path(".").glob("*.pdb")]
+        for filepath in all_pdb_files:
+            pdb_files.append(filepath)
+            
+    for filename in [pdb_file.stem for pdb_file in pdb_files]:
+        filename_regex = "[a-zA-Z0-9_]+"
+        if not re.fullmatch(filename_regex, filename):
+            raise ValueError(f"Filename {filename} does not match the expected pattern {filename_regex}, which may cause issues with PyMOL selection syntax. Consider renaming this file.")
             
     filename_2_known_regions: dict[str, list[MappedRegion]] = defaultdict(list)
     filename_2_remaining_residues: dict[str, set[str]] = file_2_all_residues.copy()
@@ -362,12 +423,11 @@ def main(args: argparse.Namespace):
 
     # Detecting TPS domains in protein structures
         filename_2_potential_regions = detect_domains_roughly(
-            pdb_files,
+            [pdb_file for pdb_file in pdb_files if len(filename_2_remaining_residues.get(pdb_file.stem, [])) >= 10],  # only considering files for which there are remaining residues
             filename_2_remaining_residues,
-            DOMAIN_2_THRESHOLD,
-            supported_domains=SUPPORTED_DOMAINS,
+            domain_templates=domain_templates,
             output_root=Path("."),
-            n_jobs=args.n_jobs,
+            args=args,
             iteration=detection_iter + 1,
         )
         
@@ -432,7 +492,7 @@ def main(args: argparse.Namespace):
                 }
                 if (
                     len(new_residues_mapping)
-                    >= DOMAIN_2_THRESHOLD[mapped_region_init.domain][1]
+                    >= domain_2_threshold[mapped_region_init.domain]["min_align_len"]
                 ):
                     new_regions.append(
                         MappedRegion(  # pylint: disable=R0801
@@ -466,7 +526,7 @@ def main(args: argparse.Namespace):
         "wb",
     ) as f:
         pickle.dump(domain_2_regions_completed_confident["all"], f)
-    for domain_name in SUPPORTED_DOMAINS:
+    for domain_name in supported_domains:
         with open(
             Path(cwd)
             / args.detected_regions_root_path
@@ -480,7 +540,7 @@ def main(args: argparse.Namespace):
         domains_output_path = Path(cwd) / args.domains_output_path
         if not domains_output_path.exists():
             domains_output_path.mkdir(parents=True)
-        for domain_name in SUPPORTED_DOMAINS:
+        for domain_name in supported_domains:
             PATH = domains_output_path / f"tps_domain_detections_{domain_name}"
             if not PATH.exists():
                 PATH.mkdir(parents=True)
@@ -518,5 +578,4 @@ def main(args: argparse.Namespace):
 
 
 if __name__ == "__main__":
-    args = parse_args()
-    main(args)
+    main()
