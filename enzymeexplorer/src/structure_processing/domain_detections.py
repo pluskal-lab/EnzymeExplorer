@@ -26,6 +26,10 @@ from enzymeexplorer.src.structure_processing.structural_algorithms import (
     get_mapped_regions_with_surroundings_parallel,
     compress_selection_list,
 )
+from enzymeexplorer.src.structure_processing.utils import (
+    save_file_to_all_residues,
+    get_pdb_files,
+)
 
 logger = logging.getLogger(__file__)
 logger.setLevel(logging.INFO)
@@ -46,11 +50,17 @@ def parse_args() -> configargparse.Namespace:
     parser = configargparse.ArgumentParser(
         description="A script to detect TPS domains in protein structures"
     )
- 
+
     parser = configargparse.ArgParser(
         config_file_parser_class=configargparse.YAMLConfigFileParser
     )
-    parser.add_argument('-c', '--config', is_config_file=True, help='config file path', default="configs/domain_detection_default_config.yaml")
+    parser.add_argument(
+        "-c",
+        "--config",
+        is_config_file=True,
+        help="config file path",
+        default="configs/domain_detection_default_config.yaml",
+    )
 
     parser.add_argument(
         "--needed-proteins-csv-path",
@@ -89,10 +99,13 @@ def parse_args() -> configargparse.Namespace:
     parser.add_argument("--is-bfactor-confidence", action="store_true")
     parser.add_argument("--do-not-store-intermediate-files", action="store_true")
     parser.add_argument(
-        "--secondary-structure-residues-path", type=str, default="data/secondary_structure_residues.pkl"
+        "--secondary-structure-residues-path",
+        type=str,
+        default="data/secondary_structure_residues.pkl",
     )
     parser.add_argument(
-        "--recompute-existing-secondary-structure-residues", action="store_true",
+        "--recompute-existing-secondary-structure-residues",
+        action="store_true",
     )
     parser.add_argument(
         "--domain-templates",
@@ -102,29 +115,20 @@ def parse_args() -> configargparse.Namespace:
                 "name": "alpha",
                 "path": "data/domain_templates/1ps1.pdb",
                 "residues": "chain A & ss H+S",
-                "thresholds": {
-                    "tmscore": 0.2,
-                    "min_align_len": 70
-                }
+                "thresholds": {"tmscore": 0.2, "min_align_len": 70},
             },
             {
                 "name": "beta",
                 "path": "data/domain_templates/5eat.pdb",
                 "residues": "resi 37-57+64-97+104-117+123-129+138-156+162-195+203-213+223-239 & chain A & ss H+S",
-                "thresholds": {
-                    "tmscore": 0.2,
-                    "min_align_len": 50
-                }
+                "thresholds": {"tmscore": 0.2, "min_align_len": 50},
             },
             {
                 "name": "gamma",
                 "path": "data/domain_templates/3p5r.pdb",
                 "residues": "resi 138-151+157-171+185-222+233-248+258-275+281-304+313-339 & chain A & ss H+S",
-                "thresholds": {
-                    "tmscore": 0.2,
-                    "min_align_len": 50
-                }
-            }
+                "thresholds": {"tmscore": 0.2, "min_align_len": 50},
+            },
         ],
     )
     return parser.parse_args()
@@ -183,7 +187,10 @@ def detect_domains_roughly(
             for i, (tm_score, res_mapping) in enumerate(current_detections):
                 logger.info(f"tm_score: {tm_score:.2f}")
                 logger.info(f"len of res_mapping: {len(res_mapping)}")
-                if len(res_mapping) >= domain_template["thresholds"]["min_align_len"] and tm_score >= domain_template["thresholds"]["tmscore"]:
+                if (
+                    len(res_mapping) >= domain_template["thresholds"]["min_align_len"]
+                    and tm_score >= domain_template["thresholds"]["tmscore"]
+                ):
                     file_2_possible_regions[sequence_id].append(
                         MappedRegion(
                             module_id=f"{sequence_id}_{domain_this}_{i}",
@@ -194,7 +201,9 @@ def detect_domains_roughly(
                     )
 
         logger.info(
-            "Detected %d potential %s domains", len([dom for doms in file_2_possible_regions.values() for dom in doms]), domain_this
+            "Detected %d potential %s domains",
+            len([dom for doms in file_2_possible_regions.values() for dom in doms]),
+            domain_this,
         )
 
         if not args.do_not_store_intermediate_files:
@@ -346,121 +355,106 @@ def main():
     relevant_protein_ids = None
     if args.needed_proteins_csv_path is not None:
         proteins_df = pd.read_csv(args.needed_proteins_csv_path)
-        relevant_protein_ids = set(proteins_df[args.csv_id_column].values)
-    
+        relevant_protein_ids = set(proteins_df[args.csv_id_column].str.tolist())
+
     domain_templates = args.domain_templates
     domain_templates = [yaml.safe_load(template) for template in domain_templates]
     for domain_template in domain_templates:
         domain_template["path"] = Path(domain_template["path"]).absolute()
     supported_domains = [template["name"] for template in domain_templates]
     domain_2_threshold = {
-        template["name"]: template["thresholds"]
-        for template in domain_templates
+        template["name"]: template["thresholds"] for template in domain_templates
     }
 
     input_directory = Path(args.input_directory_with_structures).absolute()
     secondary_structure_residues_path = Path(args.secondary_structure_residues_path)
-    if not secondary_structure_residues_path.exists() or args.recompute_existing_secondary_structure_residues:
-        logger.info(f"Secondary structure residues file not found at {secondary_structure_residues_path}, computing secondary structure residues.")
-        with tempfile.TemporaryDirectory() as tmpdir:
-            sec_str_input_dir = Path(tmpdir)
-            if relevant_protein_ids is not None:
-                logger.info(f"Filtering PDB files to only include those specified in {args.needed_proteins_csv_path}")
-                for protein_id in relevant_protein_ids:
-                    src_path = input_directory / f"{protein_id}.pdb"
-                    if not src_path.exists():
-                        logger.warning(f"PDB file for {protein_id} not found at {src_path}, skipping this protein.")
-                        continue
-                    dst_path = sec_str_input_dir / f"{protein_id}.pdb"
-                    os.symlink(src_path, dst_path)
-            else:
-                pdb_files = [filepath for filepath in input_directory.glob("*.pdb")]
-                for pdb_file in pdb_files:
-                    dst_path = sec_str_input_dir / pdb_file.name
-                    os.symlink(pdb_file, dst_path)
-            
-            for domain_template in domain_templates:
-                template_dst_path = sec_str_input_dir / f"{Path(domain_template['path']).name}"
-                os.symlink(Path(domain_template["path"]), template_dst_path)
-            
-            subprocess.check_output(
-                f"python -m enzymeexplorer.src.structure_processing.compute_secondary_structure_residues --input-directory {str(sec_str_input_dir)} --output-path {secondary_structure_residues_path}".split(),
-            )
-        with open(secondary_structure_residues_path, "rb") as file:
-            file_2_all_residues = pickle.load(file)
-    else:
-        with open(secondary_structure_residues_path, "rb") as file:
-            file_2_all_residues = pickle.load(file)
+    if (
+        not secondary_structure_residues_path.exists()
+        or args.recompute_existing_secondary_structure_residues
+    ):
+        save_file_to_all_residues(
+            secondary_structure_residues_path=secondary_structure_residues_path,
+            relevant_protein_ids=relevant_protein_ids,
+            needed_proteins_csv_path=args.needed_proteins_csv_path,
+            input_directory=input_directory,
+            domain_templates=domain_templates,
+        )
+
+    with open(secondary_structure_residues_path, "rb") as file:
+        file_2_all_residues = pickle.load(file)
 
     # getting the files
     cwd = os.getcwd()
     os.chdir(input_directory)
-    
-    pdb_files = []
-    if relevant_protein_ids is not None:
-        logger.info(f"Filtering PDB files in {input_directory} to only include those specified in {args.needed_proteins_csv_path}")
-        for protein_id in relevant_protein_ids:
-            pdb_path = Path(".") / f"{protein_id}.pdb"
-            if not pdb_path.exists():
-                logger.warning(f"PDB file for {protein_id} not found at {pdb_path}, skipping this protein.")
-                continue
-            pdb_files.append(pdb_path)
-    else:
-        all_pdb_files = [filepath for filepath in Path(".").glob("*.pdb")]
-        for filepath in all_pdb_files:
-            pdb_files.append(filepath)
-            
-    for filename in [pdb_file.stem for pdb_file in pdb_files]:
-        filename_regex = "[a-zA-Z0-9_]+"
-        if not re.fullmatch(filename_regex, filename):
-            raise ValueError(f"Filename {filename} does not match the expected pattern {filename_regex}, which may cause issues with PyMOL selection syntax. Consider renaming this file.")
-            
+
+    pdb_files = get_pdb_files(
+        relevant_protein_ids, input_directory, args.needed_proteins_csv_path
+    )
     filename_2_known_regions: dict[str, list[MappedRegion]] = defaultdict(list)
     filename_2_remaining_residues: dict[str, set[str]] = file_2_all_residues.copy()
-            
+
     for detection_iter in range(args.n_iters):
         logger.info(f"Starting detection iteration {detection_iter + 1}")
 
-    # Detecting TPS domains in protein structures
+        # Detecting TPS domains in protein structures
         filename_2_potential_regions = detect_domains_roughly(
-            [pdb_file for pdb_file in pdb_files if len(filename_2_remaining_residues.get(pdb_file.stem, [])) >= 10],  # only considering files for which there are remaining residues
+            [
+                pdb_file
+                for pdb_file in pdb_files
+                if len(filename_2_remaining_residues.get(pdb_file.stem, [])) >= 10
+            ],  # only considering files for which there are remaining residues
             filename_2_remaining_residues,
             domain_templates=domain_templates,
             output_root=Path("."),
             args=args,
             iteration=detection_iter + 1,
         )
-        
+
         filename_2_detected_region = {
-            filename: ([sorted(
-                filename_2_potential_regions[filename],
-                key=lambda r: r.tmscore,
-                reverse=True,
-            )[0]]
-            if len(filename_2_potential_regions[filename]) > 0
-            else [])
+            filename: (
+                [
+                    sorted(
+                        filename_2_potential_regions[filename],
+                        key=lambda r: r.tmscore,
+                        reverse=True,
+                    )[0]
+                ]
+                if len(filename_2_potential_regions[filename]) > 0
+                else []
+            )
             for filename in filename_2_potential_regions
         }
-        
-        filename_2_detected_region_with_potential_expansion = get_mapped_regions_with_surroundings_parallel(
-            list(filename_2_detected_region.keys()),
-            file_2_all_residues,
-            filename_2_detected_region,
-            n_jobs=args.n_jobs,
+
+        filename_2_detected_region_with_potential_expansion = (
+            get_mapped_regions_with_surroundings_parallel(
+                list(filename_2_detected_region.keys()),
+                file_2_all_residues,
+                filename_2_detected_region,
+                n_jobs=args.n_jobs,
+            )
         )
 
         # Get unsegmented parts
         filename_2_remaining_residues = get_remaining_residues(
-            filename_2_detected_region_with_potential_expansion, filename_2_remaining_residues
+            filename_2_detected_region_with_potential_expansion,
+            filename_2_remaining_residues,
         )
         for filename in filename_2_detected_region:
             if len(filename_2_detected_region[filename]) == 0:
                 continue
             region = filename_2_detected_region[filename][0]
-            num_regions_of_same_domain_type = len([reg for reg in filename_2_known_regions[filename] if reg.domain == region.domain])
-            region.module_id = f"{filename}_{region.domain}_{num_regions_of_same_domain_type}"
+            num_regions_of_same_domain_type = len(
+                [
+                    reg
+                    for reg in filename_2_known_regions[filename]
+                    if reg.domain == region.domain
+                ]
+            )
+            region.module_id = (
+                f"{filename}_{region.domain}_{num_regions_of_same_domain_type}"
+            )
             filename_2_known_regions[filename].append(region)
-            
+
     filename_2_known_regions_completed = get_mapped_regions_with_surroundings_parallel(
         list(filename_2_known_regions.keys()),
         file_2_all_residues,

@@ -12,6 +12,7 @@ import pickle
 from collections import defaultdict
 from enzymeexplorer.src.structure_processing.foldseek_wrapper import FoldseekWrapper
 from tqdm.auto import tqdm
+import re
 
 FEATURE_DOMAIN_TYPES = ["alpha_1", "alpha_2", "beta", "gamma"]
 
@@ -312,3 +313,53 @@ def get_structural_features(
             )
 
     return structural_features
+
+
+def save_file_to_all_residues(secondary_structure_residues_path: Path, relevant_protein_ids: set[str] | None, needed_proteins_csv_path: str, input_directory: Path, domain_templates: list[dict[str, Path]]):
+    logger.info(f"Secondary structure residues file not found at {secondary_structure_residues_path}, computing secondary structure residues.")
+    with tempfile.TemporaryDirectory() as tmpdir:
+        sec_str_input_dir = Path(tmpdir)
+        if relevant_protein_ids is not None:
+            logger.info(f"Filtering PDB files to only include those specified in {needed_proteins_csv_path}")
+            for protein_id in relevant_protein_ids:
+                src_path = input_directory / f"{protein_id}.pdb"
+                if not src_path.exists():
+                    logger.warning(f"PDB file for {protein_id} not found at {src_path}, skipping this protein.")
+                    continue
+                dst_path = sec_str_input_dir / f"{protein_id}.pdb"
+                os.symlink(src_path, dst_path)
+        else:
+            pdb_files = [filepath for filepath in input_directory.glob("*.pdb")]
+            for pdb_file in pdb_files:
+                dst_path = sec_str_input_dir / pdb_file.name
+                os.symlink(pdb_file, dst_path)
+        
+        for domain_template in domain_templates:
+            template_dst_path = sec_str_input_dir / f"{domain_template['path'].name}"
+            os.symlink(Path(domain_template["path"]), template_dst_path)
+        
+        subprocess.check_output(
+            f"python -m enzymeexplorer.src.structure_processing.compute_secondary_structure_residues --input-directory {str(sec_str_input_dir)} --output-path {secondary_structure_residues_path}".split(),
+        )
+        
+
+def get_pdb_files(relevant_protein_ids: set[str] | None, input_directory: Path, needed_proteins_csv_path: str) -> list[Path]:
+    pdb_files = []
+    if relevant_protein_ids is not None:
+        logger.info(f"Filtering PDB files in {input_directory} to only include those specified in {needed_proteins_csv_path}")
+        for protein_id in relevant_protein_ids:
+            pdb_path = Path(".") / f"{protein_id}.pdb"
+            if not pdb_path.exists():
+                logger.warning(f"PDB file for {protein_id} not found at {pdb_path}, skipping this protein.")
+                continue
+            pdb_files.append(pdb_path)
+    else:
+        all_pdb_files = [filepath for filepath in Path(".").glob("*.pdb")]
+        for filepath in all_pdb_files:
+            pdb_files.append(filepath)
+            
+    for filename in [pdb_file.stem for pdb_file in pdb_files]:
+        filename_regex = "[a-zA-Z0-9_]+"
+        if not re.fullmatch(filename_regex, filename):
+            raise ValueError(f"Filename {filename} does not match the expected pattern {filename_regex}, which may cause issues with PyMOL selection syntax. Consider renaming this file.")
+    return pdb_files
