@@ -51,6 +51,7 @@ def main(args: argparse.Namespace):
         pdb_files.append(filepath_2_corrected_filepath.get(filepath, filepath))
     file_2_all_residues = get_all_residues_per_file(pdb_files, cmd)
     os.chdir(cwd)
+    Path(args.output_path).parent.mkdir(parents=True, exist_ok=True)
     with open(args.output_path, "wb") as f:
         pickle.dump(file_2_all_residues, f)
 

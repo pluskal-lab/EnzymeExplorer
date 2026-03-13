@@ -1,0 +1,33 @@
+needed-proteins-csv-path: "data/martsDB_reactions_2026_02_22_preprocessed.csv"
+csv-id-column: "Enzyme_marts_ID"
+input-directory-with-structures: "data/martsDB_pdbs"
+n-jobs: 10
+n-iters: 3
+detections-output-path: "data/detected_domains/martsDB_detected_domains.pkl"
+store-domains: true
+detected-regions-root-path: "data/detected_domains/"
+domains-output-path: "data/detected_domains/martsDB_detected_domains/"
+is-bfactor-confidence: true
+do-not-store-intermediate-files: true
+secondary-structure-residues-path: "data/detected_domains/martsDB_detected_domains/secondary_structure_residues.pkl"
+recompute-existing-secondary-structure-residues: true
+
+domain-templates:
+  - name: "alpha"
+    path: "data/domain_templates/1ps1.pdb"
+    residues: "chain A & ss H+S"
+    thresholds:
+      tmscore: 0.2
+      min_align_len: 70
+  - name: "beta"
+    path: "data/domain_templates/5eat.pdb"
+    residues: "resi 37-57+64-97+104-117+123-129+138-156+162-195+203-213+223-239 & chain A & ss H+S"
+    thresholds:
+      tmscore: 0.2
+      min_align_len: 50
+  - name: "gamma"
+    path: "data/domain_templates/3p5r.pdb"
+    residues: "resi 138-151+157-171+185-222+233-248+258-275+281-304+313-339 & chain A & ss H+S"
+    thresholds:
+      tmscore: 0.2
+      min_align_len: 50
