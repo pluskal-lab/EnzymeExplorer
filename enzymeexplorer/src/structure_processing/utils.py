@@ -376,18 +376,18 @@ def prefilter_pdb_files_by_foldseek_alignments(pdb_files: list[Path], domain_tem
             batch_pdb_files = pdb_files[idx:min(idx+batch_size, len(pdb_files))]
             for pdb_file in batch_pdb_files:
                 os.symlink(pdb_file, batch_dir / pdb_file.name)
-                alignment_df = FoldseekWrapper().easy_search(
-                    query_dir=str(query_dir),
-                    target_dir=str(batch_dir),
-                    tmp_dir=str(tmpdir_path / "tmp_foldseek"),
-                    output=str(tmpdir_path / "foldseek_output.tsv"),
-                    max_seqs=batch_size*2,
-                    e_value=1e-3,
-                    sensitivity=7.5,
-                )
-                filtered_pdb_file_names.update(
-                    set(alignment_df["target"].unique())
-                )
+            alignment_df = FoldseekWrapper().easy_search(
+                query_dir=str(query_dir),
+                target_dir=str(batch_dir),
+                tmp_dir=str(tmpdir_path / "tmp_foldseek"),
+                output=str(tmpdir_path / "foldseek_output.tsv"),
+                max_seqs=batch_size*2,
+                e_value=1e-1,
+                sensitivity=7.5,
+            )
+            filtered_pdb_file_names.update(
+                set(alignment_df["target"].unique())
+            )
                         
         return [pdb_file for pdb_file in pdb_files if pdb_file.stem in filtered_pdb_file_names]
                 
