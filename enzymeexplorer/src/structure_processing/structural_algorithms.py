@@ -3,17 +3,14 @@
 and comparison of domains between each other"""
 
 import os
-import pickle
 from collections import defaultdict
 from dataclasses import dataclass
 from functools import partial
 from multiprocessing import Pool
 from pathlib import Path
-from typing import Optional
 from uuid import uuid4
 import logging
 
-import matplotlib.pyplot as plt  # type: ignore
 import numpy as np  # type: ignore
 from psico.fitting import tmalign  # type: ignore
 from pymol import CmdException, cmd, stored  # type: ignore
@@ -539,35 +536,6 @@ def get_remaining_residues(
             all_residues, mapped_regions
         )
     return file_2_remaining_residues
-
-
-def plot_aligned_domains(
-    file_2_tmscore_residues: dict[str, list[tuple[float, dict[str, str]]]],
-    title: str = "",
-    save_path: Optional[str | Path] = None,
-):
-    """
-    Helper function plotting TM-scores of detected domains on x-axis and
-    the number of residues assigned to the domain object on y-axis
-    """
-    plt.figure(figsize=(17, 9))
-    all_tmscores_and_mappings: list = sum(file_2_tmscore_residues.values(), [])
-    results_of_mapping = [
-        (tmscore, len(mapping))
-        for tmscore, mapping in all_tmscores_and_mappings
-        if mapping is not None
-    ]
-    mapping_lenghts = list(map(lambda x: x[1], results_of_mapping))
-    plt.scatter(list(map(lambda x: x[0], results_of_mapping)), mapping_lenghts)
-    plt.xticks(np.arange(0, 1, 0.05), rotation=90)
-    plt.yticks(np.arange(min(mapping_lenghts) - 10, max(mapping_lenghts) + 10, 5))
-    plt.xlabel("TM-score", fontsize=11)
-    plt.ylabel("Number of residues assigned to the domain", fontsize=11)
-    plt.title(title, fontsize=14)
-    if save_path is not None:
-        plt.savefig(save_path)
-    else:
-        plt.show()
 
 
 def get_currently_longest_unmapped_regions(

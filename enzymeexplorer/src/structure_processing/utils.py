@@ -2,17 +2,29 @@
 
 import logging
 import subprocess
-from enzymeexplorer.src.structure_processing.structural_algorithms import MappedRegion
+from typing import Optional
+from enzymeexplorer.src.structure_processing.structural_algorithms import (
+    MappedRegion,
+    compress_selection_list,
+    get_alignments,
+    find_continuous_segments_longer_than,
+)
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt  # type: ignore
 import tempfile
 from pathlib import Path
 import os
 import pickle
+from Bio import PDB
 from collections import defaultdict
 from enzymeexplorer.src.structure_processing.foldseek_wrapper import FoldseekWrapper
 from tqdm.auto import tqdm
 import re
+import time
+import subprocess
+from datetime import datetime
+import configargparse
 
 FEATURE_DOMAIN_TYPES = ["alpha_1", "alpha_2", "beta", "gamma"]
 
@@ -26,14 +38,14 @@ if not logger.hasHandlers():
     handler.setFormatter(formatter)
     logger.addHandler(handler)
 
+
 def __get_domain_names(
     seq_2_regions: dict[str, list[MappedRegion]],
 ) -> list[str]:
     return [
-        region.module_id
-        for regions in seq_2_regions.values()
-        for region in regions
+        region.module_id for regions in seq_2_regions.values() for region in regions
     ]
+
 
 def __get_domain_2_seq_id_and_domain_type_maps(
     seq_2_regions: dict[str, list[MappedRegion]],
@@ -49,6 +61,7 @@ def __get_domain_2_seq_id_and_domain_type_maps(
         for region in regions
     }
     return domain_2_seq_id, domain_2_domain_type
+
 
 def get_foldseek_alignment_df(
     query_seq_2_regions: dict[str, list[MappedRegion]],
@@ -111,7 +124,7 @@ def get_foldseek_alignment_df(
             src_path = os.path.join(query_domains_dir, f"{domain}.pdb")
             dst_path = os.path.join(query_pdbs_dir, f"{domain}.pdb")
             os.symlink(src_path, dst_path)
-            
+
         alignment_df = FoldseekWrapper().easy_search(
             query_dir=query_pdbs_dir,
             target_dir=reference_pdbs_dir,
@@ -119,13 +132,13 @@ def get_foldseek_alignment_df(
             output=os.path.join(tmpdir, "foldseek_output.tsv"),
         )
 
-    query_domain_2_seq_id, query_domain_2_domain_type = __get_domain_2_seq_id_and_domain_type_maps(
-        query_seq_2_regions
+    query_domain_2_seq_id, query_domain_2_domain_type = (
+        __get_domain_2_seq_id_and_domain_type_maps(query_seq_2_regions)
     )
-    ref_domain_2_seq_id, ref_domain_2_domain_type = __get_domain_2_seq_id_and_domain_type_maps( 
-        ref_seq_2_regions
+    ref_domain_2_seq_id, ref_domain_2_domain_type = (
+        __get_domain_2_seq_id_and_domain_type_maps(ref_seq_2_regions)
     )
-    
+
     alignment_df = alignment_df.sort_values(
         by="alntmscore", ascending=False, inplace=False
     )
@@ -185,9 +198,7 @@ def get_col_idx_for_structural_features(
     idx = 0
     for feature_domain_type in FEATURE_DOMAIN_TYPES:
         domain_type_2_module_id_2_col_idx[feature_domain_type] = {}
-        for domain_name in ref_domain_type_2_module_ids[
-            feature_domain_type
-        ]:
+        for domain_name in ref_domain_type_2_module_ids[feature_domain_type]:
             domain_type_2_module_id_2_col_idx[feature_domain_type][domain_name] = idx
             idx += 1
     return domain_type_2_module_id_2_col_idx
@@ -262,7 +273,7 @@ def get_domain_type_2_col_idx_range(
     domain_type_2_col_idx_range = {}
     for domain_type in domain_type_2_ref_module_id_2_col_idx:
         col_idxs = list(domain_type_2_ref_module_id_2_col_idx[domain_type].values())
-        domain_type_2_col_idx_range[domain_type] = (min(col_idxs), max(col_idxs)+1)
+        domain_type_2_col_idx_range[domain_type] = (min(col_idxs), max(col_idxs) + 1)
     return domain_type_2_col_idx_range
 
 
@@ -307,7 +318,9 @@ def get_structural_features(
                     target_module_id
                 ]
             except KeyError:
-                raise KeyError(f"Domain {target_module_id} of type {domain_type} not found in reference domain {query_alignment['query']}.")
+                raise KeyError(
+                    f"Domain {target_module_id} of type {domain_type} not found in reference domain {query_alignment['query']}."
+                )
             structural_features[idx, feature_col_idx] = (
                 1 - query_alignment["alntmscore"]
             )
@@ -315,8 +328,14 @@ def get_structural_features(
     return structural_features
 
 
-def save_file_to_all_residues(secondary_structure_residues_path: Path, pdb_files: list[Path], domain_templates: list[dict[str, Path]]):
-    logger.info(f"Secondary structure residues file not found at {secondary_structure_residues_path}, computing secondary structure residues.")
+def save_file_to_all_residues(
+    secondary_structure_residues_path: Path,
+    pdb_files: list[Path],
+    domain_templates: list[dict[str, Path]],
+):
+    logger.info(
+        f"Secondary structure residues file not found at {secondary_structure_residues_path}, computing secondary structure residues."
+    )
     with tempfile.TemporaryDirectory() as tmpdir:
         sec_str_input_dir = Path(tmpdir)
         for pdb_file in pdb_files:
@@ -325,55 +344,70 @@ def save_file_to_all_residues(secondary_structure_residues_path: Path, pdb_files
                 continue
             dst_path = sec_str_input_dir / f"{pdb_file.name}"
             os.symlink(pdb_file, dst_path)
-        
+
         for domain_template in domain_templates:
             template_dst_path = sec_str_input_dir / f"{domain_template['path'].name}"
             os.symlink(Path(domain_template["path"]), template_dst_path)
-        
+
         subprocess.check_output(
             f"python -m enzymeexplorer.src.structure_processing.compute_secondary_structure_residues --input-directory {str(sec_str_input_dir)} --output-path {secondary_structure_residues_path}".split(),
         )
-        
 
-def get_pdb_files(needed_proteins_csv_path: str, csv_id_column: str, input_directory: Path) -> list[Path]:
+
+def get_pdb_files(
+    needed_proteins_csv_path: str, csv_id_column: str, input_directory: Path
+) -> list[Path]:
     if needed_proteins_csv_path is not None:
         proteins_df = pd.read_csv(needed_proteins_csv_path)
         relevant_protein_ids = set(proteins_df[csv_id_column].unique())
     else:
-        relevant_protein_ids = set([filepath.stem for filepath in input_directory.glob("*.pdb")])
-        
-        
+        relevant_protein_ids = set(
+            [filepath.stem for filepath in input_directory.glob("*.pdb")]
+        )
+
     pdb_files = []
-    logger.info(f"Filtering PDB files in {input_directory} to only include those specified in {needed_proteins_csv_path}")
+    logger.info(
+        f"Filtering PDB files in {input_directory} to only include those specified in {needed_proteins_csv_path}"
+    )
     for protein_id in relevant_protein_ids:
         pdb_path = input_directory / f"{protein_id}.pdb"
         if not pdb_path.exists():
-            logger.warning(f"PDB file for {protein_id} not found at {pdb_path}, skipping this protein.")
+            logger.warning(
+                f"PDB file for {protein_id} not found at {pdb_path}, skipping this protein."
+            )
             continue
         pdb_files.append(pdb_path.absolute())
-            
+
     for filename in [pdb_file.stem for pdb_file in pdb_files]:
         filename_regex = "[a-zA-Z0-9_]+"
         if not re.fullmatch(filename_regex, filename):
-            raise ValueError(f"Filename {filename} does not match the expected pattern {filename_regex}, which may cause issues with PyMOL selection syntax. Consider renaming this file.")
+            raise ValueError(
+                f"Filename {filename} does not match the expected pattern {filename_regex}, which may cause issues with PyMOL selection syntax. Consider renaming this file."
+            )
     return pdb_files
 
 
-def prefilter_pdb_files_by_foldseek_alignments(pdb_files: list[Path], domain_templates: list[dict[str, Path]], batch_size:int = 1000) -> list[Path]:
+def prefilter_pdb_files_by_foldseek_alignments(
+    pdb_files: list[Path],
+    domain_templates: list[dict[str, Path]],
+    batch_size: int = 1000,
+) -> list[Path]:
     with tempfile.TemporaryDirectory() as tmpdir:
         tmpdir_path = Path(tmpdir)
         query_dir = tmpdir_path / "query"
         query_dir.mkdir()
         for domain_template in domain_templates:
-            os.symlink(domain_template["path"], query_dir / domain_template["path"].name)
-        
+            os.symlink(
+                domain_template["path"], query_dir / domain_template["path"].name
+            )
+
         filtered_pdb_file_names = set()
         target_dir = tmpdir_path / "target"
         target_dir.mkdir()
         for idx in range(0, len(pdb_files), batch_size):
             batch_dir = target_dir / f"batch_{idx}"
             batch_dir.mkdir()
-            batch_pdb_files = pdb_files[idx:min(idx+batch_size, len(pdb_files))]
+            batch_pdb_files = pdb_files[idx : min(idx + batch_size, len(pdb_files))]
             for pdb_file in batch_pdb_files:
                 os.symlink(pdb_file, batch_dir / pdb_file.name)
             alignment_df = FoldseekWrapper().easy_search(
@@ -381,13 +415,358 @@ def prefilter_pdb_files_by_foldseek_alignments(pdb_files: list[Path], domain_tem
                 target_dir=str(batch_dir),
                 tmp_dir=str(tmpdir_path / "tmp_foldseek"),
                 output=str(tmpdir_path / "foldseek_output.tsv"),
-                max_seqs=batch_size*2,
+                max_seqs=batch_size * 2,
                 e_value=1e-1,
                 sensitivity=7.5,
             )
-            filtered_pdb_file_names.update(
-                set(alignment_df["target"].unique())
+            filtered_pdb_file_names.update(set(alignment_df["target"].unique()))
+
+        return [
+            pdb_file
+            for pdb_file in pdb_files
+            if pdb_file.stem in filtered_pdb_file_names
+        ]
+
+
+def store_domain_separately(
+    filename_2_known_regions_completed_confident: dict[str, list[MappedRegion]],
+    supported_domains: list[str],
+    detected_regions_root_path: Path,
+):
+    domain_2_regions_completed_confident = defaultdict(list)
+    for (
+        filename,
+        protein_regions,
+    ) in filename_2_known_regions_completed_confident.items():
+        for region in protein_regions:
+            domain_2_regions_completed_confident["all"].append((filename, region))
+            domain_2_regions_completed_confident[region.domain].append(
+                (filename, region)
             )
-                        
-        return [pdb_file for pdb_file in pdb_files if pdb_file.stem in filtered_pdb_file_names]
-                
+    with open(
+        detected_regions_root_path / "regions_completed_very_confident_all_ALL.pkl",
+        "wb",
+    ) as f:
+        pickle.dump(domain_2_regions_completed_confident["all"], f)
+    for domain_name in supported_domains:
+        with open(
+            detected_regions_root_path
+            / f"regions_completed_very_confident_{domain_name}_ALL.pkl",
+            "wb",
+        ) as f:
+            pickle.dump(domain_2_regions_completed_confident[domain_name], f)
+
+
+def store_domains(
+    filename_2_known_regions_completed_confident: dict[str, list[MappedRegion]],
+    supported_domains: list[str],
+    domains_output_path: Path,
+    pymol_cmd,
+):
+    if not domains_output_path.exists():
+        domains_output_path.mkdir(parents=True)
+    for domain_name in supported_domains:
+        PATH = domains_output_path / f"tps_domain_detections_{domain_name}"
+        if not PATH.exists():
+            PATH.mkdir(parents=True)
+
+    for filename, protein_regions in tqdm(
+        filename_2_known_regions_completed_confident.items(),
+        desc="Storing detected domains",
+    ):
+        for region in protein_regions:
+            PATH = Path(domains_output_path / f"tps_domain_detections_{region.domain}")
+            mapped_residues = list(set(region.residues_mapping.keys()))
+            pymol_cmd.delete(filename)
+            pymol_cmd.load(f"{filename}.pdb")
+            print(
+                f"{region.module_id}",
+                f"{filename} & resi {compress_selection_list(mapped_residues)}",
+            )
+            pymol_cmd.select(
+                f"{region.module_id}",
+                f"{filename} & resi {compress_selection_list(mapped_residues)}",
+            )
+            pymol_cmd.save(f"{PATH}/{region.module_id}.pdb", f"{region.module_id}")
+            pymol_cmd.save(
+                f"{domains_output_path}/{region.module_id}.pdb",
+                f"{region.module_id}",
+            )
+            pymol_cmd.delete(filename)
+
+
+def plot_aligned_domains(
+    filename_2_known_regions_completed_confident: dict[str, list[MappedRegion]],
+    supported_domains: list[str],
+    save_dir: Path,
+):
+    """
+    Helper function plotting TM-scores of detected domains on x-axis and
+    the number of residues assigned to the domain object on y-axis
+    """
+    execution_timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+    for domain_this in supported_domains:
+        all_tmscores_and_mappings = [
+            (region.tmscore, region.residues_mapping)
+            for regions in filename_2_known_regions_completed_confident.values()
+            for region in regions
+            if region.domain == domain_this
+        ]
+        if len(all_tmscores_and_mappings) > 0:
+            plt.figure(figsize=(17, 9))
+            results_of_mapping = [
+                (tmscore, len(mapping))
+                for tmscore, mapping in all_tmscores_and_mappings
+                if mapping is not None
+            ]
+            mapping_lenghts = list(map(lambda x: x[1], results_of_mapping))
+            plt.scatter(list(map(lambda x: x[0], results_of_mapping)), mapping_lenghts)
+            plt.xticks(np.arange(0, 1, 0.05), rotation=90)
+            plt.yticks(
+                np.arange(min(mapping_lenghts) - 10, max(mapping_lenghts) + 10, 5)
+            )
+            plt.xlabel("TM-score", fontsize=11)
+            plt.ylabel("Number of residues assigned to the domain", fontsize=11)
+            plt.title(f"{domain_this} domain detections", fontsize=14)
+            plt.savefig(
+                save_dir / f"{domain_this}_detections_{execution_timestamp}.png"
+            )
+            plt.show()
+
+
+def detect_domains_roughly(
+    specified_pdb_files: list[Path],
+    file_2_all_residues_mapping: dict[str, set[str]],
+    domain_templates: list[dict],
+    args: configargparse.Namespace,
+    iteration: int = 0,
+) -> dict[str, list[MappedRegion]]:
+    """
+    Detects protein domains in multiple structures based on alignment scores and domain-specific thresholds.
+
+    :param file_2_all_residues_mapping: A dictionary mapping file identifiers to sets of residue sequences present in those files
+    :param domain_templates: A list of dictionaries containing domain template information
+    :param output_root: The root directory where output images and serialized results will be saved
+    :param args: arguments containing parameters number of iterations and flags for storing intermediate results
+
+    :return: A dictionary mapping each filename to a list of known MappedRegion objects representing the detected
+             reliable domains, while ensuring that no overlaying domains are included.
+    """
+    file_2_possible_regions: dict = defaultdict(list)
+    for domain_template in domain_templates:
+        domain_this = domain_template["name"]
+        logger.info("Started detection of domain %s", domain_this)
+        start_t = time.time()
+        file_2_tmscore_residues_domain = get_alignments(
+            specified_pdb_files,
+            domain_template=domain_template,
+            file_2_current_residues=file_2_all_residues_mapping,
+            n_jobs=args.n_jobs,
+        )
+        logger.info(
+            "Detection of %s domain. Execution took %d seconds",
+            domain_this,
+            time.time() - start_t,
+        )
+
+        num_of_new_detections = 0
+        for sequence_id, current_detections in file_2_tmscore_residues_domain.items():
+            logger.info(sequence_id)
+            for i, (tm_score, res_mapping) in enumerate(current_detections):
+                logger.info(f"tm_score: {tm_score:.2f}")
+                logger.info(f"len of res_mapping: {len(res_mapping)}")
+                if (
+                    len(res_mapping) >= domain_template["thresholds"]["min_align_len"]
+                    and tm_score >= domain_template["thresholds"]["tmscore"]
+                ):
+                    num_of_new_detections += 1
+                    file_2_possible_regions[sequence_id].append(
+                        MappedRegion(
+                            module_id=f"{sequence_id}_{domain_this}_{i}",
+                            domain=domain_this,
+                            tmscore=tm_score,
+                            residues_mapping=res_mapping,
+                        ),
+                    )
+
+        logger.info(
+            "Detected %d potential %s domains in iteration %d",
+            num_of_new_detections,
+            domain_this,
+            iteration,
+        )
+
+    return file_2_possible_regions
+
+
+def is_similar_to_known_region(
+    region_known: MappedRegion,
+    region_new: MappedRegion,
+    threshold_recall_threshold: float = 0.5,
+) -> bool:
+    """
+    Checks whether two regions overlap sufficiently based on a recall threshold.
+
+    :param region_known: The known region to compare against
+    :param region_new: The new region to be compared
+    :param threshold_recall_threshold: The minimum recall threshold for the regions to be considered similar, defaults to 0.5
+
+    :return: True if the overlap between the two regions meets or exceeds the threshold, otherwise False
+    """
+    mapped_residues_known = set(region_known.residues_mapping.keys())
+    mapped_residues_new = set(region_new.residues_mapping.keys())
+    if len(mapped_residues_new) == 0 or len(mapped_residues_known) == 0:
+        return False
+    return (
+        len(mapped_residues_new.intersection(mapped_residues_known))
+        / len(mapped_residues_new)
+        >= threshold_recall_threshold
+    )
+
+
+def is_similar_to_anything_known(
+    file_name: str,
+    struct_region: MappedRegion,
+    file_2_known_regions: dict[str, list[MappedRegion]],
+    threshold_recall_threshold: float = 0.5,
+) -> bool:
+    """
+    Checks if `region_new` overlaps with any of the known regions in the given file.
+
+    :param file_name: A filename to be compared
+    :param file_2_known_regions: A dictionary mapping filenames to lists of known MappedRegion objects
+    :param threshold_recall_threshold: The minimum recall threshold for the regions to be considered similar, defaults to 0.5
+
+    :return: True if the new region overlaps with any known region according to the threshold, otherwise False
+    """
+    for region_known in file_2_known_regions[file_name]:
+        if is_similar_to_known_region(
+            region_known, struct_region, threshold_recall_threshold
+        ):
+            return True
+    return False
+
+
+def can_there_be_unassigned_domain(
+    file_name: str,
+    filename_2_remaining_residues_mapping: dict[str, set[str]],
+    filename_2_known_regions_mapping: dict[str, list[MappedRegion]],
+    min_continuous_len: int = 15,
+    max_allowed_gap: int = 3,
+) -> bool:
+    """
+    Determines whether there could be an unassigned domain in the given file based on the remaining residues.
+
+    :param file_name: The name of the file to check for unassigned domains
+    :param filename_2_remaining_residues_mapping: A dictionary mapping filenames to sets of remaining residues not yet assigned to any domain
+    :param filename_2_known_regions_mapping: A dictionary mapping filenames to lists of known MappedRegion objects
+    :param min_continuous_len: The minimum length of residues required to consider the presence of an unassigned domain, defaults to 15
+    :param max_allowed_gap: The maximum gap allowed between residues in a continuous segment, defaults to 3
+
+    :return: True if there could be an unassigned domain in the file, otherwise False
+    """
+    if file_name not in filename_2_known_regions_mapping:
+        return False
+    region_types = {reg.domain for reg in filename_2_known_regions_mapping[file_name]}
+    if "alpha" not in region_types:
+        return (
+            len(filename_2_remaining_residues_mapping[file_name]) > min_continuous_len
+        )
+    return (
+        len(
+            find_continuous_segments_longer_than(
+                filename_2_remaining_residues_mapping[file_name],
+                min_secondary_struct_len=min_continuous_len,
+                max_allowed_gap=max_allowed_gap,
+            )
+        )
+        > 0
+    )
+
+
+def get_confident_af_residues(
+    sequence_id: str, confidence_threshold: int = 70
+) -> set[int]:
+    """
+    Retrieves a set of residues from an AlphaFold PDB file that have a confidence score (B-factor) above the specified threshold.
+
+    :param sequence_id: The ID of the protein for which the PDB file is to be parsed
+    :param confidence_threshold: The minimum B-factor required for a residue to be considered confident, defaults to 70
+
+    :return: A set of residue numbers that have a confidence score above the specified threshold
+    """
+    parser = PDB.PDBParser()
+    structure = parser.get_structure(sequence_id, f"{sequence_id}.pdb")
+
+    confident_residues = set()
+    for model in structure:
+        for chain in model:
+            for residue in chain:
+                for atom in residue:
+                    if atom.get_bfactor() >= confidence_threshold:
+                        confident_residues.add(residue.get_id()[1])
+                    break
+    return confident_residues
+
+
+def get_all_confidence_values(sequence_id: str) -> list[int]:
+    """
+    Retrieves a set of residues from an AlphaFold PDB file that have a confidence score (B-factor) above the specified threshold.
+
+    :param sequence_id: The ID of the protein for which the PDB file is to be parsed
+    :param confidence_threshold: The minimum B-factor required for a residue to be considered confident, defaults to 70
+
+    :return: A set of residue numbers that have a confidence score above the specified threshold
+    """
+    parser = PDB.PDBParser()
+    structure = parser.get_structure(sequence_id, f"{sequence_id}.pdb")
+
+    values = []
+    for model in structure:
+        for chain in model:
+            for residue in chain:
+                for atom in residue:
+                    values.append(atom.get_bfactor())
+                    break
+    return values
+
+
+def get_confident_residue_mappings(
+    filename_2_known_regions_completed: dict[str, list[MappedRegion]],
+    file_2_all_residues: dict[str, set[str]],
+    domain_2_threshold: dict[str, dict[str, int]],
+) -> dict[str, list[MappedRegion]]:
+    filename_2_known_regions_completed_confident = {}
+    for filename, regions in tqdm(
+        filename_2_known_regions_completed.items(), desc="Filtering confident residues"
+    ):
+        conf_residues = get_confident_af_residues(filename)
+        if len(conf_residues) < 0.6 * len(file_2_all_residues[filename]):
+            logger.warning(
+                f"Too few confident residues for {filename}, leaving top-80% most confident residues"
+            )
+            all_confidence_values = get_all_confidence_values(filename)
+            conf_residues = get_confident_af_residues(
+                filename, np.percentile(all_confidence_values, 20)
+            )
+        new_regions = []
+        for mapped_region_init in regions:
+            new_residues_mapping = {
+                res: res_dom
+                for res, res_dom in mapped_region_init.residues_mapping.items()
+                if res in conf_residues
+            }
+            if (
+                len(new_residues_mapping)
+                >= domain_2_threshold[mapped_region_init.domain]["min_align_len"]
+            ):
+                new_regions.append(
+                    MappedRegion(  # pylint: disable=R0801
+                        module_id=mapped_region_init.module_id,
+                        domain=mapped_region_init.domain,
+                        tmscore=mapped_region_init.tmscore,
+                        residues_mapping=new_residues_mapping,
+                    )
+                )
+        filename_2_known_regions_completed_confident[filename] = new_regions
+    return filename_2_known_regions_completed_confident
