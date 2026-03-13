@@ -20,7 +20,7 @@ class FoldseekWrapper:
         max_seqs: int = 5000,
         e_value: float = 1,
         sensitivity: float = 10,
-        cov_mode: int = 0,
+        cov_mode: int | None = None,
         coverage: float | None = None
     ) -> pd.DataFrame:
         cmd = [
@@ -33,9 +33,11 @@ class FoldseekWrapper:
             "-e", str(e_value),
             "--max-seqs", str(max_seqs),
             "-s", str(sensitivity),
-            "--cov-mode", str(cov_mode),
             "--format-output", "query,target,alntmscore"
         ]
+        if cov_mode:
+            cmd.append("--cov-mode")
+            cmd.append(str(cov_mode))
         if coverage:
             cmd.append("-c")
             cmd.append(str(coverage))

@@ -399,31 +399,28 @@ def filter_pdb_files_by_foldseek_alignments(
 ) -> list[Path]:
     with tempfile.TemporaryDirectory() as tmpdir:
         tmpdir_path = Path(tmpdir)
-        query_dir = tmpdir_path / "query"
-        query_dir.mkdir()
-        store_templates(domain_templates, query_dir)
-
-        filtered_pdb_file_names = set()
         target_dir = tmpdir_path / "target"
         target_dir.mkdir()
+        store_templates(domain_templates, target_dir)
+
+        filtered_pdb_file_names = set()
+        query_dir = tmpdir_path / "query"
+        query_dir.mkdir()
         for idx in range(0, len(pdb_files), batch_size):
-            batch_dir = target_dir / f"batch_{idx}"
+            batch_dir = query_dir / f"batch_{idx}"
             batch_dir.mkdir()
             batch_pdb_files = pdb_files[idx : min(idx + batch_size, len(pdb_files))]
             for pdb_file in batch_pdb_files:
                 os.symlink(pdb_file, batch_dir / pdb_file.name)
             alignment_df = FoldseekWrapper().easy_search(
-                query_dir=str(query_dir),
-                target_dir=str(batch_dir),
+                query_dir=str(batch_dir),
+                target_dir=str(target_dir),
                 tmp_dir=str(tmpdir_path / "tmp_foldseek"),
                 output=str(tmpdir_path / "foldseek_output.tsv"),
                 max_seqs=batch_size * 2,
-                e_value=10,
-                sensitivity=10,
-                cov_mode=2,
-                coverage=0.6
+                e_value=10
             )
-            filtered_pdb_file_names.update(set(alignment_df["target"].unique()))
+            filtered_pdb_file_names.update(set(alignment_df["query"].unique()))
 
         return [
             pdb_file
@@ -438,6 +435,8 @@ def filter_domains_by_foldseek_alignments(
     domain_templates: list[dict[str, Path | str]],
     domain_pdbs_root: Path,
 ) -> dict[str, list[MappedRegion]]:
+    all_regions = set([region.module_id for regions in filename_2_known_regions_completed_confident.values() for region in regions])
+    high_conf_regions = set([region.module_id for regions in filename_2_known_regions_completed_confident.values() for region in regions if region.tmscore >= 0.4])
     filtered_domain_pdb_files = set()
     filtered_regions = set()
     filename_2_known_regions_completed_confident_filtered = defaultdict(list)
@@ -446,6 +445,7 @@ def filter_domains_by_foldseek_alignments(
         if domain_pdbs_dir.exists():
             domain_pdb_files = [
                 path.absolute() for path in domain_pdbs_dir.glob(f"*.pdb")
+                if path.stem in set([region for region in all_regions])
             ]
             if domain_pdb_files:
                 filtered_domains = set(
@@ -459,6 +459,8 @@ def filter_domains_by_foldseek_alignments(
                         batch_size=3000,
                     )
                 )
+                filtered_domains.update([domain_pdbs_dir / f"{region}.pdb" for region in high_conf_regions])
+
                 filtered_domain_regions_ids = set(
                     [filtered_domain.stem for filtered_domain in filtered_domains]
                 )
@@ -468,7 +470,8 @@ def filter_domains_by_foldseek_alignments(
                     if domain_pdb_file not in filtered_domains:
                         os.remove(domain_pdb_file)
 
-    for domain_pdb_file in domain_pdbs_root.glob(f"*.pdb"):
+    root_pdb_files = [path.absolute() for path in domain_pdbs_root.glob(f"*.pdb") if path.stem in all_regions]
+    for domain_pdb_file in root_pdb_files:
         if domain_pdb_file.name not in filtered_domain_pdb_files:
             logger.info(f"Removing domain pdb file {domain_pdb_file} due to lack of foldseek alignment.")
             os.remove(domain_pdb_file)
@@ -761,29 +764,6 @@ def is_similar_to_known_region(
     )
 
 
-def is_similar_to_anything_known(
-    file_name: str,
-    struct_region: MappedRegion,
-    file_2_known_regions: dict[str, list[MappedRegion]],
-    threshold_recall_threshold: float = 0.5,
-) -> bool:
-    """
-    Checks if `region_new` overlaps with any of the known regions in the given file.
-
-    :param file_name: A filename to be compared
-    :param file_2_known_regions: A dictionary mapping filenames to lists of known MappedRegion objects
-    :param threshold_recall_threshold: The minimum recall threshold for the regions to be considered similar, defaults to 0.5
-
-    :return: True if the new region overlaps with any known region according to the threshold, otherwise False
-    """
-    for region_known in file_2_known_regions[file_name]:
-        if is_similar_to_known_region(
-            region_known, struct_region, threshold_recall_threshold
-        ):
-            return True
-    return False
-
-
 def can_there_be_unassigned_domain(
     file_name: str,
     filename_2_remaining_residues_mapping: dict[str, set[str]],
@@ -907,3 +887,18 @@ def get_confident_residue_mappings(
                 )
         filename_2_known_regions_completed_confident[filename] = new_regions
     return filename_2_known_regions_completed_confident
+
+
+def pick_disjoint_domains(domains: list[MappedRegion]) -> list[MappedRegion]:
+    if len(domains) == 0:
+        return []
+    picked = []
+    for domain in domains:
+        pick = True
+        for picked_domain in picked:
+            if is_similar_to_known_region(picked_domain, domain, threshold_recall_threshold=0.2):
+                pick = False
+                break
+        if pick:
+            picked.append(domain)
+    return picked

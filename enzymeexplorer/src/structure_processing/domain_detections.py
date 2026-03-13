@@ -30,7 +30,8 @@ from enzymeexplorer.src.structure_processing.utils import (
     store_domain_separately,
     detect_domains_roughly,
     plot_aligned_domains,
-    get_confident_residue_mappings
+    get_confident_residue_mappings,
+    pick_disjoint_domains
 )
 
 logger = logging.getLogger(__file__)
@@ -207,20 +208,20 @@ def main():
             args=args,
             iteration=detection_iter + 1,
         )
+        
+        
+        
 
         filename_2_detected_region = {
             filename: (
-                [
-                    sorted(
+                    pick_disjoint_domains(sorted(
                         filename_2_potential_regions[filename],
                         key=lambda r: r.tmscore,
                         reverse=True,
-                    )[0]
-                ]
-                if len(filename_2_potential_regions[filename]) > 0
-                else []
+                    ))
             )
             for filename in filename_2_potential_regions
+            if len(filename_2_potential_regions[filename]) > 0
         }
 
         filename_2_detected_region_with_potential_expansion = (
@@ -240,18 +241,18 @@ def main():
         for filename in filename_2_detected_region:
             if len(filename_2_detected_region[filename]) == 0:
                 continue
-            region = filename_2_detected_region[filename][0]
-            num_regions_of_same_domain_type = len(
-                [
-                    reg
-                    for reg in filename_2_known_regions[filename]
-                    if reg.domain == region.domain
-                ]
-            )
-            region.module_id = (
-                f"{filename}_{region.domain}_{num_regions_of_same_domain_type}"
-            )
-            filename_2_known_regions[filename].append(region)
+            for region in filename_2_detected_region[filename]:
+                num_regions_of_same_domain_type = len(
+                    [
+                        reg
+                        for reg in filename_2_known_regions[filename]
+                        if reg.domain == region.domain
+                    ]
+                )
+                region.module_id = (
+                    f"{filename}_{region.domain}_{num_regions_of_same_domain_type}"
+                )
+                filename_2_known_regions[filename].append(region)
 
     filename_2_known_regions_completed = get_mapped_regions_with_surroundings_parallel(
         list(filename_2_known_regions.keys()),
@@ -324,8 +325,11 @@ def main():
 
     os.chdir(cwd)
     # save the confident regions
+    Path(args.detections_output_path).parent.mkdir(parents=True, exist_ok=True)
     with open(args.detections_output_path, "wb") as f:
         pickle.dump(filename_2_known_regions_completed_confident, f)
+        
+    logger.info(f"Finished domain detection. Detected domains saved to {args.detections_output_path}")
 
 
 if __name__ == "__main__":
