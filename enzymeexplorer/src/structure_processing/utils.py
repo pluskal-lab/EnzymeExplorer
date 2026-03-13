@@ -9,6 +9,9 @@ from enzymeexplorer.src.structure_processing.structural_algorithms import (
     get_alignments,
     find_continuous_segments_longer_than,
 )
+from multiprocessing import Pool
+from pymol import cmd
+import copy
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt  # type: ignore
@@ -25,6 +28,8 @@ import time
 import subprocess
 from datetime import datetime
 import configargparse
+from functools import partial
+import pickle
 
 FEATURE_DOMAIN_TYPES = ["alpha_1", "alpha_2", "beta", "gamma"]
 
@@ -387,19 +392,16 @@ def get_pdb_files(
     return pdb_files
 
 
-def prefilter_pdb_files_by_foldseek_alignments(
+def filter_pdb_files_by_foldseek_alignments(
     pdb_files: list[Path],
-    domain_templates: list[dict[str, Path]],
+    domain_templates: list[dict[str, Path | str]],
     batch_size: int = 1000,
 ) -> list[Path]:
     with tempfile.TemporaryDirectory() as tmpdir:
         tmpdir_path = Path(tmpdir)
         query_dir = tmpdir_path / "query"
         query_dir.mkdir()
-        for domain_template in domain_templates:
-            os.symlink(
-                domain_template["path"], query_dir / domain_template["path"].name
-            )
+        store_templates(domain_templates, query_dir)
 
         filtered_pdb_file_names = set()
         target_dir = tmpdir_path / "target"
@@ -416,8 +418,10 @@ def prefilter_pdb_files_by_foldseek_alignments(
                 tmp_dir=str(tmpdir_path / "tmp_foldseek"),
                 output=str(tmpdir_path / "foldseek_output.tsv"),
                 max_seqs=batch_size * 2,
-                e_value=1e-1,
-                sensitivity=7.5,
+                e_value=10,
+                sensitivity=10,
+                cov_mode=2,
+                coverage=0.6
             )
             filtered_pdb_file_names.update(set(alignment_df["target"].unique()))
 
@@ -426,6 +430,88 @@ def prefilter_pdb_files_by_foldseek_alignments(
             for pdb_file in pdb_files
             if pdb_file.stem in filtered_pdb_file_names
         ]
+
+
+def filter_domains_by_foldseek_alignments(
+    filename_2_known_regions_completed_confident: dict[str, list[MappedRegion]],
+    supported_domains: list[str],
+    domain_templates: list[dict[str, Path | str]],
+    domain_pdbs_root: Path,
+) -> dict[str, list[MappedRegion]]:
+    filtered_domain_pdb_files = set()
+    filtered_regions = set()
+    filename_2_known_regions_completed_confident_filtered = defaultdict(list)
+    for domain in supported_domains:
+        domain_pdbs_dir = domain_pdbs_root / domain
+        if domain_pdbs_dir.exists():
+            domain_pdb_files = [
+                path.absolute() for path in domain_pdbs_dir.glob(f"*.pdb")
+            ]
+            if domain_pdb_files:
+                filtered_domains = set(
+                    filter_pdb_files_by_foldseek_alignments(
+                        domain_pdb_files,
+                        [
+                            domain_template
+                            for domain_template in domain_templates
+                            if domain_template["name"] == domain
+                        ],
+                        batch_size=3000,
+                    )
+                )
+                filtered_domain_regions_ids = set(
+                    [filtered_domain.stem for filtered_domain in filtered_domains]
+                )
+                filtered_domain_pdb_files.update([filtered_domain.name for filtered_domain in filtered_domains])
+                filtered_regions.update(filtered_domain_regions_ids)
+                for domain_pdb_file in domain_pdb_files:
+                    if domain_pdb_file not in filtered_domains:
+                        os.remove(domain_pdb_file)
+
+    for domain_pdb_file in domain_pdbs_root.glob(f"*.pdb"):
+        if domain_pdb_file.name not in filtered_domain_pdb_files:
+            logger.info(f"Removing domain pdb file {domain_pdb_file} due to lack of foldseek alignment.")
+            os.remove(domain_pdb_file)
+
+    for filename in filename_2_known_regions_completed_confident:
+        filtered_regions_for_filename = sorted(
+            [
+                region
+                for region in filename_2_known_regions_completed_confident[filename]
+                if region.module_id in filtered_regions
+            ],
+            key=lambda r: r.module_id,
+        )
+        if len(filtered_regions_for_filename) == 0:
+            continue
+        group_by_domain_type = defaultdict(list)
+        for region in filtered_regions_for_filename:
+            group_by_domain_type[region.domain].append(copy.deepcopy(region))
+        regions_for_file = []
+        for domain in group_by_domain_type:
+            if (len(group_by_domain_type[domain]) - 1) != int(
+                group_by_domain_type[domain][-1].module_id.split("_")[-1]
+            ):
+                for region in group_by_domain_type[domain]:
+                    old_module_id = region.module_id
+                    region.module_id = f"{filename}_{region.domain}_{group_by_domain_type[domain].index(region)}"
+                    os.rename(
+                        domain_pdbs_root / domain / f"{old_module_id}.pdb",
+                        domain_pdbs_root / domain / f"{region.module_id}.pdb",
+                    )
+                    os.rename(
+                        domain_pdbs_root / f"{old_module_id}.pkl",
+                        domain_pdbs_root / f"{region.module_id}.pkl",
+                    )
+                    regions_for_file.append(region)
+            else:
+                for region in group_by_domain_type[domain]:
+                    regions_for_file.append(region)
+
+        filename_2_known_regions_completed_confident_filtered[filename] = sorted(
+            regions_for_file, key=lambda r: r.module_id
+        )
+    return filename_2_known_regions_completed_confident_filtered
 
 
 def store_domain_separately(
@@ -457,42 +543,93 @@ def store_domain_separately(
             pickle.dump(domain_2_regions_completed_confident[domain_name], f)
 
 
+def store_templates(
+    domain_templates: list[dict[str, Path | str]],
+    output_path: Path,
+):
+    for template in domain_templates:
+        try:
+            output_pdb_path = output_path / f"{template['name']}.pdb"
+            cmd.delete(f"{template['name']}")
+            cmd.delete(f'{template["name"]}_domain')
+            cmd.load(template["path"], str(f'{template["name"]}_domain'))
+            cmd.select(
+                f'{template["name"]}',
+                f"{template['name']}_domain & {template['residues']}",
+            )
+            cmd.save(f"{output_pdb_path}", f'{template["name"]}')
+            cmd.delete(f"{template['name']}")
+            cmd.delete(f'{template["name"]}_domain')
+        except Exception as e:
+            logger.error(
+                f"Error storing domain {template['name']} from file {template['path']}: {e}"
+            )
+
+
+def store_domain(
+    filename_region: tuple[str, MappedRegion],
+    domains_output_path: Path,
+):
+    try:
+        filename, region = filename_region
+        PATH = Path(domains_output_path / f"{region.domain}")
+        mapped_residues = list(set(region.residues_mapping.keys()))
+        cmd.delete(filename)
+        cmd.load(f"{filename}.pdb")
+        logger.info(
+            f"{region.module_id} {filename} & resi {compress_selection_list(mapped_residues)}",
+        )
+        cmd.select(
+            f"{region.module_id}",
+            f"{filename} & resi {compress_selection_list(mapped_residues)}",
+        )
+        cmd.save(f"{PATH}/{region.module_id}.pdb", f"{region.module_id}")
+        cmd.save(
+            f"{domains_output_path}/{region.module_id}.pdb",
+            f"{region.module_id}",
+        )
+        cmd.delete(filename)
+        return True
+    except Exception as e:
+        logger.error(
+            f"Error storing domain {region.module_id} from file {filename}: {e}"
+        )
+        return False
+
+
 def store_domains(
     filename_2_known_regions_completed_confident: dict[str, list[MappedRegion]],
     supported_domains: list[str],
     domains_output_path: Path,
-    pymol_cmd,
+    n_jobs: int = 1,
 ):
+
     if not domains_output_path.exists():
         domains_output_path.mkdir(parents=True)
     for domain_name in supported_domains:
-        PATH = domains_output_path / f"tps_domain_detections_{domain_name}"
+        PATH = domains_output_path / f"{domain_name}"
         if not PATH.exists():
             PATH.mkdir(parents=True)
-
-    for filename, protein_regions in tqdm(
-        filename_2_known_regions_completed_confident.items(),
-        desc="Storing detected domains",
-    ):
-        for region in protein_regions:
-            PATH = Path(domains_output_path / f"tps_domain_detections_{region.domain}")
-            mapped_residues = list(set(region.residues_mapping.keys()))
-            pymol_cmd.delete(filename)
-            pymol_cmd.load(f"{filename}.pdb")
-            print(
-                f"{region.module_id}",
-                f"{filename} & resi {compress_selection_list(mapped_residues)}",
-            )
-            pymol_cmd.select(
-                f"{region.module_id}",
-                f"{filename} & resi {compress_selection_list(mapped_residues)}",
-            )
-            pymol_cmd.save(f"{PATH}/{region.module_id}.pdb", f"{region.module_id}")
-            pymol_cmd.save(
-                f"{domains_output_path}/{region.module_id}.pdb",
-                f"{region.module_id}",
-            )
-            pymol_cmd.delete(filename)
+    store_domain_partial = partial(
+        store_domain, domains_output_path=domains_output_path
+    )
+    filename_domain_tuples = [
+        (filename, region)
+        for (
+            filename,
+            regions,
+        ) in filename_2_known_regions_completed_confident.items()
+        for region in regions
+    ]
+    with Pool(n_jobs) as pool:
+        tqdm(
+            pool.map(
+                store_domain_partial,
+                filename_domain_tuples,
+            ),
+            desc="Storing detected domains",
+            total=len(filename_domain_tuples),
+        )
 
 
 def plot_aligned_domains(

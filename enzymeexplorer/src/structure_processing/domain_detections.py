@@ -24,7 +24,8 @@ from enzymeexplorer.src.structure_processing.structural_algorithms import (
 from enzymeexplorer.src.structure_processing.utils import (
     save_file_to_all_residues,
     get_pdb_files,
-    prefilter_pdb_files_by_foldseek_alignments,
+    filter_pdb_files_by_foldseek_alignments,
+    filter_domains_by_foldseek_alignments,
     store_domains,
     store_domain_separately,
     detect_domains_roughly,
@@ -109,7 +110,11 @@ def parse_args() -> configargparse.Namespace:
         action="store_true",
     )
     parser.add_argument(
-        "--prefilter-pdbs-by-foldseek-alignment",
+        "--prefilter-pdbs-by-foldseek",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--postfilter-domains-by-foldseek",
         action="store_true",
     )
     parser.add_argument(
@@ -160,9 +165,9 @@ def main():
         args.csv_id_column,
         input_directory,
     )
-    if args.prefilter_pdbs_by_foldseek_alignment:
+    if args.prefilter_pdbs_by_foldseek:
         logger.info(f"Filtering PDB files by foldseek alignment to domain templates")
-        pdb_files = prefilter_pdb_files_by_foldseek_alignments(
+        pdb_files = filter_pdb_files_by_foldseek_alignments(
             pdb_files, domain_templates
         )
 
@@ -195,7 +200,7 @@ def main():
             [
                 pdb_file
                 for pdb_file in pdb_files
-                if len(filename_2_remaining_residues.get(pdb_file.stem, [])) >= 10
+                if len(filename_2_remaining_residues.get(pdb_file.stem, [])) >= 20
             ],  # only considering files for which there are remaining residues
             filename_2_remaining_residues,
             domain_templates=domain_templates,
@@ -264,7 +269,45 @@ def main():
         )
     else:
         filename_2_known_regions_completed_confident = filename_2_known_regions_completed
-
+        
+    
+    are_domains_stored = False
+    if args.store_domains:
+        store_domains(
+            filename_2_known_regions_completed_confident,
+            supported_domains,
+            Path(cwd) / args.domains_output_path,
+            n_jobs=args.n_jobs
+        )
+        are_domains_stored = True
+    if args.postfilter_domains_by_foldseek:
+        logger.info(f"Filtering detected domains by foldseek alignment to domain templates")
+        if are_domains_stored:
+            domain_pdbs_root = Path(cwd) / args.domains_output_path
+            filename_2_known_regions_completed_confident = filter_domains_by_foldseek_alignments(
+                filename_2_known_regions_completed_confident,
+                supported_domains,
+                domain_templates,
+                domain_pdbs_root
+            )
+        else:
+            with tempfile.TemporaryDirectory() as tmpdir:
+                domain_pdbs_root = Path(tmpdir) / "domains"
+                store_domains(
+                    filename_2_known_regions_completed_confident,
+                    supported_domains,
+                    domain_pdbs_root,
+                    n_jobs=args.n_jobs
+                )
+                filename_2_known_regions_completed_confident = filter_domains_by_foldseek_alignments(
+                    filename_2_known_regions_completed_confident,
+                    supported_domains,
+                    domain_templates,
+                    domain_pdbs_root
+                )   
+                            
+                                
+                            
     (Path(cwd) / args.detected_regions_root_path).mkdir(parents=True, exist_ok=True)
     if not args.do_not_store_intermediate_files:
         plot_aligned_domains(
@@ -273,19 +316,11 @@ def main():
             Path(cwd) / args.detected_regions_root_path,
         )
 
-    (Path(cwd) / args.domains_output_path).mkdir(parents=True, exist_ok=True)
     store_domain_separately(
         filename_2_known_regions_completed_confident,
         supported_domains,
         Path(cwd) / args.detected_regions_root_path,
     )
-    if args.store_domains:
-        store_domains(
-            filename_2_known_regions_completed_confident,
-            supported_domains,
-            Path(cwd) / args.domains_output_path,
-            cmd,
-        )
 
     os.chdir(cwd)
     # save the confident regions
