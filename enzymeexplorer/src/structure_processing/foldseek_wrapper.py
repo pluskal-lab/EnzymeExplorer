@@ -19,7 +19,7 @@ class FoldseekWrapper:
         tmp_dir: str,
         max_seqs: int = 5000,
         e_value: float = 1,
-        sensitivity: int = 10,
+        sensitivity: float = 10,
     ) -> pd.DataFrame:
         cmd = [
             self.foldseek_path,

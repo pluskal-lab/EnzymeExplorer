@@ -29,6 +29,7 @@ from enzymeexplorer.src.structure_processing.structural_algorithms import (
 from enzymeexplorer.src.structure_processing.utils import (
     save_file_to_all_residues,
     get_pdb_files,
+    prefilter_pdb_files_by_foldseek_alignments
 )
 
 logger = logging.getLogger(__file__)
@@ -105,6 +106,10 @@ def parse_args() -> configargparse.Namespace:
     )
     parser.add_argument(
         "--recompute-existing-secondary-structure-residues",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--prefilter-pdbs-by-foldseek-alignment",
         action="store_true",
     )
     parser.add_argument(
@@ -351,22 +356,26 @@ def get_all_confidence_values(sequence_id: str) -> list[int]:
 
 def main():
     args = parse_args()
-    # reading the needed proteins
-    relevant_protein_ids = None
-    if args.needed_proteins_csv_path is not None:
-        proteins_df = pd.read_csv(args.needed_proteins_csv_path)
-        relevant_protein_ids = set(proteins_df[args.csv_id_column].str.tolist())
-
+    input_directory = Path(args.input_directory_with_structures).absolute()
+    
     domain_templates = args.domain_templates
     domain_templates = [yaml.safe_load(template) for template in domain_templates]
+
     for domain_template in domain_templates:
         domain_template["path"] = Path(domain_template["path"]).absolute()
     supported_domains = [template["name"] for template in domain_templates]
     domain_2_threshold = {
         template["name"]: template["thresholds"] for template in domain_templates
     }
+    
+    # reading the needed proteins
+    pdb_files = get_pdb_files(
+        args.needed_proteins_csv_path, args.csv_id_column, input_directory, 
+    )
+    if args.prefilter_pdbs_by_foldseek_alignment:
+        logger.info(f"Filtering PDB files by foldseek alignment to domain templates")
+        pdb_files = prefilter_pdb_files_by_foldseek_alignments(pdb_files, domain_templates)
 
-    input_directory = Path(args.input_directory_with_structures).absolute()
     secondary_structure_residues_path = Path(args.secondary_structure_residues_path)
     if (
         not secondary_structure_residues_path.exists()
@@ -374,9 +383,7 @@ def main():
     ):
         save_file_to_all_residues(
             secondary_structure_residues_path=secondary_structure_residues_path,
-            relevant_protein_ids=relevant_protein_ids,
-            needed_proteins_csv_path=args.needed_proteins_csv_path,
-            input_directory=input_directory,
+            pdb_files=pdb_files,
             domain_templates=domain_templates,
         )
 
@@ -386,10 +393,7 @@ def main():
     # getting the files
     cwd = os.getcwd()
     os.chdir(input_directory)
-
-    pdb_files = get_pdb_files(
-        relevant_protein_ids, input_directory, args.needed_proteins_csv_path
-    )
+    
     filename_2_known_regions: dict[str, list[MappedRegion]] = defaultdict(list)
     filename_2_remaining_residues: dict[str, set[str]] = file_2_all_residues.copy()
 

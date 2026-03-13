@@ -315,24 +315,16 @@ def get_structural_features(
     return structural_features
 
 
-def save_file_to_all_residues(secondary_structure_residues_path: Path, relevant_protein_ids: set[str] | None, needed_proteins_csv_path: str, input_directory: Path, domain_templates: list[dict[str, Path]]):
+def save_file_to_all_residues(secondary_structure_residues_path: Path, pdb_files: list[Path], domain_templates: list[dict[str, Path]]):
     logger.info(f"Secondary structure residues file not found at {secondary_structure_residues_path}, computing secondary structure residues.")
     with tempfile.TemporaryDirectory() as tmpdir:
         sec_str_input_dir = Path(tmpdir)
-        if relevant_protein_ids is not None:
-            logger.info(f"Filtering PDB files to only include those specified in {needed_proteins_csv_path}")
-            for protein_id in relevant_protein_ids:
-                src_path = input_directory / f"{protein_id}.pdb"
-                if not src_path.exists():
-                    logger.warning(f"PDB file for {protein_id} not found at {src_path}, skipping this protein.")
-                    continue
-                dst_path = sec_str_input_dir / f"{protein_id}.pdb"
-                os.symlink(src_path, dst_path)
-        else:
-            pdb_files = [filepath for filepath in input_directory.glob("*.pdb")]
-            for pdb_file in pdb_files:
-                dst_path = sec_str_input_dir / pdb_file.name
-                os.symlink(pdb_file, dst_path)
+        for pdb_file in pdb_files:
+            if not pdb_file.exists():
+                logger.warning(f"PDB file {pdb_file}, skipping this protein.")
+                continue
+            dst_path = sec_str_input_dir / f"{pdb_file.name}"
+            os.symlink(pdb_file, dst_path)
         
         for domain_template in domain_templates:
             template_dst_path = sec_str_input_dir / f"{domain_template['path'].name}"
@@ -343,23 +335,59 @@ def save_file_to_all_residues(secondary_structure_residues_path: Path, relevant_
         )
         
 
-def get_pdb_files(relevant_protein_ids: set[str] | None, input_directory: Path, needed_proteins_csv_path: str) -> list[Path]:
-    pdb_files = []
-    if relevant_protein_ids is not None:
-        logger.info(f"Filtering PDB files in {input_directory} to only include those specified in {needed_proteins_csv_path}")
-        for protein_id in relevant_protein_ids:
-            pdb_path = Path(".") / f"{protein_id}.pdb"
-            if not pdb_path.exists():
-                logger.warning(f"PDB file for {protein_id} not found at {pdb_path}, skipping this protein.")
-                continue
-            pdb_files.append(pdb_path)
+def get_pdb_files(needed_proteins_csv_path: str, csv_id_column: str, input_directory: Path) -> list[Path]:
+    if needed_proteins_csv_path is not None:
+        proteins_df = pd.read_csv(needed_proteins_csv_path)
+        relevant_protein_ids = set(proteins_df[csv_id_column].unique())
     else:
-        all_pdb_files = [filepath for filepath in Path(".").glob("*.pdb")]
-        for filepath in all_pdb_files:
-            pdb_files.append(filepath)
+        relevant_protein_ids = set([filepath.stem for filepath in input_directory.glob("*.pdb")])
+        
+        
+    pdb_files = []
+    logger.info(f"Filtering PDB files in {input_directory} to only include those specified in {needed_proteins_csv_path}")
+    for protein_id in relevant_protein_ids:
+        pdb_path = input_directory / f"{protein_id}.pdb"
+        if not pdb_path.exists():
+            logger.warning(f"PDB file for {protein_id} not found at {pdb_path}, skipping this protein.")
+            continue
+        pdb_files.append(pdb_path.absolute())
             
     for filename in [pdb_file.stem for pdb_file in pdb_files]:
         filename_regex = "[a-zA-Z0-9_]+"
         if not re.fullmatch(filename_regex, filename):
             raise ValueError(f"Filename {filename} does not match the expected pattern {filename_regex}, which may cause issues with PyMOL selection syntax. Consider renaming this file.")
     return pdb_files
+
+
+def prefilter_pdb_files_by_foldseek_alignments(pdb_files: list[Path], domain_templates: list[dict[str, Path]], batch_size:int = 1000) -> list[Path]:
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmpdir_path = Path(tmpdir)
+        query_dir = tmpdir_path / "query"
+        query_dir.mkdir()
+        for domain_template in domain_templates:
+            os.symlink(domain_template["path"], query_dir / domain_template["path"].name)
+        
+        filtered_pdb_file_names = set()
+        target_dir = tmpdir_path / "target"
+        target_dir.mkdir()
+        for idx in range(0, len(pdb_files), batch_size):
+            batch_dir = target_dir / f"batch_{idx}"
+            batch_dir.mkdir()
+            batch_pdb_files = pdb_files[idx:min(idx+batch_size, len(pdb_files))]
+            for pdb_file in batch_pdb_files:
+                os.symlink(pdb_file, batch_dir / pdb_file.name)
+                alignment_df = FoldseekWrapper().easy_search(
+                    query_dir=str(query_dir),
+                    target_dir=str(batch_dir),
+                    tmp_dir=str(tmpdir_path / "tmp_foldseek"),
+                    output=str(tmpdir_path / "foldseek_output.tsv"),
+                    max_seqs=batch_size*2,
+                    e_value=1e-3,
+                    sensitivity=7.5,
+                )
+                filtered_pdb_file_names.update(
+                    set(alignment_df["target"].unique())
+                )
+                        
+        return [pdb_file for pdb_file in pdb_files if pdb_file.stem in filtered_pdb_file_names]
+                
