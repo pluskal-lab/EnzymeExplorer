@@ -207,7 +207,7 @@ class CLEAN(BaseModel):
             line_splitted = line.split(",")
             for ec_classes in line_splitted[1:]:
                 ec_class, dist = ec_classes.replace("\n", "").split("/")
-                id_2_class_2_conf[line_splitted[0]][ec_class] = 10 - float(dist)
+                id_2_class_2_conf[line_splitted[0]][ec_class] = float(dist)
 
         if not self.is_halo:
             id_2_substr_2_conf: dict = defaultdict(dict)
