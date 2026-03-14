@@ -406,7 +406,7 @@ def main():
     negatives_data["OriginalType"] = "Unknown"
     negatives_data["Fold"] = None
     
-    negatives_data.reindex(negatives_data.index.repeat(negatives_data.ID.map(lambda x: len(negatives_to_accepted_tps_substrates[x]) if x in negatives_to_accepted_tps_substrates else 1))).reset_index(drop=True)
+    negatives_data = negatives_data.reindex(negatives_data.index.repeat(negatives_data.ID.map(lambda x: len(negatives_to_accepted_tps_substrates[x]) if x in negatives_to_accepted_tps_substrates else 1))).reset_index(drop=True)
     
     for negative_id in negatives_to_accepted_tps_substrates:
         accepted_substrates = negatives_to_accepted_tps_substrates[negative_id]
