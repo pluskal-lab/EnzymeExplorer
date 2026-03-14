@@ -1,0 +1,2083 @@
+Uniprot ID,Substrate (including stereochemistry),Name of product,Class (I or II)
+A0A6P6W6H5,"(2E,6E)-FPP",trans-β-farnesene,Class I
+XsTC-1,"(2E,6E,10E)-GGPP",xeniaphyllene,Class I
+XsTC-1,"(2E,6E)-FPP",(+)-β-caryophyllene,Class I
+XsTC-1,"(2E,6E)-FPP",elemol,Class I
+X5AHD9,(+)-copalyl diphosphate,miltiradiene,Class I
+X5A4D6,"(2E,6E,10E)-GGPP",(+)-copalyl diphosphate,Class II
+X5A2Z7,copal-8-ol diphosphate(3−),(13R)-Manoyl oxide,Class I
+X4ZWN5,"(2E,6E,10E)-GGPP",copal-8-ol diphosphate(3−),Class II
+WP_092528762.1,"(2E,6E,10E)-GGPP","(Z)-eunicellane benditerpe-2,6,15-triene",Class I
+WP_092528762.1,"(2E,6E,10E)-GGPP",(R)-(–)-cembrene A,Class I
+WP_089795910.1,"(2E,6E,10E)-GGPP",ent-bonnadiene,Class I
+WP_089795910.1,"(2E,6E,10E)-GGPP",wanjudiene,Class I
+WDE20679.1,(2E)-GPP,β-myrcene,Class I
+WDE20679.1,(2E)-GPP,(E)-β-ocimene,Class I
+WDE20679.1,(2E)-GPP,(Z)-β-ocimene,Class I
+WDE20678.1,"(2E,6E)-FPP",(+)-bicyclogermacrene,Class I
+WDE20678.1,(2E)-GPP,β-myrcene,Class I
+WDE20678.1,(2E)-GPP,(E)-β-ocimene,Class I
+WDE20677.1,"(2E,6E)-FPP",(-)-germacrene D,Class I
+WDE20677.1,(2E)-GPP,β-myrcene,Class I
+WDE20677.1,(2E)-GPP,(E)-β-ocimene,Class I
+WDE20677.1,(2E)-GPP,(Z)-β-ocimene,Class I
+WDE20676.1,"(2E,6E)-FPP",(+)-bicyclogermacrene,Class I
+W8QMF8,"(2E,6E,10E)-GGPP",miltiradiene,Class II
+W8QEG7,"(2E,6E,10E)-GGPP",miltiradiene,Class II
+W8NXF3,"(2E,6E)-FPP",(−)-germacrene A,Class I
+W6QAE7,"(2E,6E,10E)-GGPP",penichrysol,Class I
+W6QAE7,"isopentenyl PP; (2E,6E)-FPP","2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+W6Q4Q9,"(2E,6E)-FPP",(+)-aristolochene,Class I
+W6HUT3,(2E)-GPP,sabinene,Class I
+W6HUT3,(2E)-GPP,α-thujene,Class I
+W6HUT3,(2E)-GPP,α-pinene,Class I
+W6HUT3,(2E)-GPP,β-pinene,Class I
+W6HUT3,(2E)-GPP,β-myrcene,Class I
+W6HUT3,(2E)-GPP,α-phellandrene,Class I
+W6HUT3,(2E)-GPP,α-terpinene,Class I
+W6HUT3,(2E)-GPP,β-phellandrene,Class I
+W6HUT3,(2E)-GPP,γ-terpinene,Class I
+W6HUT3,(2E)-GPP,terpinolene,Class I
+W4JX79,"(2E,6E)-FPP",Δ6-protoilludene,Class I
+W0FFD7,"(2E,6E)-FPP",drimenol,Class I
+UTU07507,"(S)-2,3-epoxysqualene",lupeol,Class II
+UTU07506,"(S)-2,3-epoxysqualene","tirucalla-7,24-dien-3β-ol",Class II
+UPI41567.1,"(2E,6E,10E)-GGPP",cembrene C,Class I
+UPI41561.1,"(2E,6E,10E)-GGPP",klysimplexin R,Class I
+U5Y4T6,"(2E,6E)-FPP",(−)-β-caryophyllene,Class I
+U5PZT6,(2E)-GPP,linalool,Class I
+U5PZT6,"(2E,6E)-FPP",α-bergamotene,Class I
+U5N1F1,"(2E,6E)-FPP","guaia-1(10),11-diene",Class I
+U5N0S4,"(2E,6E)-FPP",(+)-δ-cadinene,Class I
+U3LW50,"(2E,6E)-FPP",τ-cadinol,Class I
+U3LW50,"(2E,6E)-FPP",(+)-γ-cadinene,Class I
+U3LVZ7,"(2E,6E)-FPP",(−)-β-caryophyllene,Class I
+U3LVL5,"(2E,6E)-FPP",(−)-germacrene D,Class I
+U3LVL5,"(2E,6E)-FPP",bicyclogermacrene,Class I
+U3KYL2,"(2E,6E)-FPP",drimenol,Class I
+TmTC-2,"(2E,6E)-FPP",α-muuroladiene,Class I
+TmTC-1,"(2E,6E,10E)-GGPP",cembrene A,Class I
+TmTC-1,"(2E,6E)-FPP",(6E)-nerolidol,Class I
+TmTC-1,(2E)-GPP,linalool,Class I
+T2HPZ3,"(2E,6E)-FPP",(−)-β-caryophyllene,Class I
+T1WGD9,"(2E,6E)-FPP",(E)-2-epi-β-caryophyllene,Class I
+T1RRS0,"(2E,6E)-FPP",(−)-germacrene A,Class I
+T1RRS0,"(2E,6E)-FPP",(−)-β-elemene,Class I
+T1RRR9,(2E)-GPP,α-pinene,Class I
+T1RRR9,(2E)-GPP,limonene,Class I
+T1RRR9,(2E)-GPP,terpinolene,Class I
+T1RRR9,(2E)-GPP,β-myrcene,Class I
+T1RRR9,(2E)-GPP,α-phellandrene,Class I
+T1RRR9,(2E)-GPP,(−)-endo-fenchol,Class I
+T1RRJ6,"(2E,6E)-FPP",(−)-germacrene A,Class I
+T1RRJ6,"(2E,6E)-FPP",(−)-β-elemene,Class I
+T1RRJ4,(2E)-GPP,(−)-endo-fenchol,Class I
+T1RRJ4,(2E)-GPP,limonene,Class I
+T1RRJ4,(2E)-GPP,α-pinene,Class I
+T1RRJ4,(2E)-GPP,terpinolene,Class I
+T1RRJ4,(2E)-GPP,α-phellandrene,Class I
+T1RRJ4,(2E)-GPP,β-myrcene,Class I
+T1RRI8,(2E)-GPP,α-pinene,Class I
+T1RRI8,(2E)-GPP,limonene,Class I
+T1RRI8,(2E)-GPP,α-phellandrene,Class I
+T1RRI8,(2E)-GPP,terpinolene,Class I
+T1RRI5,"(2E,6E)-FPP",(−)-germacrene A,Class I
+T1RRI5,"(2E,6E)-FPP",(−)-β-elemene,Class I
+T1RR72,(2E)-GPP,(−)-endo-fenchol,Class I
+T1RR72,(2E)-GPP,limonene,Class I
+T1RR72,(2E)-GPP,α-pinene,Class I
+T1RR72,(2E)-GPP,terpinolene,Class I
+T1RR72,(2E)-GPP,α-phellandrene,Class I
+T1RR72,(2E)-GPP,β-myrcene,Class I
+T1RR71,(2E)-GPP,α-pinene,Class I
+T1RR71,(2E)-GPP,limonene,Class I
+T1RR71,(2E)-GPP,α-phellandrene,Class I
+T1RR71,(2E)-GPP,terpinolene,Class I
+SRA.SRR18681978 (AgTS-1),"(2E,6E)-FPP",(+)-alloaromadendrene,Class I
+SRA.SRR18681978 (AgTS-1),(2E)-GPP,β-myrcene,Class I
+SRA.SRR18681978 (AgTS-1),(2E)-GPP,(E)-β-ocimene,Class I
+SptA,"(2E,6E)-FPP","guaia-1(5),6-diene",Class I
+S0ENM8,Negative,,
+S0EGZ9,"(2E,6E)-FPP",(−)-α-acorenol,Class I
+S0ECT9,"(2E,6E)-FPP",koraiol,Class I
+S0EA85,"(2E,6E,10E)-GGPP","5β,9α,10α-labda-8(20),13-dien-15-yl diphosphate(3−)",Class II
+S0EA85,ent-copalyl diphosphate,ent-kaurene,Class I
+S0E627,(2E)-GPP; isopentenyl PP,"2-trans,6-trans-farnesyl diphosphate(3−)",prenyl
+S0E627,dimethylallyl PP; isopentenyl PP,geranyl diphosphate(3−),prenyl
+S0E627,"isopentenyl PP; (2E,6E)-FPP","2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+S0DX56,"(2E,6E)-FPP",(+)-eremophilene,Class I
+RmTC-1,"(2E,6E,10E)-GGPP",cembrene C,Class I
+RmTC-1,"(2E,6E)-FPP","(2-trans,6-trans)-farnesol",Class I
+RmTC-1,(2E)-GPP,geraniol,Class I
+R9WSX5,"(2E,6E)-FPP",(−)-germacrene A,Class I
+R9W377,(2E)-GPP,(4S)-limonene,Class I
+R9UPX9,"(2E,6E,10E)-GGPP","labd-13-en-8,15-diol",Class II
+R9UPX6,ent-copalyl diphosphate,ent-kaurene,Class I
+R9UM72,copal-8-ol diphosphate(3−),(13R)-manoyl oxide,Class I
+R9QMZ0,(2E)-GPP,"1,8-cineole",Class I
+R9QMZ0,(2E)-GPP,(S)-(−)-α-terpineol,Class I
+R9QMZ0,(2E)-GPP,(−)-sabinene,Class I
+R9QMZ0,(2E)-GPP,β-myrcene,Class I
+R9QMY9,(2E)-GPP,(−)-α-pinene,Class I
+R9QMY9,(2E)-GPP,(−)-β-pinene,Class I
+R9QMY8,(2E)-GPP,(−)-camphene,Class I
+R9QMY8,(2E)-GPP,(+)-α-pinene,Class I
+R9QMY8,(2E)-GPP,tricyclene,Class I
+R9QMY8,(2E)-GPP,(−)-α-pinene,Class I
+R9QMY8,(2E)-GPP,(−)-β-pinene,Class I
+R9QMY8,(2E)-GPP,β-myrcene,Class I
+R9QMW8,(2E)-GPP,(+)-car-3-ene,Class I
+R9QMW8,(2E)-GPP,terpinolene,Class I
+R9QMW8,(2E)-GPP,(S)-(−)-α-terpineol,Class I
+R9QMW7,(2E)-GPP,(−)-β-phellandrene,Class I
+R9QMW5,(2E)-GPP,(−)-β-pinene,Class I
+R9QMW5,(2E)-GPP,(−)-α-pinene,Class I
+R9QMW4,(2E)-GPP,(+)-car-3-ene,Class I
+R9QMW4,(2E)-GPP,terpinolene,Class I
+R9QMW4,(2E)-GPP,α-terpineol,Class I
+R9QMW4,(2E)-GPP,(S)-(−)-α-terpineol,Class I
+R9QMW3,(2E)-GPP,(−)-β-phellandrene,Class I
+R9QMW2,(2E)-GPP,(+)-α-pinene,Class I
+R9QMW1,(2E)-GPP,(−)-α-pinene,Class I
+R9QMW1,(2E)-GPP,(−)-β-pinene,Class I
+R9QMR6,(2E)-GPP,(+)-car-3-ene,Class I
+R9QMR6,(2E)-GPP,terpinolene,Class I
+R9QMR6,(2E)-GPP,(S)-(−)-α-terpineol,Class I
+R9QMR5,(2E)-GPP,α-terpineol,Class I
+R9QMR5,(2E)-GPP,limonene,Class I
+R9QMR5,(2E)-GPP,terpinolene,Class I
+R9QMR5,(2E)-GPP,4-terpineol,Class I
+R9QMR5,(2E)-GPP,(S)-(−)-α-terpineol,Class I
+R9QMR5,(2E)-GPP,geraniol,Class I
+R9QMR4,(2E)-GPP,(−)-β-phellandrene,Class I
+R9QMR4,(2E)-GPP,(−)-α-phellandrene,Class I
+R9QMR3,(2E)-GPP,(−)-α-pinene,Class I
+R9QMR3,(2E)-GPP,(−)-β-pinene,Class I
+R9QMR1,(2E)-GPP,(+)-α-pinene,Class I
+R9QMR0,(2E)-GPP,(−)-β-pinene,Class I
+R9QMR0,(2E)-GPP,(−)-α-pinene,Class I
+R9QMQ9,(2E)-GPP,(−)-β-pinene,Class I
+R9QMQ9,(2E)-GPP,(−)-α-pinene,Class I
+R4YZC3,(2E)-GPP,linalool,Class I
+R4YZC3,(2E)-GPP,β-myrcene,Class I
+R4YZC3,(2E)-GPP,(Z)-β-ocimene,Class I
+R4YZC3,(2E)-GPP,(E)-β-ocimene,Class I
+R4YXW8,(2E)-GPP,linalool,Class I
+R4YXW8,(2E)-GPP,β-myrcene,Class I
+R4YXW8,(2E)-GPP,(Z)-β-ocimene,Class I
+R4YXW8,(2E)-GPP,(E)-β-ocimene,Class I
+R4YVJ5,(2E)-GPP,limonene,Class I
+R4JQT5,(2E)-GPP,γ-terpinene,Class I
+R4JQT5,(2E)-GPP,geraniol,Class I
+R4JQT5,(2E)-GPP,geranial,Class I
+R4JQS8,(2E)-GPP,α-terpineol,Class I
+R4JQS2,(2E)-GPP,(S)-(−)-α-terpineol,Class I
+R4JQS2,(2E)-GPP,limonene,Class I
+R4JQS2,(2E)-GPP,sabinene,Class I
+R4JQS2,(2E)-GPP,β-myrcene,Class I
+R4JND9,(2E)-GPP,γ-terpinene,Class I
+R4JND2,(2E)-GPP,α-terpineol,Class I
+R4JJJ6,(2E)-GPP,γ-terpinene,Class I
+R4JJJ1,(2E)-GPP,α-terpineol,Class I
+R4JHV9,(2E)-GPP,α-terpineol,Class I
+R4JHV6,(2E)-GPP,γ-terpinene,Class I
+R4JGM2,(2E)-GPP,γ-terpinene,Class I
+R4JGL8,(2E)-GPP,γ-terpinene,Class I
+R4JGL8,(2E)-GPP,geraniol,Class I
+R4JGL8,(2E)-GPP,geranial,Class I
+R4I3I0,"(2E,6E)-FPP",(+)-5-epi-aristolochene,Class I
+R4HEK6,NPP,nerol,Class I
+Q9ZUH4,(2E)-GPP,tricyclene,Class I
+Q9ZU77,dimethylallyl PP; isopentenyl PP,"2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+Q9ZU77,"(2E,6E)-FPP; isopentenyl PP","2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+Q9ZTN8,"(2E,6E,10E)-GGPP",(+)-copalyl diphosphate,Class II
+Q9Y753,"(2E,6E)-FPP",squalene,prenyl
+Q9XJ32,"(2E,6E)-FPP",premnaspirodiene,Class I
+Q9XEI0,ent-copalyl diphosphate,ent-kaurene,Class I
+Q9XEH9,ent-copalyl diphosphate,ent-kaurene,Class I
+Q9X839,"(2E,6E)-FPP","(1E,4S,5E,7R)-germacra-1(10),5-dien-11-ol",Class I
+Q9X839,"(2E,6E)-FPP",(−)-germacrene D,Class I
+Q9WTN0,"(2E,6E)-FPP; isopentenyl PP","2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+Q9UWR6,"(2E,6E,10E)-GGPP; isopentenyl PP",all-trans-pentaprenyl diphosphate(3−),prenyl
+Q9UWR6,"(2E,6E)-FPP; isopentenyl PP","2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+Q9UWR6,(2E)-GPP; isopentenyl PP,"2-trans,6-trans-farnesyl diphosphate(3−)",prenyl
+Q9UWR6,dimethylallyl PP; isopentenyl PP,geranyl diphosphate(3−),prenyl
+Q9UVY5,"(2E,6E,10E)-GGPP","5β,9α,10α-labda-8(20),13-dien-15-yl diphosphate(3−)",Class II
+Q9UVY5,"(2E,6E,10E)-GGPP",ent-kaurene,Class II
+Q9UR08,"(2E,6E)-FPP",(+)-aristolochene,Class I
+Q9T0K1,"(2E,6E)-FPP",(Z)-γ-bisabolene,Class I
+Q9T0J9,"(2E,6E)-FPP",(Z)-γ-bisabolene,Class I
+Q9SYN1,"(S)-2,3-epoxysqualene",α-seco-amyrin,Class II
+Q9SYN1,"(S)-2,3-epoxysqualene",β-seco-amyrin,Class II
+Q9SYN1,"(S)-2,3-epoxysqualene",taraxasterol,Class II
+Q9SYN1,"(S)-2,3-epoxysqualene",isomultiflorenol,Class II
+Q9SXV6,"(S)-2,3-epoxysqualene",cycloartenol,Class II
+Q9SW77,"(2E,6E)-FPP",(+)-δ-cadinene,Class I
+Q9SW76,(2E)-GPP,(4S)-limonene,Class I
+Q9SSZ2,"(S)-2,3-epoxysqualene",cycloartenol,Class II
+Q9SSU8,"(2E,6E,10E)-GGPP",15-cis-phytoene,prenyl
+Q9SSU5,"(S)-2,3-epoxysqualene",β-amyrin,Class II
+Q9SPN1,(2E)-GPP,(R)-linalool,Class I
+Q9SLW3,"(S)-2,3-epoxysqualene",β-amyrin,Class II
+Q9SLW3,"(S)-2,3-epoxysqualene",lupeol,Class II
+Q9SLW1,"(S)-2,3-epoxysqualene",lupeol,Class II
+Q9SLW1,"(S)-2,3-epoxysqualene",β-amyrin,Class II
+Q9SLW1,"(S)-2,3-epoxysqualene",lanosterol,Class II
+Q9SLW0,"(S)-2,3-epoxysqualene",lanosterol,Class II
+Q9SLP9,"(S)-2,3-epoxysqualene",cycloartenol,Class II
+Q9SLG2,dimethylallyl PP; isopentenyl PP,"2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+Q9SLG2,"(2E,6E)-FPP; isopentenyl PP","2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+Q9SDW9,"(2E,6E)-FPP",squalene,prenyl
+Q9SAK2,ent-copalyl diphosphate,ent-kaurene,Class I
+Q9P885,"(2E,6E)-FPP; isopentenyl PP","2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+Q9NH03,(2E)-GPP; isopentenyl PP,"2-trans,6-trans-farnesyl diphosphate(3−)",prenyl
+Q9MB42,"(S)-2,3-epoxysqualene",β-amyrin,Class II
+Q9M7D1,(2E)-GPP,(−)-β-phellandrene,Class I
+Q9M7D0,(2E)-GPP,terpinolene,Class I
+Q9M7C9,(2E)-GPP,(4S)-limonene,Class I
+Q9M7C9,(2E)-GPP,(−)-α-pinene,Class I
+Q9LVY2,"(S)-2,3-epoxysqualene","tirucalla-7,24-dien-3β-ol",Class II
+Q9LVP7,"(2E,6E)-FPP",(+)-δ-cadinene,Class I
+Q9LUE2,"(2E,6E,10E,14E)-GFPP",(+)-thalianatriene,Class I
+Q9LUE1,dimethylallyl PP; isopentenyl PP,geranyl diphosphate(3−),prenyl
+Q9LUE1,dimethylallyl PP; 4 isopentenyl PP,all-trans-pentaprenyl diphosphate(3−),prenyl
+Q9LUE0,"(2E,6E,10E,14E)-GFPP",(−)-retigeranin B,Class I
+Q9LUD9,dimethylallyl PP; isopentenyl PP,"2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+Q9LUD9,"(2E,6E)-FPP; isopentenyl PP","2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+Q9LRZ6,(2E)-GPP,sabinene,Class I
+Q9LRZ6,(2E)-GPP,β-pinene,Class I
+Q9LRR2,"(2E,6E,10E,14E)-GFPP",quiannulatene,Class I
+Q9LRH8,"(S)-2,3-epoxysqualene",β-amyrin,Class II
+Q9LRH7,"(S)-2,3-epoxysqualene",β-amyrin,Class II
+Q9LRH7,"(S)-2,3-epoxysqualene",α-amyrin,Class II
+Q9LLR9,"(2E,6E)-FPP",epi-cedrol,Class I
+Q9LJY2,dimethylallyl PP; isopentenyl PP,"2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+Q9LJY2,"(2E,6E)-FPP; isopentenyl PP","2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+Q9LIA0,dimethylallyl PP; isopentenyl PP,"2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+Q9LIA0,"(2E,6E)-FPP; isopentenyl PP","2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+Q9LHR4,dimethylallyl PP; isopentenyl PP,"2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+Q9LHR4,"(2E,6E)-FPP; isopentenyl PP","2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+Q9K499,"(2E,6E)-FPP",(+)-epi-isozizaene,Class I
+Q9HGZ6,"(2E,6E)-FPP",squalene,prenyl
+Q9FZI2,"(S)-2,3-epoxysqualene","tirucalla-7,24-dien-3β-ol",Class II
+Q9FXY7,"(2E,6E)-FPP",trans-β-farnesene,Class I
+Q9FXV8,ent-copalyl diphosphate,ent-kaurene,Class I
+Q9FV72,(2E)-GPP,(4S)-limonene,Class I
+Q9FUW5,(2E)-GPP,(4R)-limonene,Class I
+Q9FT37,"(2E,6E,10E)-GGPP","taxa-4,11-diene",Class I
+Q9FR95,"(S)-2,3-epoxysqualene",arabidiol,Class II
+Q9FQM1,"(S)-2,3-epoxysqualene",cycloartenol,Class II
+Q9FQ27,"(2E,6E)-FPP","(1E,4E)-germacrene B",Class I
+Q9FQ26,"(2E,6E)-FPP",(−)-germacrene D,Class I
+Q9FJV8,"(S)-2,3-epoxysqualene",marneral,Class II
+Q9FI37,"(S)-2,3-epoxysqualene",thalianol,Class II
+Q9F1Y6,(E)-2-MeGPP,2-methylisoborneol,Class I
+Q9F1V8,(E)-2-MeGPP,2-methylisoborneol,Class I
+Q9C748,"(2E,6E)-FPP","(2Z,6E)-hedycaryol",Class I
+Q9C5M3,"(S)-2,3-epoxysqualene","lupan-3β,20-diol",Class II
+Q9C5M3,"(S)-2,3-epoxysqualene",lupeol,Class II
+Q9C5M3,"(S)-2,3-epoxysqualene",β-amyrin,Class II
+Q9C446,(2E)-GPP; isopentenyl PP,"2-trans,6-trans-farnesyl diphosphate(3−)",prenyl
+Q9C446,dimethylallyl PP; isopentenyl PP,"2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+Q9C446,"(2E,6E)-FPP; isopentenyl PP","2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+Q9AXM7,(2E)-GPP,(4S)-limonene,Class I
+Q9AR86,dimethylallyl PP,isoprene,Class I
+Q9AR67,"(2E,6E)-FPP",(+)-(R)-germacrene A,Class I
+Q9AR04,"(2E,6E)-FPP","amorpha-4,11-diene",Class I
+Q9AJE4,"(2E,6E,10E)-GGPP",terpentedienyl diphosphate(3−),Class II
+Q9AJE3,"(2E,6E,10E)-GGPP",terpentetriene,Class II
+Q96WT2,"(2E,6E,10E)-GGPP","5α,9β,10α-labda-8(20),13-dien-15-yl diphosphate(3−)",Class II
+Q96WT2,9α-copalyl diphosphate,aphidicolan-16β-ol,Class I
+Q96WJ0,"(S)-2,3-epoxysqualene",lanosterol,Class II
+Q96376,(2E)-GPP,(S)-linalool,Class I
+Q94JS8,"(2E,6E)-FPP",trans-β-farnesene,Class I
+Q94ID7,(2E)-GPP; isopentenyl PP,"2-trans,6-trans-farnesyl diphosphate(3−)",prenyl
+Q94ID7,dimethylallyl PP; isopentenyl PP,geranyl diphosphate(3−),prenyl
+Q94ID7,"(2E,6E)-FPP; isopentenyl PP","2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+Q94G53,(2E)-GPP,(−)-β-pinene,Class I
+Q948Z0,(2E)-GPP,(−)-camphene,Class I
+Q948R6,"(S)-2,3-epoxysqualene",isomultiflorenol,Class II
+Q947C4,"(2E,6E,10E)-GGPP","5α,9α,10β-labda-8(20),13-dien-15-yl diphosphate(3−)",Class II
+Q947C4,(+)-copalyl diphosphate,"abieta-8(14),12-diene",Class I
+Q941S0,"(S)-2,3-epoxysqualene",cycloartenol,Class II
+Q940E7,(2E)-GPP,(4R)-limonene,Class I
+Q93YV0,"(2E,6E,10E)-GGPP",geranyllinalool,Class I
+Q93YA3,"(2E,6E,10E)-GGPP","taxa-4,11-diene",Class I
+Q93X23,(2E)-GPP,β-myrcene,Class I
+Q93X23,(2E)-GPP,limonene,Class I
+Q93X23,(2E)-GPP,α-pinene,Class I
+Q93X23,(2E)-GPP,sabinene,Class I
+Q93X23,(2E)-GPP,β-pinene,Class I
+Q93WU1,"(S)-2,3-epoxysqualene",β-amyrin,Class II
+Q92250,(2E)-GPP; isopentenyl PP,"2-trans,6-trans-farnesyl diphosphate(3−)",prenyl
+Q92236,"(2E,6E)-FPP; isopentenyl PP","2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+Q92235,(2E)-GPP; isopentenyl PP,"2-trans,6-trans-farnesyl diphosphate(3−)",prenyl
+Q920E5,(2E)-GPP; isopentenyl PP,"2-trans,6-trans-farnesyl diphosphate(3−)",prenyl
+Q8YN85,"(2E,6E)-FPP",(−)-germacrene A,Class I
+Q8W3Z4,"(S)-2,3-epoxysqualene",cycloartenol,Class II
+Q8W3Z3,"(S)-2,3-epoxysqualene",cycloartenol,Class II
+Q8W3Z2,"(S)-2,3-epoxysqualene",lupeol,Class II
+Q8W3Z1,"(S)-2,3-epoxysqualene",β-amyrin,Class II
+Q8W3Z0,"(S)-2,3-epoxysqualene",β-amyrin,Class II
+Q8W1D0,(2E)-GPP,(S)-(−)-α-terpineol,Class I
+Q8VWY4,"(S)-2,3-epoxysqualene",cycloartenol,Class II
+Q8VWY3,"(S)-2,3-epoxysqualene",lupeol,Class II
+Q8VWY3,"(S)-2,3-epoxysqualene",germanicol,Class II
+Q8VWY3,"(S)-2,3-epoxysqualene",β-amyrin,Class II
+Q8SA63,"(2E,6E)-FPP",(−)-β-caryophyllene,Class I
+Q8S948,"(2E,6E)-FPP; isopentenyl PP","2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+Q8S3A6,"(2E,6E)-FPP",(−)-germacrene A,Class I
+Q8S3A5,"(2E,6E)-FPP",(−)-germacrene A,Class I
+Q8RWT0,"(S)-2,3-epoxysqualene",β-amyrin,Class II
+Q8RWT0,"(S)-2,3-epoxysqualene",α-amyrin,Class II
+Q8RWT0,"(S)-2,3-epoxysqualene",lupeol,Class II
+Q8PYS1,"(2E,6E,10E)-GGPP; isopentenyl PP",all-trans-pentaprenyl diphosphate(3−),prenyl
+Q8PYS1,"(2E,6E)-FPP; isopentenyl PP","2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+Q8PW34,"isopentenyl PP; (2E,6E)-FPP","2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+Q8NJA1,"(2E,6E)-FPP",trichodiene,Class I
+Q8NIH6,"(2E,6E)-FPP",trichodiene,Class I
+Q8NIH3,"(2E,6E)-FPP",trichodiene,Class I
+Q8NIH0,"(2E,6E)-FPP",trichodiene,Class I
+Q8NIG9,"(2E,6E)-FPP",trichodiene,Class I
+Q8NID7,"(2E,6E)-FPP",trichodiene,Class I
+Q8NIC8,"(2E,6E)-FPP",trichodiene,Class I
+Q8NIC1,"(2E,6E)-FPP",trichodiene,Class I
+Q8LSC3,"(2E,6E)-FPP",(+)-(R)-germacrene A,Class I
+Q8LSC2,"(2E,6E)-FPP",(+)-(R)-germacrene A,Class I
+Q8L5K4,(2E)-GPP,γ-terpinene,Class I
+Q8L5K4,(2E)-GPP,limonene,Class I
+Q8L5K4,(2E)-GPP,α-pinene,Class I
+Q8L5K4,(2E)-GPP,β-pinene,Class I
+Q8L5K4,(2E)-GPP,terpinolene,Class I
+Q8L5K4,(2E)-GPP,α-thujene,Class I
+Q8L5K4,(2E)-GPP,α-terpinene,Class I
+Q8L5K4,(2E)-GPP,β-myrcene,Class I
+Q8L5K4,(2E)-GPP,sabinene,Class I
+Q8L5K3,(2E)-GPP,(4R)-limonene,Class I
+Q8L5K2,(2E)-GPP,(−)-β-pinene,Class I
+Q8L5K1,(2E)-GPP,(4R)-limonene,Class I
+Q8L5J7,(2E)-GPP,(+)-car-3-ene,Class I
+Q8H2B4,(2E)-GPP,(R)-linalool,Class I
+Q8GUE4,(2E)-GPP,geraniol,Class I
+Q8GSL7,"(S)-2,3-epoxysqualene",β-amyrin,Class II
+Q8BLN5,"(S)-2,3-epoxysqualene",lanosterol,Class II
+Q84ZW8,ent-copalyl diphosphate,ent-kaurene,Class I
+Q84UV0,(2E)-GPP,(S)-linalool,Class I
+Q84UU9,"(2E,6E,10E)-GGPP","(3E,7E)-dolabella-3,7-dien-18-ol",Class I
+Q84UU4,"(2E,6E)-FPP","(1E,4E,8E)-α-humulene",Class I
+Q84UU4,"(2E,6E)-FPP",(−)-β-caryophyllene,Class I
+Q84SM8,(2E)-GPP,(+)-car-3-ene,Class I
+Q84PE3,"(S)-2,3-epoxysqualene",β-amyrin,Class II
+Q84PE1,"(S)-2,3-epoxysqualene",β-amyrin,Class II
+Q84PE1,"(S)-2,3-epoxysqualene",lupeol,Class II
+Q84ND0,(2E)-GPP,tricyclene,Class I
+Q84NC9,(2E)-GPP,tricyclene,Class I
+Q84NC8,(2E)-GPP,tricyclene,Class I
+Q84LG0,"(2E,6E)-FPP",(+)-5-epi-aristolochene,Class I
+Q84LF2,"(2E,6E)-FPP",(+)-5-epi-aristolochene,Class I
+Q84LF1,"(2E,6E)-FPP",(+)-5-epi-aristolochene,Class I
+Q84LF0,"(2E,6E)-FPP",(+)-5-epi-aristolochene,Class I
+Q84KL6,(2E)-GPP,(−)-α-pinene,Class I
+Q84KL5,"(2E,6E)-FPP","(E,E)-α-farnesene",Class I
+Q84KL4,(2E)-GPP,(S)-(−)-α-terpineol,Class I
+Q84KL3,(2E)-GPP,(+)-α-pinene,Class I
+Q82RR7,"(2E,6E)-FPP",avermitilol,Class I
+Q82IY4,"(2E,6E)-FPP",pentalenene,Class I
+Q7Z859,"(2E,6E,10E)-GGPP",15-cis-phytoene,prenyl
+Q7Z859,all-trans-lycopene,γ-carotene,Class II
+Q7Z859,γ-carotene,β-carotene,Class II
+Q7XYT0,(2E)-GPP; isopentenyl PP,"2-trans,6-trans-farnesyl diphosphate(3−)",prenyl
+Q7XYT0,dimethylallyl PP; isopentenyl PP,geranyl diphosphate(3−),prenyl
+Q7XYT0,dimethylallyl PP; isopentenyl PP,"2-trans,6-trans-farnesyl diphosphate(3−)",prenyl
+Q7XYS9,(2E)-GPP; isopentenyl PP,"2-trans,6-trans-farnesyl diphosphate(3−)",prenyl
+Q7XYS9,dimethylallyl PP; isopentenyl PP,geranyl diphosphate(3−),prenyl
+Q7XAS7,dimethylallyl PP,isoprene,Class I
+Q7X9A3,"(2E,6E)-FPP",(+)-5-epi-aristolochene,Class I
+Q7LJR6,"(2E,6E)-FPP",trichodiene,Class I
+Q7LJF8,"(2E,6E)-FPP",trichodiene,Class I
+Q796C3,(R)-tetraprenyl-β-curcumene,sporulenol,Class II
+Q764T8,"(S)-2,3-epoxysqualene",lupeol,Class II
+Q75WN1,(2E)-GPP,limonene,Class I
+Q71MJ3,"(2E,6E)-FPP",(+)-valencene,Class I
+Q70EZ7,"(2E,6E)-FPP",(−)-germacrene D,Class I
+Q70EZ6,"(2E,6E)-FPP",(−)-germacrene D,Class I
+Q6ZJL3,"(2E,6E)-FPP",(−)-β-caryophyllene,Class I
+Q6ZH94,(2E)-GPP,(S)-linalool,Class I
+Q6Z5J6,ent-copalyl diphosphate,"ent-pimara-8(14),15-diene",Class I
+Q6Z5I0,"(2E,6E,10E)-GGPP","5β,9α,10α-labda-8(20),13-dien-15-yl diphosphate(3−)",Class II
+Q6Z2X6,"(S)-2,3-epoxysqualene",cycloartenol,Class II
+Q6YN71,"(2E,6E)-FPP",(+)-(R)-germacrene A,Class I
+Q6XDB5,(2E)-GPP,(−)-α-pinene,Class I
+Q6XDB5,(2E)-GPP,(−)-β-pinene,Class I
+Q6WP50,"(2E,6E)-FPP",presilphiperfolan-8β-ol,Class I
+Q6USK1,(2E)-GPP,geraniol,Class I
+Q6TH92,"(2E,6E)-FPP",(+)-germacrene D,Class I
+Q6TH91,"(2E,6E)-FPP",(−)-germacrene D,Class I
+Q6TBY0,"(2E,6E,10E)-GGPP","taxa-4,11-diene",Class I
+Q6SA60,"(2E,6E,10E)-GGPP","taxa-4,11-diene",Class I
+Q6QZW8,"(S)-2,3-epoxysqualene",β-amyrin,Class II
+Q6QZW7,"(S)-2,3-epoxysqualene",cycloartenol,Class II
+Q6Q3H3,"(2E,6E)-FPP",γ-cadinene,Class I
+Q6Q3H3,"(2E,6E)-FPP",(−)-germacrene D,Class I
+Q6Q3H2,"(2E,6E)-FPP",(+)-valencene,Class I
+Q6Q3H2,"(2E,6E)-FPP",(-)-7-epi-α-selinene,Class I
+Q6Q3H2,"(2E,6E)-FPP",β-caryophyllene,Class I
+Q6Q3H2,"(2E,6E)-FPP",germacrene D,Class I
+Q6Q3H2,"(2E,6E)-FPP",α-humulene,Class I
+Q6Q3H2,"(2E,6E)-FPP",aristolochene,Class I
+Q6PWU2,(2E)-GPP,(S)-(−)-α-terpineol,Class I
+Q6N3F2,"(2E,6E)-FPP",presqualene diphosphate(3−),prenyl
+Q6N3F1,presqualene PP,(R)-12-hydroxysqualene,prenyl
+Q6JD73,"(2E,6E)-FPP",7-epi-sesquithujene,Class I
+Q6JD73,"(2E,6E)-FPP",(−)-exo-α-bergamotene,Class I
+Q6JD73,"(2E,6E)-FPP",(S)-β-bisabolene,Class I
+Q6JD73,"(2E,6E)-FPP",γ-curcumene,Class I
+Q6JD73,"(2E,6E)-FPP",sesquisabinene A,Class I
+Q6JD73,"(2Z,6E)-FPP",(−)-β-curcumene,Class I
+Q6JD71,Negative,,
+Q6JD70,"(2E,6E)-FPP",sesquithujene,Class I
+Q6JD70,"(2E,6E)-FPP",(S)-β-bisabolene,Class I
+Q6JD70,"(2E,6E)-FPP",(−)-endo-α-bergamotene,Class I
+Q6JD70,"(2E,6E)-FPP",(−)-β-curcumene,Class I
+Q6JD70,"(2E,6E)-FPP",γ-curcumene,Class I
+Q6JD70,"(2E,6E)-FPP",sesquisabinene B,Class I
+Q6IWA3,"(S)-2,3-epoxysqualene",β-amyrin,Class II
+Q6IW97,"(S)-2,3-epoxysqualene",β-amyrin,Class II
+Q6F5H3,(2E)-GPP,(4R)-limonene,Class I
+Q6F5H2,(2E)-GPP,(4R)-limonene,Class I
+Q6F5H1,(2E)-GPP,γ-terpinene,Class I
+Q6F5H0,(2E)-GPP,γ-terpinene,Class I
+Q6F5G9,(2E)-GPP,(−)-β-pinene,Class I
+Q6F5E6,"isopentenyl PP; (2E,6E)-FPP","2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+Q6F596,dimethylallyl PP; isopentenyl PP,"2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+Q6F596,(2E)-GPP; isopentenyl PP,"2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+Q6F596,"(2E,6E)-FPP; isopentenyl PP","2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+Q6ET36,"(2E,6E,10E)-GGPP",ent-copalyl diphosphate,Class II
+Q6EJ97,dimethylallyl PP,isoprene,Class I
+Q6EI12,"(2E,6E,10E)-GGPP",15-cis-phytoene,prenyl
+Q6E7D7,"(2E,6E,10E)-GGPP","5α,9β,10α-labda-8(20),13-dien-15-yl diphosphate(3−)",Class II
+Q6BE25,"(S)-2,3-epoxysqualene",cycloartenol,Class II
+Q6BE24,"(S)-2,3-epoxysqualene",cucurbitadienol,Class II
+Q6BDZ9,9α-copalyl PP,stemar-13-ene,Class I
+Q6A1B7,"(2E,6E)-FPP",trichodiene,Class I
+Q67DX4,"(2E,6E,10E)-GGPP","taxa-4,11-diene",Class I
+Q675L6,"(2E,6E)-FPP",(E)-α-bisabolene,Class I
+Q675L5,"(2E,6E,10E)-GGPP","5α,9α,10β-labda-8(20),13-dien-15-yl diphosphate(3−)",Class II
+Q675L5,(+)-copalyl diphosphate,"isopimara-7,15-diene",Class I
+Q675L4,"(2E,6E,10E)-GGPP","5α,9α,10β-labda-8(20),13-dien-15-yl diphosphate(3−)",Class II
+Q675L4,(+)-copalyl diphosphate,"abieta-8(14),12-diene",Class I
+Q675L1,(2E)-GPP,(4S)-limonene,Class I
+Q675L0,"(2E,6E)-FPP",longifolene,Class I
+Q673F9,ent-copalyl diphosphate,ent-kaurene,Class I
+Q672F7,(2E)-GPP,tricyclene,Class I
+Q672F7,(2E)-GPP,(E)-β-ocimene,Class I
+Q66QH3,9α-copalyl PP,"9β-pimara-7,15-diene",Class I
+Q66PX8,"(2E,6E)-FPP",(−)-β-caryophyllene,Class I
+Q65164,(2E)-GPP; isopentenyl PP,"2-trans,6-trans-farnesyl diphosphate(3−)",prenyl
+Q65164,"(2E,6E)-FPP; isopentenyl PP","2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+Q64K29,"(2E,6E)-FPP",(−)-germacrene D,Class I
+Q5Z5B7,"(2E,6E,10E)-GGPP",15-cis-phytoene,prenyl
+Q5W283,"(2E,6E)-FPP","cis-muurola-3,5-diene",Class I
+Q5W283,"(2E,6E)-FPP","cis-muurola-4(14),5-diene",Class I
+Q5UB07,(2E)-GPP,tricyclene,Class I
+Q5SBP7,"(2E,6E)-FPP",(+)-β-selinene,Class I
+Q5SBP7,"(2E,6E)-FPP",α-selinene,Class I
+Q5SBP6,"(2E,6E)-FPP",(−)-germacrene D,Class I
+Q5SBP5,"(2E,6E)-FPP",(+)-γ-cadinene,Class I
+Q5SBP4,"(2E,6E)-FPP",zingiberene,Class I
+Q5SBP3,(2E)-GPP,R-linalool,Class I
+Q5SBP2,(2E)-GPP,(−)-endo-fenchol,Class I
+Q5SBP1,(2E)-GPP,β-myrcene,Class I
+Q5SBP0,(2E)-GPP,terpinolene,Class I
+Q5R6U3,"(2E,6E)-FPP",squalene,prenyl
+Q5R6U3,presqualene PP,squalene,prenyl
+Q5NP67,presqualene PP,(R)-12-hydroxysqualene,prenyl
+Q5MQ85,"(2E,6E,10E)-GGPP",ent-copalyl diphosphate,Class II
+Q5KSN5,"(2E,6E,10E)-GGPP",ent-copalyl diphosphate,Class II
+Q5KSN4,ent-copalyl diphosphate,"ent-pimara-9(11),15-diene",Class I
+Q5GJ60,"(2E,6E)-FPP",(S)-β-macrocarpene,Class I
+Q5GJ59,"(2E,6E)-FPP",τ-cadinol,Class I
+Q5D7Q8,"(S)-2,3-epoxysqualene",β-amyrin,Class II
+Q5CD82,(2E)-GPP,"1,8-cineole",Class I
+Q58GE8,dimethylallyl PP; isopentenyl PP,geranyl diphosphate(3−),prenyl
+Q58GE8,(2E)-GPP,β-myrcene,Class I
+Q55D85,"(S)-2,3-epoxysqualene",cycloartenol,Class II
+Q55012,"(2E,6E)-FPP",pentalenene,Class I
+Q54DR1,"(2E,6E)-FPP",squalene,prenyl
+Q54BE5,"(2E,6E)-FPP",discoidol,Class I
+Q52QW5,"(2E,6E,10E)-GGPP",15-cis-phytoene,prenyl
+Q50L36,dimethylallyl PP,isoprene,Class I
+Q4WR16,"(S)-2,3-epoxysqualene","(17Z)-protosta-17(20),24-dien-3β-ol",Class II
+Q4WQ95,"(S)-2,3-epoxysqualene",lanosterol,Class II
+Q4WES9,"(S)-2,3-epoxysqualene",lanosterol,Class II
+Q4WAG4,"(2E,6E)-FPP",squalene,prenyl
+Q4VP12,"(2E,6E)-FPP",(+)-δ-cadinene,Class I
+Q4VP11,"(2E,6E)-FPP",(+)-δ-cadinene,Class I
+Q4U3F7,"(2E,6E)-FPP",(+)-(R)-germacrene A,Class I
+Q4U3F6,"(2E,6E)-FPP",α-copaene,Class I
+Q4U3F6,"(2E,6E)-FPP",α-muurolene,Class I
+Q4U3F6,"(2E,6E)-FPP","(1E,4E,8E)-α-humulene",Class I
+Q4QSN6,(2E)-GPP,terpinolene,Class I
+Q4QSN4,"(2E,6E)-FPP",(E)-γ-bisabolene,Class I
+Q4QSN3,(2E)-GPP,(−)-α-pinene,Class I
+Q4QSN3,(2E)-GPP,(−)-camphene,Class I
+Q4KSH9,"(2E,6E)-FPP",(+)-α-barbatene,Class I
+Q4KSH9,"(2E,6E)-FPP",(+)-thujopsene,Class I
+Q4KSH9,"(2E,6E)-FPP",(+)-β-chamigrene,Class I
+Q4JHN6,(2E)-GPP; isopentenyl PP,"2-trans,6-trans-farnesyl diphosphate(3−)",prenyl
+Q4JHG3,(2E)-GPP,geraniol,Class I
+Q49SP7,"(2E,6E)-FPP",γ-curcumene,Class I
+Q49SP6,"(2E,6E)-FPP",(−)-germacrene D,Class I
+Q49SP5,"(2E,6E)-FPP",(+)-(R)-germacrene A,Class I
+Q49SP4,"(2E,6E)-FPP",(−)-germacrene D,Class I
+Q49SP3,"(2E,6E)-FPP",patchoulol,Class I
+Q49SP3,"(2E,6E)-FPP",α-guaiene,Class I
+Q49SP3,"(2E,6E)-FPP",δ-guaiene,Class I
+Q45220,(2E)-GPP; isopentenyl PP,"2-trans,6-trans-farnesyl diphosphate(3−)",prenyl
+Q43714,"(2E,6E)-FPP",(+)-δ-cadinene,Class I
+Q43315,(2E)-GPP; isopentenyl PP,"2-trans,6-trans-farnesyl diphosphate(3−)",prenyl
+Q43315,dimethylallyl PP; isopentenyl PP,geranyl diphosphate(3−),prenyl
+Q43133,(2E)-GPP; isopentenyl PP,"2-trans,6-trans-farnesyl diphosphate(3−)",prenyl
+Q43133,dimethylallyl PP; isopentenyl PP,geranyl diphosphate(3−),prenyl
+Q43133,"(2E,6E)-FPP; isopentenyl PP","2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+Q42698,(2E)-GPP; isopentenyl PP,"2-trans,6-trans-farnesyl diphosphate(3−)",prenyl
+Q42698,dimethylallyl PP; isopentenyl PP,geranyl diphosphate(3−),prenyl
+Q42698,"(2E,6E)-FPP; isopentenyl PP","2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+Q41771,"(2E,6E,10E)-GGPP",ent-copalyl diphosphate,Class II
+Q41594,"(2E,6E,10E)-GGPP","taxa-4,11-diene",Class I
+Q40577,"(2E,6E)-FPP",(+)-5-epi-aristolochene,Class I
+Q40322,(2E)-GPP,(4S)-limonene,Class I
+Q401R6,"(S)-2,3-epoxysqualene",β-amyrin,Class II
+Q401R5,"(S)-2,3-epoxysqualene",β-amyrin,Class II
+Q3IPL1,"(2E,6E,10E)-GGPP; isopentenyl PP",all-trans-pentaprenyl diphosphate(3−),prenyl
+Q3IPL1,"(2E,6E)-FPP; isopentenyl PP","2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+Q3IPL1,(2E)-GPP; isopentenyl PP,"2-trans,6-trans-farnesyl diphosphate(3−)",prenyl
+Q3IPL1,dimethylallyl PP; isopentenyl PP,geranyl diphosphate(3−),prenyl
+Q39978,"(2E,6E)-FPP",premnaspirodiene,Class I
+Q39761,"(2E,6E)-FPP",(+)-δ-cadinene,Class I
+Q39760,"(2E,6E)-FPP",(+)-δ-cadinene,Class I
+Q39548,ent-copalyl diphosphate,ent-kaurene,Class I
+Q38802,"(2E,6E,10E)-GGPP",ent-copalyl diphosphate,Class II
+Q38710,"(2E,6E,10E)-GGPP","5α,9α,10β-labda-8(20),13-dien-15-yl diphosphate(3−)",Class II
+Q38710,(+)-copalyl diphosphate,"abieta-7,13-diene",Class I
+Q38710,(+)-copalyl diphosphate,neoabietadiene,Class I
+Q32W37,"(2E,6E)-FPP",(+)-germacrene D,Class I
+Q32KR6,"(2E,6E)-FPP",squalene,prenyl
+Q32KR6,presqualene PP,squalene,prenyl
+Q308N0,(2E)-GPP,geraniol,Class I
+Q2XSC6,(2E)-GPP,(4R)-limonene,Class I
+Q2XSC5,(2E)-GPP,(R)-linalool,Class I
+Q2XSC4,"(2E,6E)-FPP",(−)-exo-α-bergamotene,Class I
+Q2XPU7,"(S)-2,3-epoxysqualene",lupeol,Class II
+Q2XPU6,"(S)-2,3-epoxysqualene",cycloartenol,Class II
+Q2WGL8,"(S)-2,3-epoxysqualene",β-amyrin,Class II
+Q2WGL7,"(S)-2,3-epoxysqualene",lupeol,Class II
+Q2WGL6,"(S)-2,3-epoxysqualene",cycloartenol,Class II
+Q2R712,"(S)-2,3-epoxysqualene",achilleol B,Class II
+Q2QQJ5,ent-copalyl diphosphate,"ent-sandaracopimara-8(14),15-diene",Class I
+Q2QQJ5,9α-copalyl PP,"(12E)-9α-labda-8(17),12,14-triene",Class I
+Q2QLV9,"(2E,6E,10E)-GGPP",15-cis-phytoene,prenyl
+Q2NM15,"(2E,6E)-FPP",trans-β-farnesene,Class I
+Q2NM15,"(2E,6E)-FPP",α-copaene,Class I
+Q2NM15,"(2E,6E)-FPP",(−)-exo-α-bergamotene,Class I
+Q2NM15,"(2E,6E)-FPP",(−)-β-caryophyllene,Class I
+Q2NM15,"(2E,6E)-FPP",δ-cadinene,Class I
+Q2NM15,"(2E,6E)-FPP",(+)-germacrene D,Class I
+Q2NM15,"(2E,6E)-FPP",zingiberene,Class I
+Q2NM15,"(2E,6E)-FPP",α-muurolene,Class I
+Q2NM15,"(2E,6E)-FPP",(S)-β-bisabolene,Class I
+Q2NM15,"(2E,6E)-FPP",β-sesquiphellandrene,Class I
+Q2NM15,"(2E,6E)-FPP",sesquisabinene A,Class I
+Q2FV59,"(2E,6E)-FPP","15-cis-4,4'-diapophytoene",prenyl
+Q29VN3,"(2E,6E)-FPP",α-copaene,Class I
+Q29VN3,"(2E,6E)-FPP",(+)-germacrene D,Class I
+Q29VN3,"(2E,6E)-FPP",(−)-β-caryophyllene,Class I
+Q29VN3,"(2E,6E)-FPP",δ-cadinene,Class I
+Q29VN2,"(2E,6E)-FPP","(3S,6E)-nerolidol",Class I
+Q29VN2,"(2E,6E,10E)-GGPP",geranyllinalool,Class I
+Q29VN2,(2E)-GPP,(S)-linalool,Class I
+Q20HU7,(2E)-GPP,(4S)-limonene,Class I
+Q1XBU5,(2E)-GPP,(R)-linalool,Class I
+Q1XBU5,"(2E,6E)-FPP",(6E)-nerolidol,Class I
+Q1XBU4,(2E)-GPP,β-phellandrene,Class I
+Q1PDD2,"(2E,6E)-FPP",(−)-germacrene A,Class I
+Q1G1A4,"(S)-2,3-epoxysqualene",lanosterol,Class II
+Q1ERD3,"(S)-2,3-epoxysqualene",lanosterol,Class II
+Q1EG72,"(2E,6E)-FPP",(S)-β-macrocarpene,Class I
+Q1EG72,(2E)-GPP,β-myrcene,Class I
+Q1AHB2,9α-copalyl PP,stemod-13(17)-ene,Class I
+Q12051,"(2E,6E)-FPP; isopentenyl PP","2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+Q10231,"(S)-2,3-epoxysqualene",lanosterol,Class II
+Q0VHD6,"(2E,6E)-FPP",(+)-germacrene D,Class I
+Q0JF02,"(2E,6E,10E)-GGPP",9α-copalyl diphosphate,Class II
+Q0JEZ8,9α-copalyl PP,"9β-pimara-7,15-diene",Class I
+Q0JA82,ent-copalyl diphosphate,ent-kaurene,Class I
+Q0E088,ent-copalyl diphosphate,"ent-cassa-12,15-diene",Class I
+Q09152,(2E)-GPP; isopentenyl PP,"2-trans,6-trans-farnesyl diphosphate(3−)",prenyl
+Q09152,dimethylallyl PP; isopentenyl PP,geranyl diphosphate(3−),prenyl
+Q08IT1,"(S)-2,3-epoxysqualene",dammarenediol-II,Class II
+Q08291,(2E)-GPP; isopentenyl PP,"2-trans,6-trans-farnesyl diphosphate(3−)",prenyl
+Q04782,"(S)-2,3-epoxysqualene",lanosterol,Class II
+Q03471,"(2E,6E)-FPP",(+)-aristolochene,Class I
+Q02769,"(2E,6E)-FPP",squalene,prenyl
+Q00G37,ent-copalyl diphosphate,"ent-cassa-12,15-diene",Class I
+Q00909,"(2E,6E)-FPP",trichodiene,Class I
+Q00835,"(2E,6E)-FPP",trichodiene,Class I
+PhTS-1,"(2E,6E)-FPP",(-)-germacrene D,Class I
+PhTS-1,(2E)-GPP,β-myrcene,Class I
+PhTS-1,(2E)-GPP,(E)-β-ocimene,Class I
+PhTS-1,(2E)-GPP,α-phellandrene,Class I
+PhTS-1,(2E)-GPP,β-terpinene,Class I
+PhTS-1,(2E)-GPP,sylvestrene,Class I
+PbTC-1,"(2E,6E,10E)-GGPP",elisabethatriene,Class I
+PbTC-1,"(2E,6E)-FPP",nephthene,Class I
+PbTC-1,(2E)-GPP,geraniol,Class I
+P9WKH1,(2E)-GPP; isopentenyl PP,"2-trans,6-trans-farnesyl diphosphate(3−)",prenyl
+P9WEY7,"(2E,6E)-FPP",γ-muurolene,Class I
+P9WEY7,(2E)-GPP,β-myrcene,Class I
+P9WEX3,(2E)-GPP; isopentenyl PP,"2-trans,6-trans-farnesyl diphosphate(3−)",prenyl
+P9WEX3,dimethylallyl PP; isopentenyl PP,"2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+P9WEX3,"(2E,6E)-FPP; isopentenyl PP","2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+P9WEW2,"(2E,6E)-FPP",Δ6-protoilludene,Class I
+P9WEW2,"(2E,6E)-FPP",(−)-β-elemene,Class I
+P9WEW2,"(2E,6E)-FPP",Δ6-protoilludene,Class I
+P9WEW2,"(2E,6E)-FPP",(−)-β-elemene,Class I
+P9WEW2,"(2E,6E)-FPP",(−)-β-caryophyllene,Class I
+P9WEW2,"(2E,6E)-FPP",(+)-β-selinene,Class I
+P9WEW2,"(2E,6E)-FPP",α-selinene,Class I
+P9WEW1,"(2E,6E)-FPP",Δ6-protoilludene,Class I
+P9WEW1,"(2E,6E)-FPP",(−)-β-elemene,Class I
+P9WEW1,"(2E,6E)-FPP",Δ6-protoilludene,Class I
+P9WEW1,"(2E,6E)-FPP",(−)-β-elemene,Class I
+P9WEW1,"(2E,6E)-FPP",(−)-β-caryophyllene,Class I
+P9WEW1,"(2E,6E)-FPP",(+)-β-selinene,Class I
+P9WEW1,"(2E,6E)-FPP",α-selinene,Class I
+P9WEW0,"(2E,6E)-FPP",Δ6-protoilludene,Class I
+P9WEW0,"(2E,6E)-FPP",Δ6-protoilludene,Class I
+P9WEW0,"(2E,6E)-FPP",(−)-β-elemene,Class I
+P9WEW0,"(2E,6E)-FPP",(−)-β-caryophyllene,Class I
+P9WEW0,"(2E,6E)-FPP",(+)-β-selinene,Class I
+P9WEW0,"(2E,6E)-FPP",α-selinene,Class I
+P9WEV7,"(2E,6E,10E)-GGPP","(5R,12R,14S)-dolasta-1(15),8-diene",Class I
+P9WEV7,"(2E,6E,10E)-GGPP",delta-araneosene,Class I
+P9WEV7,dimethylallyl PP; isopentenyl PP,"2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+P9WEV6,"(2E,6E,10E)-GGPP",phomopsene,Class I
+P9WEV6,"isopentenyl PP; (2E,6E)-FPP","2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+P9WEV2,dimethylallyl PP; 4 isopentenyl PP,all-trans-pentaprenyl diphosphate(3−),prenyl
+P9WEV2,"(2E,6E,10E,14E)-GFPP",preaspterpenacid acid I,Class I
+P9WEQ2,(2E)-GPP; isopentenyl PP,"2-trans,6-trans-farnesyl diphosphate(3−)",prenyl
+P9WEQ2,dimethylallyl PP; isopentenyl PP,geranyl diphosphate(3−),prenyl
+P9WEQ2,"(2E,6E)-FPP; isopentenyl PP","2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+P9WEP0,"(2E,6E,10E,14E)-GFPP",aspergiltriene A,Class I
+P9WEP0,"(2E,6E,10E,14E)-GFPP",aspergildiene A,Class I
+P9WEP0,"(2E,6E,10E,14E)-GFPP",aspergildiene B,Class I
+P9WEP0,"(2E,6E,10E,14E)-GFPP",aspergildiene C,Class I
+P9WEP0,"(2E,6E,10E,14E)-GFPP",aspergildiene D,Class I
+P9WEP0,"(2E,6E,10E)-GGPP; isopentenyl PP",all-trans-pentaprenyl diphosphate(3−),prenyl
+P9WEP0,"(2E,6E)-FPP; isopentenyl PP","2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+P95999,"isopentenyl PP; (2E,6E)-FPP","2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+P93665,"(2E,6E)-FPP",(+)-δ-cadinene,Class I
+P84466,"(S)-2,3-epoxysqualene",lanosterol,Class II
+P80042,(2E)-GPP; isopentenyl PP,"2-trans,6-trans-farnesyl diphosphate(3−)",prenyl
+P80042,dimethylallyl PP; isopentenyl PP,geranyl diphosphate(3−),prenyl
+P80042,"(2E,6E)-FPP; isopentenyl PP","2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+P78589,"(2E,6E)-FPP",squalene,prenyl
+P59287,"(2E,6E,10E)-GGPP",casbene,Class I
+P56966,"(2E,6E)-FPP; isopentenyl PP","2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+P55350,"(2E,6E)-FPP",presqualene diphosphate(3−),prenyl
+P55348,squalene,hop-22(29)-ene,Class II
+P55348,squalene,hopan-22-ol,Class II
+P54976,"isopentenyl PP; (2E,6E)-FPP","2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+P54975,"(2E,6E,10E)-GGPP",15-cis-phytoene,prenyl
+P54924,squalene,hop-22(29)-ene,Class II
+P54924,squalene,hopan-22-ol,Class II
+P53800,"(2E,6E)-FPP",squalene,prenyl
+P53799,"(2E,6E)-FPP",squalene,prenyl
+P53798,"(2E,6E)-FPP",squalene,prenyl
+P53797,"(2E,6E,10E)-GGPP",phytoene,prenyl
+P49352,(2E)-GPP; isopentenyl PP,"2-trans,6-trans-farnesyl diphosphate(3−)",prenyl
+P49352,dimethylallyl PP; isopentenyl PP,"2-trans,6-trans-farnesyl diphosphate(3−)",prenyl
+P49352,dimethylallyl PP; isopentenyl PP,geranyl diphosphate(3−),prenyl
+P49351,(2E)-GPP; isopentenyl PP,"2-trans,6-trans-farnesyl diphosphate(3−)",prenyl
+P49351,dimethylallyl PP; isopentenyl PP,geranyl diphosphate(3−),prenyl
+P49350,(2E)-GPP; isopentenyl PP,"2-trans,6-trans-farnesyl diphosphate(3−)",prenyl
+P49350,dimethylallyl PP; isopentenyl PP,"2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+P49085,"(2E,6E,10E)-GGPP",15-cis-phytoene,prenyl
+P48450,"(S)-2,3-epoxysqualene",lanosterol,Class II
+P48449,"(S)-2,3-epoxysqualene",lanosterol,Class II
+P39464,"isopentenyl PP; (2E,6E)-FPP","2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+P38605,"(S)-2,3-epoxysqualene",cycloartenol,Class II
+P38604,"(S)-2,3-epoxysqualene",lanosterol,Class II
+P37295,"(2E,6E,10E)-GGPP",15-cis-phytoene,prenyl
+P37294,"(2E,6E,10E)-GGPP",15-cis-phytoene,prenyl
+P37272,"(2E,6E,10E)-GGPP",prephytoene diphosphate,prenyl
+P37272,prephytoene PP,15-cis-phytoene,prenyl
+P37271,"(2E,6E,10E)-GGPP",15-cis-phytoene,prenyl
+P37269,"(2E,6E,10E)-GGPP",prephytoene diphosphate,prenyl
+P37269,prephytoene PP,15-cis-phytoene,prenyl
+P37268,"(2E,6E)-FPP",presqualene diphosphate(3−),prenyl
+P36596,"(2E,6E)-FPP",squalene,prenyl
+P34802,(2E)-GPP; isopentenyl PP,"2-trans,6-trans-farnesyl diphosphate(3−)",prenyl
+P34802,dimethylallyl PP; isopentenyl PP,geranyl diphosphate(3−),prenyl
+P34802,"(2E,6E)-FPP; isopentenyl PP","2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+P33990,squalene,hop-22(29)-ene,Class II
+P33990,squalene,hopan-22-ol,Class II
+P33247,squalene,hop-22(29)-ene,Class II
+P33247,squalene,hopan-22-ol,Class II
+P29704,"(2E,6E)-FPP",squalene,prenyl
+P27679,"(2E,6E)-FPP",trichodiene,Class I
+P24322,(2E)-GPP; isopentenyl PP,"2-trans,6-trans-farnesyl diphosphate(3−)",prenyl
+P24322,dimethylallyl PP; isopentenyl PP,"2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+P24322,"(2E,6E)-FPP; isopentenyl PP","2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+P22939,dimethylallyl PP; isopentenyl PP,"2-trans,6-trans-farnesyl diphosphate(3−)",prenyl
+P22873,"isopentenyl PP; (2E,6E)-FPP","2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+P21684,prephytoene PP,phytoene,prenyl
+P21683,"(2E,6E,10E)-GGPP",15-cis-phytoene,prenyl
+P17060,prephytoene PP,phytoene,prenyl
+P14324,(2E)-GPP; isopentenyl PP,"2-trans,6-trans-farnesyl diphosphate(3−)",prenyl
+P14324,dimethylallyl PP; isopentenyl PP,geranyl diphosphate(3−),prenyl
+P13513,"(2E,6E)-FPP",trichodiene,Class I
+P0DPK6,"(2E,6E,10E)-GGPP",(−)-spiroviolene,Class I
+P0DL13,"(2E,6E)-FPP",Δ6-protoilludene,Class I
+P0DI77,(2E)-GPP,"1,8-cineole",Class I
+P0DI77,(2E)-GPP,sabinene,Class I
+P0DI77,(2E)-GPP,β-myrcene,Class I
+P0DI77,(2E)-GPP,(−)-β-pinene,Class I
+P0DI77,(2E)-GPP,(4S)-limonene,Class I
+P0DI77,(2E)-GPP,(E)-β-ocimene,Class I
+P0DI77,(2E)-GPP,α-terpineol,Class I
+P0DI77,(2E)-GPP,(−)-α-pinene,Class I
+P0DI77,(2E)-GPP,terpinolene,Class I
+P0DI77,(2E)-GPP,(+)-α-thujene,Class I
+P0DI76,(2E)-GPP,"1,8-cineole",Class I
+P0DI76,(2E)-GPP,sabinene,Class I
+P0DI76,(2E)-GPP,β-myrcene,Class I
+P0DI76,(2E)-GPP,(−)-β-pinene,Class I
+P0DI76,(2E)-GPP,(4S)-limonene,Class I
+P0DI76,(2E)-GPP,(E)-β-ocimene,Class I
+P0DI76,(2E)-GPP,α-terpineol,Class I
+P0DI76,(2E)-GPP,(−)-α-pinene,Class I
+P0DI76,(2E)-GPP,terpinolene,Class I
+P0DI76,(2E)-GPP,(+)-α-thujene,Class I
+P0CV96,"(2E,6E)-FPP","(3S,6E)-nerolidol",Class I
+P0CV96,(2E)-GPP,linalool,Class I
+P0CV95,"(2E,6E)-FPP","(3S,6E)-nerolidol",Class I
+P0CV95,(2E)-GPP,(S)-linalool,Class I
+P0CV94,"(2E,6E)-FPP","(3S,6E)-nerolidol",Class I
+P0CV94,(2E)-GPP,(S)-linalool,Class I
+P0CJ43,"(2E,6E)-FPP","(E,E)-α-farnesene",Class I
+P0C8Y0,"(S)-2,3-epoxysqualene",camelliol C,Class II
+P0C8Y0,"(S)-2,3-epoxysqualene",achilleol A,Class II
+P0C565,"(R,R)-chrysanthemyl diphosphate","(R,R)-chrysanthemol",Class I
+P0C565,(R)-lavandulyl diphosphate(3−),(R)-lavandulol,Class I
+P08836,(2E)-GPP; isopentenyl PP,"2-trans,6-trans-farnesyl diphosphate(3−)",prenyl
+P08836,dimethylallyl PP; isopentenyl PP,geranyl diphosphate(3−),prenyl
+P08524,(2E)-GPP; isopentenyl PP,"2-trans,6-trans-farnesyl diphosphate(3−)",prenyl
+P08524,dimethylallyl PP; isopentenyl PP,geranyl diphosphate(3−),prenyl
+P08196,"(2E,6E,10E)-GGPP",15-cis-phytoene,prenyl
+P05369,(2E)-GPP; isopentenyl PP,"2-trans,6-trans-farnesyl diphosphate(3−)",prenyl
+P05369,dimethylallyl PP; isopentenyl PP,"2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+O95749,"(2E,6E)-FPP; isopentenyl PP","2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+O82146,"(S)-2,3-epoxysqualene",β-amyrin,Class II
+O82141,"(S)-2,3-epoxysqualene",lanosterol,Class II
+O82140,"(S)-2,3-epoxysqualene",β-amyrin,Class II
+O82139,"(S)-2,3-epoxysqualene",cycloartenol,Class II
+O81923,"(2E,6E)-FPP",(+)-5-epi-aristolochene,Class I
+O81193,(2E)-GPP,(+)-sabinene,Class I
+O81192,(2E)-GPP,(+)-bornyl diphosphate,Class I
+O81192,(2E)-GPP,(+)-camphene,Class I
+O81192,(2E)-GPP,(+)-α-pinene,Class I
+O81191,(2E)-GPP,"1,8-cineole",Class I
+O81086,"(2E,6E)-FPP","(E,R)-α-bisabolene",Class I
+O74165,"(2E,6E)-FPP",squalene,prenyl
+O65435,"(2E,6E,10E)-GGPP",rhizathalene A,Class I
+O65323,"(2E,6E)-FPP",(+)-5-epi-aristolochene,Class I
+O64961,"(2Z,6Z)-FPP",germacrene C,Class I
+O64405,"(2E,6E)-FPP","(1E,6E)-γ-humulene",Class I
+O64405,"(2E,6E)-FPP",sibirene,Class I
+O64405,"(2E,6E)-FPP",longifolene,Class I
+O64405,"(2E,6E)-FPP",β-himachalene,Class I
+O64405,"(2E,6E)-FPP",γ-himachalene,Class I
+O64405,"(2E,6E)-FPP",α-himachalene,Class I
+O64404,"(2E,6E)-FPP","(1E,4E)-germacrene B",Class I
+O64404,"(2E,6E)-FPP",(+)-δ-selinene,Class I
+O64404,"(2E,6E)-FPP","(+)-guaia-6,9-diene",Class I
+O59947,"(2E,6E)-FPP",trichodiene,Class I
+O59703,"(2E,6E)-FPP; isopentenyl PP","2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+O53507,(2E)-GPP; isopentenyl PP,"2-trans,6-trans-farnesyl diphosphate(3−)",prenyl
+O53507,dimethylallyl PP; isopentenyl PP,geranyl diphosphate(3−),prenyl
+O53507,"(2E,6E)-FPP; isopentenyl PP","2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+O50410,"isopentenyl PP; (2E,6E)-FPP","2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+O50406,"(2E,6E,10E)-GGPP",tuberculosinyl diphosphate(3−),Class II
+O49853,"(2E,6E)-FPP",(+)-δ-cadinene,Class I
+O48935,"(2E,6E)-FPP",trans-β-farnesene,Class I
+O48935,(2E)-GPP,limonene,Class I
+O48666,"(2E,6E)-FPP",squalene,prenyl
+O24475,(2E)-GPP,(−)-α-pinene,Class I
+O24475,(2E)-GPP,(−)-β-pinene,Class I
+O24474,(2E)-GPP,β-myrcene,Class I
+O24242,dimethylallyl PP; isopentenyl PP,geranyl diphosphate(3−),prenyl
+O24241,dimethylallyl PP; isopentenyl PP,geranyl diphosphate(3−),prenyl
+O23945,(2E)-GPP,(−)-α-pinene,Class I
+O23945,(2E)-GPP,β-pinene,Class I
+O23945,(2E)-GPP,sabinene,Class I
+O23945,(2E)-GPP,β-myrcene,Class I
+O23945,(2E)-GPP,α-phellandrene,Class I
+O23945,(2E)-GPP,β-phellandrene,Class I
+O23909,"(S)-2,3-epoxysqualene",β-amyrin,Class II
+O23390,"(S)-2,3-epoxysqualene",baruol,Class II
+O22340,(2E)-GPP,(4S)-limonene,Class I
+O22043,dimethylallyl PP; isopentenyl PP,"2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+O22043,"(2E,6E)-FPP; isopentenyl PP","2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+O14230,(2E)-GPP; isopentenyl PP,"2-trans,6-trans-farnesyl diphosphate(3−)",prenyl
+O14230,dimethylallyl PP; isopentenyl PP,geranyl diphosphate(3−),prenyl
+O13489,"(2E,6E)-FPP",trichodiene,Class I
+O13284,ent-copalyl diphosphate,ent-kaurene,Class I
+O07854,"(2E,6E)-FPP","15-cis-4,4'-diapophytoene",prenyl
+O06728,"(2E,6E)-FPP","(2-trans,6-trans)-farnesol",Class I
+O06428,"(2E,6E)-FPP; isopentenyl PP","2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+O06428,(2E)-GPP; isopentenyl PP,"2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+O06428,dimethylallyl PP; isopentenyl PP,"2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+O05572,dimethylallyl PP; isopentenyl PP,geranyl diphosphate(3−),prenyl
+O04806,(2E)-GPP,(4S)-limonene,Class I
+O04408,"(2E,6E,10E)-GGPP",ent-copalyl diphosphate,Class II
+O04046,dimethylallyl PP; isopentenyl PP,"2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+O04046,"(2E,6E)-FPP; isopentenyl PP","2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+N4V6D4,"(2E,6E,10E,14E)-GFPP",betaestacin I,Class I
+N4V6D4,"(2E,6E,10E)-GGPP; isopentenyl PP",all-trans-pentaprenyl diphosphate(3−),prenyl
+N4V6D4,"(2E,6E)-FPP; isopentenyl PP","2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+MW446505.1,dimethylallyl PP; 4 isopentenyl PP,all-trans-pentaprenyl diphosphate(3−),prenyl
+MW446505.1,"(2E,6E,10E,14E)-GFPP",fusoxypene A,Class I
+MW446505.1,"(2E,6E,10E,14E)-GFPP",fusoxypene B,Class I
+MW446505.1,"(2E,6E,10E,14E)-GFPP",fusoxypene C,Class I
+MW446505.1,"(2E,6E,10E,14E)-GFPP",(−)-astellatene,Class I
+M5AW86,"(2E,6E,10E,14E)-GFPP",β-geranylfarnesene,Class I
+M5AW86,HexPP,β-hexaprene,Class I
+M5AW86,HepPP,β-heptaprene,Class I
+M4HZ33,"(2E,6E)-FPP",α-bisabolol,Class I
+M4HYP3,(+)-copalyl diphosphate,"isopimara-7,15-diene",Class I
+M4HYC8,(+)-copalyl diphosphate,"pimara-8(14),15-diene",Class II
+M4HYC6,"(2E,6E,10E)-GGPP","5α,9α,10β-labda-8(20),13-dien-15-yl diphosphate(3−)",Class II
+M4HYC6,(+)-copalyl diphosphate,"abieta-7,13-diene",Class I
+M4HYC6,(+)-copalyl diphosphate,levopimaradiene,Class I
+M4HYC6,(+)-copalyl diphosphate,neoabietadiene,Class I
+M4HY08,(+)-copalyl diphosphate,"pimara-8(14),15-diene",Class II
+M4HY05,"(2E,6E,10E)-GGPP",levopimaradiene,Class II
+M4HY05,(+)-copalyl diphosphate,Palustradiene,Class I
+M4HY05,(+)-copalyl diphosphate,abietadiene,Class I
+M4HY05,(+)-copalyl diphosphate,neoabietadiene,Class I
+M4HXW5,(+)-copalyl diphosphate,"isopimara-7,15-diene",Class I
+M4HXU6,"(2E,6E,10E)-GGPP",levopimaradiene,Class II
+M4GGS1,"(2E,6E)-FPP","amorpha-4,11-diene",Class I
+M4GGS0,"(2E,6E)-FPP","amorpha-4,11-diene",Class I
+M2V8C1,"(2E,6E,10E,14E)-GFPP",ophiobolin F,Class I
+M2V8C1,"(2E,6E,10E)-GGPP; isopentenyl PP",all-trans-pentaprenyl diphosphate(3−),prenyl
+M2V8C1,"(2E,6E)-FPP; isopentenyl PP","2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+M2U578,"(2E,6E,10E,14E)-GFPP",preterpestacin I,Class I
+M2U578,"(2E,6E,10E)-GGPP; isopentenyl PP",all-trans-pentaprenyl diphosphate(3−),prenyl
+M1VDX3,"(2E,6E,10E)-GGPP",(R)-nephthenol,Class I
+M1V9Q0,"(2E,6E,10E)-GGPP",cembrene C,Class I
+M1V9Q0,"(2E,6E,10E)-GGPP",(R)-nephthenol,Class I
+LdSTS7,"(2E,6E)-FPP",1-aristolene,Class I
+LdSTS6,"(2E,6E)-FPP",α-murrolene,Class I
+LdSTS3,"(2E,6E)-FPP",α-cubebene,Class I
+LdSTS11,"(2E,6E)-FPP",1-aristolene,Class I
+LdSTS1,"(2E,6E)-FPP",δ-cadinene,Class I
+LdSTS1,"(2E,6E)-FPP","Di-epi-1,10-cubenol",Class I
+L7XCQ7,"(2E,6E)-FPP",(−)-germacrene A,Class I
+L0I7F9,"(2E,6E)-FPP",(−)-β-caryophyllene,Class I
+L0I517,"(2E,6E)-FPP",(−)-germacrene D,Class I
+L0I517,"(2E,6E)-FPP",(−)-β-caryophyllene,Class I
+L0HP52,"(2E,6E)-FPP","valerena-1,10-diene",Class I
+L0HLH2,"(2E,6E)-FPP",germacrene C,Class I
+L0HB77,(2E)-GPP,(E)-sabinene hydrate,Class I
+L0HB77,(2E)-GPP,limonene,Class I
+L0HB77,(2E)-GPP,α-terpineol,Class I
+L0HB77,(2E)-GPP,α-pinene,Class I
+L0HAM7,(2E)-GPP,(Z)-sabinene hydrate,Class I
+L0HAM7,(2E)-GPP,α-pinene,Class I
+KUL85185.1,HexPP,talaropentaene,Class I
+K9Y6Y9,Negative,,
+K9Y645,Negative,,
+K7WTQ7,"(2E,6E)-FPP",(+)-α-santalene,Class I
+K7WDC8,Negative,,
+K7TR87,"(2E,6E,10E)-GGPP",ent-copalyl diphosphate,Class II
+K7TKS3,"(2E,6E)-FPP","(1E,4E,8E)-α-humulene",Class I
+K7TKS3,"(2E,6E)-FPP",(−)-β-caryophyllene,Class I
+K7PRF2,"(2E,6E)-FPP",(−)-β-caryophyllene,Class I
+K7PRF2,"(2E,6E)-FPP","(1E,4E,8E)-α-humulene",Class I
+K7NBZ9,"(S)-2,3-epoxysqualene",cucurbitadienol,Class II
+K4LMW2,"(2E,6E)-FPP",kunzeaol,Class I
+K4L9M2,"(2E,6E)-FPP",(+)-δ-cadinene,Class I
+K2SUY0,HexPP,macrophomene,Class I
+K0K750,"(2E,6E)-FPP",(−)-β-caryophyllene,Class I
+J9RLZ7,"(2E,6E)-FPP",δ-elemene,Class I
+J9RLZ7,"(2E,6E)-FPP",germacrene C,Class I
+J9RLZ7,"(2E,6E)-FPP",(−)-germacrene D,Class I
+J9RLZ7,"(2E,6E)-FPP",germacrene B,Class I
+J9R5V4,"(2E,6E)-FPP","valerena-4,7(11)-diene",Class I
+J9R388,"(2E,6E,10E)-GGPP",(+)-copalyl diphosphate,Class II
+J9R1J8,"(2E,6E)-FPP",(−)-β-elemene,Class I
+J9R1J8,"(2E,6E)-FPP",α-copaene,Class I
+J9R1J8,"(2E,6E)-FPP",γ-cadinene,Class I
+J9R1J8,"(2E,6E)-FPP",δ-cadinene,Class I
+J9R1J8,"(2E,6E)-FPP",(6E)-nerolidol,Class I
+J9QS25,"(2E,6E)-FPP",(E)-2-epi-β-caryophyllene,Class I
+J9QS23,"(2E,6E,10E)-GGPP",(+)-copalyl diphosphate,Class II
+J7LQ09,"(2E,6E)-FPP",(−)-exo-α-bergamotene,Class I
+J7LP58,"(2E,6E)-FPP",α-copaene,Class I
+J7LP58,"(2E,6E)-FPP",δ-cadinene,Class I
+J7LMP2,"(2E,6E)-FPP",bicyclogermacrene,Class I
+J7LJN5,"(2E,6E)-FPP",(+)-β-caryophyllene,Class I
+J7LH11,"(2E,6E)-FPP",(+)-epi-α-bisabolol,Class I
+J7FIX8,(2E)-GPP; isopentenyl PP,"2-trans,6-trans-farnesyl diphosphate(3−)",prenyl
+J7FIX8,dimethylallyl PP; isopentenyl PP,geranyl diphosphate(3−),prenyl
+J7FIX8,"(2E,6E)-FPP; isopentenyl PP","2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+J3MQP7,"(2E,6E)-FPP",ent-zingiberene,Class I
+J3MQP7,"(2E,6E)-FPP",β-sesquiphellandrene,Class I
+J3MQP7,"(2E,6E)-FPP",β-bisabolene,Class I
+IIIS,"(2E,6E)-FPP",iltremulanol A,Class I
+I7H727,"(2E,6E)-FPP",β-elemene,Class I
+I7H727,"(2E,6E)-FPP",(−)-β-caryophyllene,Class I
+I7H727,"(2E,6E)-FPP","(1E,4E,8E)-α-humulene",Class I
+I7H727,"(2E,6E)-FPP",germacrene D,Class I
+I7H727,"(2E,6E)-FPP",α-selinene,Class I
+I7H727,"(2E,6E)-FPP",δ-cadinene,Class I
+I7GPX8,(2E)-GPP,(4R)-limonene,Class I
+I7GPX8,(2E)-GPP,β-pinene,Class I
+I7GPX8,(2E)-GPP,β-myrcene,Class I
+I7GPX8,(2E)-GPP,terpinolene,Class I
+I6RE61,(2E)-GPP,(E)-β-ocimene,Class I
+I6RE61,(2E)-GPP,(Z)-β-ocimene,Class I
+I6RAQ6,"(2E,6E)-FPP",(−)-β-caryophyllene,Class I
+I6R4V5,"(2E,6E)-FPP",(−)-α-isocomene,Class I
+I6QSN0,"(2E,6E)-FPP",(+)-(R)-germacrene A,Class I
+I6QPS5,"(2E,6E)-FPP",(−)-germacrene D,Class I
+I3WEW0,(2E)-GPP,"1,8-cineole",Class I
+I2N045,"(2E,6E,10E)-GGPP",tsukubadiene,Class I
+I2CM69,NPP,limonene,Class I
+I2CM59,(2E)-GPP,α-pinene,Class I
+I2CM56,"(2E,6E)-FPP",(+)-endo-β-bergamotene,Class I
+I2CM55,"(2E,6E)-FPP",(+)-α-santalene,Class I
+I1ZHA5,"(2E,6E)-FPP",β-cadinene,Class I
+I1TE91,"(2E,6E)-FPP",(+)-(R)-germacrene A,Class I
+I1S104,"(2E,6E)-FPP",longiborneol,Class I
+I1RL14,(2E)-GPP; isopentenyl PP,"2-trans,6-trans-farnesyl diphosphate(3−)",prenyl
+I1RL14,dimethylallyl PP; isopentenyl PP,geranyl diphosphate(3−),prenyl
+I1M2G5,NPP,nerol,Class I
+HcTC-3,"(2E,6E,10E)-GGPP",elisabethatriene,Class I
+HcTC-3,"(2E,6E)-FPP",nephthene,Class I
+HcTC-2,"(2E,6E)-FPP",nephthene,Class I
+HcTC-1,"(2E,6E,10E)-GGPP","7,11,15-Trimethyl-3-methylene-hexadeca-1,6,10,14-tetraene",Class I
+HcTC-1,"(2E,6E,10E)-GGPP",alpha-springene,Class I
+H9L9E5,"(2E,6E)-FPP",α-copaene,Class I
+H9C6R1,"(2E,6E)-FPP",valerianol,Class I
+H8ZM73,"(2E,6E,10E)-GGPP",copal-8-ol diphosphate(3−),Class II
+H8ZM73,copal-8-ol diphosphate(3−),cis-abienol,Class I
+H6WZF2,(2E)-GPP,"1,8-cineole",Class I
+H6WZF2,(2E)-GPP,α-terpineol,Class I
+H6WZF2,(2E)-GPP,β-myrcene,Class I
+H6WZF2,(2E)-GPP,linalool,Class I
+H6WZF2,(2E)-GPP,limonene,Class I
+H6WZF2,(2E)-GPP,sabinene,Class I
+H6VLG5,ent-copal-8-ol diphosphate(3−),"(13R)-epi-8,13-epoxylabd-14-ene",Class I
+H6VLG0,"(2E,6E,10E)-GGPP",(+)-copalyl diphosphate,Class II
+H2VFR7,"(2E,6E)-FPP",presqualene diphosphate(3−),prenyl
+H2KWF1,"(S)-2,3-epoxysqualene",parkeol,Class II
+G9MAN7,"(2E,6E,10E)-GGPP",(+)-copalyl diphosphate,Class II
+G9MAN7,(+)-copalyl diphosphate,miltiradiene,Class I
+G9M5S9,ent-copalyl diphosphate,ent-kaurene,Class I
+G9M5S6,ent-copalyl diphosphate,ent-kaurene,Class I
+G9M5S5,ent-copalyl diphosphate,ent-kaurene,Class I
+G9M5S4,ent-copalyl diphosphate,ent-kaurene,Class I
+G8H5N2,"(2E,6E)-FPP",germacrene A,Class I
+G8H5N1,(2E)-GPP,terpinolene,Class I
+G8H5N1,(2E)-GPP,limonene,Class I
+G8H5N1,(2E)-GPP,β-myrcene,Class I
+G8H5N1,(2E)-GPP,α-pinene,Class I
+G8H5N1,(2E)-GPP,delta-2-carene,Class I
+G8H5N1,(2E)-GPP,(Z)-β-ocimene,Class I
+G8H5N1,(2E)-GPP,(E)-β-ocimene,Class I
+G8H5N1,(2E)-GPP,γ-terpinene,Class I
+G8H5N1,"(2E,6E)-FPP",trans-β-farnesene,Class I
+G8H5N0,"(2Z,6Z)-FPP",(Z)-γ-bisabolene,Class I
+G8H5N0,(2E)-GPP,β-myrcene,Class I
+G8H5M9,(2E)-GPP,limonene,Class I
+G8H5M9,(2E)-GPP,β-myrcene,Class I
+G8H5M9,"(2E,6E)-FPP",β-farnesene,Class I
+G8H5M8,"(2E,6E)-FPP","(1E,4E,8E)-α-humulene",Class I
+G8H5M8,"(2Z,6Z)-FPP",β-bisabolene,Class I
+G8H5M8,(2E)-GPP,β-myrcene,Class I
+G8H5M7,"(2E,6E)-FPP","(1E,4E)-germacrene B",Class I
+G8H5M7,"(2Z,6Z)-FPP","(1E,4E,8E)-α-humulene",Class I
+G8H5M7,(2E)-GPP,limonene,Class I
+G8GJ96,"(2E,6E,10E)-GGPP",copal-8-ol diphosphate(3−),Class II
+G8GJ95,"(2E,6E,10E)-GGPP",copal-8-ol diphosphate(3−),Class II
+G8GJ94,copal-8-ol diphosphate(3−),sclareol,Class I
+G7LHE5,"(S)-2,3-epoxysqualene",β-amyrin,Class II
+G7K980,"(S)-2,3-epoxysqualene",β-amyrin,Class II
+G7K980,"(S)-2,3-epoxysqualene",cycloartenol,Class II
+G7K980,"(S)-2,3-epoxysqualene",lanosterol,Class II
+G5CV56,"(2E,6E)-FPP",(+)-epi-α-bisabolol,Class I
+G5CV54,"(2E,6E)-FPP",β-bisabolene,Class I
+G5CV54,"(2Z,6Z)-FPP",α-bisabolene,Class I
+G5CV52,"(2E,6E)-FPP",(+)-valencene,Class I
+G5CV52,"(2Z,6Z)-FPP",(Z)-γ-bisabolene,Class I
+G5CV50,ent-copalyl diphosphate,ent-kaurene,Class I
+G5CV48,(2E)-GPP,"1,8-cineole",Class I
+G5CV46,"(2E,6E)-FPP",viridiflorene,Class I
+G5CV45,"(2E,6E)-FPP",viridiflorene,Class I
+G5CV44,"(2E,6E)-FPP","guaia-1(10),11-diene",Class I
+G5CV44,"(2E,6E)-FPP",β-acoradiene,Class I
+G5CV43,"(2E,6E)-FPP","guaia-1(10),11-diene",Class I
+G5CV42,"(2E,6E)-FPP","cis-muurola-3,5-diene",Class I
+G5CV40,"(2E,6E)-FPP",(−)-exo-α-bergamotene,Class I
+G5CV38,"(2E,6E,10E)-GGPP",(+)-copalyl diphosphate,Class II
+G5CV35,(2E)-GPP,α-phellandrene,Class I
+G3E4M6,"(2E,6E,10E)-GGPP","5β,9α,10α-labda-8(20),13-dien-15-yl diphosphate(3−)",Class II
+G3E4M4,"(2E,6E,10E)-GGPP","5β,9α,10α-labda-8(20),13-dien-15-yl diphosphate(3−)",Class II
+G3CCC1,copal-8-ol diphosphate(3−),cis-abienol,Class I
+G3CCC0,"(2E,6E,10E)-GGPP",copal-8-ol diphosphate(3−),Class II
+G2P5T1,"(2E,6E)-FPP",(+)-isoafricanol,Class I
+G1JUH6,"(2E,6E)-FPP",germacrene C,Class I
+G1JUH5,(2E)-GPP,"1,8-cineole",Class I
+G1JUH4,(2E)-GPP,limonene,Class I
+G1JUH1,(2E)-GPP,tricyclene,Class I
+G1JUH1,(2E)-GPP,(−)-camphene,Class I
+G1JUH1,(2E)-GPP,(4S)-limonene,Class I
+G1DGI7,"(2E,6E,10E)-GGPP","(13E)-labda-7,13-dien-15-ol",Class II
+G0Y7D3,(2E)-GPP,α-thujene,Class I
+G0Y7D3,(2E)-GPP,(+)-sabinene,Class I
+G0Y7D2,(2E)-GPP,α-thujene,Class I
+G0Y7D1,(2E)-GPP,(E)-β-ocimene,Class I
+G0Y288,presqualene PP,C30 botryococcene,prenyl
+G0Y288,presqualene PP,presqualene alcohol,prenyl
+G0Y286,"(2E,6E)-FPP",presqualene alcohol,prenyl
+G0LES5,"(2E,6E)-FPP",trichodiene,Class I
+F8WQD0,"(S)-2,3-epoxysqualene",shionone,Class II
+F8UL81,"(2E,6E)-FPP",(−)-β-caryophyllene,Class I
+F8UL80,"(2E,6E)-FPP",(+)-(R)-germacrene A,Class I
+F8TWC9,"(2E,6E)-FPP",(−)-germacrene D,Class I
+F6I4Y2,"(2E,6E)-FPP",(−)-β-caryophyllene,Class I
+F6I4Y2,"(2E,6E)-FPP","(1E,4E,8E)-α-humulene",Class I
+F2XFB2,"(2E,6E,10E)-GGPP","abieta-8(14),12-diene",Class II
+F2XFB2,"(2E,6E,10E)-GGPP","abieta-7,13-diene",Class II
+F2XFB2,"(2E,6E,10E)-GGPP",neoabietadiene,Class II
+F2XFB2,"(2E,6E,10E)-GGPP",Palustradiene,Class II
+F2XFA8,(2E)-GPP,(−)-α-pinene,Class I
+F2XFA8,(2E)-GPP,(−)-β-pinene,Class I
+F2XFA8,(2E)-GPP,linalool,Class I
+F2XFA8,(2E)-GPP,β-phellandrene,Class I
+F2XFA8,(2E)-GPP,camphene,Class I
+F2XFA8,(2E)-GPP,β-myrcene,Class I
+F2XFA6,(2E)-GPP,(R)-linalool,Class I
+F2XFA5,(2E)-GPP,(−)-β-phellandrene,Class I
+F2XFA5,(2E)-GPP,(−)-β-pinene,Class I
+F2XFA5,(2E)-GPP,(−)-α-pinene,Class I
+F2XFA5,(2E)-GPP,β-myrcene,Class I
+F2XFA5,(2E)-GPP,α-phellandrene,Class I
+F2XFA5,(2E)-GPP,terpinolene,Class I
+F2XFA4,(2E)-GPP,(−)-β-phellandrene,Class I
+F2XFA4,(2E)-GPP,(−)-β-pinene,Class I
+F2XFA4,(2E)-GPP,(−)-α-pinene,Class I
+F2XFA4,(2E)-GPP,β-myrcene,Class I
+F2XFA4,(2E)-GPP,α-phellandrene,Class I
+F2XFA4,(2E)-GPP,terpinolene,Class I
+F2XFA2,(2E)-GPP,"1,8-cineole",Class I
+F2XFA2,(2E)-GPP,(S)-(−)-α-terpineol,Class I
+F2XFA2,(2E)-GPP,(+)-α-pinene,Class I
+F2XFA2,(2E)-GPP,β-myrcene,Class I
+F2XFA2,(2E)-GPP,β-pinene,Class I
+F2XFA1,(2E)-GPP,(−)-β-phellandrene,Class I
+F2XFA1,(2E)-GPP,(−)-β-pinene,Class I
+F2XFA1,(2E)-GPP,(−)-α-pinene,Class I
+F2XFA1,(2E)-GPP,β-myrcene,Class I
+F2XFA1,(2E)-GPP,α-phellandrene,Class I
+F2XFA1,(2E)-GPP,terpinolene,Class I
+F2XFA0,"(2E,6E)-FPP",(+)-longifolene,Class I
+F2XFA0,"(2E,6E)-FPP",(+)-α-longipinene,Class I
+F2XF99,"(2E,6E)-FPP","(E,E)-α-farnesene",Class I
+F2XF99,(2E)-GPP,(E)-β-ocimene,Class I
+F2XF98,(2E)-GPP,"1,8-cineole",Class I
+F2XF98,(2E)-GPP,(S)-(−)-α-terpineol,Class I
+F2XF98,(2E)-GPP,β-myrcene,Class I
+F2XF98,(2E)-GPP,(+)-α-pinene,Class I
+F2XF98,(2E)-GPP,β-pinene,Class I
+F2XF98,(2E)-GPP,γ-terpinene,Class I
+F2XF97,"(2E,6E)-FPP","(1E,4E,8E)-α-humulene",Class I
+F2XF97,"(2E,6E)-FPP",(−)-β-caryophyllene,Class I
+F2XF97,"(2E,6E)-FPP",(+)-α-longipinene,Class I
+F2XF97,"(2E,6E)-FPP",longifolene,Class I
+F2XF97,"(2E,6E)-FPP",α-muurolene,Class I
+F2XF97,"(2E,6E)-FPP",γ-himachalene,Class I
+F2XF96,(2E)-GPP,(−)-β-pinene,Class I
+F2XF96,(2E)-GPP,(−)-α-pinene,Class I
+F2XF95,(2E)-GPP,(−)-α-pinene,Class I
+F2XF95,(2E)-GPP,(−)-β-pinene,Class I
+F2XF94,(2E)-GPP,(+)-car-3-ene,Class I
+F2XF94,(2E)-GPP,terpinolene,Class I
+F2XF94,(2E)-GPP,(+)-sabinene,Class I
+F2XF94,(2E)-GPP,4-terpineol,Class I
+F2XF94,(2E)-GPP,(−)-α-pinene,Class I
+F2XF94,(2E)-GPP,α-terpineol,Class I
+F2XF94,(2E)-GPP,(−)-β-phellandrene,Class I
+F2XF94,(2E)-GPP,β-myrcene,Class I
+F2XF94,(2E)-GPP,γ-terpinene,Class I
+F2XF94,(2E)-GPP,α-terpinene,Class I
+F2XF94,(2E)-GPP,α-phellandrene,Class I
+F2XF94,(2E)-GPP,α-thujene,Class I
+F2XF93,(2E)-GPP,(R)-linalool,Class I
+F2XF92,(+)-copalyl diphosphate,"isopimara-7,15-diene",Class I
+F2XF92,(+)-copalyl diphosphate,"isopimara-8(14),15-diene",Class I
+F1CKJ1,(2E)-GPP,(+)-sabinene,Class I
+F1CKI9,(2E)-GPP,(+)-car-3-ene,Class I
+F1CKI8,(2E)-GPP,(+)-car-3-ene,Class I
+F1CKI6,(2E)-GPP,(+)-car-3-ene,Class I
+F1CKI6,(2E)-GPP,terpinolene,Class I
+F1CKI6,(2E)-GPP,(+)-sabinene,Class I
+F1CKI6,(2E)-GPP,(−)-α-pinene,Class I
+F1CKI6,(2E)-GPP,4-terpineol,Class I
+F1CKI6,(2E)-GPP,(−)-β-phellandrene,Class I
+F1CKI6,(2E)-GPP,β-myrcene,Class I
+F1CKI6,(2E)-GPP,α-terpineol,Class I
+F1CKI6,(2E)-GPP,γ-terpinene,Class I
+F1A1D4,"(2E,6E)-FPP",bicycloelemene,Class I
+F1A1D4,"(2E,6E)-FPP",(−)-β-elemene,Class I
+F0ZPL2,"(2E,6E)-FPP","1,2,4,8-tetramethylbicyclo[6.3.0]undeca-2,4-diene",Class I
+F0ZPL2,"(2E,6E)-FPP",alpha-neoclovene,Class I
+F0ZPL2,"(2E,6E)-FPP",(E)-2-epi-β-caryophyllene,Class I
+F0ZPL2,"(2E,6E)-FPP",beta-Neoclovene,Class I
+F0ZLU4,"(2E,6E)-FPP","(2S,3R,6S,9S)-(−)-protoillud-7-ene",Class I
+F0ZL92,"(2E,6E)-FPP",δ-elemene,Class I
+F0ZL92,"(2E,6E)-FPP",(−)-β-elemene,Class I
+F0ZL92,"(2E,6E)-FPP",(−)-β-caryophyllene,Class I
+F0ZL92,"(2E,6E)-FPP",trans-β-farnesene,Class I
+F0ZL92,"(2E,6E)-FPP",(E)-2-epi-β-caryophyllene,Class I
+F0ZK52,"(2E,6E)-FPP",(−)-β-elemene,Class I
+F0ZK52,"(2E,6E)-FPP",germacrene D,Class I
+F0ZDD0,"(2E,6E)-FPP",(−)-β-elemene,Class I
+F0ZDD0,"(2E,6E)-FPP",trans-β-farnesene,Class I
+F0ZDD0,"(2E,6E)-FPP","(E,E)-α-farnesene",Class I
+ErTC-2,"(2E,6E,10E)-GGPP",cembrene A,Class I
+ErTC-1,"(2E,6E)-FPP","(2-trans,6-trans)-farnesol",Class I
+ErTC-1,(2E)-GPP,linalool,Class I
+E9N3U9,(2E)-GPP,β-phellandrene,Class I
+E9F8R9,"(2E,6E)-FPP",nerolidol,Class I
+E9F8R9,"(2E,6E)-FPP",α-cadinol,Class I
+E9F8R9,"(2E,6E)-FPP",(−)-γ-cadinene,Class I
+E9F8R9,"(2E,6E)-FPP",germacrene D,Class I
+E9F8R9,"(2E,6E)-FPP",δ-cadinene,Class I
+E9F8R9,"(2E,6E)-FPP",α-cadinene,Class I
+E9F8R9,"(2E,6E)-FPP",α-muurolene,Class I
+E9F8R9,"(2E,6E)-FPP",(−)-β-elemene,Class I
+E9F8R9,"(2E,6E)-FPP",(−)-β-caryophyllene,Class I
+E9F5E9,"(2E,6E)-FPP; isopentenyl PP","2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+E9E766,"(2E,6E)-FPP",(+)-corvol ether B,Class I
+E9E766,"(2E,6E)-FPP",(+)-corvol ether A,Class I
+E9E766,"(2E,6E)-FPP",epizonarene,Class I
+E9E766,"(2E,6E)-FPP",γ-cadinene,Class I
+E9E766,"(2E,6E)-FPP",δ-cadinene,Class I
+E9E766,"(2E,6E)-FPP",α-cadinene,Class I
+E9E766,"(2E,6E)-FPP",α-cadinol,Class I
+E8W6C7,"(2E,6E)-FPP","(+)-(1(10)E,4E,6S,7R)-germacradien-6-ol",Class I
+E7DN64,"(S)-2,3-epoxysqualene",δ-amyrin,Class II
+E7DN64,"(S)-2,3-epoxysqualene",α-amyrin,Class II
+E7DN64,"(S)-2,3-epoxysqualene",β-amyrin,Class II
+E7DN63,"(S)-2,3-epoxysqualene",β-amyrin,Class II
+E5RM29,"(2E,6E)-FPP",(−)-β-elemene,Class I
+E5L4Y4,"(2E,6E)-FPP",(−)-germacrene A,Class I
+E5L4Y4,"(2E,6E)-FPP",δ-guaiene,Class I
+E5GAG4,(2E)-GPP,(+)-α-pinene,Class I
+E5GAG2,(2E)-GPP,(+)-α-phellandrene,Class I
+E5GAG1,"(2E,6E)-FPP",(−)-β-curcumene,Class I
+E5GAG0,"(2E,6E)-FPP",(−)-γ-cadinene,Class I
+E5GAF8,"(2E,6E)-FPP",(−)-germacrene D,Class I
+E5GAF7,"(2E,6E)-FPP",(−)-germacrene D,Class I
+E5GAF6,"(2E,6E)-FPP",(−)-exo-α-bergamotene,Class I
+E5GAF5,"(2E,6E)-FPP",(−)-β-caryophyllene,Class I
+E5GAF5,"(2E,6E)-FPP","(1E,4E,8E)-α-humulene",Class I
+E5GAF4,"(2E,6E)-FPP",(−)-β-caryophyllene,Class I
+E5GAF4,"(2E,6E)-FPP","(1E,4E,8E)-α-humulene",Class I
+E5GAF3,"(2E,6E)-FPP",(−)-β-caryophyllene,Class I
+E5GAF3,"(2E,6E)-FPP","(1E,4E,8E)-α-humulene",Class I
+E4V6I8,"(S)-2,3-epoxysqualene","(17Z)-protosta-17(20),24-dien-3β-ol",Class II
+E4N7E5,"(2E,6E)-FPP",(+)-corvol ether B,Class I
+E4N7E5,"(2E,6E)-FPP",(+)-corvol ether A,Class I
+E4MYY0,"(2E,6E)-FPP","(2Z,6E)-hedycaryol",Class I
+E3WDE2,"(2E,6E,10E)-GGPP","5β,9α,10α-labda-8(20),13-dien-15-yl diphosphate(3−)",Class II
+E3WDE2,ent-copalyl diphosphate,ent-kaurene,Class I
+E3W326,"(2E,6E)-FPP",(S)-β-bisabolene,Class I
+E3W208,"(2E,6E)-FPP",guaiol,Class I
+E3W208,"(2E,6E)-FPP",elemol,Class I
+E3W207,"(2E,6E)-FPP","(1E,4E,8E)-α-humulene",Class I
+E3W206,"(2E,6E)-FPP","(E,R)-α-bisabolene",Class I
+E3W205,"(2E,6E)-FPP",β-bisabolene,Class I
+E3W204,"(2E,6E)-FPP",(−)-β-santalene,Class I
+E3W204,"(2E,6E)-FPP",(+)-α-santalene,Class I
+E3W204,"(2E,6E)-FPP",(−)-exo-α-bergamotene,Class I
+E3W203,"(2E,6E)-FPP",(−)-β-santalene,Class I
+E3W203,"(2E,6E)-FPP",(+)-α-santalene,Class I
+E3W203,"(2E,6E)-FPP",(−)-exo-α-bergamotene,Class I
+E3W202,"(2E,6E)-FPP",(−)-exo-α-bergamotene,Class I
+E3W202,"(2E,6E)-FPP",(+)-α-santalene,Class I
+E3W202,"(2E,6E)-FPP",(−)-β-santalene,Class I
+E3VWJ0,"(2E,6E)-FPP",pentalenene,Class I
+E2IUB0,"(S)-2,3-epoxysqualene",cycloartenol,Class II
+E2IUA9,"(S)-2,3-epoxysqualene",lupeol,Class II
+E2IUA8,"(S)-2,3-epoxysqualene",friedelin,Class II
+E2IUA7,"(S)-2,3-epoxysqualene",glutinol,Class II
+E2IUA6,"(S)-2,3-epoxysqualene",taraxerol,Class II
+E2IHE0,"(2E,6E,10E)-GGPP",copal-8-ol diphosphate(3−),Class II
+E2E2P2,(2E)-GPP,β-phellandrene,Class I
+E2E2P2,(2E)-GPP,(+)-sabinene,Class I
+E2E2P0,(2E)-GPP,γ-terpinene,Class I
+E2E2P0,(2E)-GPP,α-terpinene,Class I
+E2E2P0,(2E)-GPP,α-thujene,Class I
+E2E2P0,(2E)-GPP,α-pinene,Class I
+E2E2P0,(2E)-GPP,sabinene,Class I
+E2E2P0,(2E)-GPP,β-myrcene,Class I
+E2E2P0,(2E)-GPP,p-cymene,Class I
+E2E2P0,(2E)-GPP,(4R)-limonene,Class I
+E2E2N8,"(2E,6E)-FPP",(−)-germacrene D,Class I
+E2E2N8,(2E)-GPP,geraniol,Class I
+E2E2N4,"(2E,6E)-FPP",(−)-β-caryophyllene,Class I
+E2E2N3,(2E)-GPP,(E)-β-ocimene,Class I
+E2E2N3,(2E)-GPP,β-myrcene,Class I
+E2E2N3,(2E)-GPP,α-terpinene,Class I
+E2E2N3,(2E)-GPP,β-phellandrene,Class I
+E2E2N3,(2E)-GPP,(Z)-β-ocimene,Class I
+E2E2N3,(2E)-GPP,γ-terpinene,Class I
+DgTC-2,"(2E,6E,10E)-GGPP",cembrene A,Class I
+DgTC-2,"(2E,6E)-FPP","(2-trans,6-trans)-farnesol",Class I
+DgTC-1,"(2E,6E)-FPP",nephthene,Class I
+D9XDR8,"(2E,6E)-FPP",(−)-α-amorphene,Class I
+D9XD61,"(2E,6E)-FPP",7-epi-α-eudesmol,Class I
+D9J0D5,"(2E,6E,10E)-GGPP",alpha-cembratrien-ol,Class I
+D9J0D5,"(2E,6E,10E)-GGPP",beta-cembratrien-ol,Class I
+D9J0D4,"(2E,6E,10E)-GGPP",alpha-cembratrien-ol,Class I
+D9J0D4,"(2E,6E,10E)-GGPP",beta-cembratrien-ol,Class I
+D9J0D3,"(2E,6E,10E)-GGPP",alpha-cembratrien-ol,Class I
+D9J0D3,"(2E,6E,10E)-GGPP",beta-cembratrien-ol,Class I
+D8RNZ9,"(2E,6E)-FPP","(3S,6E)-nerolidol",Class I
+D8RNZ9,(2E)-GPP,limonene,Class I
+D8RNZ9,(2E)-GPP,(S)-linalool,Class I
+D8RLD3,"(2E,6E)-FPP",(+)-germacrene D,Class I
+D8RLD3,"(2E,6E)-FPP",α-copaene,Class I
+D8RLD3,"(2E,6E)-FPP",(−)-β-elemene,Class I
+D8RLD3,"(2E,6E)-FPP",bicyclogermacrene,Class I
+D8RLD3,"(2E,6E)-FPP",γ-cadinene,Class I
+D8RLD3,"(2E,6E)-FPP",δ-cadinene,Class I
+D8RLD3,"(2E,6E)-FPP",α-cadinene,Class I
+D7T0P8,"(S)-2,3-epoxysqualene",β-amyrin,Class II
+D7PHZ5,(2E)-GPP; isopentenyl PP,"2-trans,6-trans-farnesyl diphosphate(3−)",prenyl
+D7NJ68,"(S)-2,3-epoxysqualene",lanosterol,Class II
+D5SL78,(2E)-GPP,(R)-linalool,Class I
+D5SL78,"(2E,6E)-FPP",(6E)-nerolidol,Class I
+D5SJ87,"(2E,6E,10E)-GGPP","(5S,9S,10S,13E)-labda-7,13-dien-15-yl diphosphate(3−)",Class II
+D5KXJ0,"(2E,6E,10E)-GGPP",prephytoene diphosphate,prenyl
+D5KXJ0,prephytoene PP,15-cis-phytoene,prenyl
+D5KXD2,"(2Z,6Z)-FPP",β-bisabolene,Class I
+D5KXD2,"(2E,6E)-FPP",(−)-β-caryophyllene,Class I
+D5KXD2,(2E)-GPP,β-myrcene,Class I
+D4IIJ1,ent-copalyl diphosphate,ent-kaurene,Class I
+D4IIJ0,ent-copalyl diphosphate,ent-kaurene,Class I
+D3KYU2,(E)-2-MeGPP,2-methylisoborneol,Class I
+D2YZP9,"(2E,6E)-FPP",(S)-β-bisabolene,Class I
+D2XEB3,ent-copalyl diphosphate,ent-kaurene,Class I
+D2X8Y8,ent-copalyl diphosphate,ent-kaurene,Class I
+D2X8G2,"(2E,6E,10E)-GGPP",ent-copalyl diphosphate,Class II
+D2X8G1,ent-copalyl diphosphate,ent-kaurene,Class I
+D2X8G0,"(2E,6E,10E)-GGPP",ent-copalyl diphosphate,Class II
+D2K762,"(2E,6E)-FPP",squalene,prenyl
+D2B747,"(2E,6E)-FPP",(+)-4-epi-cubebol,Class I
+D1MJ52,"(2E,6E)-FPP",(−)-germacrene A,Class I
+D0VMR8,"(2E,6E)-FPP",δ-guaiene,Class I
+D0VMR8,"(2E,6E)-FPP",α-guaiene,Class I
+D0VMR7,"(2E,6E)-FPP",δ-guaiene,Class I
+D0VMR7,"(2E,6E)-FPP",α-guaiene,Class I
+D0VMR6,"(2E,6E)-FPP",δ-guaiene,Class I
+D0VMR6,"(2E,6E)-FPP",α-guaiene,Class I
+D0VMR5,Negative,,
+D0VFU8,"(2E,6E)-FPP",squalene,prenyl
+D0UZK2,"(2E,6E)-FPP",(+)-valencene,Class I
+CiTC-1,"(2E,6E)-FPP",Capnellene,Class I
+C9K2Q3,"(2E,6E,10E)-GGPP","fusicocca-2,10(14)-diene",Class I
+C9K2Q3,dimethylallyl PP; isopentenyl PP,geranylgeranyl diphosphate(3−),prenyl
+C9K1X5,"(2E,6E,10E)-GGPP",cyclooctat-9-en-7-ol,Class I
+C9E894,"(2E,6E)-FPP",squalene,prenyl
+C8XPS0,(+)-copalyl diphosphate,miltiradiene,Class I
+C7SCX0,"(S)-2,3-epoxysqualene",β-amyrin,Class II
+C7PLV2,"(2Z,6E)-FPP",(−)-γ-cadinene,Class I
+C7E5W0,"(2E,6E)-FPP",trans-β-farnesene,Class I
+C7E5V9,"(2E,6E)-FPP",trans-β-farnesene,Class I
+C7E5V8,"(2E,6E)-FPP",trans-β-farnesene,Class I
+C7E5V7,"(2E,6E)-FPP",trans-β-farnesene,Class I
+C7ASI9,(2E)-GPP,(+)-car-3-ene,Class I
+C5YN30,"(2E,6E)-FPP",(Z)-γ-bisabolene,Class I
+C5YN30,"(2E,6E)-FPP",(−)-exo-α-bergamotene,Class I
+C5YHZ9,"(2E,6E)-FPP",(−)-β-caryophyllene,Class I
+C5YHZ9,"(2E,6E)-FPP","(1E,4E,8E)-α-humulene",Class I
+C5YHI2,"(2E,6E)-FPP",β-sesquiphellandrene,Class I
+C5YHH7,"(2E,6E)-FPP",zingiberene,Class I
+C5I6F7,"(2E,6E)-FPP",(−)-β-caryophyllene,Class I
+C5I6F7,"(2E,6E)-FPP","(1E,4E,8E)-α-humulene",Class I
+C5H3I7,"(2E,6E)-FPP",zingiberene,Class I
+C5H3I7,"(2E,6E)-FPP",β-sesquiphellandrene,Class I
+C3RSF5,(2E)-GPP,α-pinene,Class I
+C1K5M3,NPP,β-phellandrene,Class I
+C0SSW7,"(2E,6E,10E)-GGPP",ent-copalyl diphosphate,Class II
+C0PTH8,(2E)-GPP,β-phellandrene,Class I
+C0PTH8,(2E)-GPP,(−)-β-pinene,Class I
+C0PTH8,(2E)-GPP,(−)-α-pinene,Class I
+C0PTH8,(2E)-GPP,β-myrcene,Class I
+C0PTH8,(2E)-GPP,α-phellandrene,Class I
+C0PTH8,(2E)-GPP,terpinolene,Class I
+C0PT35,(2E)-GPP,"1,8-cineole",Class I
+C0PT35,(2E)-GPP,(S)-(−)-α-terpineol,Class I
+C0PT35,(2E)-GPP,β-myrcene,Class I
+C0PT35,(2E)-GPP,β-pinene,Class I
+C0PT35,(2E)-GPP,(+)-α-pinene,Class I
+C0PPR1,(2E)-GPP,(R)-linalool,Class I
+C0PPM5,"(2E,6E)-FPP",(+)-α-longipinene,Class I
+C0PPM5,"(2E,6E)-FPP",longifolene,Class I
+C0PPM5,"(2E,6E)-FPP",γ-himachalene,Class I
+C0PPM5,"(2E,6E)-FPP",trans-β-farnesene,Class I
+C0PPM5,"(2E,6E)-FPP",β-longipinene,Class I
+C0KWV7,(2E)-GPP,linalool,Class I
+C0KWV6,(2E)-GPP,geraniol,Class I
+C0KWV5,(2E)-GPP,linalool,Class I
+C0KWV4,(2E)-GPP,geraniol,Class I
+C0KWV3,(2E)-GPP,linalool,Class I
+BDO24661.1,"(2E,6E)-FPP",pleostene,Class I
+BDO24661.1,"(2E,6E)-FPP",isobazzanene,Class I
+BDI63124.1,"(2E,6E)-FPP",isobazzanene,Class I
+BDI63123.1,"(2E,6E)-FPP",α-barbatene,Class I
+BDI63123.1,"(2E,6E)-FPP",β-barbatene,Class I
+BDI63121.1,"(2E,6E)-FPP",γ-cadinene,Class I
+BDI63118.1,"(2E,6E)-FPP",Δ6-protoilludene,Class I
+BDI63117.1,"(2E,6E)-FPP","cadina-1,4-diene",Class I
+BDI63117.1,"(2E,6E)-FPP","cadina-1(6),4-diene",Class I
+BDI63117.1,"(2E,6E)-FPP",δ-cadinene,Class I
+BDI63117.1,"(2E,6E)-FPP",β-copaene,Class I
+BDI63117.1,"(2E,6E)-FPP",(E)-β-farnesene,Class I
+BDI63116.1,"(2E,6E)-FPP","cadina-1,4-diene",Class I
+BDI63116.1,"(2E,6E)-FPP","cadina-1(6),4-diene",Class I
+BDI63116.1,"(2E,6E)-FPP",δ-cadinene,Class I
+BDI63116.1,"(2E,6E)-FPP",β-copaene,Class I
+BDI63116.1,"(2E,6E)-FPP",zonarene,Class I
+BDI63114.1,"(2E,6E)-FPP",δ-cadinene,Class I
+BDI63113.1,"(2E,6E)-FPP",α-cuprenene,Class I
+BDI63111.1,"(2E,6E)-FPP",pleostene,Class I
+BDI63110.1,"(2E,6E)-FPP","cadina-1,4-diene",Class I
+BDI63110.1,"(2E,6E)-FPP","cadina-1(6),4-diene",Class I
+BDI63110.1,"(2E,6E)-FPP",δ-cadinene,Class I
+BDI63110.1,"(2E,6E)-FPP",(E)-β-farnesene,Class I
+BDI63110.1,"(2E,6E)-FPP",zonarene,Class I
+BDI63109.1,"(2E,6E)-FPP",δ-cadinene,Class I
+BDI63109.1,"(2E,6E)-FPP",isobazzanene,Class I
+BDI63109.1,"(2E,6E)-FPP",α-muurolene,Class I
+BDI63108.1,"(2E,6E)-FPP",δ-cadinene,Class I
+BDI63108.1,"(2E,6E)-FPP",α-muurolene,Class I
+BDI63108.1,"(2E,6E)-FPP",zonarene,Class I
+BDI63107.1,"(2E,6E)-FPP",δ-cadinene,Class I
+BDI63107.1,"(2E,6E)-FPP",isobazzanene,Class I
+BDI63107.1,"(2E,6E)-FPP",α-muurolene,Class I
+BDI63103.1,"(2E,6E)-FPP",β-barbatene,Class I
+BDI63099.1,"(2E,6E)-FPP","cadina-1,4-diene",Class I
+BDI63099.1,"(2E,6E)-FPP","cadina-1(6),4-diene",Class I
+BDI63099.1,"(2E,6E)-FPP",δ-cadinene,Class I
+BDI63099.1,"(2E,6E)-FPP",β-copaene,Class I
+BDI63099.1,"(2E,6E)-FPP",zonarene,Class I
+BDI63096.1,"(2E,6E)-FPP",Δ6-protoilludene,Class I
+BDI63095.1,"(2E,6E)-FPP",Δ6-protoilludene,Class I
+BDI63091.1,"(2E,6E)-FPP","cadina-1,4-diene",Class I
+BDI63091.1,"(2E,6E)-FPP","cadina-1(6),4-diene",Class I
+BDI63091.1,"(2E,6E)-FPP",δ-cadinene,Class I
+BDI63091.1,"(2E,6E)-FPP",β-copaene,Class I
+BDI63091.1,"(2E,6E)-FPP",(E)-β-farnesene,Class I
+BDI63091.1,"(2E,6E)-FPP",zonarene,Class I
+BDI63087.1,"(2E,6E)-FPP",Δ6-Protoilludene,Class I
+BDI63085.1,"(2E,6E)-FPP",(Z)-α-bisabolene,Class I
+BDI63084.1,"(2E,6E)-FPP",δ-cadinene,Class I
+BDI63084.1,"(2E,6E)-FPP",epizonarene,Class I
+BDI63083.1,"(2E,6E)-FPP","cadina-1,4-diene",Class I
+BDI63083.1,"(2E,6E)-FPP","cadina-1(6),4-diene",Class I
+BDI63083.1,"(2E,6E)-FPP",δ-cadinene,Class I
+BDI63083.1,"(2E,6E)-FPP",zonarene,Class I
+BaTC-2,"(2E,6E,10E)-GGPP",klysimplexin R,Class I
+BaTC-2,"(2E,6E)-FPP","(2-trans,6-trans)-farnesol",Class I
+BaTC-2,(2E)-GPP,geraniol,Class I
+BaTC-1,"(2E,6E,10E)-GGPP",cembrene A,Class I
+B9X0J1,"(S)-2,3-epoxysqualene",baccharis oxide,Class II
+B9T625,ent-copalyl diphosphate,ent-kaurene,Class I
+B9S9Z3,"(2E,6E)-FPP",(+)-δ-cadinene,Class I
+B9S9Z3,"(2E,6E)-FPP",α-copaene,Class I
+B9RXW0,"(2E,6E)-FPP","(E,E)-α-farnesene",Class I
+B9RHW5,"(2E,6E,10E)-GGPP",casbene,Class I
+B9GSM9,"(2E,6E,10E)-GGPP",ent-copalyl diphosphate,Class II
+B8XA41,"(2Z,6Z)-FPP",(+)-α-santalene,Class I
+B8XA41,"(2Z,6Z)-FPP",(+)-endo-β-bergamotene,Class I
+B8XA41,"(2Z,6Z)-FPP",(−)-endo-α-bergamotene,Class I
+B8PQ84,"(2E,6E,10E)-GGPP","5α,9α,10β-labda-8(20),13-dien-15-yl diphosphate(3−)",Class II
+B8PD44,"(2E,6E)-FPP",α-copaene,Class I
+B8PD44,"(2E,6E)-FPP",β-cubebene,Class I
+B8PD44,"(2E,6E)-FPP",α‐cubebene,Class I
+B8PD44,"(2E,6E)-FPP",cyclosativene,Class I
+B8PD44,"(2E,6E)-FPP",sativene,Class I
+B8PD44,"(2E,6E)-FPP",β-copaene,Class I
+B8PD44,"(2E,6E)-FPP",sesquisabinene B,Class I
+B8PD44,"(2E,6E)-FPP","cadina-1(6),4-diene",Class I
+B8PD44,"(2E,6E)-FPP",γ-muurolene,Class I
+B8PD44,"(2E,6E)-FPP",bicyclosesquiphellandrene,Class I
+B8PD44,"(2E,6E)-FPP",allo-aromadendr-9-ene,Class I
+B8PD44,"(2E,6E)-FPP",(+)-4-epi-cubebol,Class I
+B8PD44,"(2E,6E)-FPP",α-muurolene,Class I
+B8PD44,"(2E,6E)-FPP",cubebol,Class I
+B8PD44,"(2E,6E)-FPP",δ-cadinene,Class I
+B6UV92,"(2E,6E,10E)-GGPP",15-cis-phytoene,prenyl
+B6SCF6,"(2E,6E)-FPP",(+)-(R)-germacrene A,Class I
+B6SCF5,"(2E,6E)-FPP","(1E,4E,8E)-α-humulene",Class I
+B6SCF4,(2E)-GPP,β-myrcene,Class I
+B6K412,squalene,hop-22(29)-ene,Class II
+B6K412,squalene,hopan-22-ol,Class II
+B6HFX8,"(2E,6E,10E)-GGPP",penichrysol,Class I
+B6HFX8,"(2E,6E)-FPP; isopentenyl PP","2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+B6H063,"(2E,6E)-FPP",(+)-aristolochene,Class I
+B6EXY6,"(S)-2,3-epoxysqualene",β-amyrin,Class II
+B5HDJ6,"(2E,6E)-FPP","selina-4(15),7(11)-diene",Class I
+B5H7H3,"(2E,6E)-FPP","(+)-(2S,3R,9R)-pristinol",Class I
+B5GW45,"(2E,6E)-FPP",(+)-τ-muurolol,Class I
+B5GS26,"(2E,6E)-FPP",(−)-δ-cadinene,Class I
+B5GRC8,"(13E)-labda-7,13-dien-15-yl PP","labda-7,13(16),14-triene",Class I
+B5GMG2,(2E)-GPP,"1,8-cineole",Class I
+B5GMG2,NPP,"1,8-cineole",Class I
+B5A435,"(2E,6E)-FPP",germacrene D-4-ol,Class I
+B5A435,"(2E,6E)-FPP",(−)-helminthogermacrene,Class I
+B5A434,(2E)-GPP,(R)-(+)-α-terpineol,Class I
+B4YYR2,"(2E,6E)-FPP","(1E,4E)-germacrene B",Class I
+B4YA15,(2E)-GPP; isopentenyl PP,"2-trans,6-trans-farnesyl diphosphate(3−)",prenyl
+B4XAK6,"(2E,6E)-FPP",(+)-longifolene,Class I
+B4XAK6,"(2E,6E)-FPP",(+)-α-longipinene,Class I
+B4XAK5,"(2E,6E)-FPP","1(10),5-germacradien-4-ol",Class I
+B4XAK4,"(2E,6E)-FPP",(−)-β-caryophyllene,Class I
+B4XAK4,"(2E,6E)-FPP","(1E,4E,8E)-α-humulene",Class I
+B3Y522,squalene,"dammara-20,24-diene",Class II
+B3TPQ7,(2E)-GPP,(S)-(−)-α-terpineol,Class I
+B3TPQ7,(2E)-GPP,(R)-(+)-α-terpineol,Class I
+B3TPQ6,"(2E,6E)-FPP",β-cubebene,Class I
+B2KSJ6,"(2E,6E)-FPP","(E,E)-α-farnesene",Class I
+B2KSJ5,"(2E,6E)-FPP",(+)-γ-cadinene,Class I
+B2KSJ5,"(2E,6E)-FPP",(+)-δ-cadinene,Class I
+B2J4A4,"(2E,6E)-FPP",5-epi-α-selinene,Class I
+B2DBF1,"(2E,6E,10E)-GGPP","5α,9α,10β-labda-8(20),13-dien-15-yl diphosphate(3−)",Class II
+B2DBF0,"(2E,6E,10E)-GGPP","5α,9α,10β-labda-8(20),13-dien-15-yl diphosphate(3−)",Class II
+B2DBF0,(+)-copalyl diphosphate,phyllocladan-16α-ol,Class I
+B2DBE9,(2E)-GPP; isopentenyl PP,"2-trans,6-trans-farnesyl diphosphate(3−)",prenyl
+B2DBE9,dimethylallyl PP; isopentenyl PP,geranyl diphosphate(3−),prenyl
+B2DBE9,"(2E,6E)-FPP; isopentenyl PP","2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+B2DBE8,(2E)-GPP; isopentenyl PP,"2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+B2C4D8,"(2E,6E)-FPP",(−)-β-caryophyllene,Class I
+B2C4D8,"(2E,6E)-FPP","(1E,4E,8E)-α-humulene",Class I
+B2C4D7,"(2E,6E)-FPP",(−)-β-caryophyllene,Class I
+B2C4D7,"(2E,6E)-FPP","(1E,4E,8E)-α-humulene",Class I
+B2C4D6,"(2E,6E)-FPP",(−)-β-caryophyllene,Class I
+B2C4D6,"(2E,6E)-FPP","(1E,4E,8E)-α-humulene",Class I
+B2C4D5,"(2E,6E)-FPP",(−)-β-caryophyllene,Class I
+B2C4D5,"(2E,6E)-FPP","(1E,4E,8E)-α-humulene",Class I
+B2C4D4,"(2E,6E)-FPP",(−)-β-caryophyllene,Class I
+B2C4D4,"(2E,6E)-FPP","(1E,4E,8E)-α-humulene",Class I
+B2C4D3,"(2E,6E)-FPP",(−)-β-caryophyllene,Class I
+B2C4D3,"(2E,6E)-FPP","(1E,4E,8E)-α-humulene",Class I
+B2C4D0,"(2E,6E)-FPP",(−)-β-caryophyllene,Class I
+B1XJV9,(2E)-GPP; isopentenyl PP,"2-trans,6-trans-farnesyl diphosphate(3−)",prenyl
+B1XJV9,dimethylallyl PP; isopentenyl PP,geranyl diphosphate(3−),prenyl
+B1XJV9,"(2E,6E)-FPP; isopentenyl PP","2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+B1W019,"(2E,6E)-FPP",(+)-β-caryophyllene,Class I
+B1W019,"(2E,6E)-FPP",(+)-caryolan-1-ol,Class I
+B1PLH3,"(S)-2,3-epoxysqualene",β-amyrin,Class II
+B1PLH3,"(S)-2,3-epoxysqualene",lanosterol,Class II
+B1B1U4,"(2E,6E)-FPP",β-eudesmol,Class I
+B1B1U4,"(2E,6E)-FPP",10-epi-γ-eudesmol,Class I
+B1B1U4,"(2E,6E)-FPP",α-eudesmol,Class I
+B1B1U3,"(2E,6E)-FPP","(1E,4E,8E)-α-humulene",Class I
+B0Y5B4,"(S)-2,3-epoxysqualene","(17Z)-protosta-17(20),24-dien-3β-ol",Class II
+B0Y565,"(S)-2,3-epoxysqualene","21-beta-H-hopane-3-beta,22-diol",Class II
+B0KZ40,"(2E,6E,10E)-GGPP",15-cis-phytoene,prenyl
+B0FGA9,"(2E,6E)-FPP",(+)-(R)-germacrene A,Class I
+A9JQL9,"(2E,6E)-FPP","15-cis-4,4'-diapophytoene",prenyl
+A9GK58,"(2E,6E)-FPP",(−)-10-epi-cubebol,Class I
+A9GK58,"(2E,6E)-FPP",germacrene D,Class I
+A9GK58,"(2E,6E)-FPP",cubebol,Class I
+A9GK58,"(2E,6E)-FPP",δ-cadinene,Class I
+A9GK58,"(2E,6E)-FPP",τ-cadinol,Class I
+A9GK58,"(2E,6E)-FPP",(−)-cubenol,Class I
+A9GK58,"(2E,6E)-FPP",α-cadinol,Class I
+A9GK58,"(2E,6E)-FPP",epizonarene,Class I
+A9GK58,"(2E,6E)-FPP",10-epi-alpha-cubebene,Class I
+A9GK58,"(2E,6E)-FPP",10-epi-beta-cubebene,Class I
+A9GK58,"(2E,6E)-FPP","cadina-3,5-diene",Class I
+A9GK58,"(2E,6E)-FPP",cis-muurola-4(15)5-diene,Class I
+A9GK58,"(2E,6E)-FPP","1,10-di-epi-cubenol",Class I
+A9FZ87,"(2E,6E)-FPP",(+)-eremophilene,Class I
+A9AWD5,"(2E,6E,10E)-GGPP",(+)-kolavenyl diphosphate(3−),Class II
+A8R7G3,"(S)-2,3-epoxysqualene",cycloartenol,Class II
+A8NU13,"(2E,6E)-FPP",(-)-cubebol,Class I
+A8NU13,"(2E,6E)-FPP",β-copaene,Class I
+A8NU13,"(2E,6E)-FPP",β-cubebene,Class I
+A8NU13,"(2E,6E)-FPP",(+)-sativene,Class I
+A8NE23,"(2E,6E)-FPP",α-muurolene,Class I
+A8NE23,"(2E,6E)-FPP",γ-muurolene,Class I
+A8NE23,"(2E,6E)-FPP",(+)-(R)-germacrene A,Class I
+A8NCK5,"(2E,6E)-FPP",(−)-α-cuprenene,Class I
+A8CDT3,"(S)-2,3-epoxysqualene",lupeol,Class II
+A8CDT2,"(S)-2,3-epoxysqualene",β-amyrin,Class II
+A8C981,"(S)-2,3-epoxysqualene",taraxerol,Class II
+A8C980,"(S)-2,3-epoxysqualene",germanicol,Class II
+A7NH01,"(2E,6E)-FPP",(+)-τ-muurolol,Class I
+A7IZZ2,(2E)-GPP,(+)-α-pinene,Class I
+A7IZZ1,(2E)-GPP,(4S)-limonene,Class I
+A7BJ36,"(S)-2,3-epoxysqualene",β-amyrin,Class II
+A7BJ35,"(S)-2,3-epoxysqualene",β-amyrin,Class II
+A7BG60,(2E)-GPP,(−)-β-pinene,Class I
+A6XH05,(2E)-GPP,"1,8-cineole",Class I
+A5YZT7,(2E)-GPP,α-terpineol,Class I
+A5YZT7,(2E)-GPP,limonene,Class I
+A5YZT7,(2E)-GPP,γ-terpinene,Class I
+A5YZT7,(2E)-GPP,terpinolene,Class I
+A5Y5L5,(2E)-GPP,"1,8-cineole",Class I
+A5LHW8,"(S)-2,3-epoxysqualene",α-amyrin,Class II
+A5BEB8,"(2E,6E)-FPP",α-cubebene,Class I
+A5AQH7,"(2E,6E)-FPP","(1E,4E,8E)-α-humulene",Class I
+A5A8G0,"(2E,6E,10E)-GGPP","5β,9α,10α-labda-8(20),13-dien-15-yl diphosphate(3−)",Class II
+A5A8G0,ent-copalyl diphosphate,ent-kaurene,Class I
+A4VB63,"(S)-2,3-epoxysqualene",cycloartenol,Class II
+A4UUM6,(2E)-GPP,α-pinene,Class I
+A4UUM6,(2E)-GPP,β-pinene,Class I
+A4KAG8,ent-copalyl diphosphate,ent-isokaurene,Class I
+A4KAG7,ent-copalyl diphosphate,ent-isokaurene,Class I
+A4FVP2,(2E)-GPP,tricyclene,Class I
+A4FG19,(E)-2-MeGPP,2-methylisoborneol,Class I
+A3KI17,(E)-2-MeGPP,2-methylisoborneol,Class I
+A2PZA54,"(2E,6E,10E)-GGPP","fusicocca-2,10(14)-diene",Class I
+A2PZA54,"(2E,6E,10E)-GGPP",delta-araneosene,Class I
+A2PZA54,"(2E,6E)-FPP + IPP",GGPP,prenyl
+A1JH12,(2E)-GPP,α-pinene,Class I
+A1E4D1,"(S)-2,3-epoxysqualene",β-amyrin,Class II
+A1DN30,"(2E,6E,10E,14E)-GFPP",sesterfisherol,Class I
+A1DN30,"(2E,6E,10E)-GGPP; isopentenyl PP",all-trans-pentaprenyl diphosphate(3−),prenyl
+A1DN30,dimethylallyl PP; isopentenyl PP,geranyl diphosphate(3−),prenyl
+A1DN30,(2E)-GPP; isopentenyl PP,"2-trans,6-trans-farnesyl diphosphate(3−)",prenyl
+A1DN30,"(2E,6E)-FPP; isopentenyl PP","2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+A1CVK0,"(S)-2,3-epoxysqualene","(17Z)-protosta-17(20),24-dien-3β-ol",Class II
+A1C8C3,"(2E,6E,10E,14E)-GFPP",ophiobolin F,Class I
+A1C8C3,"(2E,6E,10E)-GGPP; isopentenyl PP",all-trans-pentaprenyl diphosphate(3−),prenyl
+A1C8C3,(2E)-GPP; isopentenyl PP,"2-trans,6-trans-farnesyl diphosphate(3−)",prenyl
+A1C8C3,"(2E,6E)-FPP; isopentenyl PP","2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+A0SJQ5,"(2E,6E)-FPP",squalene,prenyl
+A0RZI3,"(2E,6E)-FPP",(−)-β-caryophyllene,Class I
+A0RZI3,"(2E,6E)-FPP","(1E,4E,8E)-α-humulene",Class I
+A0RZI2,"(2E,6E)-FPP",(-)-cubebol,Class I
+A0A8K1AY78,"(2E,6E,10E)-GGPP",talarodiene,Class I
+A0A8F4SPZ5,"(2E,6E,10E,14E)-GFPP",preterpestacin I,Class I
+A0A8F4SPY9,"(2E,6E,10E,14E)-GFPP",preasperterpenoid A,Class I
+A0A8F4SNK9,"(2E,6E,10E,14E)-GFPP",ophiobolin F,Class I
+A0A8F4SNK4,"(2E,6E,10E,14E)-GFPP",sesterorbiculene,Class I
+A0A8F4SKU0,"(2E,6E,10E,14E)-GFPP",(-)-variculatriene B,Class I
+A0A8F4SKT7,"(2E,6E,10E,14E)-GFPP",(-)-variculatriene B,Class I
+A0A8F4SK87,"(2E,6E,10E)-GGPP",GJ1012 C,Class I
+A0A8F4SK87,"(2E,6E,10E)-GGPP",variediene,Class I
+A0A8F4SK84,"(2E,6E,10E)-GGPP",GJ1012 C,Class I
+A0A8F4SK84,"(2E,6E,10E)-GGPP",variediene,Class I
+A0A8F4SK83,"(2E,6E,10E,14E)-GFPP",betaestacin I,Class I
+A0A8F4SK79,"(2E,6E,10E,14E)-GFPP",(-)-variculatriene B,Class I
+A0A8F4PQP7,"(2E,6E,10E,14E)-GFPP",(-)-variculatriene B,Class I
+A0A8F4PQI4,"(2E,6E,10E,14E)-GFPP",sesterbrasiliatriene,Class I
+A0A8F4PQH5,"(2E,6E,10E)-GGPP",variediene,Class I
+A0A8F4PQH5,"(2E,6E,10E)-GGPP",geranylgeraniol,Class I
+A0A8F4PPJ2,"(2E,6E,10E,14E)-GFPP","(2E,6E,10E,14E)-geranylfarnesol",Class I
+A0A8F4PPJ2,"(2E,6E,10E)-GGPP",GJ1012 C,Class I
+A0A8F4PPJ2,"(2E,6E,10E)-GGPP",variediene,Class I
+A0A8F4PPI6,"(2E,6E,10E,14E)-GFPP",variculatriene A,Class I
+A0A8F4PPI6,"(2E,6E,10E,14E)-GFPP",clavaphyllene,Class I
+A0A8F4PPI6,"(2E,6E,10E,14E)-GFPP",β-geranylfarnesene,Class I
+A0A8F4PPH7,"(2E,6E,10E,14E)-GFPP",Brassiteraene A,Class I
+A0A8F4PPH7,"(2E,6E,10E,14E)-GFPP",Brassiteraene B,Class I
+A0A8F4PP18,"(2E,6E,10E,14E)-GFPP",preterpestacin I,Class I
+A0A8F4PNT7,"(2E,6E,10E,14E)-GFPP",preasperterpenoid A,Class I
+A0A8F4PNT1,"(2E,6E,10E,14E)-GFPP",fusaproliferene,Class I
+A0A8F4PNT1,"(2E,6E,10E,14E)-GFPP",betaestacin I,Class I
+A0A8F4PNJ7,"(2E,6E,10E,14E)-GFPP",(-)-variculatriene B,Class I
+A0A8F4PMY5,"(2E,6E,10E,14E)-GFPP",sesterorbiculene,Class I
+A0A8F4PMX6,"(2E,6E,10E,14E)-GFPP",betaestacin I,Class I
+A0A8F4PMV8,"(2E,6E,10E,14E)-GFPP","(2E,6E,10E,14E)-geranylfarnesol",Class I
+A0A8F4PMV8,"(2E,6E,10E)-GGPP",geranylgeraniol,Class I
+A0A7S5L3J3,"(2E,6E)-FPP",α-farnesene,Class I
+A0A7S5L3J3,"(2E,6E)-FPP",(6E)-nerolidol,Class I
+A0A7S5L3J3,"(2E,6E)-FPP",alpha-Bisabolol,Class I
+A0A7S5L3J3,(2E)-GPP,geraniol,Class I
+A0A7S5L3H2,"(2E,6E)-FPP",(6E)-nerolidol,Class I
+A0A7S5L3H2,(2E)-GPP,linalool,Class I
+A0A7S5L3H2,"(2E,6E,10E)-GGPP",geranyllinalool,Class I
+A0A7S5L324,"(2E,6E)-FPP",(6E)-nerolidol,Class I
+A0A7S5L324,"(2E,6E)-FPP",cis-α-bergamotene,Class I
+A0A7S5L324,"(2E,6E)-FPP",α-farnesene,Class I
+A0A7S5L324,(2E)-GPP,linalool,Class I
+A0A7S5L324,"(2E,6E,10E)-GGPP",geranyllinalool,Class I
+A0A7S5GI44,"(2E,6E)-FPP",(6E)-nerolidol,Class I
+A0A7S5GI44,"(2E,6E)-FPP",cis-α-begamotene,Class I
+A0A7S5GI44,"(2E,6E)-FPP",α-farnesene,Class I
+A0A7S5GI43,"(2E,6E)-FPP",(6E)-nerolidol,Class I
+A0A7S5GI43,"(2E,6E)-FPP",alpha-Bisabolol,Class I
+A0A7L7SG75,"(2E,6E)-FPP",(−)-β-caryophyllene,Class I
+A0A7L7SES4,(2E)-GPP,"1,8-cineole",Class I
+A0A7L7SCQ9,"(2E,6E)-FPP",(−)-germacrene D,Class I
+A0A7L7S8U7,"(2E,6E)-FPP",δ-elemene,Class I
+A0A7L7S5T2,"(2E,6E)-FPP",δ-cadinene,Class I
+A0A7L7S5T2,(2E)-GPP,α-pinene,Class I
+A0A7G5KLV3,(2E)-GPP,geraniol,Class I
+A0A7G5KLV2,"(2E,6E)-FPP",(−)-exo-α-bergamotene,Class I
+A0A7G5KLV1,"(2E,6E)-FPP",β-ylangene,Class I
+A0A7G5KLV1,"(2E,6E)-FPP",β-cubebene,Class I
+A0A7G5KLV1,"(2E,6E)-FPP",β-copaene,Class I
+A0A7G5KLV0,(2E)-GPP,β-pinene,Class I
+A0A7G5KLV0,(2E)-GPP,β-thujene,Class I
+A0A7G5KLV0,(2E)-GPP,α-terpinene,Class I
+A0A7G5KLV0,(2E)-GPP,sabinene,Class I
+A0A7D0AGU9,(2E)-GPP,geraniol,Class I
+A0A6S6QR11,"(2E,6E,10E)-GGPP",premutilin,Class II
+A0A6P8ANR6,"(2E,6E,10E)-GGPP",fusicocccadiene,Class I
+A0A6P8ANR6,"(2E,6E,10E,14E)-GFPP","(2E,6E,10E,14E)-geranylfarnesol",Class I
+A0A6P6W6H5,(2E)-GPP,β-pinene,Class I
+A0A6P6W6H5,(2E)-GPP,sabinene,Class I
+A0A6P6W6H5,(2E)-GPP,α-pinene,Class I
+A0A6P6W6H5,(2E)-GPP,limonene,Class I
+A0A6P6W6H5,(2E)-GPP,terpinolene,Class I
+A0A6P6W6H5,(2E)-GPP,β-myrcene,Class I
+A0A6M6CDA0,(2E)-GPP,"1,8-cineole",Class I
+A0A6M6CCT4,(2E)-GPP,(+)-sabinene,Class I
+A0A6M6CCF6,(2E)-GPP,(+)-bornyl diphosphate,Class I
+A0A6G7GHF5,"(2E,6E,10E,14E)-GFPP",ophiobolin F,Class I
+A0A6C0TLK1,"(2E,6E)-FPP",longifolene,Class I
+A0A6C0TL59,"(2E,6E)-FPP",cedrol,Class I
+A0A6C0TJK8,"(2E,6E)-FPP",(−)-germacrene D,Class I
+A0A6C0THV5,"(2E,6E)-FPP",zingiberene,Class I
+A0A6C0QES1,"(2E,6E)-FPP",δ-cadinene,Class I
+A0A6B8N4Y9,"(2E,6E)-FPP",germacrene D-4-ol,Class I
+A0A6B8N100,"(2E,6E)-FPP",(+)-δ-cadinene,Class I
+A0A6B8MS60,"(2E,6E)-FPP",(−)-β-caryophyllene,Class I
+A0A6A6W5M9,"(2E,6E,10E)-GGPP",penichrysol,Class I
+A0A6A6W5M9,"(2E,6E,10E)-GGPP",phomopsene,Class I
+A0A678QA10,"(2E,6E,10E)-GGPP",miltiradiene,Class II
+A0A650A872,"(2E,6E)-FPP",zingiberene,Class I
+A0A650A872,"(2E,6E)-FPP",β-sesquiphellandrene,Class I
+A0A650A7N9,"(2E,6E)-FPP",zingiberene,Class I
+A0A650A7N9,"(2E,6E)-FPP",β-sesquiphellandrene,Class I
+A0A650A7N6,"(2E,6E)-FPP",(S)-β-bisabolene,Class I
+A0A650A7N6,"(2E,6E)-FPP",β-sesquiphellandrene,Class I
+A0A650A7M1,"(2E,6E)-FPP",(S)-β-bisabolene,Class I
+A0A650A7M1,"(2E,6E)-FPP",β-sesquiphellandrene,Class I
+A0A650A7K4,"(2E,6E)-FPP",zingiberene,Class I
+A0A650A7K4,"(2E,6E)-FPP",(S)-β-bisabolene,Class I
+A0A650A7I8,"(2E,6E)-FPP",(S)-β-bisabolene,Class I
+A0A650A7I8,"(2E,6E)-FPP",β-sesquiphellandrene,Class I
+A0A650A7H3,"(2E,6E)-FPP",zingiberene,Class I
+A0A650A7H3,"(2E,6E)-FPP",β-sesquiphellandrene,Class I
+A0A5S9I252,"(2E,6E)-FPP",trichobrasilenol,Class I
+A0A5S9I252,"(2E,6E)-FPP","(1E,4E,8E)-α-humulene",Class I
+A0A5S9I252,"(2E,6E)-FPP",(−)-β-caryophyllene,Class I
+A0A5S9I252,"(2E,6E)-FPP",(E)-2-epi-β-caryophyllene,Class I
+A0A5S9I252,"(2E,6E)-FPP",(+)-isoafricanol,Class I
+A0A5S9I252,"(2E,6E)-FPP","(+)-(2S,3R,9R)-pristinol",Class I
+A0A5S9I252,"(2E,6E)-FPP",african-3-ene,Class I
+A0A5S9I252,"(2E,6E)-FPP",african-1-ene,Class I
+A0A5Q0QU70,"(2E,6E)-FPP",α-muurolene,Class I
+A0A5Q0QU70,"(2E,6E)-FPP",γ-muurolene,Class I
+A0A5Q0QU70,"(2E,6E)-FPP",δ-cadinene,Class I
+A0A5Q0QU70,"(2E,6E)-FPP",δ-cadinol,Class I
+A0A5Q0QSI8,"(2E,6E)-FPP",viridiflorene,Class I
+A0A5Q0QSI8,"(2E,6E)-FPP",viridiflorol,Class I
+A0A5Q0QRJ3,"(2E,6E)-FPP",δ-cadinene,Class I
+A0A5Q0QRJ3,"(2E,6E)-FPP",α-muurolene,Class I
+A0A5Q0QRJ3,"(2E,6E)-FPP",γ-muurolene,Class I
+A0A5Q0QRJ3,"(2E,6E)-FPP",α-selinene,Class I
+A0A5Q0QRJ3,"(2E,6E)-FPP",(+)-β-selinene,Class I
+A0A5Q0QRJ3,"(2E,6E)-FPP",δ-cadinol,Class I
+A0A5Q0QRJ3,"(2E,6E)-FPP",α-cadinol,Class I
+A0A5Q0QP64,"(2E,6E)-FPP",δ-cadinene,Class I
+A0A5Q0QNJ2,"(2E,6E)-FPP",viridiflorene,Class I
+A0A5Q0QNH9,"(2E,6E)-FPP",Δ6-protoilludene,Class I
+A0A5Q0QN66,"(2E,6E)-FPP",Δ6-protoilludene,Class I
+A0A5Q0QMX1,"(2E,6E)-FPP",γ-muurolen,Class I
+A0A5Q0QMX1,"(2E,6E)-FPP",α-selinene,Class I
+A0A5Q0QMX1,"(2E,6E)-FPP",δ-cadinene,Class I
+A0A5Q0QMX1,"(2E,6E)-FPP",(−)-β-elemene,Class I
+A0A5Q0QMX1,"(2E,6E)-FPP",(+)-β-selinene,Class I
+A0A5Q0QMX1,"(2E,6E)-FPP",β-cadinene,Class I
+A0A5Q0QMX0,"(2E,6E)-FPP",γ-muurolene,Class I
+A0A5Q0QMX0,"(2E,6E)-FPP",δ-cadinene,Class I
+A0A5Q0QMX0,"(2E,6E)-FPP",β-cadinene,Class I
+A0A5K6WHY7,"(2E,6E)-FPP",(−)-exo-α-bergamotene,Class I
+A0A4Y5QVX6,"(2E,6E)-FPP",hedycaryol,Class I
+A0A4Y5QVX4,(2E)-GPP,(4S)-limonene,Class I
+A0A4Y5L9K3,"(2E,6E)-FPP","(1E,4E)-germacrene B",Class I
+A0A4S8MAF3,"(2E,6E)-FPP",Δ6-protoilludene,Class I
+A0A482IC14,"(2E,6E)-FPP",cedrol,Class I
+A0A482AJV9,"(2E,6E)-FPP",(−)-germacrene D,Class I
+A0A411JJ93,"(S)-2,3-epoxysqualene",lupeol,Class II
+A0A411JJ93,"(S)-2,3-epoxysqualene",β-amyrin,Class II
+A0A3S9GVB5,"(2E,6E)-FPP",alpha-Ylangene,Class I
+A0A3S9GVB5,"(2E,6E)-FPP",(−)-β-elemene,Class I
+A0A3S9GVB5,"(2E,6E)-FPP",(-)-Aristolene,Class I
+A0A3S9GVB5,"(2E,6E)-FPP",β-copaene,Class I
+A0A3S9GVB5,"(2E,6E)-FPP",α-muurolene,Class I
+A0A3S9GVB5,"(2E,6E)-FPP",(Z)-α-bisabolene,Class I
+A0A3S9GV71,"(2E,6E)-FPP",nerolidol,Class I
+A0A3S9GV71,(2E)-GPP,linalool,Class I
+A0A3Q9FFM1,"(2E,6E,10E,14E)-GFPP",preasperterpenoid A,Class I
+A0A3L6G998,"(2E,6E)-FPP",(−)-β-caryophyllene,Class I
+A0A3L6G2C1,"(2E,6E)-FPP","7-epi-ent-eudesmane-5,11-diol",Class I
+A0A3G9F1F9,"(2E,6E)-FPP",β-eudesmol,Class I
+A0A3G9EY38,"(2E,6E)-FPP",β-eudesmol,Class I
+A0A3G9EJV0,"(2E,6E)-FPP","(1E,4E)-germacrene B",Class I
+A0A3G9EJT8,"(2E,6E)-FPP",(−)-β-caryophyllene,Class I
+A0A3G9ED98,"(2E,6E)-FPP",(−)-germacrene D,Class I
+A0A3G9EAS3,"(2E,6E)-FPP",(−)-β-caryophyllene,Class I
+A0A3G1QTS7,ent-copalyl diphosphate,ent-kaurene,Class I
+A0A3G1HQN7,"(2E,6E)-FPP",δ-cadinol,Class I
+A0A3G1DJL2,"(2E,6E)-FPP",squalene,prenyl
+A0A396GKK7,"(S)-2,3-epoxysqualene",β-amyrin,Class II
+A0A386JV86,"(2E,6E)-FPP",(Z)-α-bisabolene,Class I
+A0A385AJN0,"(2E,6E)-FPP",trans-β-farnesene,Class I
+A0A385AJM7,"(2E,6E)-FPP","(2S,3R,6S,9S)-(−)-protoillud-7-ene",Class I
+A0A385AJM7,"(2E,6E)-FPP",(−)-β-elemene,Class I
+A0A385AJM7,"(2E,6E)-FPP",(-)-Aristolene,Class I
+A0A385AJM7,"(2E,6E)-FPP",β-copaene,Class I
+A0A385AJM7,"(2E,6E)-FPP",germacrene A,Class I
+A0A385AJM7,"(2E,6E,10E)-GGPP",(R)-cembrene A,Class I
+A0A385AJM7,"(2E,6E)-FPP",trans-β-farnesene,Class I
+A0A385AJM6,"(2E,6E)-FPP",(−)-β-elemene,Class I
+A0A385AJM6,"(2E,6E)-FPP",(+)-valencene,Class I
+A0A385AJM6,"(2E,6E)-FPP",α-selinene,Class I
+A0A385AJM6,"(2E,6E)-FPP",(−)-7-epi-α-selinene,Class I
+A0A385AJM4,"(2E,6E)-FPP","(2S,3R,6S,9S)-(−)-protoillud-7-ene",Class I
+A0A385AJM2,"(2E,6E)-FPP","(2S,3R,6S,9S)-(−)-protoillud-7-ene",Class I
+A0A385AJL4,"(2E,6E)-FPP","(2S,3R,6S,9S)-(−)-protoillud-7-ene",Class I
+A0A348FUE1,"(2E,6E,10E)-GGPP","5α,9α,10β-labda-8(20),13-dien-15-yl diphosphate(3−)",Class II
+A0A348FUE1,"(2E,6E)-FPP; isopentenyl PP","2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+A0A348FUE1,(2E)-GPP; isopentenyl PP,"2-trans,6-trans-farnesyl diphosphate(3−)",prenyl
+A0A348DU52,dimethylallyl PP; isopentenyl PP,"2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+A0A348B793,(2E)-GPP,β-myrcene,Class I
+A0A348B793,(2E)-GPP,linalool,Class I
+A0A348B790,"(2E,6E)-FPP",Δ6-protoilludene,Class I
+A0A348B788,"(2E,6E)-FPP",pentalenene,Class I
+A0A348B788,"(2E,6E)-FPP",(−)-β-caryophyllene,Class I
+A0A348B784,"(2E,6E)-FPP",Δ6-protoilludene,Class I
+A0A348B782,"(2E,6E)-FPP",δ-cadinene,Class I
+A0A348B782,"(2E,6E)-FPP",bicyclogermacrene,Class I
+A0A348B782,"(2E,6E)-FPP",bicycloelemene,Class I
+A0A348B782,"(2E,6E)-FPP",(−)-α-gurjunene,Class I
+A0A348B782,"(2E,6E)-FPP",9-epi-(E)-caryophylene,Class I
+A0A348B782,"(2E,6E)-FPP",bicyclosesquiphellandrene,Class I
+A0A348B781,"(2E,6E)-FPP",δ-cadinene,Class I
+A0A348B781,"(2E,6E)-FPP",β-elemene,Class I
+A0A348B781,"(2E,6E)-FPP",γ-cadinene,Class I
+A0A348B781,"(2E,6E)-FPP",α-cadinene,Class I
+A0A348B780,"(2E,6E)-FPP",α-copaene,Class I
+A0A348B780,"(2E,6E)-FPP",β-copaene,Class I
+A0A348B780,"(2E,6E)-FPP",α-muurolene,Class I
+A0A348B780,"(2E,6E)-FPP",γ-muurolene,Class I
+A0A348B780,"(2E,6E)-FPP",δ-cadinene,Class I
+A0A348B779,"(2E,6E)-FPP",α-copaene,Class I
+A0A348B779,"(2E,6E)-FPP",β-copaene,Class I
+A0A348B779,"(2E,6E)-FPP",α-muurolene,Class I
+A0A348B779,"(2E,6E)-FPP",γ-muurolene,Class I
+A0A348B779,"(2E,6E)-FPP",δ-cadinene,Class I
+A0A348AUW1,"(2E,6E)-FPP",valerianol,Class I
+A0A348AUW0,"(2E,6E)-FPP",valerianol,Class I
+A0A348AUV9,"(2E,6E)-FPP",valerianol,Class I
+A0A348AUV7,"(2E,6E)-FPP",valerianol,Class I
+A0A348AUV6,"(2E,6E)-FPP",valerianol,Class I
+A0A348AUV5,"(2E,6E)-FPP",valerianol,Class I
+A0A345ZQ22,"(2E,6E,10E)-GGPP","labd-13-en-8,15-diol",Class II
+A0A343W970,dimethylallyl PP; isopentenyl PP,"2-trans,6-trans-farnesyl diphosphate(3−)",prenyl
+A0A343W969,"(2E,6E)-FPP","(1S,6S,7R)-sesquipiperitol",Class I
+A0A2Z6FZ31,"(2E,6E,10E)-GGPP; isopentenyl PP",all-trans-pentaprenyl diphosphate(3−),prenyl
+A0A2Z6FZ31,"(2E,6E)-FPP; isopentenyl PP","2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+A0A2Z6FZ31,"(2E,6E,10E,14E)-GFPP",betaestacin I,Class I
+A0A2Z6E9F0,(2E)-GPP,β-phellandrene,Class I
+A0A2Z6E967,"(2E,6E)-FPP",(−)-β-caryophyllene,Class I
+A0A2Z6AQX7,"(2E,6E,10E,14E)-GFPP",sesterbrasiliatriene,Class I
+A0A2Z6AQX7,"(2E,6E,10E)-GGPP; isopentenyl PP",all-trans-pentaprenyl diphosphate(3−),prenyl
+A0A2Z6AQX7,(2E)-GPP; isopentenyl PP,"2-trans,6-trans-farnesyl diphosphate(3−)",prenyl
+A0A2Z6AQX7,"(2E,6E)-FPP; isopentenyl PP","2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+A0A2Z6AQX6,"(2E,6E,10E,14E)-GFPP",preasperterpenoid A,Class I
+A0A2Z6AQX6,"(2E,6E,10E)-GGPP; isopentenyl PP",all-trans-pentaprenyl diphosphate(3−),prenyl
+A0A2Z6AQX6,(2E)-GPP; isopentenyl PP,"2-trans,6-trans-farnesyl diphosphate(3−)",prenyl
+A0A2Z6AQX6,"(2E,6E)-FPP; isopentenyl PP","2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+A0A2R4QKX7,"(2E,6E)-FPP",α-copaene,Class I
+A0A2R4QKX7,"(2E,6E)-FPP",β-cadinene,Class I
+A0A2P2MRY0,"(S)-2,3-epoxysqualene",germanicol,Class II
+A0A2L0VXR0,"(2E,6E,10E)-GGPP",premutilin,Class II
+A0A2K9RG07,"(2E,6E,10E)-GGPP",(+)-kolavenyl diphosphate,Class II
+A0A2K9RFZ7,"(2E,6E,10E)-GGPP",peregrinol diphosphate(3−),Class II
+A0A2K9RFY0,ent-copalyl diphosphate,ent-kaurene,Class I
+A0A2A2D8W5,"(2E,6E)-FPP",(−)-β-elemene,Class I
+A0A2A2D8W5,"(2E,6E)-FPP",Shyobunol,Class I
+A0A2A2D8W5,"(2E,6E)-FPP",elemol,Class I
+A0A2A2D8W5,"(2E,6E)-FPP",(6E)-nerolidol,Class I
+A0A2A2D8W5,"(2E,6E)-FPP",(+)-4-epi-cubebol,Class I
+A0A2A2D8W5,"(2E,6E,10E)-GGPP",albireticulene,Class I
+A0A291SJC7,"(2E,6E)-FPP",(+)-isoafricanol,Class I
+A0A291LSD6,"(2E,6E)-FPP",(+)-β-selinene,Class I
+A0A290U6P6,"(2E,6E)-FPP",(−)-germacrene A,Class I
+A0A290U6N1,"(2E,6E)-FPP",β-cubebene,Class I
+A0A290U6N1,"(2E,6E)-FPP",α-copaene,Class I
+A0A290U6M6,"(2E,6E)-FPP",β-cadinene,Class I
+A0A290U6M0,"(2E,6E)-FPP",allo-aromadendrene,Class I
+A0A286R621,"(2E,6E)-FPP",prespatane,Class I
+A0A284RNH4,"(2E,6E)-FPP",Δ6-protoilludene,Class I
+A0A1Z3GCD1,(+)-copalyl diphosphate,"isopimara-8(14),15-diene",Class I
+A0A1Z3GC64,ent-copalyl diphosphate,ent-kaurene,Class I
+A0A1Z3GBK8,ent-copalyl diphosphate,ent-atiserene,Class I
+A0A1Z3GBK8,ent-copalyl diphosphate,ent-kaurene,Class I
+A0A1Y1C7Q5,dimethylallyl PP; isopentenyl PP,"2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+A0A1Y1C7Q5,"(2E,6E,10E,14E)-GFPP",quiannulatene,Class I
+A0A1Y1C7Q5,dimethylallyl PP; 4 isopentenyl PP,all-trans-pentaprenyl diphosphate(3−),prenyl
+A0A1X9ISH5,(+)-copalyl diphosphate,miltiradiene,Class I
+A0A1X9ISH5,(+)-copalyl diphosphate,nezukol,Class I
+A0A1X9IRQ7,"(2E,6E,10E)-GGPP","5α,9α,10β-labda-8(20),13-dien-15-yl diphosphate(3−)",Class II
+A0A1W6QDJ1,"(2E,6E,10E)-GGPP","5β,9α,10α-labda-8(20),13-dien-15-yl diphosphate(3−)",Class II
+A0A1W6QDI7,(+)-copalyl diphosphate,miltiradiene,Class I
+A0A1W6GW32,"(2E,6E)-FPP",(−)-5-epi-eremophilene,Class I
+A0A1W6GW18,"(2E,6E)-FPP",(−)-5-epi-eremophilene,Class I
+A0A1W6GW06,"(2E,6E)-FPP",(−)-5-epi-eremophilene,Class I
+A0A1V1FVQ6,"(2E,6E,10E,14E)-GFPP",ophiobolin F,Class I
+A0A1V1FVQ6,"(2E,6E,10E)-GGPP; isopentenyl PP",all-trans-pentaprenyl diphosphate(3−),prenyl
+A0A1V1FVQ6,"(2E,6E)-FPP; isopentenyl PP","2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+A0A1V0QSG6,"(2E,6E)-FPP",allo-aromadendrene,Class I
+A0A1V0QSF6,"(2E,6E)-FPP",δ-selinene,Class I
+A0A1V0QSF3,"(2E,6E)-FPP",(+)-valencene,Class I
+A0A1V0QSF3,"(2E,6E)-FPP",γ-eudesmol,Class I
+A0A1V0QSF2,"(2E,6E)-FPP",(−)-β-caryophyllene,Class I
+A0A1V0QSA8,"(2E,6E)-FPP; isopentenyl PP","2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+A0A1V0E4A6,"(2E,6E)-FPP",δ-cadinol,Class I
+A0A1V0E492,"(2E,6E)-FPP",(−)-β-caryophyllene,Class I
+A0A1V0D8Y5,(2E)-GPP,(+)-car-3-ene,Class I
+A0A1U8QLG8,(2E)-GPP; isopentenyl PP,"2-trans,6-trans-farnesyl diphosphate(3−)",prenyl
+A0A1U8QLG8,dimethylallyl PP; isopentenyl PP,geranyl diphosphate(3−),prenyl
+A0A1U8QLG8,"(2E,6E)-FPP; isopentenyl PP","2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+A0A1U8QHE3,"(2E,6E,10E)-GGPP","ent-pimara-8(14),15-diene",Class II
+A0A1U8I4V5,"(2E,6E)-FPP",(+)-δ-cadinene,Class I
+A0A1S5RW73,"(2E,6E,10E)-GGPP",(−)-kolavenyl diphosphate,Class II
+A0A1S4CZT8,copal-8-ol diphosphate(3−),cis-abienol,Class I
+A0A1S4C9W7,"(2E,6E,10E)-GGPP",cis-abienol,Class II
+A0A1S3ZET1,(2E)-GPP,(−)-camphene,Class I
+A0A1P8B2H6,"(S)-2,3-epoxysqualene",cycloartenol,Class II
+A0A1P8AW29,"(S)-2,3-epoxysqualene","tirucalla-7,24-dien-3β-ol",Class II
+A0A1P8AVI0,"(S)-2,3-epoxysqualene",β-amyrin,Class II
+A0A1P7Y0D4,"(2E,6E)-FPP",squalene,prenyl
+A0A1P7Y0C9,"(2E,6E)-FPP",squalene,prenyl
+A0A1P7Y0A2,"(2E,6E)-FPP",squalene,prenyl
+A0A1N7T9S7,"(2E,6E)-FPP",(+)-δ-cadinene,Class I
+A0A1M6RNB3,"(2E,6E,10E)-GGPP",chrysodiene,Class I
+A0A1L9WUI2,"(2E,6E)-FPP","dauca-4,7-diene",Class I
+A0A1L9UKS1,"(2E,6E)-FPP; isopentenyl PP","2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+A0A1L9UKS1,"(2E,6E,10E)-GGPP",variediene,Class I
+A0A1L9UKS1,dimethylallyl PP; isopentenyl PP,"2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+A0A1L7VZE7,"(2E,6E)-FPP","(1R,4R,5S)-(−)-guaia-6,10(14)-diene",Class I
+A0A1L7U8F2,"(2E,6E)-FPP","(1R,4R,5S)-(−)-guaia-6,10(14)-diene",Class I
+A0A1L7NYG3,"(2E,6E)-FPP",(+)-α-bisabolol,Class I
+A0A1L7NYG2,"(2E,6E)-FPP",koidzumiol,Class I
+A0A1L7NYF8,"(2E,6E)-FPP","(E,R)-α-bisabolene",Class I
+A0A1L7NYF8,"(2E,6E)-FPP",(+)-α-bisabolol,Class I
+A0A1L6Z3A5,"(2E,6E)-FPP","(E,R)-α-bisabolene",Class I
+A0A1L6Z3A0,"(2E,6E,10E)-GGPP",pseudolaratriene,Class I
+A0A1L5YKS7,"(2E,6E)-FPP",(−)-α-gurjunene,Class I
+A0A1L5YKS7,"(2E,6E)-FPP",5-hydroxy-α-gurjunene,Class I
+A0A1L2D3T3,"(2E,6E)-FPP",10-epi-juneol,Class I
+A0A1L2D3T3,"(2E,6E)-FPP",τ-cadinol,Class I
+A0A1L1WGF5,"(2E,6E)-FPP",α-selinene,Class I
+A0A1L1WGD9,"(2E,6E)-FPP",β-elemol,Class I
+A0A1L1WGD9,"(2E,6E)-FPP",guaiol,Class I
+A0A1L1WGC4,"(2E,6E)-FPP",(−)-β-caryophyllene,Class I
+A0A1L1WGC4,"(2E,6E)-FPP","(1E,4E,8E)-α-humulene",Class I
+A0A1L1WGB8,"(2E,6E)-FPP",(+)-δ-cadinene,Class I
+A0A1L1WGB8,"(2E,6E)-FPP",α-muurolene,Class I
+A0A1J0CQA6,"(2E,6E)-FPP",Δ6-protoilludene,Class I
+A0A1J0CQA2,"(2E,6E)-FPP",Δ6-protoilludene,Class I
+A0A1J0CQ97,"(2E,6E)-FPP",β-acoradiene,Class I
+A0A1J0CQ92,"(2E,6E)-FPP",(S)-β-bisabolene,Class I
+A0A1J0CQ92,"(2E,6E)-FPP",γ-curcumene,Class I
+A0A1J0CQ90,"(2E,6E)-FPP",bicycloelemene,Class I
+A0A1J0CQ90,"(2E,6E)-FPP",bicyclogermacrene,Class I
+A0A1J0CQ86,"(2E,6E)-FPP",γ-curcumene,Class I
+A0A1I9LTE4,"(S)-2,3-epoxysqualene",lanosterol,Class II
+A0A1H0BVV7,"(2E,6E,10E)-GGPP",spiroalbatene,Class I
+A0A1H0BVV7,"(2E,6E,10E)-GGPP",thunbergol,Class I
+A0A1G9S4L4,"(2E,6E,10E)-GGPP",(S)-(+)-cembrene A,Class I
+A0A1F5LDE4,"(2E,6E,10E)-GGPP",penichrysol,Class I
+A0A1D8PI71,"(2E,6E)-FPP",squalene,prenyl
+A0A1D8PH78,dimethylallyl PP; isopentenyl PP,geranyl diphosphate(3−),prenyl
+A0A1D8PH78,isopentenyl PP; (2E)-GPP,"2-trans,6-trans-farnesyl diphosphate(3−)",prenyl
+A0A1D6LTV0,(2E)-GPP,(S)-(−)-α-terpineol,Class I
+A0A1D6LTV0,(2E)-GPP,4-terpineol,Class I
+A0A1D6LTV0,(2E)-GPP,(4S)-limonene,Class I
+A0A1D6KUI6,ent-copalyl diphosphate,dolabradiene,Class I
+A0A1D6K6U5,"(2E,6E,10E)-GGPP",ent-copalyl diphosphate,Class II
+A0A1D6IY18,"(2E,6E)-FPP",(S)-β-macrocarpene,Class I
+A0A1D6IY18,"(2E,6E)-FPP",(S)-β-bisabolene,Class I
+A0A1D6EFT8,"(2E,6E)-FPP","7-epi-ent-eudesmane-5,11-diol",Class I
+A0A1C9J6A7,(2E)-GPP,(4R)-limonene,Class I
+A0A1C7AAN2,"(2E,6E,10E)-GGPP",(−)-kolavenyl diphosphate,Class II
+A0A1B4XBG5,"(2E,6E,10E)-GGPP",cycloaraneosene,Class I
+A0A178U9Y5,"(2E,6E,10E)-GGPP","(3E,7E)-dolabella-3,7-dien-18-ol",Class I
+A0A178U9Y5,"(2E,6E,10E)-GGPP","(3E,7E)-dolathalia-3,7,11-triene",Class I
+A0A177DNJ5,"(2E,6E,10E,14E)-GFPP",sesterfisherol,Class I
+A0A169T193,dimethylallyl PP; 4 isopentenyl PP,all-trans-pentaprenyl diphosphate(3−),prenyl
+A0A169T193,"(2E,6E,10E,14E)-GFPP",astellifadiene,Class I
+A0A169T193,"(2E,6E,10E)-GGPP; isopentenyl PP",all-trans-pentaprenyl diphosphate(3−),prenyl
+A0A169T193,dimethylallyl PP; isopentenyl PP,geranyl diphosphate(3−),prenyl
+A0A169T193,(2E)-GPP; isopentenyl PP,"2-trans,6-trans-farnesyl diphosphate(3−)",prenyl
+A0A169T193,"(2E,6E)-FPP; isopentenyl PP","2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+A0A167V661,"(2E,6E)-FPP",valerianol,Class I
+A0A167CIH5,"(2E,6E,10E,14E)-GFPP",β-geranylfarnesene,Class I
+A0A167CIH5,"(2E,6E,10E,14E)-GFPP",betaestacin I,Class I
+A0A162QA28,"(2E,6E,10E,14E)-GFPP",sesterorbiculene,Class I
+A0A151ZEA6,"(2E,6E)-FPP","(2S,3R,6S,9S)-(−)-protoillud-7-ene",Class I
+A0A144YEA5,"(2E,6E)-FPP",squalene,prenyl
+A0A142ZC57,(2E)-GPP,lycopaoctaene,prenyl
+A0A142ZC57,"(2E,6E)-FPP",squalene,prenyl
+A0A142ZC57,PPP,"(14E,18E)-lycopadiene",prenyl
+A0A142BX74,"(2E,6E)-FPP","guaia-4,6-diene",Class I
+A0A142BX72,"(2E,6E)-FPP",(−)-germacrene A,Class I
+A0A142BX71,"(2E,6E)-FPP","guaia-4,6-diene",Class I
+A0A142BX70,"(2E,6E)-FPP",(−)-germacrene D,Class I
+A0A142BX70,"(2E,6E)-FPP",β-copaene,Class I
+A0A140KFG9,"(2E,6E)-FPP",hedycaryol,Class I
+A0A140AZ72,"(2Z,6E)-FPP",(6E)-nerolidol,Class I
+A0A140AZ72,"(2Z,6E)-FPP",trans-β-farnesene,Class I
+A0A140AZ72,(2E)-GPP,linalool,Class I
+A0A140AZ72,"(2E,6E,10E)-GGPP",geranyllinalool,Class I
+A0A140AZ72,"(2Z,6Z)-FPP",β-bisabolene,Class I
+A0A140AZ72,"(2Z,6Z)-FPP",(E)-α-bisabolene,Class I
+A0A140AZ72,"(2Z,6Z)-FPP",(6Z)-nerolidol,Class I
+A0A140AZ72,"(2E,6E)-FPP",(6E)-nerolidol,Class I
+A0A140AZ69,"(2E,6E,10E)-GGPP",geranyllinalool,Class I
+A0A140AZ63,"(2Z,6E)-FPP","(6R,7S)-himachala-9,11-diene",Class I
+A0A140AZ63,"(2Z,6E)-FPP",(Z)-α-bisabolene,Class I
+A0A140AZ63,"(2Z,6E)-FPP",β-bisabolene,Class I
+A0A140AZ63,"(2Z,6E)-FPP",(−)-γ-cadinene,Class I
+A0A140AZ63,"(2Z,6E)-FPP",(6E)-nerolidol,Class I
+A0A140AZ63,"(2Z,6Z)-FPP",β-bisabolene,Class I
+A0A140AZ63,"(2Z,6Z)-FPP",(E)-α-bisabolene,Class I
+A0A135LYJ9,"(2E,6E,10E,14E)-GFPP","(2E,6E,10E,14E)-geranylfarnesol",Class I
+A0A125SXN3,"(S)-2,3-epoxysqualene",cycloartenol,Class II
+A0A125SXN2,pre-α-onocerin,α-onocerin,Class II
+A0A125SXN1,"(3S,22S)-2,3:22,23-diepoxy-2,3,22,23-tetrahydrosqualene",pre-α-onocerin,Class II
+A0A125S8N2,"(2E,6E)-FPP",(Z)-γ-bisabolene,Class I
+A0A125S8N1,"(2E,6E)-FPP",(Z)-γ-bisabolene,Class I
+A0A100IAT3,"(2E,6E,10E,14E)-GFPP","(2E,6E,10E,14E)-geranylfarnesol",Class I
+A0A100IAT3,"(2E,6E,10E)-GGPP",geranyllinalool,Class I
+A0A0U5GNT1,"(2E,6E)-FPP",drimenol,Class I
+A0A0U5GLI1,"(2E,6E,10E)-GGPP",(−)-spiroviolene,Class I
+A0A0U5G0B1,"(2E,6E,10E,14E)-GFPP",ophiobolin F,Class I
+A0A0U5G0B1,dimethylallyl PP; isopentenyl PP,geranyl diphosphate(3−),prenyl
+A0A0U5G0B1,(2E)-GPP; isopentenyl PP,"2-trans,6-trans-farnesyl diphosphate(3−)",prenyl
+A0A0U4KG90,"(2E,6E)-FPP",(−)-germacrene A,Class I
+A0A0U4IMN4,"(2E,6E)-FPP",(−)-germacrene A,Class I
+A0A0U4CDK4,ent-copalyl diphosphate,ent-kaurene,Class I
+A0A0U3LQ20,"(2E,6E,10E)-GGPP","5β,9α,10α-labda-8(20),13-dien-15-yl diphosphate(3−)",Class II
+A0A0U3BRC5,"isopentenyl PP; (2E,6E,10E)-GGPP",all-trans-pentaprenyl diphosphate(3−),prenyl
+A0A0U3BRC5,"isopentenyl PP; (2E,6E)-FPP",all-trans-pentaprenyl diphosphate(3−),prenyl
+A0A0U3BRC5,isopentenyl PP; (2E)-GPP,all-trans-pentaprenyl diphosphate(3−),prenyl
+A0A0U3BRC5,dimethylallyl PP; 4 isopentenyl PP,all-trans-pentaprenyl diphosphate(3−),prenyl
+A0A0U2U4F3,"(S)-2,3-epoxysqualene",β-amyrin,Class II
+A0A0U2D9C5,"(2E,6E,10E)-GGPP",ent-copal-8-ol diphosphate(3−),Class II
+A0A0U1XRI2,"(2E,6E)-FPP",(−)-germacrene A,Class I
+A0A0U1XNG2,"(2E,6E)-FPP",(−)-germacrene A,Class I
+A0A0S2IHL6,"(S)-2,3-epoxysqualene",β-amyrin,Class II
+A0A0P0ZEM1,dimethylallyl PP; 4 isopentenyl PP,all-trans-pentaprenyl diphosphate(3−),prenyl
+A0A0P0ZEM1,"(2E,6E,10E,14E)-GFPP","stellata-2,6,19-triene",Class I
+A0A0P0ZD79,"(2E,6E,10E)-GGPP",variediene,Class I
+A0A0P0ZD79,dimethylallyl PP; isopentenyl PP,variediene,Class I
+A0A0P0ZD79,dimethylallyl PP; isopentenyl PP,"2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+A0A0P0ZD79,dimethylallyl PP; 4 isopentenyl PP,all-trans-pentaprenyl diphosphate(3−),prenyl
+A0A0M5L832,"(2E,6E,10E)-GGPP",(−)-kolavenyl diphosphate,Class II
+A0A0M4MMY1,"(2E,6E,10E)-GGPP",ent-kaurene,Class II
+A0A0M4MMY1,"(2E,6E,10E)-GGPP",ent-isokaurene,Class II
+A0A0M4M0T9,"(2E,6E,10E)-GGPP",(−)-kolavenyl diphosphate,Class II
+A0A0M3Q1Q3,(2E)-GPP,γ-terpinene,Class I
+A0A0H5BN61,(+)-copalyl diphosphate,"(12E)-labda-8(17),12,14-triene",Class I
+A0A0H5BN57,(+)-copalyl diphosphate,"(12E)-labda-8(17),12,14-triene",Class I
+A0A0H5BB10,"(2E,6E,10E)-GGPP","5α,9α,10β-labda-8(20),13-dien-15-yl diphosphate(3−)",Class II
+A0A0H4U9R8,"(2E,6E)-FPP",(+)-δ-cadinene,Class I
+A0A0G7ZNT4,"(2E,6E)-FPP","(1E,4E,8E)-α-humulene",Class I
+A0A0F6P1F4,"(2E,6E)-FPP",(+)-δ-cadinene,Class I
+A0A0F4GLU2,"(2E,6E,10E,14E)-GFPP",sesterevisene,Class I
+A0A0E3KJK7,"(2E,6E)-FPP",(−)-β-caryophyllene,Class I
+A0A0E3D8P4,(2E)-GPP; isopentenyl PP,"2-trans,6-trans-farnesyl diphosphate(3−)",prenyl
+A0A0E3D8P4,dimethylallyl PP; isopentenyl PP,geranyl diphosphate(3−),prenyl
+A0A0E3D8P4,"(2E,6E)-FPP; isopentenyl PP","2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+A0A0E0SP71,"(S)-2,3-epoxysqualene",lanosterol,Class II
+A0A0E0LRP1,"(2E,6E)-FPP",(S)-β-bisabolene,Class I
+A0A0D4D912,"(2E,6E)-FPP",(−)-germacrene A,Class I
+A0A0D2L718,"(2E,6E)-FPP",Δ6-protoilludene,Class I
+A0A0C9VD04,"(2E,6E)-FPP",viridiflorene,Class I
+A0A0C9VD04,"(2E,6E)-FPP",viridiflorol,Class I
+A0A0C3FBR2,"(2E,6E)-FPP",viridiflorene,Class I
+A0A0C3FBR2,"(2E,6E)-FPP",γ-cadinene,Class I
+A0A0C3FBR2,"(2E,6E)-FPP",(−)-β-elemene,Class I
+A0A0B5KP67,"(2E,6E)-FPP",sesquisabinene B,Class I
+A0A0B4IF96,"(2E,6E)-FPP",(+)-corvol ether B,Class I
+A0A0B4IF96,"(2E,6E)-FPP",(+)-corvol ether A,Class I
+A0A0B4GN88,"(2E,6E)-FPP",(+)-corvol ether B,Class I
+A0A0B4GN88,"(2E,6E)-FPP",(+)-corvol ether A,Class I
+A0A0B4G504,"(2E,6E)-FPP",trans-β-farnesene,Class I
+A0A0B4G3Q7,"(2E,6E)-FPP",(+)-corvol ether B,Class I
+A0A0B4G3Q7,"(2E,6E)-FPP",(+)-corvol ether A,Class I
+A0A0B4FWC3,"(2E,6E)-FPP",(+)-corvol ether B,Class I
+A0A0B4FWC3,"(2E,6E)-FPP",(+)-corvol ether A,Class I
+A0A0B4EB91,"(2E,6E)-FPP",(−)-γ-cadinene,Class I
+A0A0B4EB91,"(2E,6E)-FPP",α-cadinol,Class I
+A0A0B4EB91,"(2E,6E)-FPP",δ-cadinene,Class I
+A0A0B4EB91,"(2E,6E)-FPP",germacrene D,Class I
+A0A0B4EB91,"(2E,6E)-FPP",(−)-β-elemene,Class I
+A0A0B4EB91,"(2E,6E)-FPP",α-cadinene,Class I
+A0A0B4EB91,"(2E,6E)-FPP",α-muurolene,Class I
+A0A0B4EB91,"(2E,6E)-FPP",γ-muurolene,Class I
+A0A0B4EB91,"(2E,6E)-FPP",(−)-β-caryophyllene,Class I
+A0A0A7GEY4,dimethylallyl PP; isopentenyl PP,"2-trans,6-trans,10-trans-geranylgeranyl diphosphate(3−)",prenyl
+A0A0A7DNH6,"(2E,6E)-FPP",(+)-δ-cadinene,Class I
+A0A0A0RDZ8,"(2E,6E)-FPP",(S)-β-bisabolene,Class I
+A0A0A0RDR2,"(2E,6E)-FPP",sesquisabinene B,Class I
+A0A0A0RCB5,"(2E,6E)-FPP",sesquisabinene B,Class I
+A0A0A0QUT9,"(2E,6E)-FPP",(−)-germacrene A,Class I
+A0A0A0QUT9,"(2E,6E)-FPP",δ-guaiene,Class I
+A0A097ZIE0,"(2E,6E)-FPP",δ-elemene,Class I
+A0A076L784,"(2E,6E)-FPP",(−)-germacrene D,Class I
+A0A076L784,"(2E,6E)-FPP",(−)-germacrene A,Class I
+A0A076L503,"(2E,6E)-FPP",(−)-β-caryophyllene,Class I
+A0A076L503,"(2E,6E)-FPP",(−)-germacrene A,Class I
+A0A076L4Z9,"(2E,6E)-FPP",(−)-β-caryophyllene,Class I
+A0A076L4M0,"(2E,6E)-FPP",(−)-β-caryophyllene,Class I
+A0A076L4M0,"(2E,6E)-FPP",(−)-germacrene A,Class I
+A0A076KZS5,"(2E,6E)-FPP",(−)-β-caryophyllene,Class I
+A0A076KZS5,"(2E,6E)-FPP",(−)-germacrene A,Class I
+A0A076KZH5,"(2E,6E)-FPP",(−)-β-caryophyllene,Class I
+A0A076GBT5,"(2E,6E)-FPP",(−)-β-caryophyllene,Class I
+A0A076GAU9,"(2E,6E)-FPP",γ-curcumene,Class I
+A0A076GAU5,"(2E,6E)-FPP",elemol,Class I
+A0A076GAR6,"(2E,6E)-FPP",(−)-β-elemene,Class I
+A0A075W3D9,"(2E,6E)-FPP",bicyclogermacrene,Class I
+A0A075W0Z3,"(2E,6E)-FPP",(+)-epi-α-bisabolol,Class I
+A0A075FBG7,peregrinol PP,"9,13(R)-epoxylabd-14-ene",Class I
+A0A075FBG7,(+)-copalyl diphosphate,miltiradiene,Class I
+A0A075FBG7,copal-8-ol diphosphate(3−),(13R)-manoyl oxide,Class I
+A0A075FAK4,"(2E,6E,10E)-GGPP",peregrinol diphosphate(3−),Class II
+A0A075FA51,"(2E,6E,10E)-GGPP","5α,9α,10β-labda-8(20),13-dien-15-yl diphosphate(3−)",Class II
+A0A067SEC9,"(2E,6E)-FPP",β-gurjunene,Class I
+A0A059PYD5,(2E)-GPP,β-phellandrene,Class I
+A0A023J8Z5,"(2E,6E)-FPP",δ-guaiene,Class I
+A0A023J8Z5,"(2E,6E)-FPP",α-guaiene,Class I
+A0A023J8Z5,"(2E,6E)-FPP",α-humulene,Class I
+LcIMS1,"(S)-2,3-epoxysqualene",isomultiflorenol,Class II
