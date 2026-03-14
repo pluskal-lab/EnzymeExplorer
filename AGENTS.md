@@ -68,7 +68,6 @@ Before proposing changes, run the same checks CI runs:
 6. **Avoid unnecessary memory usage**
    - Avoid loading more data than needed.
    - Stream, chunk, or slice when practical.
-   - Do not keep full-depth books or similarly large intermediate state in memory for the full day range if the computation can be done incrementally.
    - Prefer vectorized/filter-first approaches when they reduce memory and compute without obscuring correctness.
 
 ## Data / outputs hygiene
