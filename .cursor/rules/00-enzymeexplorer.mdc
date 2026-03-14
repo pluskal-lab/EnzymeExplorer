@@ -1,0 +1,17 @@
+---
+description: EnzymeExplorer baseline rule (always apply)
+globs:
+alwaysApply: true
+---
+
+Follow AGENTS.md in the repo root.
+
+Do NOT open, summarize, or modify generated artifacts (especially anything under outputs/ or build/).
+If a task asks for results from generated files, ask for the specific small snippet needed instead of scanning directories.
+
+When making changes:
+- Keep diffs minimal and targeted.
+- Don’t reformat unrelated code.
+- Prefer updating docs/help text when CLI behavior changes.
+
+Before suggesting a PR-ready change, ensure checks align with the repo’s CI expectations (black/flake8/pylint/mypy).
