@@ -7,8 +7,8 @@ pfam-models-dir: "data/pfam_models/"
 supfam-models-dir: "data/supfam_models/"
 n-folds: 5
 number-of-negatives: 10000
-rhea-directions-tsv-path: "data/rhea_directions_2026_03_14.tsv"
-rhea-reaction-smiles-tsv-path: "data/rhea_reaction_smiles_2026_03_14.tsv"
+rhea-directions-tsv-path: "data/rhea-directions_2026_03_14.tsv"
+rhea-reaction-smiles-tsv-path: "data/rhea-reaction-smiles_2026_03_14.tsv"
 dataset-output-path: "data/EnzymeExplorer_Dataset.pkl"
 structures-root: "../enz_exp_playground/data/enzyme_explorer_pdbs"
 pos_seq_id: 0.5 
