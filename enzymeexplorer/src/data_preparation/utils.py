@@ -12,7 +12,7 @@ from enzymeexplorer.src.data_preparation.constants import (
     TPS_ECS_BASE,
     TPS_ECS_BASE,
     TPS_GO_BLACKLIST,
-    METRICS_2_FUNC
+    METRICS_2_FUNC,
 )
 from enzymeexplorer.src.utils.data import get_canonical_smiles
 from enzymeexplorer.src.data_preparation.mmseqs2_wrapper import MMSeqs2Wrapper
@@ -26,13 +26,27 @@ import requests
 from Bio.PDB import PDBParser
 from typing import List, Tuple, Optional
 import matplotlib.pyplot as plt
+from rdkit.Chem import MolToSmiles, rdChemReactions
 
 logger = logging.getLogger(__file__)
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
-def download_af_structure(uniprot_id: str, structures_root: str, max_fails_count: int = 3, fails_count: int = 0) -> bool:
+
+def get_canonical_substrates(rxn_smiles: str):
+    rxn = rdChemReactions.ReactionFromSmarts(rxn_smiles, useSmiles=True)
+    trxn = rdChemReactions.ChemicalReaction(rxn)
+    substrates = trxn.GetReactants()
+    return {get_canonical_smiles(MolToSmiles(substr)) for substr in substrates}
+
+
+def download_af_structure(
+    uniprot_id: str,
+    structures_root: str,
+    max_fails_count: int = 3,
+    fails_count: int = 0,
+) -> bool:
     save_name = uniprot_id
     try:
         if Path(f"{structures_root}/{save_name}.pdb").exists():
@@ -42,11 +56,13 @@ def download_af_structure(uniprot_id: str, structures_root: str, max_fails_count
         if response.status_code != 200:
             return False
         with open(Path(structures_root) / f"{save_name}.pdb", "wb") as file:
-           file.write(response.content)
-           return True
+            file.write(response.content)
+            return True
     except Exception as e:
         if fails_count < max_fails_count:
-            return download_af_structure(uniprot_id, structures_root, max_fails_count, fails_count+1)
+            return download_af_structure(
+                uniprot_id, structures_root, max_fails_count, fails_count + 1
+            )
         else:
             return False
 
@@ -105,20 +121,25 @@ def preprocess_martsdb(martsDB: pd.DataFrame) -> tuple[pd.DataFrame, list[list[s
     martsDB["Aminoacid_sequence"] = martsDB["Aminoacid_sequence"].map(
         lambda x: "".join(x.split())
     )
-    
+
     aa_seq_2_id = defaultdict(list)
     for _, row in martsDB.iterrows():
         aa_seq = row["Aminoacid_sequence"]
         aa_seq_2_id[aa_seq].append(row["Enzyme_marts_ID"])
     for aa_seq in aa_seq_2_id:
         aa_seq_2_id[aa_seq] = sorted(list(set(aa_seq_2_id[aa_seq])))
-    
-    marts_duplicates = list([ids for ids in aa_seq_2_id.values() if len(ids) > 1])    
+
+    marts_duplicates = list([ids for ids in aa_seq_2_id.values() if len(ids) > 1])
     martsDB["Enzyme_marts_ID"] = martsDB.apply(
         lambda row: list(aa_seq_2_id[row["Aminoacid_sequence"]])[0], axis=1
     )
-    assert martsDB["Enzyme_marts_ID"].isna().sum() == 0, "NaN values found in Enzyme_marts_ID after processing"
-    martsDB.drop_duplicates(subset=["Aminoacid_sequence", "Substrate_marts_ID", "Product_marts_ID"], inplace=True)
+    assert (
+        martsDB["Enzyme_marts_ID"].isna().sum() == 0
+    ), "NaN values found in Enzyme_marts_ID after processing"
+    martsDB.drop_duplicates(
+        subset=["Aminoacid_sequence", "Substrate_marts_ID", "Product_marts_ID"],
+        inplace=True,
+    )
 
     # deriving clean kingdom info
 
@@ -144,16 +165,24 @@ def preprocess_martsdb(martsDB: pd.DataFrame) -> tuple[pd.DataFrame, list[list[s
     martsDB["OriginalType"] = martsDB["Type"]
     # Map Squalene Synthase and Phytoene Synthases to tetra and tri TPS types
     martsDB.loc[
-        (martsDB["Type"] == "sqs") & (martsDB["SMILES_substrate_canonical_no_stereo"].str.count("C") == 40), "Type"
+        (martsDB["Type"] == "sqs")
+        & (martsDB["SMILES_substrate_canonical_no_stereo"].str.count("C") == 40),
+        "Type",
     ] = "tetra"
     martsDB.loc[
-        (martsDB["Type"] == "sqs") & (martsDB["SMILES_substrate_canonical_no_stereo"].str.count("C") == 30), "Type"
+        (martsDB["Type"] == "sqs")
+        & (martsDB["SMILES_substrate_canonical_no_stereo"].str.count("C") == 30),
+        "Type",
     ] = "tri"
     martsDB.loc[
-        (martsDB["Type"] == "psy") & (martsDB["SMILES_substrate_canonical_no_stereo"].str.count("C") == 40), "Type"
+        (martsDB["Type"] == "psy")
+        & (martsDB["SMILES_substrate_canonical_no_stereo"].str.count("C") == 40),
+        "Type",
     ] = "tetra"
     martsDB.loc[
-        (martsDB["Type"] == "psy") & (martsDB["SMILES_substrate_canonical_no_stereo"].str.count("C") == 30), "Type"
+        (martsDB["Type"] == "psy")
+        & (martsDB["SMILES_substrate_canonical_no_stereo"].str.count("C") == 30),
+        "Type",
     ] = "tri"
 
     return martsDB, marts_duplicates
@@ -170,46 +199,98 @@ def proprocess_negatives(
 ) -> pd.DataFrame:
     swissprot_df = swissprot_df.drop_duplicates("Sequence")
 
+    tps_swissprot_rhea = swissprot_df[
+        swissprot_df.Sequence.isin(martsdb_seqs) & swissprot_df["Rhea ID"].notna()
+    ]
+
     tps_swissprot_ec = swissprot_df[
-        swissprot_df.Sequence.isin(martsdb_seqs) & (swissprot_df["EC number"].notna())
+        swissprot_df.Sequence.isin(martsdb_seqs) & swissprot_df["EC number"].notna()
     ]
-    
-    
+
     tps_swissprot_go = swissprot_df[
-        swissprot_df.Sequence.isin(martsdb_seqs) & (swissprot_df["Gene Ontology IDs"].notna())
+        swissprot_df.Sequence.isin(martsdb_seqs)
+        & swissprot_df["Gene Ontology IDs"].notna()
     ]
-    
+
     nontps_swissprot = swissprot_df[~swissprot_df.Sequence.isin(martsdb_seqs)]
 
     nontps_swissprot = filter_out_putative_tpss(nontps_swissprot, PUTATIVE_TPS_IDS)
-    
-    logger.info(f"Filtered out putative TPSs. Remaining non-TPS SwissProt size: {len(nontps_swissprot)}")
-    
+
+    logger.info(
+        f"Filtered out putative TPSs. Remaining non-TPS SwissProt size: {len(nontps_swissprot)}"
+    )
+
+    nontps_swissprot = filter_by_rhea(tps_swissprot_rhea, nontps_swissprot)
+
+    logger.info(
+        f"Filtered by Rhea IDs. Remaining non-TPS SwissProt size: {len(nontps_swissprot)}"
+    )
+
     nontps_swissprot = filter_by_ec(tps_swissprot_ec, nontps_swissprot, TPS_ECS_BASE)
-    
-    logger.info(f"Filtered by EC numbers. Remaining non-TPS SwissProt size: {len(nontps_swissprot)}")
+
+    logger.info(
+        f"Filtered by EC numbers. Remaining non-TPS SwissProt size: {len(nontps_swissprot)}"
+    )
 
     nontps_swissprot = filter_by_go(
         tps_swissprot_go, nontps_swissprot, TPS_GO_BLACKLIST, go_dag
     )
-    
-    logger.info(f"Filtered by GO terms. Remaining non-TPS SwissProt size: {len(nontps_swissprot)}")
+
+    logger.info(
+        f"Filtered by GO terms. Remaining non-TPS SwissProt size: {len(nontps_swissprot)}"
+    )
 
     nontps_swissprot = redundancy_reduce(nontps_swissprot, mmseqs=mmseqs)
-    
-    logger.info(f"95% Sequence Identity Redundancy reduced non-TPS SwissProt size: {len(nontps_swissprot)}")
-    
-    nontps_swissprot = filter_by_pfam_supfam(nontps_swissprot, pfam_models_dir=pfam_models_dir, supfam_models_dir=supfam_models_dir, hmmer=hmmer)
-    
-    logger.info(f"Filtered out sequences with Pfam/Supfam hits. Remaining non-TPS SwissProt size: {len(nontps_swissprot)}")
-    
+
+    logger.info(
+        f"95% Sequence Identity Redundancy reduced non-TPS SwissProt size: {len(nontps_swissprot)}"
+    )
+
+    nontps_swissprot = filter_by_pfam_supfam(
+        nontps_swissprot,
+        pfam_models_dir=pfam_models_dir,
+        supfam_models_dir=supfam_models_dir,
+        hmmer=hmmer,
+    )
+
+    logger.info(
+        f"Filtered out sequences with Pfam/Supfam hits. Remaining non-TPS SwissProt size: {len(nontps_swissprot)}"
+    )
+
     return nontps_swissprot
 
 
 def filter_out_putative_tpss(
     nontps_swiss: pd.DataFrame, putative_tps_ids: list
 ) -> pd.DataFrame:
-    return nontps_swiss[~nontps_swiss.Entry.isin(putative_tps_ids)]
+    return nontps_swiss[~nontps_swiss.Entry.isin(putative_tps_ids)]  # type: ignore
+
+
+def filter_by_rhea(tps_swiss, nontps_swiss):
+    tps_rheas = set()
+    tps_swiss["Rhea ID"].apply(
+        lambda x: (
+            tps_rheas.update(
+                [rhea_id.split("RHEA:")[-1] for rhea_id in str(x).split(" ")]
+            )
+            if x is not None
+            else None
+        )
+    )
+    return nontps_swiss[
+        nontps_swiss["Rhea ID"].map(
+            lambda x: (
+                True
+                if x is None
+                else all(
+                    [
+                        rhea.split("RHEA:")[-1] not in tps_rheas
+                        for rhea in str(x).split(" ")
+                    ]
+                )
+            )
+        )
+    ]
 
 
 def filter_by_ec(tps_swiss, nontps_swiss, tps_ecs_base):
@@ -265,14 +346,19 @@ def filter_by_go(tps_swiss, nontps_swiss, tps_go_blacklist, go_dag):
     ]
 
 
-def filter_by_pfam_supfam(nontps_swiss: pd.DataFrame, pfam_models_dir: str, supfam_models_dir: str, hmmer: HMMerWrapper) -> pd.DataFrame:
+def filter_by_pfam_supfam(
+    nontps_swiss: pd.DataFrame,
+    pfam_models_dir: str,
+    supfam_models_dir: str,
+    hmmer: HMMerWrapper,
+) -> pd.DataFrame:
     with tempfile.TemporaryDirectory() as tmpdir:
         uuid = str(uuid4())
         input_fasta_path = os.path.join(tmpdir, f"nontps_swiss_{uuid}.fasta")
         with open(input_fasta_path, "w") as fasta_file:
             for _, row in nontps_swiss.iterrows():
                 fasta_file.write(f">{row['Entry']}\n{row['Sequence']}\n")
-                
+
         pfam_db_path = os.path.join(tmpdir, f"pfam_models_{uuid}")
         hmmer.hmm_concat(pfam_models_dir, pfam_db_path)
         hmmer.hmmpress(pfam_db_path)
@@ -282,17 +368,19 @@ def filter_by_pfam_supfam(nontps_swiss: pd.DataFrame, pfam_models_dir: str, supf
             output=os.path.join(tmpdir, f"pfam_scan_{uuid}.tbl"),
             bitscore=25,
         )
-        
+
         supfam_db_path = os.path.join(tmpdir, f"supfam_models_{uuid}")
         hmmer.hmm_concat(supfam_models_dir, supfam_db_path)
-        hmmer.hmmpress(supfam_db_path)        
+        hmmer.hmmpress(supfam_db_path)
         supfam_hits_df = hmmer.hmmscan(
             query_fasta=input_fasta_path,
             hmm_path=supfam_db_path,
             output=os.path.join(tmpdir, f"supfam_scan_{uuid}.tbl"),
             bitscore=25.0,
         )
-    swiss_with_pfam_supfam_hits = set(pfam_hits_df["query_name"].unique().tolist()) | set(supfam_hits_df["query_name"].unique().tolist())
+    swiss_with_pfam_supfam_hits = set(
+        pfam_hits_df["query_name"].unique().tolist()
+    ) | set(supfam_hits_df["query_name"].unique().tolist())
     return nontps_swiss[~nontps_swiss.Entry.isin(swiss_with_pfam_supfam_hits)]
 
 
@@ -352,6 +440,56 @@ def cluster_dataset(
     return clusters_df, representatives_df
 
 
+def _get_negatives_accepting_tps_substrates(
+    nontps_swissprot: pd.DataFrame,
+    nontps_swissprot_clusters_df: pd.DataFrame,
+    martsDB: pd.DataFrame,
+    rhea_directions: pd.DataFrame,
+    rhea_reaction_smiles: pd.DataFrame,
+) -> set[str]:
+    tps_substrates = set(martsDB.SMILES_substrate_canonical_no_stereo.tolist())
+    rhea_ids_accepting_tps_substrates = set(
+        rhea_reaction_smiles[
+            rhea_reaction_smiles.substrate_canonical_smiles_no_stereo.map(
+                lambda smiles_set: any([s in tps_substrates for s in smiles_set])
+            )
+        ]["rhea_id"].tolist()
+    )
+    rhea_master_ids_accepting_tps_substrates = set(
+        rhea_directions[
+            rhea_directions.RHEA_ID_MASTER.isin(rhea_ids_accepting_tps_substrates)
+            | rhea_directions.RHEA_ID_LR.isin(rhea_ids_accepting_tps_substrates)
+            | rhea_directions.RHEA_ID_RL.isin(rhea_ids_accepting_tps_substrates)
+            | rhea_directions.RHEA_ID_BI.isin(rhea_ids_accepting_tps_substrates)
+        ].RHEA_ID_MASTER.tolist()
+    )
+
+    negatives_accepting_tps_substrates = set(
+        nontps_swissprot[
+            nontps_swissprot["Rhea ID"].map(
+                lambda x: (
+                    False
+                    if x is None
+                    else any(
+                        [
+                            int(rhea_id.split("RHEA:")[-1])
+                            in rhea_master_ids_accepting_tps_substrates
+                            for rhea_id in str(x).split(" ")
+                        ]
+                    )
+                )
+            )
+        ]["Entry"].tolist()
+    )
+    return set(
+        nontps_swissprot_clusters_df[
+            nontps_swissprot_clusters_df["Member"].isin(
+                negatives_accepting_tps_substrates
+            )
+        ]["Representative"].tolist()
+    )
+
+
 def _get_hard_negative_clusters(
     negatives_cluster_representatives: pd.DataFrame,
     martsDB: pd.DataFrame,
@@ -381,6 +519,7 @@ def _get_hard_negative_clusters(
             e_value=e_value,
         )
     return set(search_results_df["query"].unique().tolist())
+
 
 def _get_hard_negative_clusters_sensitive(
     negatives_cluster_representatives: pd.DataFrame,
@@ -416,24 +555,60 @@ def _get_hard_negative_clusters_sensitive(
         )
     return set(search_results_df["target"].unique().tolist())
 
+
 def get_hard_negative_cluster_ids(
+    nontps_swissprot: pd.DataFrame,
+    nontps_swissprot_clusters_df: pd.DataFrame,
     negatives_cluster_representatives: pd.DataFrame,
     martsDB: pd.DataFrame,
-    mmseqs: MMSeqs2Wrapper
+    mmseqs: MMSeqs2Wrapper,
+    rhea_directions: pd.DataFrame,
+    rhea_reaction_smiles: pd.DataFrame,
 ) -> set[str]:
-    simple_hard_negatives = _get_hard_negative_clusters(negatives_cluster_representatives, martsDB.drop_duplicates(subset=["Enzyme_marts_ID"]), mmseqs)
-    
+    rhea_reaction_smiles["substrate_canonical_smiles_no_stereo"] = rhea_reaction_smiles[
+        "reaction_smiles"
+    ].map(get_canonical_substrates)
+    substrate_hard_negatives = _get_negatives_accepting_tps_substrates(
+        nontps_swissprot,
+        nontps_swissprot_clusters_df,
+        martsDB,
+        rhea_directions,
+        rhea_reaction_smiles,
+    )
+
+    simple_hard_negatives = _get_hard_negative_clusters(
+        negatives_cluster_representatives,
+        martsDB.drop_duplicates(subset=["Enzyme_marts_ID"]),
+        mmseqs,
+    )
+
     typed_hard_negatives = set()
     for t in martsDB.OriginalType.unique():
-        t_martsDB = martsDB[martsDB.OriginalType == t].drop_duplicates(subset=["Enzyme_marts_ID"])
-        typed_hard_negatives.update(_get_hard_negative_clusters_sensitive(negatives_cluster_representatives, t_martsDB, mmseqs))
-        
+        t_martsDB = martsDB[martsDB.OriginalType == t].drop_duplicates(
+            subset=["Enzyme_marts_ID"]
+        )
+        typed_hard_negatives.update(
+            _get_hard_negative_clusters_sensitive(
+                negatives_cluster_representatives, t_martsDB, mmseqs
+            )
+        )
+
     kingdom_hard_negatives = set()
     for kingdom in martsDB.Kingdom.unique():
-        kingdom_martsDB = martsDB[martsDB.Kingdom == kingdom].drop_duplicates(subset=["Enzyme_marts_ID"])
-        kingdom_hard_negatives.update(_get_hard_negative_clusters_sensitive(negatives_cluster_representatives, kingdom_martsDB, mmseqs))
-        
-    return simple_hard_negatives.union(typed_hard_negatives).union(kingdom_hard_negatives)
+        kingdom_martsDB = martsDB[martsDB.Kingdom == kingdom].drop_duplicates(
+            subset=["Enzyme_marts_ID"]
+        )
+        kingdom_hard_negatives.update(
+            _get_hard_negative_clusters_sensitive(
+                negatives_cluster_representatives, kingdom_martsDB, mmseqs
+            )
+        )
+
+    return (
+        substrate_hard_negatives.union(simple_hard_negatives)
+        .union(typed_hard_negatives)
+        .union(kingdom_hard_negatives)
+    )
 
 
 def get_is_splittable(
@@ -453,7 +628,9 @@ def get_is_splittable(
         group_target_2_seq_ids[(cluster, target_value)].add(row[id_column])
         target_2_partitions[target_value].add(cluster)
     unsplittable_target_values = set()
-    target_val_2_total_count = dataset_with_clusters.drop_duplicates([id_column, target_col])[target_col].value_counts()
+    target_val_2_total_count = dataset_with_clusters.drop_duplicates(
+        [id_column, target_col]
+    )[target_col].value_counts()
 
     group_target_2_count = {
         (cluster, target_value): len(seq_ids)
@@ -521,7 +698,9 @@ def pick_best_fold(
                 target_col=target_col,
                 classes=classes,
             )
-            invalid_fold = set(classes) - set(val_df.explode(target_col)[target_col].unique())
+            invalid_fold = set(classes) - set(
+                val_df.explode(target_col)[target_col].unique()
+            )
             if len(invalid_fold) > 0:
                 break
             _t.append(jensenshannon(class_dist, fold_class_dist))
@@ -558,7 +737,9 @@ def get_stratified_group_kfold_splits(
     """
 
     dataset = (
-        dataset_with_clusters.groupby([id_column, cluster_id_column])[[target_col]].agg(set).reset_index()
+        dataset_with_clusters.groupby([id_column, cluster_id_column])[[target_col]]
+        .agg(set)
+        .reset_index()
     )
     dataset[f"{target_col}_sorted"] = dataset[target_col].map(
         lambda targets: str(sorted(targets))
@@ -568,10 +749,16 @@ def get_stratified_group_kfold_splits(
         class_dist = get_class_distribution(
             dataset_with_clusters, id_column, target_col, classes
         )
-        
+
         warnings.filterwarnings(action="ignore", category=UserWarning)
         folds = pick_best_fold(
-            dataset, id_column, cluster_id_column, target_col, classes, n_folds, class_dist
+            dataset,
+            id_column,
+            cluster_id_column,
+            target_col,
+            classes,
+            n_folds,
+            class_dist,
         )
         warnings.resetwarnings()
 
@@ -675,8 +862,9 @@ def calculate_metrics(
 
 
 def calculate_metric_diff_thresholds(
-    metrics: dict[str, dict[str, dict[str, float]]], output_dir: str,
-    percentile: float = 95
+    metrics: dict[str, dict[str, dict[str, float]]],
+    output_dir: str,
+    percentile: float = 95,
 ) -> dict[str, float]:
     metric_differences = {
         metric: np.array(
@@ -688,14 +876,14 @@ def calculate_metric_diff_thresholds(
         for metric in METRICS_2_FUNC.keys()
     }
     thresholds = {
-        metric: max(np.percentile(differences, percentile), .0)
+        metric: max(np.percentile(differences, percentile), 0.0)
         for metric, differences in metric_differences.items()
     }
 
     fig, axes = plt.subplots(
         1, len(METRICS_2_FUNC), figsize=(len(METRICS_2_FUNC) * 4, 4)
     )
-    for ax, (metric_name, differences) in zip(axes, metric_differences.items()): # type: ignore
+    for ax, (metric_name, differences) in zip(axes, metric_differences.items()):  # type: ignore
         ax.hist(
             differences,
             bins=50,
@@ -707,5 +895,4 @@ def calculate_metric_diff_thresholds(
     plt.tight_layout()
     plt.savefig(f"{output_dir}/_metric_differences_histograms.png")
     plt.close()
-    return thresholds # type: ignore
-
+    return thresholds  # type: ignore

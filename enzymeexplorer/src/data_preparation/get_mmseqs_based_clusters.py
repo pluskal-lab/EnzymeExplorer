@@ -61,7 +61,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--swissprot-tsv-path",
         type=str,
-        default="data/swissprot_with_af_structures.tsv",
+        default="data/swissprot_with_af_2026_03_14.tsv",
         help="Path to the SwissProt TSV file containing EC and GO annotations",
     )
     parser.add_argument(
@@ -93,6 +93,18 @@ def parse_args() -> argparse.Namespace:
         type=int,
         default=10000,
         help="Number of negative examples to pull from SwissProt",
+    )
+    parser.add_argument(
+        "--rhea-directions-tsv-path",
+        type=str,
+        default="data/rhea_directions.tsv",
+        help="Path to the Rhea directions TSV file for determining reaction directionality",
+    )
+    parser.add_argument(
+        "--rhea-reaction-smiles-tsv-path",
+        type=str,
+        default="data/rhea_reaction_smiles.tsv",
+        help="Path to the Rhea reaction SMILES TSV file for determining reaction directionality",
     )
     parser.add_argument(
         "--dataset-output-path",
@@ -181,7 +193,7 @@ def main():
 
     logger.info(f"Preprocessed non-TPS SwissProt dataset size: {len(nontps_swissprot)}")
 
-    martsDB_clusters_df, martsDB_representatives_df = cluster_dataset(
+    martsDB_clusters_df, _ = cluster_dataset(
         martsDB,
         id_column="Enzyme_marts_ID",
         seq_column="Aminoacid_sequence",
@@ -240,9 +252,12 @@ def main():
     logger.info(
         f"Clustered non-TPS SwissProt sequences into {nontps_swissprot_clusters_df['Representative'].nunique()} clusters"
     )
+    
+    rhea_directions = pd.read_csv(cli_args.rhea_directions_tsv_path, sep="\t")
+    rhea_reaction_smiles = pd.read_csv(cli_args.rhea_reaction_smiles_tsv_path, sep="\t", names=["rhea_id", "reaction_smiles"])
 
     hard_negative_cluster_ids = get_hard_negative_cluster_ids(
-        nontps_swissprot_representatives_df, martsDB, mmseqs
+        nontps_swissprot, nontps_swissprot_clusters_df, nontps_swissprot_representatives_df, martsDB, mmseqs, rhea_directions, rhea_reaction_smiles
     )
 
     hard_negative_clusters = nontps_swissprot_clusters_df[
