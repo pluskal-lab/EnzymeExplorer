@@ -277,80 +277,97 @@ def main():
 
     logger.info("Generated stratified group K-Fold splits for positives.")
     
-    # Generate hard and easy negatives
-    nontps_swissprot_clusters_df, nontps_swissprot_representatives_df = cluster_dataset(
-        nontps_swissprot,
-        id_column="Entry",
-        seq_column="Sequence",
-        mmseqs=mmseqs,
-        min_seq_id=cli_args.neg_seq_id,
-        coverage=cli_args.neg_coverage,
-    )
+    if cli_args.sample_negatives_randomly:
+        logger.info("Sampling negative examples randomly from SwissProt without MMSeqs2-based clustering.")
+        negative_ids = np.random.choice(
+            nontps_swissprot.Entry.unique().tolist(),
+            size=cli_args.number_of_negatives,
+            replace=False,
+        )
+        negatives_to_accepted_tps_substrates = {}
+        negatives_folds = {
+            idx: set(l.tolist())
+            for idx, l in enumerate(np.array_split(negative_ids, cli_args.n_folds))
+        }
+        negative_ids = set(negative_ids)
+    else:  
+        logger.info("Generating negative examples using MMSeqs2-based clustering to identify hard negatives.")
+        # Generate hard and easy negatives
+        nontps_swissprot_clusters_df, nontps_swissprot_representatives_df = cluster_dataset(
+            nontps_swissprot,
+            id_column="Entry",
+            seq_column="Sequence",
+            mmseqs=mmseqs,
+            min_seq_id=cli_args.neg_seq_id,
+            coverage=cli_args.neg_coverage,
+        )
 
-    logger.info(
-        f"Clustered non-TPS SwissProt sequences into {nontps_swissprot_clusters_df['Representative'].nunique()} clusters"
-    )
-    
-    rhea_directions = pd.read_csv(cli_args.rhea_directions_tsv_path, sep="\t")
-    rhea_reaction_smiles = pd.read_csv(cli_args.rhea_reaction_smiles_tsv_path, sep="\t", names=["rhea_id", "reaction_smiles"])
+        logger.info(
+            f"Clustered non-TPS SwissProt sequences into {nontps_swissprot_clusters_df['Representative'].nunique()} clusters"
+        )
+        
+        rhea_directions = pd.read_csv(cli_args.rhea_directions_tsv_path, sep="\t")
+        rhea_reaction_smiles = pd.read_csv(cli_args.rhea_reaction_smiles_tsv_path, sep="\t", names=["rhea_id", "reaction_smiles"])
 
-    add_tps_substrates_to_rhea_data_inplace(rhea_reaction_smiles, rhea_directions, martsDB)
+        add_tps_substrates_to_rhea_data_inplace(rhea_reaction_smiles, rhea_directions, martsDB)
 
-    substrate_hard_negatives, negatives_to_accepted_tps_substrates = get_substrate_based_hard_negatives(
-        nontps_swissprot,
-        nontps_swissprot_clusters_df,
-        rhea_directions,
-    )
-    
-    logger.info(f"Identified {len(negatives_to_accepted_tps_substrates)} substrate-based hard negatives with {len(substrate_hard_negatives)} unique cluster representatives.")
+        substrate_hard_negatives, negatives_to_accepted_tps_substrates = get_substrate_based_hard_negatives(
+            nontps_swissprot,
+            nontps_swissprot_clusters_df,
+            rhea_directions,
+        )
+        
+        logger.info(f"Identified {len(negatives_to_accepted_tps_substrates)} substrate-based hard negatives with {len(substrate_hard_negatives)} unique cluster representatives.")
 
-    hard_negative_cluster_ids = get_sequence_based_hard_negative_cluster_ids(
-        nontps_swissprot_representatives_df, martsDB, mmseqs
-    )
-    
-    logger.info(f"Identified {len(hard_negative_cluster_ids)} sequence-based hard negative cluster representatives.")
-    
-    hard_negative_cluster_ids.update(substrate_hard_negatives)
+        hard_negative_cluster_ids = get_sequence_based_hard_negative_cluster_ids(
+            nontps_swissprot_representatives_df, martsDB, mmseqs
+        )
+        
+        logger.info(f"Identified {len(hard_negative_cluster_ids)} sequence-based hard negative cluster representatives.")
+        
+        hard_negative_cluster_ids.update(substrate_hard_negatives)
 
-    hard_negative_clusters = nontps_swissprot_clusters_df[
-        nontps_swissprot_clusters_df["Representative"].isin(hard_negative_cluster_ids)
-    ].copy()
-    hard_negative_clusters["Type"] = "Hard"
+        hard_negative_clusters = nontps_swissprot_clusters_df[
+            nontps_swissprot_clusters_df["Representative"].isin(hard_negative_cluster_ids)
+        ].copy()
+        hard_negative_clusters["Type"] = "Hard"
 
-    logger.info(f"Identified {len(hard_negative_clusters)} hard negative samples.")
+        logger.info(f"Identified {len(hard_negative_clusters)} hard negative samples.")
 
-    easy_negative_cluster_ids = nontps_swissprot_clusters_df[
-        ~nontps_swissprot_clusters_df["Representative"].isin(hard_negative_cluster_ids)
-    ]["Representative"].unique()
-    easy_negative_cluster_ids = np.random.choice(
-        easy_negative_cluster_ids,
-        size=cli_args.number_of_negatives - len(hard_negative_clusters),
-        replace=False,
-    )
+        easy_negative_cluster_ids = nontps_swissprot_clusters_df[
+            ~nontps_swissprot_clusters_df["Representative"].isin(hard_negative_cluster_ids)
+        ]["Representative"].unique()
+        easy_negative_cluster_ids = np.random.choice(
+            easy_negative_cluster_ids,
+            size=cli_args.number_of_negatives - len(hard_negative_clusters),
+            replace=False,
+        )
 
-    logger.info(f"Chosen {len(easy_negative_cluster_ids)} easy negative clusters.")
+        logger.info(f"Chosen {len(easy_negative_cluster_ids)} easy negative clusters.")
 
-    easy_negative_clusters = nontps_swissprot_clusters_df[
-        nontps_swissprot_clusters_df["Representative"].isin(easy_negative_cluster_ids)
-    ].copy()
-    easy_negative_clusters["Type"] = "Easy"
-    easy_negative_clusters.drop_duplicates("Representative", inplace=True)
+        easy_negative_clusters = nontps_swissprot_clusters_df[
+            nontps_swissprot_clusters_df["Representative"].isin(easy_negative_cluster_ids)
+        ].copy()
+        easy_negative_clusters["Type"] = "Easy"
+        easy_negative_clusters.drop_duplicates("Representative", inplace=True)
 
-    logger.info(f"Selected {len(easy_negative_clusters)} easy negative samples.")
+        logger.info(f"Selected {len(easy_negative_clusters)} easy negative samples.")
 
-    negative_clusters = pd.concat([hard_negative_clusters, easy_negative_clusters])
-    negatives_folds = get_stratified_group_kfold_splits(
-        negative_clusters,
-        id_column="Member",
-        cluster_id_column="Representative",
-        optimize_distribution=False,
-        target_col="Type",
-        classes=["Easy", "Hard"],
-        n_folds=cli_args.n_folds,
-    )
+        negative_clusters = pd.concat([hard_negative_clusters, easy_negative_clusters])
+        negatives_folds = get_stratified_group_kfold_splits(
+            negative_clusters,
+            id_column="Member",
+            cluster_id_column="Representative",
+            optimize_distribution=False,
+            target_col="Type",
+            classes=["Easy", "Hard"],
+            n_folds=cli_args.n_folds,
+        )
 
-    logger.info("Generated stratified group K-Fold splits for negatives.")
+        logger.info("Generated stratified group K-Fold splits for negatives.")
 
+        negative_ids = set(negative_clusters.Member.unique())
+        
     positives_data = martsDB[
         [
             "Enzyme_marts_ID",
@@ -369,7 +386,6 @@ def main():
 
     logger.info("Assigned folds to positive samples.")
 
-    negative_ids = set(negative_clusters.Member.unique())
     negatives_data = nontps_swissprot[nontps_swissprot.Entry.isin(negative_ids)][
         ["Entry", "Sequence"]
     ].rename(columns={"Entry": "ID", "Sequence": "Aminoacid_sequence"})
