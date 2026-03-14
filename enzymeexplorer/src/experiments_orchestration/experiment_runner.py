@@ -23,6 +23,21 @@ from enzymeexplorer.src.utils.project_info import (
 logger = logging.getLogger(__file__)
 logger.setLevel(logging.INFO)
 
+_NON_TPS_LABELS = frozenset({"Unknown", "precursor substr", "other"})
+
+
+def assign_is_tps_label(label_set: set[str]) -> set[str]:
+    """Add ``isTPS`` to *label_set* when it contains at least one real TPS substrate.
+
+    A set that only contains non-TPS sentinel values (``Unknown``,
+    ``precursor substr``, ``other``) is returned unchanged.  Any other
+    substrate present -- even alongside ``precursor substr`` -- indicates
+    the protein is a TPS and should carry the ``isTPS`` flag.
+    """
+    if label_set.issubset(_NON_TPS_LABELS):
+        return label_set
+    return label_set | {"isTPS"}
+
 
 def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool = False):
     """
@@ -187,9 +202,7 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
                     .reset_index()
                 )
                 trn_df[config.target_col_name] = trn_df[config.target_col_name].map(
-                    lambda x: x
-                if len(x.intersection({"Unknown", "precursor substr"}))
-                else x.union({"isTPS"})
+                    assign_is_tps_label
                 )
 
                 if config.run_against_wetlab:
@@ -221,9 +234,7 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
                     .reset_index()
                 )
                 test_df[config.target_col_name] = test_df[config.target_col_name].map(
-                    lambda x: x
-                if len(x.intersection({"Unknown", "precursor substr"}))
-                else x.union({"isTPS"})
+                    assign_is_tps_label
                 )
 
                 # checking if the model requires an amino acid sequence or a group (kingdom) column
