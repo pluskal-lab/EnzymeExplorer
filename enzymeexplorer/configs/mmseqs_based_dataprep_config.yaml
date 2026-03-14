@@ -15,3 +15,5 @@ pos_seq_id: 0.5
 neg_seq_id: 0.5
 pos_coverage: 0.6
 neg_coverage: 0.6
+do-not-filter-negatives-by-putative-tpss: False
+sample-negatives-randomly: False

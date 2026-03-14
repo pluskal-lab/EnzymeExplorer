@@ -196,49 +196,52 @@ def proprocess_negatives(
     go_dag: GODag,
     mmseqs: MMSeqs2Wrapper,
     hmmer: HMMerWrapper,
+    filter_by_putative_tpss: bool = True,
 ) -> pd.DataFrame:
     swissprot_df = swissprot_df.drop_duplicates("Sequence")
 
-    tps_swissprot_rhea = swissprot_df[
-        swissprot_df.Sequence.isin(martsdb_seqs) & swissprot_df["Rhea ID"].notna()
-    ]
-
-    tps_swissprot_ec = swissprot_df[
-        swissprot_df.Sequence.isin(martsdb_seqs) & swissprot_df["EC number"].notna()
-    ]
-
-    tps_swissprot_go = swissprot_df[
-        swissprot_df.Sequence.isin(martsdb_seqs)
-        & swissprot_df["Gene Ontology IDs"].notna()
-    ]
-
     nontps_swissprot = swissprot_df[~swissprot_df.Sequence.isin(martsdb_seqs)]
 
-    nontps_swissprot = filter_out_putative_tpss(nontps_swissprot, PUTATIVE_TPS_IDS)
+    if filter_by_putative_tpss:
+        
+        tps_swissprot_rhea = swissprot_df[
+            swissprot_df.Sequence.isin(martsdb_seqs) & swissprot_df["Rhea ID"].notna()
+        ]
 
-    logger.info(
-        f"Filtered out putative TPSs. Remaining non-TPS SwissProt size: {len(nontps_swissprot)}"
-    )
+        tps_swissprot_ec = swissprot_df[
+            swissprot_df.Sequence.isin(martsdb_seqs) & swissprot_df["EC number"].notna()
+        ]
 
-    nontps_swissprot = filter_by_rhea(tps_swissprot_rhea, nontps_swissprot)
+        tps_swissprot_go = swissprot_df[
+            swissprot_df.Sequence.isin(martsdb_seqs)
+            & swissprot_df["Gene Ontology IDs"].notna()
+        ]
+        
+        nontps_swissprot = filter_out_putative_tpss(nontps_swissprot, PUTATIVE_TPS_IDS)
 
-    logger.info(
-        f"Filtered by Rhea IDs. Remaining non-TPS SwissProt size: {len(nontps_swissprot)}"
-    )
+        logger.info(
+            f"Filtered out putative TPSs. Remaining non-TPS SwissProt size: {len(nontps_swissprot)}"
+        )
 
-    nontps_swissprot = filter_by_ec(tps_swissprot_ec, nontps_swissprot, TPS_ECS_BASE)
+        nontps_swissprot = filter_by_rhea(tps_swissprot_rhea, nontps_swissprot)
 
-    logger.info(
-        f"Filtered by EC numbers. Remaining non-TPS SwissProt size: {len(nontps_swissprot)}"
-    )
+        logger.info(
+            f"Filtered by Rhea IDs. Remaining non-TPS SwissProt size: {len(nontps_swissprot)}"
+        )
 
-    nontps_swissprot = filter_by_go(
-        tps_swissprot_go, nontps_swissprot, TPS_GO_BLACKLIST, go_dag
-    )
+        nontps_swissprot = filter_by_ec(tps_swissprot_ec, nontps_swissprot, TPS_ECS_BASE)
 
-    logger.info(
-        f"Filtered by GO terms. Remaining non-TPS SwissProt size: {len(nontps_swissprot)}"
-    )
+        logger.info(
+            f"Filtered by EC numbers. Remaining non-TPS SwissProt size: {len(nontps_swissprot)}"
+        )
+
+        nontps_swissprot = filter_by_go(
+            tps_swissprot_go, nontps_swissprot, TPS_GO_BLACKLIST, go_dag
+        )
+
+        logger.info(
+            f"Filtered by GO terms. Remaining non-TPS SwissProt size: {len(nontps_swissprot)}"
+        )
 
     nontps_swissprot = redundancy_reduce(nontps_swissprot, mmseqs=mmseqs)
 
@@ -246,16 +249,17 @@ def proprocess_negatives(
         f"95% Sequence Identity Redundancy reduced non-TPS SwissProt size: {len(nontps_swissprot)}"
     )
 
-    nontps_swissprot = filter_by_pfam_supfam(
-        nontps_swissprot,
-        pfam_models_dir=pfam_models_dir,
-        supfam_models_dir=supfam_models_dir,
-        hmmer=hmmer,
-    )
+    if filter_by_putative_tpss:
+        nontps_swissprot = filter_by_pfam_supfam(
+            nontps_swissprot,
+            pfam_models_dir=pfam_models_dir,
+            supfam_models_dir=supfam_models_dir,
+            hmmer=hmmer,
+        )
 
-    logger.info(
-        f"Filtered out sequences with Pfam/Supfam hits. Remaining non-TPS SwissProt size: {len(nontps_swissprot)}"
-    )
+        logger.info(
+            f"Filtered out sequences with Pfam/Supfam hits. Remaining non-TPS SwissProt size: {len(nontps_swissprot)}"
+        )
 
     return nontps_swissprot
 

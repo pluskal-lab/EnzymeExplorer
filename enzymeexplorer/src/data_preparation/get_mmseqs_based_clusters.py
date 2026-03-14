@@ -73,6 +73,11 @@ def parse_args() -> configargparse.Namespace:
         help="Whether to sample negative examples randomly from SwissProt instead of using MMSeqs2-based clustering to select hard negatives",
     )
     parser.add_argument(
+        "--do-not-filter-negatives-by-putative-tpss",
+        action="store_true",
+        help="Whether to sample negative examples randomly from SwissProt instead of using MMSeqs2-based clustering to select hard negatives",
+    )
+    parser.add_argument(
         "--pos_seq_id",
         type=float,
         default=0.5
@@ -223,6 +228,7 @@ def main():
         go_dag,
         mmseqs,
         hmmer,
+        not cli_args.do_not_filter_negatives_by_putative_tpss,
     )
 
     logger.info(f"Preprocessed non-TPS SwissProt dataset size: {len(nontps_swissprot)}")
