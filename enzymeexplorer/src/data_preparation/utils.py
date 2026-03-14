@@ -440,57 +440,73 @@ def cluster_dataset(
     return clusters_df, representatives_df
 
 
-def _get_negatives_accepting_tps_substrates(
+def add_tps_substrates_to_rhea_data_inplace(
+    rhea_reaction_smiles: pd.DataFrame, rhea_directions: pd.DataFrame, martsDB: pd.DataFrame
+):
+    rhea_reaction_smiles["substrate_canonical_smiles_no_stereo"] = rhea_reaction_smiles[
+        "reaction_smiles"
+    ].map(get_canonical_substrates)
+    tps_substrates = set(martsDB.SMILES_substrate_canonical_no_stereo.tolist())
+    rhea_reaction_smiles["accepted_tps_substrates"] = (
+        rhea_reaction_smiles.substrate_canonical_smiles_no_stereo.map(
+            lambda smiles_set: smiles_set.intersection(tps_substrates)
+        )
+    )
+    rhea_ids_to_accepted_tps_substrates = (
+        rhea_reaction_smiles[
+            rhea_reaction_smiles["accepted_tps_substrates"].map(len) > 0
+        ]
+        .set_index("rhea_id")["accepted_tps_substrates"]
+        .to_dict()
+    )
+    rhea_directions["accepted_tps_substrates"] = rhea_directions.apply(
+        lambda row: rhea_ids_to_accepted_tps_substrates.get(row["RHEA_ID_MASTER"], set()).union(
+            rhea_ids_to_accepted_tps_substrates.get(row["RHEA_ID_LR"], set())
+        ).union(
+            rhea_ids_to_accepted_tps_substrates.get(row["RHEA_ID_RL"], set())
+        ).union(
+            rhea_ids_to_accepted_tps_substrates.get(row["RHEA_ID_BI"], set())
+        ),
+        axis=1
+    )
+
+
+def get_substrate_based_hard_negatives(
     nontps_swissprot: pd.DataFrame,
     nontps_swissprot_clusters_df: pd.DataFrame,
-    martsDB: pd.DataFrame,
     rhea_directions: pd.DataFrame,
-    rhea_reaction_smiles: pd.DataFrame,
-) -> set[str]:
-    tps_substrates = set(martsDB.SMILES_substrate_canonical_no_stereo.tolist())
-    rhea_ids_accepting_tps_substrates = set(
-        rhea_reaction_smiles[
-            rhea_reaction_smiles.substrate_canonical_smiles_no_stereo.map(
-                lambda smiles_set: any([s in tps_substrates for s in smiles_set])
-            )
-        ]["rhea_id"].tolist()
-    )
-    rhea_master_ids_accepting_tps_substrates = set(
-        rhea_directions[
-            rhea_directions.RHEA_ID_MASTER.isin(rhea_ids_accepting_tps_substrates)
-            | rhea_directions.RHEA_ID_LR.isin(rhea_ids_accepting_tps_substrates)
-            | rhea_directions.RHEA_ID_RL.isin(rhea_ids_accepting_tps_substrates)
-            | rhea_directions.RHEA_ID_BI.isin(rhea_ids_accepting_tps_substrates)
-        ].RHEA_ID_MASTER.tolist()
-    )
+) -> tuple[set[str], dict[str, set[str]]]:    
+    rhea_master_ids_to_accepting_tps_substrates = rhea_directions[
+        rhea_directions["accepted_tps_substrates"].map(len) > 0
+    ].set_index("RHEA_ID_MASTER")["accepted_tps_substrates"].to_dict()
 
-    negatives_accepting_tps_substrates = set(
-        nontps_swissprot[
-            nontps_swissprot["Rhea ID"].map(
-                lambda x: (
-                    False
-                    if x is None
-                    else any(
-                        [
-                            int(rhea_id.split("RHEA:")[-1])
-                            in rhea_master_ids_accepting_tps_substrates
-                            for rhea_id in str(x).split(" ")
-                        ]
-                    )
+    nontps_swissprot = nontps_swissprot[nontps_swissprot["Rhea ID"].notna()]
+
+    negatives_to_accepted_tps_substrates = nontps_swissprot[["Entry", "Rhea ID"]].set_index("Entry")["Rhea ID"].map(
+            lambda x: (
+                set()
+                if x is None
+                else set(
+                    substrate
+                    for rhea_id in str(x).split(" ")
+                    if int(rhea_id.split("RHEA:")[-1]) in rhea_master_ids_to_accepting_tps_substrates
+                    for substrate in rhea_master_ids_to_accepting_tps_substrates[int(rhea_id.split("RHEA:")[-1])]
                 )
             )
-        ]["Entry"].tolist()
-    )
-    return set(
+        ).to_dict()
+    
+    negatives_to_accepted_tps_substrates = {neg: substrates for neg, substrates in negatives_to_accepted_tps_substrates.items() if len(substrates) > 0}
+
+    hard_negative_cluster_reps = set(
         nontps_swissprot_clusters_df[
             nontps_swissprot_clusters_df["Member"].isin(
-                negatives_accepting_tps_substrates
+                negatives_to_accepted_tps_substrates
             )
-        ]["Representative"].tolist()
-    )
+        ]["Representative"].tolist())
+    return hard_negative_cluster_reps, negatives_to_accepted_tps_substrates
 
 
-def _get_hard_negative_clusters(
+def _get_sequence_based_hard_negative_clusters(
     negatives_cluster_representatives: pd.DataFrame,
     martsDB: pd.DataFrame,
     mmseqs: MMSeqs2Wrapper,
@@ -521,7 +537,7 @@ def _get_hard_negative_clusters(
     return set(search_results_df["query"].unique().tolist())
 
 
-def _get_hard_negative_clusters_sensitive(
+def _get_sequence_based_hard_negative_clusters_sensitive(
     negatives_cluster_representatives: pd.DataFrame,
     martsDB: pd.DataFrame,
     mmseqs: MMSeqs2Wrapper,
@@ -556,27 +572,12 @@ def _get_hard_negative_clusters_sensitive(
     return set(search_results_df["target"].unique().tolist())
 
 
-def get_hard_negative_cluster_ids(
-    nontps_swissprot: pd.DataFrame,
-    nontps_swissprot_clusters_df: pd.DataFrame,
+def get_sequence_based_hard_negative_cluster_ids(
     negatives_cluster_representatives: pd.DataFrame,
     martsDB: pd.DataFrame,
     mmseqs: MMSeqs2Wrapper,
-    rhea_directions: pd.DataFrame,
-    rhea_reaction_smiles: pd.DataFrame,
 ) -> set[str]:
-    rhea_reaction_smiles["substrate_canonical_smiles_no_stereo"] = rhea_reaction_smiles[
-        "reaction_smiles"
-    ].map(get_canonical_substrates)
-    substrate_hard_negatives = _get_negatives_accepting_tps_substrates(
-        nontps_swissprot,
-        nontps_swissprot_clusters_df,
-        martsDB,
-        rhea_directions,
-        rhea_reaction_smiles,
-    )
-
-    simple_hard_negatives = _get_hard_negative_clusters(
+    simple_hard_negatives = _get_sequence_based_hard_negative_clusters(
         negatives_cluster_representatives,
         martsDB.drop_duplicates(subset=["Enzyme_marts_ID"]),
         mmseqs,
@@ -588,7 +589,7 @@ def get_hard_negative_cluster_ids(
             subset=["Enzyme_marts_ID"]
         )
         typed_hard_negatives.update(
-            _get_hard_negative_clusters_sensitive(
+            _get_sequence_based_hard_negative_clusters_sensitive(
                 negatives_cluster_representatives, t_martsDB, mmseqs
             )
         )
@@ -599,15 +600,13 @@ def get_hard_negative_cluster_ids(
             subset=["Enzyme_marts_ID"]
         )
         kingdom_hard_negatives.update(
-            _get_hard_negative_clusters_sensitive(
+            _get_sequence_based_hard_negative_clusters_sensitive(
                 negatives_cluster_representatives, kingdom_martsDB, mmseqs
             )
         )
 
-    return (
-        substrate_hard_negatives.union(simple_hard_negatives)
-        .union(typed_hard_negatives)
-        .union(kingdom_hard_negatives)
+    return simple_hard_negatives.union(typed_hard_negatives).union(
+        kingdom_hard_negatives
     )
 
 

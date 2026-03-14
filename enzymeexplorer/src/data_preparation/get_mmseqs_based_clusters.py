@@ -1,4 +1,4 @@
-import argparse
+import configargparse
 import logging
 import pickle
 from pathlib import Path
@@ -11,11 +11,13 @@ from enzymeexplorer.src.data_preparation.mmseqs2_wrapper import MMSeqs2Wrapper
 from enzymeexplorer.src.data_preparation.hmmer_wrapper import HMMerWrapper
 from enzymeexplorer.src.data_preparation.utils import (
     cluster_dataset,
-    get_hard_negative_cluster_ids,
+    get_substrate_based_hard_negatives,
+    get_sequence_based_hard_negative_cluster_ids,
     preprocess_martsdb,
     proprocess_negatives,
     get_stratified_group_kfold_splits,
     get_is_splittable,
+    add_tps_substrates_to_rhea_data_inplace,
     download_af_structure,
 )
 from enzymeexplorer.src.data_preparation.constants import (
@@ -31,14 +33,21 @@ np.random.seed(42)
 tqdm.pandas()
 
 
-def parse_args() -> argparse.Namespace:
+def parse_args() -> configargparse.Namespace:
     """
     Parse command line arguments.
 
     :return: Parsed arguments namespace
     """
-    parser = argparse.ArgumentParser(
-        description="Generate sequence clusters using mmseqs easy-cluster"
+    parser = configargparse.ArgParser(
+        config_file_parser_class=configargparse.YAMLConfigFileParser
+    )
+    parser.add_argument(
+        "-c",
+        "--config",
+        is_config_file=True,
+        help="config file path",
+        default="enzymeexplorer/configs/mmseqs_based_dataprep_config.yaml",
     )
     parser.add_argument(
         "--marts-db-csv-path",
@@ -59,6 +68,31 @@ def parse_args() -> argparse.Namespace:
         help="Path to save the substrate to TPS type mapping",
     )
     parser.add_argument(
+        "--sample-negatives-randomly",
+        action="store_true",
+        help="Whether to sample negative examples randomly from SwissProt instead of using MMSeqs2-based clustering to select hard negatives",
+    )
+    parser.add_argument(
+        "--pos_seq_id",
+        type=float,
+        default=0.5
+    )
+    parser.add_argument(
+        "--pos_coverage",
+        type=float,
+        default=0.6
+    )
+    parser.add_argument(
+        "--neg_seq_id",
+        type=float,
+        default=0.5
+    )
+    parser.add_argument(
+        "--neg_coverage",
+        type=float,
+        default=0.6
+    )
+    parser.add_argument(
         "--swissprot-tsv-path",
         type=str,
         default="data/swissprot_with_af_2026_03_14.tsv",
@@ -67,7 +101,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--go-dag-path",
         type=str,
-        default="data/go-basic.obo",
+        default="data/go-basic_2026_03_14.obo",
         help="Path to the Gene Ontology DAG file",
     )
     parser.add_argument(
@@ -97,13 +131,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--rhea-directions-tsv-path",
         type=str,
-        default="data/rhea_directions.tsv",
+        default="data/rhea_directions_2026_03_14.tsv",
         help="Path to the Rhea directions TSV file for determining reaction directionality",
     )
     parser.add_argument(
         "--rhea-reaction-smiles-tsv-path",
         type=str,
-        default="data/rhea_reaction_smiles.tsv",
+        default="data/rhea_reaction_smiles_2026_03_14.tsv",
         help="Path to the Rhea reaction SMILES TSV file for determining reaction directionality",
     )
     parser.add_argument(
@@ -198,6 +232,8 @@ def main():
         id_column="Enzyme_marts_ID",
         seq_column="Aminoacid_sequence",
         mmseqs=mmseqs,
+        min_seq_id=cli_args.pos_seq_id,
+        coverage=cli_args.pos_coverage,
     )
 
     logger.info(
@@ -240,13 +276,15 @@ def main():
     )
 
     logger.info("Generated stratified group K-Fold splits for positives.")
-
+    
     # Generate hard and easy negatives
     nontps_swissprot_clusters_df, nontps_swissprot_representatives_df = cluster_dataset(
         nontps_swissprot,
         id_column="Entry",
         seq_column="Sequence",
         mmseqs=mmseqs,
+        min_seq_id=cli_args.neg_seq_id,
+        coverage=cli_args.neg_coverage,
     )
 
     logger.info(
@@ -256,9 +294,23 @@ def main():
     rhea_directions = pd.read_csv(cli_args.rhea_directions_tsv_path, sep="\t")
     rhea_reaction_smiles = pd.read_csv(cli_args.rhea_reaction_smiles_tsv_path, sep="\t", names=["rhea_id", "reaction_smiles"])
 
-    hard_negative_cluster_ids = get_hard_negative_cluster_ids(
-        nontps_swissprot, nontps_swissprot_clusters_df, nontps_swissprot_representatives_df, martsDB, mmseqs, rhea_directions, rhea_reaction_smiles
+    add_tps_substrates_to_rhea_data_inplace(rhea_reaction_smiles, rhea_directions, martsDB)
+
+    substrate_hard_negatives, negatives_to_accepted_tps_substrates = get_substrate_based_hard_negatives(
+        nontps_swissprot,
+        nontps_swissprot_clusters_df,
+        rhea_directions,
     )
+    
+    logger.info(f"Identified {len(negatives_to_accepted_tps_substrates)} substrate-based hard negatives with {len(substrate_hard_negatives)} unique cluster representatives.")
+
+    hard_negative_cluster_ids = get_sequence_based_hard_negative_cluster_ids(
+        nontps_swissprot_representatives_df, martsDB, mmseqs
+    )
+    
+    logger.info(f"Identified {len(hard_negative_cluster_ids)} sequence-based hard negative cluster representatives.")
+    
+    hard_negative_cluster_ids.update(substrate_hard_negatives)
 
     hard_negative_clusters = nontps_swissprot_clusters_df[
         nontps_swissprot_clusters_df["Representative"].isin(hard_negative_cluster_ids)
@@ -331,10 +383,20 @@ def main():
     negatives_data["Type"] = "Unknown"
     negatives_data["OriginalType"] = "Unknown"
     negatives_data["Fold"] = None
+    
+    negatives_data.reindex(negatives_data.index.repeat(negatives_data.ID.map(lambda x: len(negatives_to_accepted_tps_substrates[x]) if x in negatives_to_accepted_tps_substrates else 1))).reset_index(drop=True)
+    
+    for negative_id in negatives_to_accepted_tps_substrates:
+        accepted_substrates = negatives_to_accepted_tps_substrates[negative_id]
+        negatives_data.loc[negatives_data["ID"] == negative_id, "SMILES_substrate_canonical_no_stereo"] = list(accepted_substrates)
+                
+    logger.info("Assigned TPS substrate information to negative samples based on Rhea reaction directionality and MartsDB annotations.")
+    
     for fold_idx, val_ids in enumerate(negatives_folds):
         negatives_data.loc[negatives_data["ID"].isin(val_ids), "Fold"] = fold_idx
 
     logger.info("Assigned folds to negative samples.")
+    
     logger.info(
         "Downloading AlphaFold structures for negative samples. This may take some time..."
     )
