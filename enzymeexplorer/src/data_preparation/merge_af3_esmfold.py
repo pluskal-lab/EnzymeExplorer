@@ -5,7 +5,7 @@ import json
 from shutil import copy
 import os
 import logging
-from enzymeexplorer.src.data_preparation.utils import (
+from EnzymeExplorer.enzymeexplorer.src.data_preparation.structural_data_utils import (
     get_residue_names_and_plddt_scores,
     calculate_metrics,
     calculate_metric_diff_thresholds,
