@@ -1,19 +1,23 @@
 marts-db-csv-path: "data/martsDB_reactions_2026_02_22.csv"
 id2kingdom-output-path: "data/id_2_kingdom_dataset_mmseqs_based.pkl"
 substrate2tps-type-output-path: "data/substrate_2_tps_type_mmseqs_based.pkl"
-swissprot-tsv-path: "../enz_exp_playground/data/swissprot_with_af_2026_03_14.tsv"
+swissprot-tsv-path: "data/swissprot_with_af_2026_03_14.tsv"
 go-dag-path: "data/go-basic_2026_03_14.obo"
 pfam-models-dir: "data/pfam_models/"
 supfam-models-dir: "data/supfam_models/"
 n-folds: 5
 number-of-negatives: 10000
-rhea-directions-tsv-path: "data/rhea-directions_2026_03_14.tsv"
+rhea-to-swissprot-tsv-path: "data/rhea2uniprot_sprot_2026_03_14.tsv"
 rhea-reaction-smiles-tsv-path: "data/rhea-reaction-smiles_2026_03_14.tsv"
+rhea-directions-tsv-path: "data/rhea-directions_2026_03_14.tsv"
 dataset-output-path: "data/EnzymeExplorer_Dataset.csv"
-structures-root: "../enz_exp_playground/data/enzyme_explorer_pdbs"
+structures-root: "data/enzyme_explorer_pdbs"
 pos_seq_id: 0.5 
 neg_seq_id: 0.5
 pos_coverage: 0.6
 neg_coverage: 0.6
 do-not-filter-negatives-by-putative-tpss: False
 sample-negatives-randomly: False
+presplit-martsdb-clusters-csv-path: "data/EnzymeExplorer_Dataset_TPS.csv"
+# preprocessed-swissprot-load-path: "data/non_tpss_swissprot.tsv"
+# preprocessed-swissprot-save-path: "data/non_tpss_swissprot.tsv"

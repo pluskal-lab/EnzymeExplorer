@@ -14,10 +14,13 @@ from enzymeexplorer.src.data_preparation.common_utils import (
     redundancy_reduce,
     cluster_dataset,
     get_stratified_group_kfold_splits,
-    add_tps_substrates_to_rhea_data_inplace,
+    get_rhea_id_to_master_id_mappings,
+    add_tps_substrates_to_rhea_data,
 )
+from tqdm.auto import tqdm
 import os
 import tempfile
+from collections import defaultdict
 from goatools.obo_parser import GODag
 import numpy as np
 
@@ -208,13 +211,12 @@ def proprocess_negatives(
             f"Filtered by GO terms. Remaining non-TPS SwissProt size: {len(nontps_swissprot)}"
         )
 
-    nontps_swissprot = redundancy_reduce(nontps_swissprot, mmseqs=mmseqs)
+        nontps_swissprot = redundancy_reduce(nontps_swissprot, mmseqs=mmseqs)
 
-    logger.info(
-        f"95% Sequence Identity Redundancy reduced non-TPS SwissProt size: {len(nontps_swissprot)}"
-    )
+        logger.info(
+            f"95% Sequence Identity Redundancy reduced non-TPS SwissProt size: {len(nontps_swissprot)}"
+        )
 
-    if filter_by_putative_tpss:
         nontps_swissprot = filter_by_pfam_supfam(
             nontps_swissprot,
             pfam_models_dir=pfam_models_dir,
@@ -231,37 +233,72 @@ def proprocess_negatives(
 
 def get_substrate_based_hard_negatives(
     nontps_swissprot: pd.DataFrame,
+    rhea_to_swissprot: pd.DataFrame,
     nontps_swissprot_clusters_df: pd.DataFrame,
-    rhea_directions: pd.DataFrame,
+    rhea_reaction_smiles: pd.DataFrame,
+    rhea_id_to_master_id: dict[int, int],
 ) -> tuple[set[str], dict[str, set[str]]]:
-    rhea_master_ids_to_accepting_tps_substrates = (
-        rhea_directions[rhea_directions["accepted_tps_substrates"].map(len) > 0]
-        .set_index("RHEA_ID_MASTER")["accepted_tps_substrates"]
+    rhea_ids_to_tps_substrates = (
+        rhea_reaction_smiles[
+            rhea_reaction_smiles["accepted_tps_substrates"].map(len) > 0
+        ]
+        .set_index("rhea_id")["accepted_tps_substrates"]
         .to_dict()
     )
 
-    nontps_swissprot = nontps_swissprot[nontps_swissprot["Rhea ID"].notna()]
+    rhea_master_ids_with_accepted_tps_substrates = set(
+        rhea_id_to_master_id[rhea_id] for rhea_id in rhea_ids_to_tps_substrates.keys()
+    )
 
-    negatives_to_accepted_tps_substrates = (
-        nontps_swissprot[["Entry", "Rhea ID"]]
-        .set_index("Entry")["Rhea ID"]
-        .map(
-            lambda x: (
-                set()
-                if x is None
-                else set(
-                    substrate
-                    for rhea_id in str(x).split(" ")
-                    if int(rhea_id.split("RHEA:")[-1])
-                    in rhea_master_ids_to_accepting_tps_substrates
-                    for substrate in rhea_master_ids_to_accepting_tps_substrates[
-                        int(rhea_id.split("RHEA:")[-1])
+    nontps_swissprot_ids = nontps_swissprot[
+        nontps_swissprot.Entry.isin(set(rhea_to_swissprot.ID.to_list()))
+    ]["Entry"].unique()
+
+    negatives_to_accepted_tps_substrates = defaultdict(set)
+    rhea_to_swissprot_grouped = (
+        rhea_to_swissprot[
+            rhea_to_swissprot["ID"].isin(nontps_swissprot_ids)
+            & rhea_to_swissprot["MASTER_ID"].isin(
+                rhea_master_ids_with_accepted_tps_substrates
+            )
+        ]
+        .groupby(["ID", "MASTER_ID"])[["RHEA_ID", "DIRECTION"]]
+        .agg(set)
+        .reset_index()
+    )
+    for _, row in tqdm(
+        rhea_to_swissprot_grouped.iterrows(),
+        total=len(rhea_to_swissprot_grouped),
+        desc="Mapping non-TPS SwissProt IDs to accepted TPS substrates based on Rhea associations",
+    ):
+        uniprot_id = row["ID"]
+        directions = row["DIRECTION"]
+        if any(direction in ["LR", "RL"] for direction in directions):
+            negatives_to_accepted_tps_substrates[uniprot_id].update(
+                set.union(
+                    *[
+                        rhea_ids_to_tps_substrates.get(rhea_id, set())
+                        for rhea_id in row["RHEA_ID"]
                     ]
                 )
             )
-        )
-        .to_dict()
-    )
+        else:
+            negatives_to_accepted_tps_substrates[uniprot_id].update(
+                set.union(
+                    *[
+                        rhea_ids_to_tps_substrates.get(rhea_id + 1, set())
+                        for rhea_id in row["RHEA_ID"]
+                    ]
+                )
+            )
+            negatives_to_accepted_tps_substrates[uniprot_id].update(
+                set.union(
+                    *[
+                        rhea_ids_to_tps_substrates.get(rhea_id + 2, set())
+                        for rhea_id in row["RHEA_ID"]
+                    ]
+                )
+            )
 
     negatives_to_accepted_tps_substrates = {
         neg: substrates
@@ -405,8 +442,9 @@ def mmseqs_based_negative_sampling(
     number_of_negatives: int,
     min_seq_id: float,
     coverage: float,
-    rhea_directions_tsv_path: str,
-    rhea_reaction_smiles_tsv_path: str,
+    rhea_to_swissprot: pd.DataFrame,
+    rhea_reaction_smiles: pd.DataFrame,
+    rhea_directions: pd.DataFrame,
 ) -> tuple[set[str], list[set[str]], dict[str, set[str]]]:
     nontps_swissprot_clusters_df, nontps_swissprot_representatives_df = cluster_dataset(
         nontps_swissprot,
@@ -421,20 +459,19 @@ def mmseqs_based_negative_sampling(
         f"Clustered non-TPS SwissProt sequences into {nontps_swissprot_clusters_df['Representative'].nunique()} clusters"
     )
 
-    rhea_directions = pd.read_csv(rhea_directions_tsv_path, sep="\t")
-    rhea_reaction_smiles = pd.read_csv(
-        rhea_reaction_smiles_tsv_path, sep="\t", names=["rhea_id", "reaction_smiles"]
+    rhea_reaction_smiles = add_tps_substrates_to_rhea_data(
+        rhea_reaction_smiles, martsDB
     )
 
-    add_tps_substrates_to_rhea_data_inplace(
-        rhea_reaction_smiles, rhea_directions, martsDB
-    )
+    rhea_id_to_master_id = get_rhea_id_to_master_id_mappings(rhea_directions)
 
     substrate_hard_negatives, negatives_to_accepted_tps_substrates = (
         get_substrate_based_hard_negatives(
             nontps_swissprot,
+            rhea_to_swissprot,
             nontps_swissprot_clusters_df,
-            rhea_directions,
+            rhea_reaction_smiles,
+            rhea_id_to_master_id=rhea_id_to_master_id,
         )
     )
 
@@ -496,10 +533,10 @@ def mmseqs_based_negative_sampling(
 
 
 def prepare_negatives_set(
-    nontps_swissprot,
-    negative_ids,
-    negatives_to_accepted_tps_substrates,
-    negatives_folds,
+    nontps_swissprot: pd.DataFrame,
+    negative_ids: set,
+    negatives_to_accepted_tps_substrates: dict,
+    negatives_folds: list[set[str]],
 ) -> pd.DataFrame:
     negatives_data = nontps_swissprot[nontps_swissprot.Entry.isin(negative_ids)][
         ["Entry", "Sequence"]

@@ -12,6 +12,7 @@ import numpy as np
 from scipy.spatial.distance import jensenshannon
 from sklearn.model_selection import StratifiedGroupKFold
 from tqdm.auto import tqdm
+tqdm.pandas()
 
 
 logger = logging.getLogger(__file__)
@@ -26,37 +27,30 @@ def get_canonical_substrates(rxn_smiles: str):
     substrates = trxn.GetReactants()
     return {get_canonical_smiles(MolToSmiles(substr)) for substr in substrates}
 
-def add_tps_substrates_to_rhea_data_inplace(
+
+def add_tps_substrates_to_rhea_data(
     rhea_reaction_smiles: pd.DataFrame,
-    rhea_directions: pd.DataFrame,
     martsDB: pd.DataFrame,
 ):
     rhea_reaction_smiles["substrate_canonical_smiles_no_stereo"] = rhea_reaction_smiles[
         "reaction_smiles"
-    ].map(get_canonical_substrates)
+    ].progress_apply(get_canonical_substrates)
     tps_substrates = set(martsDB.SMILES_substrate_canonical_no_stereo.tolist())
     rhea_reaction_smiles["accepted_tps_substrates"] = (
         rhea_reaction_smiles.substrate_canonical_smiles_no_stereo.map(
             lambda smiles_set: smiles_set.intersection(tps_substrates)
         )
     )
-    rhea_ids_to_accepted_tps_substrates = (
-        rhea_reaction_smiles[
-            rhea_reaction_smiles["accepted_tps_substrates"].map(len) > 0
-        ]
-        .set_index("rhea_id")["accepted_tps_substrates"]
-        .to_dict()
-    )
-    rhea_directions["accepted_tps_substrates"] = rhea_directions.apply(
-        lambda row: rhea_ids_to_accepted_tps_substrates.get(
-            row["RHEA_ID_MASTER"], set()
-        )
-        .union(rhea_ids_to_accepted_tps_substrates.get(row["RHEA_ID_LR"], set()))
-        .union(rhea_ids_to_accepted_tps_substrates.get(row["RHEA_ID_RL"], set()))
-        .union(rhea_ids_to_accepted_tps_substrates.get(row["RHEA_ID_BI"], set())),
-        axis=1,
-    )
+    return rhea_reaction_smiles
     
+
+def get_rhea_id_to_master_id_mappings(reaction_directions: pd.DataFrame) -> dict[int, int]:
+    rhea_id_to_master_id = {}
+    for _, row in reaction_directions.iterrows():
+        rhea_id_to_master_id[row["RHEA_ID_LR"]] = row["RHEA_ID_MASTER"]
+        rhea_id_to_master_id[row["RHEA_ID_RL"]] = row["RHEA_ID_MASTER"]
+        rhea_id_to_master_id[row["RHEA_ID_BI"]] = row["RHEA_ID_MASTER"]
+    return rhea_id_to_master_id
 
 def redundancy_reduce(
     nontps_swissprot: pd.DataFrame, mmseqs: MMSeqs2Wrapper

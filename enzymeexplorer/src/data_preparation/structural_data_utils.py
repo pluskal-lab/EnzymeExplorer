@@ -1,26 +1,10 @@
 import logging
 from pathlib import Path
-from uuid import uuid4
-import pandas as pd
 import numpy as np
-from scipy.spatial.distance import jensenshannon
-from sklearn.model_selection import StratifiedGroupKFold
-from enzymeexplorer.src.data_preparation.hmmer_wrapper import HMMerWrapper
 from enzymeexplorer.src.data_preparation.constants import (
-    PUTATIVE_TPS_IDS,
-    PUTATIVE_TPS_IDS,
-    TPS_ECS_BASE,
-    TPS_ECS_BASE,
-    TPS_GO_BLACKLIST,
     METRICS_2_FUNC,
-    MAJOR_CLASSES,
 )
-from enzymeexplorer.src.utils.data import get_canonical_smiles
-from enzymeexplorer.src.data_preparation.mmseqs2_wrapper import MMSeqs2Wrapper
-import os
-import tempfile
 from collections import defaultdict
-from goatools.obo_parser import GODag
 from tqdm.auto import tqdm
 import warnings
 import requests

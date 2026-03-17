@@ -8,17 +8,17 @@ import numpy as np
 from tqdm.auto import tqdm
 from enzymeexplorer.src.data_preparation.mmseqs2_wrapper import MMSeqs2Wrapper
 from enzymeexplorer.src.data_preparation.hmmer_wrapper import HMMerWrapper
-from EnzymeExplorer.enzymeexplorer.src.data_preparation.positives_utils import (
+from enzymeexplorer.src.data_preparation.positives_utils import (
     preprocess_martsdb,
     prepare_positives_set,
 )
-from EnzymeExplorer.enzymeexplorer.src.data_preparation.negatives_utils import (
+from enzymeexplorer.src.data_preparation.negatives_utils import (
     proprocess_negatives,
     mmseqs_based_negative_sampling,
     randomised_negative_sampling,
     prepare_negatives_set,
 )
-from EnzymeExplorer.enzymeexplorer.src.data_preparation.structural_data_utils import (
+from enzymeexplorer.src.data_preparation.structural_data_utils import (
     download_af_structure,
 )
 from goatools.obo_parser import GODag
@@ -92,6 +92,18 @@ def parse_args() -> configargparse.Namespace:
         help="Path to the SwissProt TSV file containing EC and GO annotations",
     )
     parser.add_argument(
+        "--preprocessed-swissprot-save-path",
+        type=str,
+        default=None,
+        help="Path to save the preprocessed SwissProt dataset after filtering for putative TPSs and redundancy reduction. If not provided, the preprocessed dataset will not be saved.",
+    )
+    parser.add_argument(
+        "--preprocessed-swissprot-load-path",
+        type=str,
+        default=None,
+        help="Path to load the preprocessed SwissProt dataset after filtering for putative TPSs and redundancy reduction. If not provided, the preprocessed dataset will not be loaded.",
+    )
+    parser.add_argument(
         "--go-dag-path",
         type=str,
         default="data/go-basic_2026_03_14.obo",
@@ -120,6 +132,12 @@ def parse_args() -> configargparse.Namespace:
         type=int,
         default=10000,
         help="Number of negative examples to pull from SwissProt",
+    )
+    parser.add_argument(
+        "--rhea-to-swissprot-tsv-path",
+        type=str,
+        default="data/rhea2uniprot_sprot_2026_03_14.tsv",
+        help="Path to the Rhea to SwissProt mapping TSV file for determining reaction directionality",
     )
     parser.add_argument(
         "--rhea-directions-tsv-path",
@@ -152,8 +170,6 @@ def main():
     cli_args = parse_args()
 
     mmseqs = MMSeqs2Wrapper(threads=8)
-    go_dag = GODag(cli_args.go_dag_path)
-    hmmer = HMMerWrapper(threads=8)
     martsDB = pd.read_csv(cli_args.marts_db_csv_path)
     martsDB, marts_duplicates = preprocess_martsdb(martsDB)
     logger.info(f"Preprocessed MartsDB dataset size: {len(martsDB)}")
@@ -169,14 +185,19 @@ def main():
         f"Saved preprocessed MartsDB dataset to {cli_args.marts_db_csv_path.split('.csv')[0] + '_preprocessed.csv'}"
     )
 
-    positives_data = None
     if Path(cli_args.presplit_martsdb_clusters_csv_path).exists():
         logger.info(
             f"Loading pre-split MartsDB clusters from {cli_args.presplit_martsdb_clusters_csv_path}"
         )
         positives_data = pd.read_csv(cli_args.presplit_martsdb_clusters_csv_path)
-
-    if positives_data is None:
+    else:
+        logger.info(
+            f"Pre-split MartsDB clusters file not found at {cli_args.presplit_martsdb_clusters_csv_path}. Performing clustering and saving results to this path for future use."
+        )
+        logger.info(
+            "Clustering MartsDB sequences and preparing positives set. This may take some time..."
+        )
+        
         positives_data = prepare_positives_set(
             martsDB,
             mmseqs,
@@ -188,6 +209,7 @@ def main():
             cli_args.presplit_martsdb_clusters_csv_path,
         )
 
+    logger.info("Starting preparation of negatives set...")
     swissprot = pd.read_csv(cli_args.swissprot_tsv_path, sep="\t")
     logger.info(f"Loaded SwissProt dataset size: {len(swissprot)}")
 
@@ -197,18 +219,42 @@ def main():
         f"Filtered SwissProt dataset to entries with available AlphaFold structures. Remaining size: {len(swissprot)}"
     )
 
-    nontps_swissprot = proprocess_negatives(
-        swissprot,
-        martsDB.Aminoacid_sequence.unique().tolist(),
-        cli_args.pfam_models_dir,
-        cli_args.supfam_models_dir,
-        go_dag,
-        mmseqs,
-        hmmer,
-        not cli_args.do_not_filter_negatives_by_putative_tpss,
-    )
+    if (
+        cli_args.preprocessed_swissprot_load_path
+        and Path(cli_args.preprocessed_swissprot_load_path).exists()
+    ):
+        logger.info(
+            f"Loading preprocessed SwissProt dataset from {cli_args.preprocessed_swissprot_load_path}"
+        )
+        nontps_swissprot = pd.read_csv(
+            cli_args.preprocessed_swissprot_load_path, sep="\t"
+        )
+    else:
+        logger.info(
+            f"Preprocessed SwissProt dataset file not found at {cli_args.preprocessed_swissprot_load_path}. Performing preprocessing and saving results to this path for future use."
+        )
+        go_dag = GODag(cli_args.go_dag_path)
+        hmmer = HMMerWrapper(threads=8)
+        nontps_swissprot = proprocess_negatives(
+            swissprot,
+            martsDB.Aminoacid_sequence.unique().tolist(),
+            cli_args.pfam_models_dir,
+            cli_args.supfam_models_dir,
+            go_dag,
+            mmseqs,
+            hmmer,
+            not cli_args.do_not_filter_negatives_by_putative_tpss,
+        )
 
     logger.info(f"Preprocessed non-TPS SwissProt dataset size: {len(nontps_swissprot)}")
+
+    if cli_args.preprocessed_swissprot_save_path:
+        nontps_swissprot.to_csv(
+            cli_args.preprocessed_swissprot_save_path, sep="\t", index=False
+        )
+        logger.info(
+            f"Saved preprocessed SwissProt dataset to {cli_args.preprocessed_swissprot_save_path}"
+        )
 
     if cli_args.sample_negatives_randomly:
         logger.info(
@@ -223,9 +269,20 @@ def main():
         )
     else:
         logger.info(
-            "Generating negative examples using MMSeqs2-based clustering to identify hard negatives."
+            "Preparing negatives data using MMSeqs2-based clustering to identify hard negatives."
         )
         # Generate hard and easy negatives
+
+        rhea_to_swissprot = pd.read_csv(cli_args.rhea_to_swissprot_tsv_path, sep="\t")
+
+        rhea_reaction_smiles = pd.read_csv(
+            cli_args.rhea_reaction_smiles_tsv_path,
+            sep="\t",
+            names=["rhea_id", "reaction_smiles"],
+        )
+
+        rhea_directions = pd.read_csv(cli_args.rhea_directions_tsv_path, sep="\t")
+
         negative_ids, negatives_folds, negatives_to_accepted_tps_substrates = (
             mmseqs_based_negative_sampling(
                 nontps_swissprot,
@@ -235,17 +292,20 @@ def main():
                 cli_args.number_of_negatives,
                 cli_args.neg_seq_id,
                 cli_args.neg_coverage,
-                cli_args.rhea_directions_tsv_path,
-                cli_args.rhea_reaction_smiles_tsv_path,
+                rhea_to_swissprot,
+                rhea_reaction_smiles,
+                rhea_directions
             )
         )
 
     negatives_data = prepare_negatives_set(
         nontps_swissprot,
         negative_ids,
-        negatives_folds,
         negatives_to_accepted_tps_substrates,
+        negatives_folds,
     )
+
+    logger.info(f"Prepared negatives dataset size: {len(negatives_data)}")
 
     logger.info(
         "Downloading AlphaFold structures for negative samples. This may take some time..."
