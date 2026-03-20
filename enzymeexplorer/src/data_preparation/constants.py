@@ -23,27 +23,24 @@ PUTATIVE_TPS_IDS = [
 ]
 
 
-TPS_ECS_BASE = set(
-    [
-        "2.5.1.30",
-        "2.5.1.82",
-        "2.5.1.83",
-        "2.5.1.84",
-        "2.5.1.90",
-        "2.5.1.91",
-        "2.5.1.150",
-        "3.1.7.12",
-        "4.2.3.8",
-        "4.2.1.123",
-        "4.2.3.156",
-        "4.2.3.211",
-        "4.2.3.213",
-        "4.2.3.216",
-        "4.2.3.217",
-        "4.2.3.222",
-        "4.2.3.224",
-    ]
-)
+TPS_ECS_TO_SUBSTRATES_BASE = {
+        "2.5.1.30": "precursor substr",
+        "2.5.1.82": "precursor substr",
+        "2.5.1.83": "precursor substr",
+        "2.5.1.84": "precursor substr",
+        "2.5.1.90": "precursor substr",
+        "2.5.1.91": "precursor substr",
+        "2.5.1.150": "precursor substr",
+        "4.2.3.8": "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",
+        "4.2.1.123": "CC(C)=CCCC(C)=CCCC(C)=CCCC=C(C)CCC=C(C)CCC=C(C)C",
+        "4.2.3.156": "CC(CCC=C(C)CCC=C(C)C)=CC1C(COP([O-])(=O)OP([O-])([O-])=O)C1(C)CCC=C(C)CCC=C(C)C",
+        "4.2.3.211": "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",
+        "4.2.3.213": "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",
+        "4.2.3.216": "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",
+        "4.2.3.217": "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",
+        "4.2.3.222": "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",
+        "4.2.3.224": "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",
+}
 
 # GO terms to blacklist for TPS identification even though TPS enzymes may be annotated with them
 TPS_GO_BLACKLIST = set(
@@ -85,19 +82,3 @@ MAJOR_CLASSES = [
     "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O.CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",  # GGPP + GGPP
     "precursor substr",
 ]
-
-METRICS_2_FUNC = {
-    "confident_residues": lambda plddts: np.where(plddts >= 70)[0].size / len(plddts),
-    "mean": lambda plddts: plddts.mean(),
-    "median": lambda plddts: np.median(plddts),
-    "conf_segments": lambda plddts: (
-        (confidence_segment_lengths(plddts) / len(plddts)).mean()
-        if confidence_segment_lengths(plddts).size > 0
-        else 0
-    ),
-    "high_conf_segments": lambda plddts: (
-        (confidence_segment_lengths(plddts, threshold=90) / len(plddts)).mean()
-        if confidence_segment_lengths(plddts).size > 0
-        else 0
-    ),
-}

@@ -1,12 +1,8 @@
 import logging
 from pathlib import Path
 import numpy as np
-from enzymeexplorer.src.data_preparation.constants import (
-    METRICS_2_FUNC,
-)
 from collections import defaultdict
 from tqdm.auto import tqdm
-import warnings
 import requests
 from Bio.PDB import PDBParser
 from typing import List, Tuple, Optional
@@ -17,6 +13,21 @@ logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
+METRICS_2_FUNC = {
+    "confident_residues": lambda plddts: np.where(plddts >= 70)[0].size / len(plddts),
+    "mean": lambda plddts: plddts.mean(),
+    "median": lambda plddts: np.median(plddts),
+    "conf_segments": lambda plddts: (
+        (confidence_segment_lengths(plddts) / len(plddts)).mean()
+        if confidence_segment_lengths(plddts).size > 0
+        else 0
+    ),
+    "high_conf_segments": lambda plddts: (
+        (confidence_segment_lengths(plddts, threshold=90) / len(plddts)).mean()
+        if confidence_segment_lengths(plddts).size > 0
+        else 0
+    ),
+}
 
 def download_af_structure(
     uniprot_id: str,

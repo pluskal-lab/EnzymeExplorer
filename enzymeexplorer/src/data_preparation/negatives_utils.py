@@ -5,8 +5,7 @@ from enzymeexplorer.src.data_preparation.hmmer_wrapper import HMMerWrapper
 from enzymeexplorer.src.data_preparation.constants import (
     PUTATIVE_TPS_IDS,
     PUTATIVE_TPS_IDS,
-    TPS_ECS_BASE,
-    TPS_ECS_BASE,
+    TPS_ECS_TO_SUBSTRATES_BASE,
     TPS_GO_BLACKLIST,
 )
 from enzymeexplorer.src.data_preparation.mmseqs2_wrapper import MMSeqs2Wrapper
@@ -63,8 +62,8 @@ def filter_by_rhea(tps_swiss, nontps_swiss):
     ]
 
 
-def filter_by_ec(tps_swiss, nontps_swiss, tps_ecs_base):
-    tps_ecs = set().union(tps_ecs_base)
+def filter_by_ec(tps_swiss, nontps_swiss, tps_ecs_to_substrates_base):
+    tps_ecs = set().union(tps_ecs_to_substrates_base.keys())
     tps_swiss[~tps_swiss["EC number"].str.contains("-")]["EC number"].apply(
         lambda x: [tps_ecs.add(ec.strip()) for ec in x.split(";")]
     )
@@ -196,7 +195,7 @@ def proprocess_negatives(
         )
 
         nontps_swissprot = filter_by_ec(
-            tps_swissprot_ec, nontps_swissprot, TPS_ECS_BASE
+            tps_swissprot_ec, nontps_swissprot, TPS_ECS_TO_SUBSTRATES_BASE
         )
 
         logger.info(
