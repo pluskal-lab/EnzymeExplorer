@@ -6,3 +6,5 @@ __pycache__/
 
 # data
 /scripts/data/
+stratified_phylogeny_based_split_with_minor_products
+temp_conversation_export.md

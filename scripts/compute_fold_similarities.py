@@ -185,10 +185,30 @@ def select_best_hits(
 
 
 def get_fold_names(df: pd.DataFrame, fold_col: str) -> list[str]:
-    folds = sorted(
-        f for f in df[fold_col].dropna().unique() if str(f).startswith("fold_")
-    )
-    return [str(f) for f in folds]
+    """Return fold values present in *df*, normalised to ``fold_N`` format."""
+    raw = df[fold_col].dropna().unique()
+    prefixed = sorted(str(f) for f in raw if str(f).startswith("fold_"))
+    if prefixed:
+        return prefixed
+    # Bare non-negative integers (new dataset)
+    bare: list[str] = []
+    for f in raw:
+        try:
+            n = int(float(str(f)))
+            if n >= 0:
+                bare.append(f"fold_{n}")
+        except (ValueError, OverflowError):
+            continue
+    return sorted(bare, key=lambda x: int(x.replace("fold_", "")))
+
+
+def _normalize_fold_column(df: pd.DataFrame, col: str) -> None:
+    """Ensure fold values use ``fold_N`` format in-place."""
+    vals = df[col].dropna().astype(str)
+    if vals.empty or vals.str.startswith("fold_").any():
+        return
+    mask = df[col].notna()
+    df.loc[mask, col] = "fold_" + df.loc[mask, col].astype(int).astype(str)
 
 
 def compute_fold_similarities(
@@ -201,6 +221,7 @@ def compute_fold_similarities(
 ) -> dict:
     df = pd.read_csv(csv_path)
     unique_df = df.drop_duplicates(subset=[id_col])[[id_col, seq_col, fold_col]].copy()
+    _normalize_fold_column(unique_df, fold_col)
     logger.info("Loaded %d unique sequences from %s", len(unique_df), csv_path)
 
     fold_names = get_fold_names(unique_df, fold_col)

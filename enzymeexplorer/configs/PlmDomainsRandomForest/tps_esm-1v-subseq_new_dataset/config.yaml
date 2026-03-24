@@ -1,0 +1,11 @@
+# PlmDomainsRandomForest on the new EnzymeExplorer dataset (native folds)
+# NOTE: representations_path must point to embeddings keyed by the new dataset's ID column.
+#       Recompute embeddings if not yet available.
+include: ../main_config.yaml
+representations_path: "data/gathered_embs_esm-1v-finetuned-subseq_embs_avg.h5"
+per_class_optimization: false
+n_calls_hyperparams_opt: 350
+id_col_name: "ID"
+split_col_name: "Fold"
+type_col_name: "Type"
+tps_cleaned_csv_path: "data/EnzymeExplorer_Dataset.csv"

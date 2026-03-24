@@ -1,6 +1,7 @@
 """This file contains an experiment runner
 which is capable of gathering all the required pieces of information for a particular experiment
-and consequently performing the computational experiment, i.e. instantiating, training and scoring the selected model"""
+and consequently performing the computational experiment, i.e. instantiating, training and scoring the selected model
+"""
 
 import inspect
 import logging
@@ -13,7 +14,7 @@ from tqdm.contrib.logging import logging_redirect_tqdm  # type: ignore
 
 from enzymeexplorer.src import models
 from enzymeexplorer.src.models.ifaces import BaseConfig, BaseModel
-from enzymeexplorer.src.utils.data import get_folds, get_folds_from_csv, get_tps_df
+from enzymeexplorer.src.utils.data import get_folds_from_csv, get_tps_df
 from enzymeexplorer.src.utils.project_info import (
     ExperimentInfo,
     get_config_root,
@@ -24,6 +25,25 @@ logger = logging.getLogger(__file__)
 logger.setLevel(logging.INFO)
 
 _NON_TPS_LABELS = frozenset({"Unknown", "precursor substr", "other"})
+
+_PRECURSOR_TYPES = frozenset({"ggpps", "fpps", "gpps", "gfpps", "hsqs"})
+
+_DEFAULT_TYPE_COL = "Type (mono, sesq, di, …)"
+
+
+def _normalize_fold_column(df: pd.DataFrame, col: str) -> None:
+    """Ensure fold-column values use ``fold_N`` format.
+
+    Old datasets already store ``fold_0``, ``fold_1``, etc.  New datasets
+    (e.g. *EnzymeExplorer_Dataset.csv*) store bare integers ``0, 1, …``.
+    This helper normalises the latter to ``fold_0, fold_1, …`` in-place so
+    that downstream code can use a single format.
+    """
+    vals = df[col].dropna().astype(str)
+    if vals.empty or vals.str.startswith("fold_").any():
+        return
+    mask = df[col].notna()
+    df.loc[mask, col] = "fold_" + df.loc[mask, col].astype(int).astype(str)
 
 
 def assign_is_tps_label(label_set: set[str]) -> set[str]:
@@ -90,7 +110,7 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
 
     if hasattr(config, "gpu_id"):
         os.environ["CUDA_VISIBLE_DEVICES"] = str(config.gpu_id)
-        
+
     if hasattr(config, "is_halo"):
         is_halo = config.is_halo
     else:
@@ -152,13 +172,14 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
     )
 
     data_df = pd.read_csv(config.tps_cleaned_csv_path)
+    _normalize_fold_column(data_df, config.split_col_name)
     if not is_halo:
-        data_df.loc[
-            data_df["Type (mono, sesq, di, …)"].isin(
-            {"ggpps", "fpps", "gpps", "gfpps", "hsqs"}
-        ),
-        "SMILES_substrate_canonical_no_stereo",
-    ] = "precursor substr"
+        type_col = getattr(config, "type_col_name", _DEFAULT_TYPE_COL)
+        if type_col in data_df.columns:
+            data_df.loc[
+                data_df[type_col].isin(_PRECURSOR_TYPES),
+                "SMILES_substrate_canonical_no_stereo",
+            ] = "precursor substr"
 
     try:
         save_trained_model = config.save_trained_model
@@ -168,10 +189,14 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
     with logging_redirect_tqdm([logger]):
         # pylint: disable=too-many-nested-blocks
         for test_fold in tqdm(
-            get_folds_from_csv(
-                csv_path=config.tps_cleaned_csv_path,
-                split_col_name=config.split_col_name,
-            ) if not is_halo else [0],
+            (
+                get_folds_from_csv(
+                    csv_path=config.tps_cleaned_csv_path,
+                    split_col_name=config.split_col_name,
+                )
+                if not is_halo
+                else [0]
+            ),
             desc=f"Iterating over validation folds per {config.split_col_name}..",
         ):
             # selecting a single fold to run if specified
@@ -182,19 +207,21 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
                 if not is_halo:
                     trn_folds = [
                         f"fold_{fold_trn}"
-                    for fold_trn in get_folds_from_csv(
-                        csv_path=config.tps_cleaned_csv_path,
-                        split_col_name=config.split_col_name,
-                    )
+                        for fold_trn in get_folds_from_csv(
+                            csv_path=config.tps_cleaned_csv_path,
+                            split_col_name=config.split_col_name,
+                        )
                         if fold_trn != test_fold
                     ]
                 else:
-                    trn_folds = ['train']                    
-                trn_df = data_df[data_df[config.split_col_name].isin(set(trn_folds))].copy()
+                    trn_folds = ["train"]
+                trn_df = data_df[
+                    data_df[config.split_col_name].isin(set(trn_folds))
+                ].copy()
                 if not is_halo:
                     trn_df.loc[
                         trn_df[f"{config.split_col_name}_ignore_in_eval"] == 1,
-                    config.target_col_name,
+                        config.target_col_name,
                     ] = "other"
                 trn_df = (
                     trn_df.groupby(config.id_col_name)[config.target_col_name]
@@ -221,10 +248,10 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
                     test_df_raw = data_df[
                         data_df[config.split_col_name] == f"fold_{test_fold}"
                     ]
-                    if not is_halo: 
+                    if not is_halo:
                         test_df_raw.loc[
                             test_df_raw[f"{config.split_col_name}_ignore_in_eval"] == 1,
-                        config.target_col_name,
+                            config.target_col_name,
                         ] = "other"
                     test_id_column_name = config.id_col_name
                     model.config.id_col_name = test_id_column_name
@@ -278,9 +305,11 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
                     # pylint: disable=R0801
                     if per_class_optimization:
                         class_names = [
-                            model.config.class_names
-                            if not hasattr(model.config, "class_name")
-                            else [model.config.class_name]
+                            (
+                                model.config.class_names
+                                if not hasattr(model.config, "class_name")
+                                else [model.config.class_name]
+                            )
                         ]
                     else:
                         class_names = ["all_classes"]
@@ -291,7 +320,9 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
                             elif (fold_root_dir / "all_classes").exists():
                                 fold_class_path = fold_root_dir / "all_classes"
                             else:
-                                raise ValueError(f"No fold_class_path found for class {class_name} in folder {fold_root_dir}")
+                                raise ValueError(
+                                    f"No fold_class_path found for class {class_name} in folder {fold_root_dir}"
+                                )
                             previous_results = list(
                                 fold_class_path.glob(
                                     "*/hyperparameters_optimization/optimization_results_detailed_*.pkl"
