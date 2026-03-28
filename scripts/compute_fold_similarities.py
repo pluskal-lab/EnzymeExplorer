@@ -143,8 +143,14 @@ def select_best_hits(
 ) -> dict[str, dict]:
     """Parse .m8 output and select best hit per query.
 
-    Best hit = highest pident among hits with qcov >= min_qcov.
-    Ties broken by lowest evalue.
+    Best hit = highest pident among hits with qcov >= *min_qcov*.
+    Ties broken by lowest evalue.  If no hit passes the qcov filter,
+    the overall best-pident hit is used instead (with ``qcov_pass=False``).
+
+    ``has_hit`` is ``True`` whenever MMseqs found **any** alignment for
+    the query, regardless of query coverage.  This ensures the similarity-
+    bin analysis does not misclassify sequences with partial but real
+    alignments as "no hit".
     """
     candidates: dict[str, list[tuple[float, float, float]]] = defaultdict(list)
 
@@ -164,22 +170,27 @@ def select_best_hits(
 
     best_hits: dict[str, dict] = {}
     for query_id, hits in candidates.items():
-        eligible = [(p, q, e) for p, q, e in hits if q >= min_qcov]
+        # Any alignment exists → has_hit is True
+        all_sorted = sorted(hits, key=lambda x: (-x[0], x[2]))
+        eligible = [(p, q, e) for p, q, e in all_sorted if q >= min_qcov]
         if eligible:
-            eligible.sort(key=lambda x: (-x[0], x[2]))
             p, q, e = eligible[0]
             best_hits[query_id] = {
                 "pident": p,
                 "qcov": q,
                 "evalue": e,
                 "has_hit": True,
+                "qcov_pass": True,
             }
         else:
+            # Use best-pident hit even though qcov is below threshold
+            p, q, e = all_sorted[0]
             best_hits[query_id] = {
-                "pident": 0.0,
-                "qcov": 0.0,
-                "evalue": float("inf"),
-                "has_hit": False,
+                "pident": p,
+                "qcov": q,
+                "evalue": e,
+                "has_hit": True,
+                "qcov_pass": False,
             }
     return best_hits
 

@@ -111,16 +111,17 @@ class CLEAN(BaseModel):
             self.is_halo = config.is_halo
         else:
             self.is_halo = False
-        if not self.is_halo:
+        type_col = getattr(config, "type_col_name", "Type (mono, sesq, di, …)")
+        if not self.is_halo and type_col in data_df.columns:
             data_df.loc[
-                data_df["Type (mono, sesq, di, …)"].isin(
-                {"ggpps", "fpps", "gpps", "gfpps", "hsqs"}
-            ),
-            config.target_col_name,
+                data_df[type_col].isin(
+                    {"ggpps", "fpps", "gpps", "gfpps", "hsqs"}
+                ),
+                config.target_col_name,
             ] = "precursor substr"
             self.precursor_smiles = set(
                 data_df.loc[
-                    data_df["Type (mono, sesq, di, …)"].isin(
+                    data_df[type_col].isin(
                         {"ggpps", "fpps", "gpps", "gfpps", "hsqs"}
                     ),
                     config.target_col_name,

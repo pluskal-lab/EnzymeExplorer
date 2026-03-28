@@ -1,6 +1,6 @@
 """This module defines an abstract class for model configs"""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Union
 
@@ -32,6 +32,13 @@ class BaseConfig:
     reuse_existing_partial_results: bool
     run_against_wetlab: bool = False
     type_col_name: str = "Type (mono, sesq, di, \u2026)"
+
+    eval_csv_path: str = ""
+    eval_split_col_name: str = ""
+    eval_id_col_name: str = ""
+    eval_seq_col_name: str = ""
+    eval_type_col_name: str = ""
+    eval_group_col_name: str = ""
 
     @classmethod
     def load(cls, path_to_config: Union[str, Path]) -> dict:
@@ -80,3 +87,4 @@ class EmbSklearnBaseConfig(SklearnBaseConfig):
     """
 
     representations_path: str
+    eval_representations_path: str = field(default="", kw_only=True)

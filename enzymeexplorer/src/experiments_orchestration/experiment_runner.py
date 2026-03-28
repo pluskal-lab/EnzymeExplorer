@@ -59,6 +59,42 @@ def assign_is_tps_label(label_set: set[str]) -> set[str]:
     return label_set | {"isTPS"}
 
 
+def _load_eval_dataset(config: BaseConfig) -> pd.DataFrame:
+    """Load the cross-dataset evaluation CSV and rename its columns
+    to match the training-dataset schema so downstream code works
+    unchanged."""
+    eval_df = pd.read_csv(config.eval_csv_path)
+    renames: dict[str, str] = {}
+    if config.eval_id_col_name:
+        renames[config.eval_id_col_name] = config.id_col_name
+    if config.eval_split_col_name:
+        renames[config.eval_split_col_name] = config.split_col_name
+    for eval_attr, cfg_attr in [
+        ("eval_seq_col_name", "seq_col_name"),
+        ("eval_type_col_name", "type_col_name"),
+        ("eval_group_col_name", "group_column_name"),
+    ]:
+        eval_col = getattr(config, eval_attr, "")
+        cfg_col = getattr(config, cfg_attr, None)
+        if eval_col and cfg_col and eval_col != cfg_col:
+            renames[eval_col] = cfg_col
+    if renames:
+        eval_df.rename(columns=renames, inplace=True)
+    _normalize_fold_column(eval_df, config.split_col_name)
+    type_col = getattr(config, "type_col_name", _DEFAULT_TYPE_COL)
+    if type_col in eval_df.columns:
+        eval_df.loc[
+            eval_df[type_col].isin(_PRECURSOR_TYPES),
+            "SMILES_substrate_canonical_no_stereo",
+        ] = "precursor substr"
+    logger.info(
+        "Cross-dataset eval: test folds from %s (%d rows)",
+        config.eval_csv_path,
+        len(eval_df),
+    )
+    return eval_df
+
+
 def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool = False):
     """
     This function gathers all the required pieces of information for a particular experiment
@@ -181,6 +217,17 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
                 "SMILES_substrate_canonical_no_stereo",
             ] = "precursor substr"
 
+    cross_dataset_eval = bool(getattr(config, "eval_csv_path", ""))
+    eval_data_df = None
+    eval_features_df = None
+    if cross_dataset_eval:
+        eval_data_df = _load_eval_dataset(config)
+        eval_repr_path = getattr(config, "eval_representations_path", "")
+        if eval_repr_path:
+            eval_features_df = pd.read_hdf(eval_repr_path)
+            eval_features_df.columns = [config.id_col_name, "Emb"]
+            eval_features_df.drop_duplicates(subset=[config.id_col_name], inplace=True)
+
     try:
         save_trained_model = config.save_trained_model
     except AttributeError:
@@ -244,6 +291,19 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
                     trn_df[test_id_column_name] = trn_df[raw_dataset_id_colunm_name]
                     data_df[test_id_column_name] = data_df[raw_dataset_id_colunm_name]
                     model.config.id_col_name = test_id_column_name
+                elif cross_dataset_eval:
+                    test_df_raw = eval_data_df[
+                        eval_data_df[config.split_col_name] == f"fold_{test_fold}"
+                    ]
+                    _eval_ignore = f"{config.split_col_name}_ignore_in_eval"
+                    if not is_halo and _eval_ignore in test_df_raw.columns:
+                        test_df_raw = test_df_raw.copy()
+                        test_df_raw.loc[
+                            test_df_raw[_eval_ignore] == 1,
+                            config.target_col_name,
+                        ] = "other"
+                    test_id_column_name = config.id_col_name
+                    model.config.id_col_name = test_id_column_name
                 else:
                     test_df_raw = data_df[
                         data_df[config.split_col_name] == f"fold_{test_fold}"
@@ -265,6 +325,7 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
                 )
 
                 # checking if the model requires an amino acid sequence or a group (kingdom) column
+                _test_source_df = eval_data_df if cross_dataset_eval else data_df
                 for optional_column_attribute in ["seq_col_name", "group_column_name"]:
                     if (
                         hasattr(config, optional_column_attribute)
@@ -280,16 +341,15 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
                             id_seq_df,
                             on=config.id_col_name,
                         )
-                        test_id_seq_df = test_df_raw[
-                            [
-                                test_id_column_name,
-                                getattr(config, optional_column_attribute),
-                            ]
-                        ].drop_duplicates(test_id_column_name)
-                        test_df = test_df.merge(
-                            test_id_seq_df,
-                            on=test_id_column_name,
-                        )
+                        _col = getattr(config, optional_column_attribute)
+                        if _col in _test_source_df.columns:
+                            test_id_seq_df = test_df_raw[
+                                [test_id_column_name, _col]
+                            ].drop_duplicates(test_id_column_name)
+                            test_df = test_df.merge(
+                                test_id_seq_df,
+                                on=test_id_column_name,
+                            )
                 logger.info(f"A number of training samples: {len(trn_df)}")
                 logger.info(f"A number of testing samples: {len(test_df)}")
 
@@ -351,7 +411,17 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
                     model.save()
 
                 # scoring the model
+                _stashed_features = None
+                if (
+                    cross_dataset_eval
+                    and eval_features_df is not None
+                    and hasattr(model, "features_df")
+                ):
+                    _stashed_features = model.features_df
+                    model.features_df = eval_features_df
                 val_proba_np = model.predict_proba(test_df)
+                if _stashed_features is not None:
+                    model.features_df = _stashed_features
                 with open(
                     model.output_root / f"fold_{test_fold}_results.pkl", "wb"
                 ) as file:

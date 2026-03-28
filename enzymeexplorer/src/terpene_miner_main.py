@@ -88,7 +88,7 @@ def parse_args() -> argparse.Namespace:
         "--similarities-path",
         help="A path to file containing per-fold similarity data (BLAST or MMseqs2 artifact)",
         type=str,
-        default="data/blast_identities_per_fold.pkl",
+        default=None,
         dest="blast_identities_path",
     )
     parser_eval.add_argument(

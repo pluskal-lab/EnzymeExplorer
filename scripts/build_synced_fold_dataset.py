@@ -11,18 +11,14 @@ dataset evaluation.
 Approach (Approach B from the evaluation protocol):
   - Shared positive sequences: receive the new dataset's fold assignment.
   - Old-only positive sequences (128 low-quality entries): excluded.
-  - Old negatives:
-      * The 9,772 negatives originally in fold -1 are redistributed
-        round-robin across folds 0..4 so they participate in train/test.
-      * The 172 negatives already in fold_0..fold_4 are kept as-is
-        (their new-fold assignment is looked up by sequence when possible;
-        otherwise they stay in their original fold).
-  - A companion ``_ignore_in_eval`` column is preserved / set to NaN
-    for normal entries and 1 for entries that should be masked during eval.
+  - Old negatives: **keep their original fold assignments** (all negatives
+    are distributed across folds 0-4 in the source phylo CSV).
+  - A companion ``_ignore_in_eval`` column is preserved from the original
+    dataset.
 
-Output CSV has the same schema as the old dataset, with fold column renamed
-to ``synced_fold`` so it can coexist in a single file.  The experiment
-configs point ``split_col_name`` at this new column.
+Output CSV has the same schema as the old dataset, with an additional
+``synced_fold`` column.  The experiment configs point
+``split_col_name`` at this new column.
 """
 
 import argparse
@@ -53,7 +49,6 @@ def build_synced_dataset(
     output_csv: str,
     *,
     exclude_old_only_tps: bool = True,
-    n_folds: int = 5,
 ) -> pd.DataFrame:
     """Build the synchronized-fold dataset.
 
@@ -98,29 +93,10 @@ def build_synced_dataset(
         shared_tps_mask, "_new_fold"
     ].astype(int).astype(str)
 
-    # --- Negatives: redistribute fold -1 negatives round-robin ---
-    neg_in_minus1 = is_neg & (old_df[_OLD_FOLD_COL] == "-1")
-    neg_in_folds = is_neg & (old_df[_OLD_FOLD_COL] != "-1")
-
-    logger.info("Negatives in fold -1: %d", neg_in_minus1.sum())
-    logger.info("Negatives already in folds: %d", neg_in_folds.sum())
-
-    # For the fold -1 negatives, distribute round-robin
-    rng = np.random.RandomState(42)
-    neg_minus1_indices = old_df.index[neg_in_minus1]
-    fold_assignments = rng.permutation(len(neg_minus1_indices)) % n_folds
-    old_df.loc[neg_minus1_indices, _SYNCED_FOLD_COL] = [
-        f"fold_{f}" for f in fold_assignments
-    ]
-
-    # For negatives already in folds: try to remap by sequence, else keep original
-    for idx in old_df.index[neg_in_folds]:
-        seq = old_df.loc[idx, old_seq_col]
-        if seq in seq_to_new_fold:
-            old_df.loc[idx, _SYNCED_FOLD_COL] = f"fold_{seq_to_new_fold[seq]}"
-        else:
-            orig = old_df.loc[idx, _OLD_FOLD_COL]
-            old_df.loc[idx, _SYNCED_FOLD_COL] = orig
+    # --- Negatives: keep original fold assignments ---
+    # All negatives should already be in fold_0..fold_4 (redistributed).
+    logger.info("Negatives total: %d", is_neg.sum())
+    old_df.loc[is_neg, _SYNCED_FOLD_COL] = old_df.loc[is_neg, _OLD_FOLD_COL]
 
     # --- ignore_in_eval column ---
     ignore_col = f"{_SYNCED_FOLD_COL}_ignore_in_eval"
