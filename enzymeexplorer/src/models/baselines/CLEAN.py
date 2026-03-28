@@ -47,6 +47,7 @@ class CLEANConfig(BaseConfig):
     clean_working_dir: str
     seq_col_name: str
     is_halo: bool
+    pretrained_model_name: str
 
 
 class CLEAN(BaseModel):
@@ -107,6 +108,7 @@ class CLEAN(BaseModel):
         self,
         val_df: pd.DataFrame,
         selected_class_name: Optional[str] = None,
+        fold_idx: Optional[int] = None,
     ) -> np.ndarray:
         """
         Function to predict the class probabilities for the given validation data using the CLEAN model.
@@ -122,7 +124,6 @@ class CLEAN(BaseModel):
         assert (
             selected_class_name is None
         ), "This model does not support class selection."
-
         seqs = val_df[self.config.seq_col_name].values
         ids = val_df[self.config.id_col_name].values
         fasta_str = get_fasta_seqs(seqs, ids)
@@ -152,12 +153,20 @@ class CLEAN(BaseModel):
         clean_name_convention = str(temp_fasta_path.stem)
         logger.info(f"Running CLEAN on {clean_name_convention}")
         prepare_infer_fasta(clean_name_convention)
+        train_data = "split100"
+        pretrained_model = None
+        gmm = "data/pretrained/gmm_ensumble.pkl"
+        if self.config.pretrained_model_name is not None:
+            train_data = self.config.pretrained_model_name + f"_{fold_idx}_train"
+            pretrained_model = self.config.pretrained_model_name + f"_{fold_idx}"
+            gmm = f"data/pretrained/gmm_{self.config.pretrained_model_name}_{fold_idx}.pkl"
         infer_maxsep(
-            "split100",
+            train_data,
             clean_name_convention,
             report_metrics=False,
             pretrained=True,
-            gmm="data/pretrained/gmm_ensumble.pkl",
+            model_name=pretrained_model,
+            gmm=gmm,
         )
 
         with open(

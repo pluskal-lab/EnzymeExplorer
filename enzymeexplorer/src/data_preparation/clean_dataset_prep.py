@@ -69,11 +69,15 @@ def main():
         fold_i_train = fold_i_train[["ID", "ECs", "Aminoacid_sequence"]].drop_duplicates("ID")
         fold_i_train["ECs"] = fold_i_train["ECs"].apply(lambda x: ";".join(x))
         fold_i_train.columns = ["Entry", "EC number", "Sequence"]
-        fold_i_train.to_csv(output_dir / f"fold_{i}_train.csv", index=False, sep="\t")
+        fold_i_train.to_csv(output_dir / f"clean_enzexp_tps_{i}_train.csv", index=False, sep="\t")
         
         fold_i_test = dataset[dataset["Fold"] == i]
         fold_i_test = fold_i_test[["ID", "Aminoacid_sequence"]].drop_duplicates("ID")
-        with open(output_dir / f"fold_{i}_test.fasta", "w") as f:
+        with open(output_dir / f"clean_enzexp_tps_{i}_test.fasta", "w") as f:
             for _, row in fold_i_test.iterrows():
                 f.write(f">{row['ID']}\n{row['Aminoacid_sequence']}\n")
 
+    combined = dataset[["ID", "ECs", "Aminoacid_sequence"]].drop_duplicates("ID")
+    combined["ECs"] = combined["ECs"].apply(lambda x: ";".join(x))
+    combined.columns = ["Entry", "EC number", "Sequence"]
+    combined.to_csv(output_dir / "combined_data.csv", index=False, sep="\t")

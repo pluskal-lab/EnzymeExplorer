@@ -309,7 +309,7 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
                     model.save()
 
                 # scoring the model
-                val_proba_np = model.predict_proba(test_df)
+                val_proba_np = model.predict_proba(test_df, fold_idx=int(test_fold))
                 with open(
                     model.output_root / f"fold_{test_fold}_results.pkl", "wb"
                 ) as file:
