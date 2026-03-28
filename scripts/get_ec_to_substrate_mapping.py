@@ -240,11 +240,11 @@ def main():
         if ec not in NON_TPS_ECS:
             ec_to_substrate_mapping[ec].add(substrate)
 
-    ec_to_substrate_mapping = {
-        ec: list(substrates) for ec, substrates in ec_to_substrate_mapping.items()
-    }
     with open(args.output_json_path, "w") as f:
-        json.dump(sorted(ec_to_substrate_mapping.items()), f, indent=4)
+        json.dump({
+            ec: list(substrates)
+            for ec, substrates in sorted(ec_to_substrate_mapping.items(), key=lambda x: list(map(int, x[0].split("."))))
+            }, f, indent=4)
     logger.info("EC to substrate mapping saved to JSON file.")
 
 
