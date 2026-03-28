@@ -69,7 +69,7 @@ def main():
         fold_i_train = fold_i_train[["ID", "ECs", "Aminoacid_sequence"]].drop_duplicates("ID")
         fold_i_train["ECs"] = fold_i_train["ECs"].apply(lambda x: ";".join(x))
         fold_i_train.columns = ["Entry", "EC number", "Sequence"]
-        fold_i_train.to_csv(output_dir / f"fold_{i}_train.tsv", index=False, sep="\t")
+        fold_i_train.to_csv(output_dir / f"fold_{i}_train.csv", index=False, sep="\t")
         
         fold_i_test = dataset[dataset["Fold"] == i]
         fold_i_test = fold_i_test[["ID", "Aminoacid_sequence"]].drop_duplicates("ID")
