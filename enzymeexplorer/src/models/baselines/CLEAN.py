@@ -114,14 +114,14 @@ class CLEAN(BaseModel):
         if not self.is_halo:
             data_df.loc[
                 data_df["Type"].isin(
-                {"ggpps", "fpps", "gpps", "gfpps", "hsqs"}
+                {"pt"}
             ),
             config.target_col_name,
             ] = "precursor substr"
             self.precursor_smiles = set(
                 data_df.loc[
                     data_df["Type"].isin(
-                        {"ggpps", "fpps", "gpps", "gfpps", "hsqs"}
+                        {"pt"}
                     ),
                     config.target_col_name,
                 ].values
