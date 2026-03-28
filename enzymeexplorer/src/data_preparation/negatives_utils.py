@@ -422,11 +422,14 @@ def get_sequence_based_hard_negative_cluster_ids(
 def randomised_negative_sampling(
     nontps_swissprot: pd.DataFrame, number_of_negatives: int, n_folds: int
 ) -> tuple[set[str], list[set[str]], dict[str, set[str]]]:
-    negative_ids = np.random.choice(
-        nontps_swissprot.Entry.unique().tolist(),
-        size=number_of_negatives,
-        replace=False,
-    )
+    if number_of_negatives == -1:
+        negative_ids = nontps_swissprot.Entry.unique()
+    else:
+        negative_ids = np.random.choice(
+            nontps_swissprot.Entry.unique().tolist(),
+            size=number_of_negatives,
+            replace=False,
+        )
     negatives_to_accepted_tps_substrates = {}
     negatives_folds = [set(fold) for fold in np.array_split(negative_ids, n_folds)]
     negative_ids = set(negative_ids)
@@ -498,19 +501,26 @@ def mmseqs_based_negative_sampling(
     easy_negative_cluster_ids = nontps_swissprot_clusters_df[
         ~nontps_swissprot_clusters_df["Representative"].isin(hard_negative_cluster_ids)
     ]["Representative"].unique()
-    easy_negative_cluster_ids = np.random.choice(
-        easy_negative_cluster_ids,
-        size=number_of_negatives - len(hard_negative_clusters),
-        replace=False,
-    )
+    
+    if number_of_negatives != -1:
+        easy_negative_cluster_ids = np.random.choice(
+            easy_negative_cluster_ids,
+            size=number_of_negatives - len(hard_negative_clusters),
+            replace=False,
+        )
 
-    logger.info(f"Chosen {len(easy_negative_cluster_ids)} easy negative clusters.")
+        logger.info(f"Chosen {len(easy_negative_cluster_ids)} easy negative clusters.")
 
-    easy_negative_clusters = nontps_swissprot_clusters_df[
-        nontps_swissprot_clusters_df["Representative"].isin(easy_negative_cluster_ids)
-    ].copy()
-    easy_negative_clusters["Type"] = "Easy"
-    easy_negative_clusters.drop_duplicates("Representative", inplace=True)
+        easy_negative_clusters = nontps_swissprot_clusters_df[
+            nontps_swissprot_clusters_df["Representative"].isin(easy_negative_cluster_ids)
+        ].copy()
+        easy_negative_clusters["Type"] = "Easy"
+        easy_negative_clusters.drop_duplicates("Representative", inplace=True)
+    else:
+        logger.info(f"Selected all {len(easy_negative_cluster_ids)} easy negative clusters.")
+        easy_negative_clusters = nontps_swissprot_clusters_df[
+            nontps_swissprot_clusters_df["Representative"].isin(easy_negative_cluster_ids)].copy()
+        easy_negative_clusters["Type"] = "Easy"
 
     logger.info(f"Selected {len(easy_negative_clusters)} easy negative samples.")
 

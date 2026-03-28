@@ -50,7 +50,7 @@ def parse_args() -> configargparse.Namespace:
     parser.add_argument(
         "--presplit-martsdb-clusters-csv-path",
         type=str,
-        default="data/EnzymeExplorer_Dataset.csv",
+        default="data/EnzymeExplorer_Dataset_TPS.csv",
         help="Path to save/load the pre-split MartsDB clusters CSV file. If the file exists, it will be loaded and the clustering step will be skipped. If it does not exist, the clustering step will be performed and the results will be saved to this path for future use.",
     )
     parser.add_argument(
@@ -62,13 +62,13 @@ def parse_args() -> configargparse.Namespace:
     parser.add_argument(
         "--id2kingdom-output-path",
         type=str,
-        default="data/id_2_kingdom_dataset.pkl",
+        default=None,
         help="Path to save the TPS Kingdom data",
     )
     parser.add_argument(
         "--substrate2tps-type-output-path",
         type=str,
-        default="data/substrate_2_tps_type.pkl",
+        default=None,
         help="Path to save the substrate to TPS type mapping",
     )
     parser.add_argument(
@@ -160,7 +160,7 @@ def parse_args() -> configargparse.Namespace:
     parser.add_argument(
         "--structures-root",
         type=str,
-        default="data/enzyme_explorer_pdbs",
+        default=None,
         help="Root directory to save downloaded AlphaFold structures",
     )
     return parser.parse_args()
@@ -307,18 +307,19 @@ def main():
 
     logger.info(f"Prepared negatives dataset size: {len(negatives_data)}")
 
-    logger.info(
-        "Downloading AlphaFold structures for negative samples. This may take some time..."
-    )
-    download_results = negatives_data["ID"].progress_apply(
-        lambda uniprot_id: download_af_structure(uniprot_id, cli_args.structures_root)
-    )
+    if cli_args.structures_root:
+        logger.info(
+            "Downloading AlphaFold structures for negative samples. This may take some time..."
+        )
+        download_results = negatives_data["ID"].progress_apply(
+            lambda uniprot_id: download_af_structure(uniprot_id, cli_args.structures_root)
+        )
 
-    negatives_data = negatives_data[download_results]
+        negatives_data = negatives_data[download_results]
 
-    logger.info(
-        f"Successfully downloaded AlphaFold structures for {len(negatives_data)} negative samples. Removed {len(download_results) - len(negatives_data)} samples without available structures."
-    )
+        logger.info(
+            f"Successfully downloaded AlphaFold structures for {len(negatives_data)} negative samples. Removed {len(download_results) - len(negatives_data)} samples without available structures."
+        )
 
     final_dataset = pd.concat([positives_data, negatives_data]).reset_index(drop=True)
 
