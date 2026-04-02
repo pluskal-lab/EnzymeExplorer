@@ -26,7 +26,7 @@ logger.setLevel(logging.INFO)
 
 _NON_TPS_LABELS = frozenset({"Unknown", "precursor substr", "other"})
 
-_PRECURSOR_TYPES = frozenset({"ggpps", "fpps", "gpps", "gfpps", "hsqs"})
+_PRECURSOR_TYPES = frozenset({"ggpps", "fpps", "gpps", "gfpps", "hsqs", "pt"})
 
 _DEFAULT_TYPE_COL = "Type (mono, sesq, di, …)"
 
