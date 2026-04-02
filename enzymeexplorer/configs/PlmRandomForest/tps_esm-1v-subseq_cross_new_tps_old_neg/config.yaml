@@ -1,0 +1,14 @@
+# Track E: Train on new TPS + old negatives, evaluate on new dataset
+# Isolates the effect of the negative set (compare E→B for negative effect).
+include: ../main_config.yaml
+representations_path: "data/gathered_embs_esm-1v-finetuned-subseq_track_e_embs_avg.h5"
+per_class_optimization: false
+id_col_name: "ID"
+split_col_name: "Fold"
+type_col_name: "Type"
+tps_cleaned_csv_path: "data/track_e_new_tps_old_neg.csv"
+
+eval_csv_path: "data/EnzymeExplorer_Dataset.csv"
+eval_split_col_name: "Fold"
+eval_id_col_name: "ID"
+eval_representations_path: "data/gathered_embs_esm-1v-finetuned-subseq_new_dataset_embs_avg.h5"
