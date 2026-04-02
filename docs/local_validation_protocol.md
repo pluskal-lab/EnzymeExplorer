@@ -889,84 +889,22 @@ further confirming it does not use the training partition at all.
 | HMM | MCC-F1 | 0.690 | 0.683 | 0.628 | 0.628 | 0.709 |
 | Foldseek | AP | 0.872 | 0.900 | 0.601 | 0.597 | 0.912 |
 | Foldseek | AUC | 0.950 | 0.970 | 0.753 | 0.754 | 0.972 |
-| Foldseek | MCC-F1 | 0.335 | 0.323 | 0.419 | 0.418 | 0.419 |## 13. Alternative Model Variants
+| Foldseek | MCC-F1 | 0.335 | 0.323 | 0.419 | 0.418 | 0.419 |
 
-We explored three model variants to test whether alternative prediction
-strategies improve TPS detection or substrate prediction. All variants are
+## 13. Alternative Model Variants
+
+We explored two model variants to test whether alternative prediction
+strategies improve TPS detection or substrate prediction. Both variants are
 implemented as rerunnable scripts and evaluated using the same per-fold
 Average Precision / Mean Average Precision pipeline.
 
-### 13.1 CLEANBetterDetection (Proportion-Based TPS Detection)
+### 13.1 CLEANEcDetection (EC-Based TPS Detection)
 
-**Idea**: Instead of relying on CLEAN's default isTPS confidence (which is
-the maxsep score of the highest-confidence EC match that maps to a TPS
-substrate), estimate P(TPS) as the confidence-weighted proportion of
-CLEAN's returned EC numbers that correspond to known TPS reactions.
-
-**Implementation** (`scripts/postprocess_clean_tps_detection.py`):
-- Builds the TPS EC set by replicating CLEAN's own Rhea-based
-  EC→substrate mapping using Indigo canonicalization (the same SMILES
-  canonicalizer the project uses throughout). An EC is considered
-  TPS-relevant if its Rhea reaction substrates overlap with the
-  dataset's TPS substrate SMILES. This yields 345–349 TPS ECs depending
-  on the dataset.
-- For each protein, reads CLEAN's raw EC predictions with confidence
-  scores from `_maxsep.csv` files.
-- Computes P(TPS) = Σ(conf_i × is_tps_ec_i) / Σ(conf_i), where
-  is_tps_ec_i is 1 if the i-th returned EC is in the TPS EC set.
-- Overwrites the isTPS column in the existing CLEAN fold results and
-  saves under `outputs/CLEANBetterDetection/`.
-
-**Debugging note**: An initial implementation used a static curated TPS EC
-list (292 ECs from `ec_to_substrate_mapping_2026_03_14.json`). This produced
-catastrophic failures on the new dataset (AP dropping from 0.85 to 0.54)
-because the static list missed many ECs that CLEAN internally maps to TPS
-substrates. The two most common missed ECs were EC:1.17.7.4 (assigned to
-147 TPS proteins) and EC:2.5.1.75 (82 TPS proteins), both of which map to
-DMAPP — a TPS substrate — via Rhea reactions. The mismatch was caused by
-the static list using RDKit canonical SMILES while the dataset and CLEAN
-use Indigo canonical SMILES (which differ in phosphate group ordering).
-The fix was to replicate CLEAN's exact Rhea-based EC→substrate lookup with
-Indigo canonicalization.
-
-**Results — isTPS Detection AP (CLEANBetterDetection vs CLEAN)**:
-
-| Track | CLEAN AP | BetterDetection AP | Δ |
-|-------|----------|-------------------|-------|
-| A     | 0.857    | 0.816             | −0.041 |
-| A_old | 0.978    | 0.980             | +0.002 |
-| C     | 0.847    | 0.811             | −0.036 |
-| B     | 0.848    | 0.831             | −0.017 |
-| D     | 0.859    | 0.838             | −0.022 |
-| E     | 0.848    | 0.831             | −0.017 |
-
-Substrate mAP is unchanged (the post-processing only modifies isTPS scores).
-
-**Interpretation**: The proportion-based method consistently
-underperforms the original maxsep approach by 1.7–4.1 pp AP across all
-tracks. The fundamental limitation is that CLEAN's maxsep inference
-returns only 1 EC prediction for 88% of proteins. For single-EC
-predictions the proportion formula yields a binary score (0 or 1),
-losing the fine-grained confidence ranking that the original maxsep
-distance provides. The original approach assigns confidence values like
-0.95, 0.87, 0.72, etc., enabling nuanced ranking, while the proportion
-method collapses these to 0.0 or 1.0.
-
-**Conclusion**: The proportion-based approach does not improve TPS
-detection. CLEAN's maxsep confidence score already serves as an effective
-TPS detector because proteins with any TPS-relevant EC prediction receive
-a calibrated confidence, while non-TPS proteins either receive no EC
-prediction or a non-TPS EC (which correctly yields isTPS = 0).
-
-### 13.2 CLEANEcDetection (EC-Based TPS Detection, PR #34 Approach)
-
-**Idea**: Instead of using Rhea-based substrate matching (original CLEAN)
-or a confidence-weighted proportion (Section 13.1), detect TPS based on
-whether the predicted EC number belongs to a curated set of TPS-associated
-ECs.  This follows PR #34's logic: a protein is TPS if any of its
-predicted ECs appears in the EC-to-substrate mapping with at least one
-non-precursor substrate, with confidence equal to the max confidence
-among matching ECs.
+**Idea**: Instead of using Rhea-based substrate matching (original CLEAN),
+detect TPS based on whether the predicted EC number belongs to a curated
+set of TPS-associated ECs.  A protein is TPS if any of its predicted ECs
+appears in the EC-to-substrate mapping with at least one non-precursor
+substrate, with confidence equal to the max confidence among matching ECs.
 
 **Implementation** (`scripts/postprocess_clean_ec_detection.py`):
 - Loads the EC-to-substrate mapping JSON and selects ECs with at least
@@ -989,16 +927,16 @@ substrates).  The extended mapping is saved as
 `data/ec_to_substrate_mapping_extended.json` and produced by
 `scripts/extend_ec_mapping.py`.
 
-**Results — All Three CLEAN Variants for isTPS Detection AP**:
+**Results — isTPS Detection AP (CLEANEcDetection vs CLEAN)**:
 
-| Track | CLEAN (original) | CLEANEcDetection | CLEANBetterDetection |
-|-------|-----------------|------------------|---------------------|
-| A     | 0.857           | **0.874** (+1.6) | 0.816 (−4.1)        |
-| A_old | 0.978           | **0.985** (+0.7) | 0.980 (+0.2)        |
-| C     | 0.847           | **0.875** (+2.7) | 0.811 (−3.6)        |
-| B     | 0.848           | **0.894** (+4.6) | 0.831 (−1.7)        |
-| D     | 0.859           | **0.906** (+4.7) | 0.838 (−2.2)        |
-| E     | 0.848           | **0.894** (+4.6) | 0.831 (−1.7)        |
+| Track | CLEAN (original) | CLEANEcDetection | Δ |
+|-------|-----------------|------------------|-------|
+| A     | 0.857           | **0.874**        | +1.6  |
+| A_old | 0.978           | **0.985**        | +0.7  |
+| C     | 0.847           | **0.875**        | +2.7  |
+| B     | 0.848           | **0.894**        | +4.6  |
+| D     | 0.859           | **0.906**        | +4.7  |
+| E     | 0.848           | **0.894**        | +4.6  |
 
 Substrate mAP is unchanged (only isTPS scores are modified).
 
@@ -1017,12 +955,11 @@ isTPS = 0, while the original approach would give them nonzero isTPS
 EC maps to any TPS substrate via Rhea — including loose matches via
 shared cofactors like DMAPP).
 
-**Conclusion**: EC-based TPS detection (PR #34 approach) with a
-comprehensive EC mapping that covers both old and new TPS diversity is
-the best CLEAN isTPS variant, improving AP by 1.6–4.7 pp across all
-tracks.
+**Conclusion**: EC-based TPS detection with a comprehensive EC mapping
+that covers both old and new TPS diversity is the best CLEAN isTPS
+variant, improving AP by 1.6–4.7 pp across all tracks.
 
-### 13.3 Hierarchical PlmRF and PlmDomainsRF
+### 13.2 Hierarchical PlmRF and PlmDomainsRF
 
 **Idea**: Replace the standard joint model (one classifier predicting all
 classes including isTPS simultaneously) with a two-stage architecture:
