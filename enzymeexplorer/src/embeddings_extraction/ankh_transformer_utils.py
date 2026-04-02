@@ -1,4 +1,6 @@
 """This script contains utils for Ankh embeddings extraction"""
+from typing import Optional
+
 import ankh  # type: ignore
 import numpy as np  # type: ignore
 import torch  # type: ignore

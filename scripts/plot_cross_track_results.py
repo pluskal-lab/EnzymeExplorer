@@ -59,7 +59,7 @@ MODEL_COLORS: dict[str, str] = {
     "PlmRF": "#1f77b4",
     "Blastp": "#ff7f0e",
     "HMM": "#2ca02c",
-    "CLEAN*": "#d62728",
+    "CLEAN (in-sample)": "#d62728",
     "Foldseek": "#9467bd",
 }
 
@@ -67,7 +67,7 @@ MODEL_MARKERS: dict[str, str] = {
     "PlmRF": "o",
     "Blastp": "s",
     "HMM": "^",
-    "CLEAN*": "D",
+    "CLEAN (in-sample)": "D",
     "Foldseek": "v",
 }
 
@@ -138,7 +138,7 @@ def _canonical_model_label(raw: str) -> str:
     if "blastp" in raw_lower:
         return "Blastp"
     if "clean" in raw_lower:
-        return "CLEAN*"
+        return "CLEAN (in-sample)"
     if "hmm" in raw_lower:
         return "HMM"
     if "foldseek" in raw_lower:
@@ -191,7 +191,7 @@ def plot_cross_track_overview(
             if label not in all_models_ordered:
                 all_models_ordered.append(label)
 
-    preferred_order = ["PlmRF", "Blastp", "HMM", "CLEAN*", "Foldseek"]
+    preferred_order = ["PlmRF", "Blastp", "HMM", "CLEAN (in-sample)", "Foldseek"]
     models = [m for m in preferred_order if m in all_models_ordered]
     models += [m for m in all_models_ordered if m not in models]
 
@@ -281,7 +281,7 @@ def plot_simbin_degradation(
             label = _canonical_model_label(raw)
             if label not in all_models:
                 all_models.append(label)
-    preferred_order = ["PlmRF", "Blastp", "HMM", "CLEAN*", "Foldseek"]
+    preferred_order = ["PlmRF", "Blastp", "HMM", "CLEAN (in-sample)", "Foldseek"]
     models = [m for m in preferred_order if m in all_models]
     models += [m for m in all_models if m not in models]
 
@@ -405,7 +405,7 @@ def plot_metric_heatmap(
             label = _canonical_model_label(raw)
             if label not in all_models:
                 all_models.append(label)
-    preferred_order = ["PlmRF", "Blastp", "HMM", "CLEAN*", "Foldseek"]
+    preferred_order = ["PlmRF", "Blastp", "HMM", "CLEAN (in-sample)", "Foldseek"]
     models = [m for m in preferred_order if m in all_models]
     models += [m for m in all_models if m not in models]
 
@@ -485,8 +485,15 @@ def parse_args() -> argparse.Namespace:
         "--tracks",
         nargs="+",
         required=True,
-        help="Pickle basenames (without extension), "
+        help="Pickle basenames for substrate evaluation, "
         "e.g. 'track_a_phylo_folds track_b_new_dataset'",
+    )
+    p.add_argument(
+        "--tps-tracks",
+        nargs="+",
+        default=None,
+        help="Pickle basenames for TPS detection evaluation "
+        "(same order as --tracks). If omitted, uses --tracks.",
     )
     p.add_argument(
         "--track-labels",
@@ -502,36 +509,50 @@ def parse_args() -> argparse.Namespace:
     return p.parse_args()
 
 
-def main() -> None:
-    args = parse_args()
-    assert len(args.tracks) == len(
-        args.track_labels
-    ), "--tracks and --track-labels must have the same length"
-
+def _load_tracks(
+    track_names: list[str], track_labels: list[str]
+) -> list[tuple[str, dict, dict, dict]]:
+    """Load evaluation pickles for a list of tracks."""
     tracks_data: list[tuple[str, dict, dict, dict]] = []
-    for track_name, track_label in zip(args.tracks, args.track_labels):
+    for track_name, track_label in zip(track_names, track_labels):
         try:
             ap, rocauc, mccf1 = _load_metric_pickles(track_name)
             tracks_data.append((track_label, ap, rocauc, mccf1))
             logger.info("Loaded %s as '%s'", track_name, track_label)
         except FileNotFoundError:
             logger.warning("Skipping %s — pickle not found", track_name)
+    return tracks_data
 
-    if not tracks_data:
+
+def main() -> None:
+    args = parse_args()
+    assert len(args.tracks) == len(
+        args.track_labels
+    ), "--tracks and --track-labels must have the same length"
+
+    substrate_data = _load_tracks(args.tracks, args.track_labels)
+
+    tps_names = args.tps_tracks if args.tps_tracks else args.tracks
+    assert len(tps_names) == len(
+        args.track_labels
+    ), "--tps-tracks must have the same length as --track-labels"
+    tps_data = _load_tracks(tps_names, args.track_labels)
+
+    if not substrate_data and not tps_data:
         logger.error("No tracks loaded; nothing to plot.")
         return
 
-    for task in ("substrate", "tps_detection"):
+    for task, data in [("substrate", substrate_data), ("tps_detection", tps_data)]:
+        if not data:
+            continue
         task_suffix = "substrate" if task == "substrate" else "tps_det"
         plot_cross_track_overview(
-            tracks_data, task, f"{args.output_prefix}_overview_{task_suffix}"
+            data, task, f"{args.output_prefix}_overview_{task_suffix}"
         )
         plot_simbin_degradation(
-            tracks_data, task, f"{args.output_prefix}_simbin_{task_suffix}"
+            data, task, f"{args.output_prefix}_simbin_{task_suffix}"
         )
-        plot_metric_heatmap(
-            tracks_data, task, f"{args.output_prefix}_heatmap_{task_suffix}"
-        )
+        plot_metric_heatmap(data, task, f"{args.output_prefix}_heatmap_{task_suffix}")
 
 
 if __name__ == "__main__":

@@ -1,5 +1,6 @@
 id_col_name: "Uniprot ID"
 target_col_name: "SMILES_substrate_canonical_no_stereo"
+seq_col_name: "Amino acid sequence"
 split_col_name: "stratified_mmseqs_based_split_with_minor_products"
 class_names: ["CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",
             "CC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",

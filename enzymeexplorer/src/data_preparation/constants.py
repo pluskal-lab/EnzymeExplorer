@@ -23,7 +23,46 @@ PUTATIVE_TPS_IDS = [
 ]
 
 
-TPS_ECS_BASE = set(["4.2.1.123", "4.2.3.211", "4.2.3.216"])
+TPS_ECS_TO_SUBSTRATES_BASE = {
+    "2.5.1.30": "precursor substr",
+    "2.5.1.67": "precursor substr",
+    "2.5.1.69": "precursor substr",
+    "2.5.1.82": "precursor substr",
+    "2.5.1.83": "precursor substr",
+    "2.5.1.84": "precursor substr",
+    "2.5.1.85": "precursor substr",
+    "2.5.1.90": "precursor substr",
+    "2.5.1.91": "precursor substr",
+    "2.5.1.150": "precursor substr",
+    "3.1.7.5": "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",
+    "3.1.7.10": "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",
+    "3.1.7.12": "CC1CCC2(C)C(CCC=C2C)C1(C)CCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",
+    "4.2.1.123": "CC(C)=CCCC(C)=CCCC(C)=CCCC=C(C)CCC=C(C)CCC=C(C)C",
+    "4.2.1.138": "CC1CCC2C(CC2(C)C)C(=C)CCC=1",
+    "4.2.3.8": "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",
+    "4.2.3.41": "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",
+    "4.2.3.63": "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",
+    "4.2.3.64": "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",
+    "4.2.3.142": "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",
+    "4.2.3.151": "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",
+    "4.2.3.156": "CC(CCC=C(C)CCC=C(C)C)=CC1C(COP([O-])(=O)OP([O-])([O-])=O)C1(C)CCC=C(C)CCC=C(C)C",
+    "4.2.3.205": "CC1C(C)C(C)C(C)(CCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O)C=1C",
+    "4.2.3.207": "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",
+    "4.2.3.208": "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",
+    "4.2.3.209": "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",
+    "4.2.3.210": "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",
+    "4.2.3.211": "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",
+    "4.2.3.212": "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",
+    "4.2.3.213": "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",
+    "4.2.3.216": "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",
+    "4.2.3.217": "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",
+    "4.2.3.222": "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",
+    "4.2.3.224": "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",
+    "4.2.3.229": "CC1(C)CCCC2(C)C1CCC(=C)C2CCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",
+    "5.5.1.8": "CC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",
+}
+
+NON_TPS_ECS = {"2.5.1.142", "2.5.1.28", "2.5.1.68", "2.5.1.92", "4.1.99.16"}
 
 # GO terms to blacklist for TPS identification even though TPS enzymes may be annotated with them
 TPS_GO_BLACKLIST = set(
@@ -65,11 +104,3 @@ MAJOR_CLASSES = [
     "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O.CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",  # GGPP + GGPP
     "precursor substr",
 ]
-
-METRICS_2_FUNC = {
-    "confident_residues": lambda plddts: np.where(plddts >= 70)[0].size / len(plddts),
-    "mean": lambda plddts: plddts.mean(),
-    "median": lambda plddts: np.median(plddts),
-    "conf_segments": lambda plddts: (confidence_segment_lengths(plddts)/len(plddts)).mean() if confidence_segment_lengths(plddts).size > 0 else 0,
-    "high_conf_segments": lambda plddts: (confidence_segment_lengths(plddts, threshold=90)/len(plddts)).mean() if confidence_segment_lengths(plddts).size > 0 else 0
-}
