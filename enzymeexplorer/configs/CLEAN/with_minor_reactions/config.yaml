@@ -16,7 +16,7 @@ random_state: 0
 hyperparam_dimensions: none
 seq_col_name: "Amino acid sequence"
 n_calls_hyperparams_opt: 0
-clean_installation_root: "/mnt/c/Users/raman/Documents/bio_ml/CLEAN"
+clean_installation_root: "~/CLEAN"
 ec_2_substrates_json_path: "data/ec_to_substrate_mapping_2026_03_14.json"
 is_halo: false
 neg_val: "Unknown"
