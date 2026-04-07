@@ -19,6 +19,7 @@ setup(
             "get_mmseqs_based_folds=enzymeexplorer.src.data_preparation.get_mmseqs_based_clusters:main",
             "get_uniprot_sample=enzymeexplorer.src.data_preparation.get_uniprot_sample:main",
             "get_phylogeny_based_clusters=enzymeexplorer.src.data_preparation.get_phylogeny_based_clusters:main",
+            "detect_domains=enzymeexplorer.src.structure_processing.domain_detections:main",
             "gather_plm_embeddings=enzymeexplorer.src.embeddings_extraction.gather_required_embs:main",
             "plm_embeddings=enzymeexplorer.src.embeddings_extraction.transformer_embs:main",
             "enzyme_explorer_main=enzymeexplorer.src.enzyme_explorer_main:main",
