@@ -19,11 +19,8 @@ random_state: 0
 hyperparam_dimensions: none
 seq_col_name: "Amino acid sequence"
 n_calls_hyperparams_opt: 0
-clean_installation_root: "/home/samusevich/CLEAN"
-rhea2ec_link: "https://ftp.expasy.org/databases/rhea/tsv/rhea2ec.tsv"
-rhea_reaction_smiles_link: "https://ftp.expasy.org/databases/rhea/tsv/rhea-reaction-smiles.tsv"
-rhea_directions_link: "https://ftp.expasy.org/databases/rhea/tsv/rhea-directions.tsv"
-clean_working_dir: "_clean_working_dir"
+clean_installation_root: "~/CLEAN"
+ec_2_substrates_json_path: "data/ec_to_substrate_mapping_2026_03_14.json"
 is_halo: false
 neg_val: "Unknown"
 negatives_sample_path: "data/sampled_id_2_seq.pkl"
@@ -36,3 +33,4 @@ eval_csv_path: "data/EnzymeExplorer_Dataset.csv"
 eval_split_col_name: "Fold"
 eval_id_col_name: "ID"
 eval_seq_col_name: "Aminoacid_sequence"
+pretrained_models_link: "https://drive.google.com/file/d/1J3FXW08At6LTjDckWVTaMx6VdJdYrLNp/view?usp=sharing"

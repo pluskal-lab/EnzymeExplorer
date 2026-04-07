@@ -51,7 +51,7 @@ logger = logging.getLogger(__name__)
 OUTPUT_ROOT = Path("outputs")
 CONFIG_ROOT = Path("enzymeexplorer/configs")
 
-_NON_TPS_LABELS = frozenset({"Unknown", "precursor substr", "other"})
+_NON_TPS_LABELS = frozenset({"Unknown", "precursor substr"})
 _PRECURSOR_TYPES = frozenset({"ggpps", "fpps", "gpps", "gfpps", "hsqs"})
 _DEFAULT_TYPE_COL = "Type (mono, sesq, di, …)"
 

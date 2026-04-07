@@ -24,7 +24,7 @@ from enzymeexplorer.src.utils.project_info import (
 logger = logging.getLogger(__file__)
 logger.setLevel(logging.INFO)
 
-_NON_TPS_LABELS = frozenset({"Unknown", "precursor substr", "other"})
+_NON_TPS_LABELS = frozenset({"Unknown", "precursor substr"})
 
 _PRECURSOR_TYPES = frozenset({"ggpps", "fpps", "gpps", "gfpps", "hsqs", "pt"})
 
@@ -50,9 +50,9 @@ def assign_is_tps_label(label_set: set[str]) -> set[str]:
     """Add ``isTPS`` to *label_set* when it contains at least one real TPS substrate.
 
     A set that only contains non-TPS sentinel values (``Unknown``,
-    ``precursor substr``, ``other``) is returned unchanged.  Any other
-    substrate present -- even alongside ``precursor substr`` -- indicates
-    the protein is a TPS and should carry the ``isTPS`` flag.
+    ``precursor substr``) is returned unchanged.  Any other substrate
+    present -- even alongside ``precursor substr`` -- indicates the
+    protein is a TPS and should carry the ``isTPS`` flag.
     """
     if label_set.issubset(_NON_TPS_LABELS):
         return label_set
@@ -419,7 +419,9 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
                 ):
                     _stashed_features = model.features_df
                     model.features_df = eval_features_df
-                val_proba_np = model.predict_proba(test_df)
+                val_proba_np = model.predict_proba(
+                    test_df, fold_idx=int(test_fold)
+                )
                 if _stashed_features is not None:
                     model.features_df = _stashed_features
                 with open(

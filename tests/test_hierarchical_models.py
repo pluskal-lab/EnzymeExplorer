@@ -38,10 +38,13 @@ class TestAssignIsTps:
     def test_non_tps_only_unchanged(self):
         assert _assign_is_tps({"Unknown"}) == {"Unknown"}
         assert _assign_is_tps({"precursor substr"}) == {"precursor substr"}
-        assert _assign_is_tps({"other"}) == {"other"}
+
+    def test_other_is_tps(self):
+        result = _assign_is_tps({"other"})
+        assert "isTPS" in result
 
     def test_all_non_tps_labels(self):
-        result = _assign_is_tps({"Unknown", "precursor substr", "other"})
+        result = _assign_is_tps({"Unknown", "precursor substr"})
         assert "isTPS" not in result
         assert result == _NON_TPS_LABELS
 

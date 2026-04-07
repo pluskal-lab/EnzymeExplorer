@@ -12,7 +12,7 @@
         "precursor substr"
     ],
     "2.5.1.21": [
-        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O.CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
     ],
     "2.5.1.29": [
         "precursor substr"
@@ -21,7 +21,7 @@
         "precursor substr"
     ],
     "2.5.1.32": [
-        "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O.CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
     ],
     "2.5.1.67": [
         "precursor substr"
@@ -51,14 +51,14 @@
         "precursor substr"
     ],
     "2.5.1.96": [
-        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O.CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
     ],
     "2.5.1.103": [
-        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O.CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
     ],
     "2.5.1.148": [
-        "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",
-        "CC(C)CCCC(C)CCCC(C)CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O.CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",
+        "CC(C)CCCC(C)CCCC(C)CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O.CC(C)CCCC(C)CCCC(C)CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
     ],
     "2.5.1.150": [
         "precursor substr"

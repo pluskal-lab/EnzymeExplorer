@@ -111,7 +111,10 @@ class PlmDomainsRandomForest(PlmRandomForest):
         super().fit_core(train_df, class_name)
 
     def predict_proba(
-        self, val_df: pd.DataFrame, selected_class_name: Optional[str] = None
+        self,
+        val_df: pd.DataFrame,
+        selected_class_name: Optional[str] = None,
+        fold_idx: Optional[int] = None,
     ) -> np.ndarray:
         ids_with_domain_detections = set(self.all_ids_list_dom)
         dom_features_df = pd.DataFrame(
