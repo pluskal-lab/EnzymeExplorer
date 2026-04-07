@@ -34,7 +34,7 @@ def eval_experiment(
     classes: list[str],
     id_2_category_path: Optional[str] = None,
     blast_identities_path: Optional[str] = None,
-    id_col_name: Optional[str] = "Uniprot ID",
+    id_col_name: Optional[str] = "ID",
     max_allowed_blast_identity: Optional[int] = 60,
 ) -> tuple[list, list, list, list]:
     """

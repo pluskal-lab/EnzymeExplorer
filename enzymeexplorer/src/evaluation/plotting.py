@@ -169,10 +169,10 @@ def plot_boxplots_per_type(
         for fold_dict in class_dicts:
             for class_name, val in fold_dict.items():
                 if class_name in substr_2_type:
-                    type_name = substr_2_type[class_name].replace("sesq", "sesqui")
-                    present_type_names.add(type_name)
+                    type_names = substr_2_type[class_name]
+                    present_type_names.update(type_names)
                     model_list.append(model_names_plots[model_i])
-                    class_list.append(type_name)
+                    class_list.append(list(type_names)[0])
                     val_list.append(val)
     ap_per_class_df = pd.DataFrame(
         {"Model": model_list, "TPS Type": class_list, metric_name: val_list}
@@ -187,7 +187,7 @@ def plot_boxplots_per_type(
         ax=ax,
         order=[
             type_name
-            for type_name in ["mono", "sesqui", "di", "sester", "tri", "tetra"]
+            for type_name in ["mono", "sesq", "di", "sester", "tri", "tetra"]
             if type_name in present_type_names
         ],
         fliersize=0,
@@ -232,10 +232,10 @@ def plot_type_boxplots_per_model(
         for fold_dict in class_dicts:
             for class_name, val in fold_dict.items():
                 if class_name in substr_2_type:
-                    type_name = substr_2_type[class_name].replace("sesq", "sesqui")
-                    present_type_names.add(type_name)
+                    type_names = substr_2_type[class_name]
+                    present_type_names.update(type_names)
                     model_list.append(model_names_plots[model_i])
-                    class_list.append(type_name)
+                    class_list.append(list(type_names)[0])
                     val_list.append(val)
     ap_per_class_df = pd.DataFrame(
         {"Model": model_list, "TPS Type": class_list, metric_name: val_list}
@@ -251,7 +251,7 @@ def plot_type_boxplots_per_model(
         ax=ax,
         hue_order=[
             type_name
-            for type_name in ["mono", "sesqui", "di", "sester", "tri", "tetra"]
+            for type_name in ["mono", "sesq", "di", "sester", "tri", "tetra"]
             if type_name in present_type_names
         ],
         order=model_names_plots,
@@ -261,9 +261,9 @@ def plot_type_boxplots_per_model(
             "tri": np.array([0.45490196, 0.76862745, 0.4627451, 1.0]),
             "sester": np.array([0.83921569, 0.15294118, 0.15686275, 1.0]),
             "di": np.array([0.58039216, 0.40392157, 0.74117647, 1.0]),
-            "sesqui": np.array([0.54901961, 0.3372549, 0.29411765, 1.0]),
+            "sesq": np.array([0.54901961, 0.3372549, 0.29411765, 1.0]),
             "mono": np.array([0.89019608, 0.46666667, 0.76078431, 1.0]),
-            "isoprenyl diphosphate synthase": np.array(
+            "pt": np.array(
                 [0.49803922, 0.49803922, 0.49803922, 1.0]
             ),
             "hemi": np.array([0.7372549, 0.74117647, 0.13333333, 1.0]),
@@ -476,7 +476,7 @@ def plot_selected_results(args: argparse.Namespace):
                     substrate_2_tps_type
                 )
             current_df = per_class_results_df[
-                series_of_categories_to_check == args.type_detected
+                series_of_categories_to_check.map(lambda x: args.type_detected in x)
             ]
             for model in args.models:
                 mean_vals = current_df.loc[model, column_group[0]]
@@ -516,7 +516,7 @@ def plot_selected_results(args: argparse.Namespace):
             classes_to_consider = [
                 class_name
                 for class_name, type_ in substrate_2_tps_type.items()
-                if type_ == args.type_detected
+                if args.type_detected in type_
             ]
         else:
             classes_to_consider = ["isTPS"]

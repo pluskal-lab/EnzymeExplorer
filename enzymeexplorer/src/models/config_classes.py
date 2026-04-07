@@ -1,5 +1,5 @@
 """This module defines an dataclasses storing model configs"""
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from enzymeexplorer.src.models.ifaces import SklearnBaseConfig
 from enzymeexplorer.src.models.ifaces.config_baseclasses import EmbSklearnBaseConfig
@@ -44,7 +44,7 @@ class DomainFeaturesRandomForestConfig(FeaturesRandomForestConfig):
     """
 
     foldseek_distances: bool
-
+    domain_dist_path: str = field(default="", kw_only=True)
 
 @dataclass
 class EmbRandomForestConfig(EmbSklearnBaseConfig, FeaturesRandomForestConfig):

@@ -27,7 +27,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--process-all", action="store_true")
     parser.add_argument("--storage-step", type=int, default=200)
     parser.add_argument("--csv-path", type=str)
-    parser.add_argument("--id-column", type=str, default="Uniprot ID")
+    parser.add_argument("--id-column", type=str, default="ID")
     parser.add_argument("--verbose", action="store_true")
     parser.add_argument("--remove-raw-files-on-end", action="store_true")
     args = parser.parse_args()
@@ -61,13 +61,13 @@ def main():
         id_file = all_id_files[i]
 
         with open(os.path.join(root_path, id_file), "rb") as f:
-            uniprot_ids = pickle.load(f)
+            sequence_ids = pickle.load(f)
 
         embeddings = None
-        for id_idx, uniprot_id in enumerate(uniprot_ids):
-            if uniprot_id in required_ids or cli_args.process_all:
-                if uniprot_id in required_ids:
-                    required_ids.remove(uniprot_id)
+        for id_idx, sequence_id in enumerate(sequence_ids):
+            if sequence_id in required_ids or cli_args.process_all:
+                if sequence_id in required_ids:
+                    required_ids.remove(sequence_id)
                 if cli_args.verbose and len(required_ids) % 500 == 0:
                     logger.info("Remains %d IDs to find", len(required_ids))
                 if embeddings is None:
@@ -79,7 +79,7 @@ def main():
                         "rb",
                     ) as f:
                         embeddings = pickle.load(f)
-                all_found_ids.append(uniprot_id)
+                all_found_ids.append(sequence_id)
                 all_found_embs.append(embeddings[id_idx])
         i += 1
 

@@ -43,10 +43,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--csv-path",
         type=str,
-        default="data/TPS-Nov19_2023_verified_all_reactions_with_neg_with_folds_mmseqs_30_50.csv",
+        default="data/EnzymeExplorer_Dataset.csv",
     )
-    parser.add_argument("--id-column", type=str, default="Uniprot ID")
-    parser.add_argument("--seq-column", type=str, default="Amino acid sequence")
+    parser.add_argument("--id-column", type=str, default="ID")
+    parser.add_argument("--seq-column", type=str, default="Aminoacid_sequence")
     parser.add_argument("--output-root-path", type=str, default="outputs/ankh_embs")
 
     args = parser.parse_args()

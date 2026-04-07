@@ -18,8 +18,8 @@ logger = logging.getLogger(__file__)
 logger.setLevel(level=logging.INFO)
 
 triplets_dtype = [
-    ("Uniprot ID", h5py.string_dtype()),
-    ("Amino acid sequence", h5py.string_dtype()),
+    ("ID", h5py.string_dtype()),
+    ("Aminoacid_sequence", h5py.string_dtype()),
     (
         "SMILES_substrate_canonical_no_stereo",
         h5py.string_dtype(),
@@ -69,9 +69,20 @@ def get_folds_from_csv(csv_path: str, split_col_name: str) -> list[str]:
     """
     df = pd.read_csv(csv_path, usecols=[split_col_name])
     folds = df[split_col_name].dropna().unique()
-    # Filter valid folds (fold_0, fold_1, etc.) and sort
-    valid_folds = sorted([str(f) for f in folds if str(f).startswith("fold_")])
-    return [f.replace("fold_", "") for f in valid_folds]
+    prefixed = sorted([str(f) for f in folds if str(f).startswith("fold_")])
+    if prefixed:
+        return [f.replace("fold_", "") for f in prefixed]
+    # Fall back to bare non-negative integers (new dataset)
+    bare = []
+    for f in folds:
+        s = str(f)
+        try:
+            n = int(float(s))
+            if n >= 0:
+                bare.append(str(n))
+        except (ValueError, OverflowError):
+            continue
+    return sorted(bare, key=int)
 
 
 def get_unsplittable_targets(split_desc: str, path: str = "data/tps_folds.h5") -> set:
@@ -121,12 +132,12 @@ def get_train_val_per_fold(
         filter_val_terzyme
     ):  # deprecated as we re-train profileHMM on our richer data to get a stronger baseline
         terzyme_whole_df = pd.read_csv("data/terzyme_data_whole.csv")
-        uniprot_ids_terzyme = set(terzyme_whole_df["Uniprot ID"].values)
+        sequence_ids_terzyme = set(terzyme_whole_df["ID"].values)
         val_np = np.array(
             [
                 element
                 for element in val_np
-                if get_str(element[0]) not in uniprot_ids_terzyme
+                if get_str(element[0]) not in sequence_ids_terzyme
             ]
         )
 
@@ -139,10 +150,11 @@ def get_train_val_per_fold(
     return train_np, val_np
 
 
+# TODO remove method
 def get_tps_df(
     path_to_file: str,
     path_to_sampled_negatives: str,
-    id_col_name: str = "Uniprot ID",
+    id_col_name: str = "ID",
     remove_fragments: bool = True,
     max_seq_len: int = 2000,
 ) -> pd.DataFrame:
@@ -151,7 +163,7 @@ def get_tps_df(
 
     :param path_to_file: Path to an xlsx file containing gathered TPS sequences.
     :param path_to_sampled_negatives: Path to a pickle file containing negative sequences sampled from Swiss-Prot.
-    :param id_col_name: The name of the column containing Uniprot IDs. Defaults to "Uniprot ID".
+    :param id_col_name: The name of the column containing protein ids. Defaults to "ID".
     :param remove_fragments: Flag indicating whether to remove sequences that are not full fragments. Defaults to True.
     :param max_seq_len: Maximum allowed length of the sequence to filter out sequences that are too long. Defaults to 2000.
 
@@ -162,7 +174,7 @@ def get_tps_df(
     tps_df[id_col_name] = tps_df[id_col_name].map(
         lambda x: x.strip() if isinstance(x, str) else "Negative"
     )
-    tps_df.dropna(subset=["Amino acid sequence"], inplace=True)
+    tps_df.dropna(subset=["Aminoacid_sequence"], inplace=True)
     if remove_fragments:
         tps_df = tps_df[tps_df["Fragment"].isnull()]
 
@@ -172,14 +184,14 @@ def get_tps_df(
         id_2_seq = pickle.load(file)
 
     id_seq_new = [
-        (uniprot_id, seq)
-        for uniprot_id, seq in id_2_seq.items()
-        if uniprot_id not in known_ids
+        (sequence_id, seq)
+        for sequence_id, seq in id_2_seq.items()
+        if sequence_id not in known_ids
     ]
 
     tps_df_new_dict = {
         id_col_name: [el[0] for el in id_seq_new],
-        "Amino acid sequence": [el[1] for el in id_seq_new],
+        "Aminoacid_sequence": [el[1] for el in id_seq_new],
     }
 
     tps_df_new = pd.DataFrame(
@@ -192,11 +204,11 @@ def get_tps_df(
     )
     # filtering non-standard amino acids
     tps_df_new = tps_df_new[
-        tps_df_new["Amino acid sequence"].map(lambda x: "U" not in x and "O" not in x)
+        tps_df_new["Aminoacid_sequence"].map(lambda x: "U" not in x and "O" not in x)
     ]
     tps_df = pd.concat((tps_df, tps_df_new))
 
-    tps_df = tps_df[tps_df["Amino acid sequence"].map(len) <= max_seq_len]
+    tps_df = tps_df[tps_df["Aminoacid_sequence"].map(len) <= max_seq_len]
 
     return tps_df
 

@@ -54,7 +54,7 @@ def parse_args() -> argparse.Namespace:
         "--tps-file-path",
         help="A path to the TPS file",
         type=str,
-        default="data/TPS-Nov19_2023_verified_all_reactions_with_neg_with_folds_mmseqs_30_50.csv",
+        default="data/EnzymeExplorer_Dataset.csv",
     )
     parser.add_argument(
         "--use-all-folds",
@@ -169,8 +169,8 @@ if __name__ == "__main__":
     terpene_synthases_df = pd.read_csv(args.tps_file_path)
     ids_rare_set = set(
         terpene_synthases_df.loc[
-            terpene_synthases_df["Type (mono, sesq, di, …)"].isin({"tetra", "sester"}),
-            "Uniprot ID",
+            terpene_synthases_df["Type"].isin({"tetra", "sester"}),
+            "ID",
         ].unique()
     ).union({"D5SJ87", "B0Y565"})
     for domain_id in domain_module_id_2_dist_matrix_index.keys():

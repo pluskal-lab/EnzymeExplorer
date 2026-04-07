@@ -16,6 +16,7 @@ setup(
     packages=find_packages(),
     entry_points={
         "console_scripts": [
+            "get_mmseqs_based_folds=enzymeexplorer.src.data_preparation.get_mmseqs_based_clusters:main",
             "get_uniprot_sample=enzymeexplorer.src.data_preparation.get_uniprot_sample:main",
             "get_phylogeny_based_clusters=enzymeexplorer.src.data_preparation.get_phylogeny_based_clusters:main",
             "gather_plm_embeddings=enzymeexplorer.src.embeddings_extraction.gather_required_embs:main",

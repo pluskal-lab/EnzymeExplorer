@@ -56,7 +56,9 @@ class DomainsSklearnModel(FeaturesSklearnModel):
         for param, value in config.__dict__.items():
             setattr(self, param, value)
         self.config = config
-        if hasattr(config, "foldseek_distances") and config.foldseek_distances:
+        if hasattr(config, "domain_dist_path") and config.domain_dist_path:
+            domain_dist_path = config.domain_dist_path
+        elif hasattr(config, "foldseek_distances") and config.foldseek_distances:            
             domain_dist_path = "data/clustering__domain_dist_based_features_foldseek.pkl"
         else:
             domain_dist_path = "data/clustering__domain_dist_based_features.pkl"
@@ -80,7 +82,7 @@ class DomainsSklearnModel(FeaturesSklearnModel):
         ]
         features_df_no_detected_domains = pd.DataFrame(
             {
-                "Uniprot ID": ids_without_domain_detections,
+                "ID": ids_without_domain_detections,
                 "Emb": [
                     np.ones(len(self.allowed_feat_indices))
                     for _ in range(len(ids_without_domain_detections))

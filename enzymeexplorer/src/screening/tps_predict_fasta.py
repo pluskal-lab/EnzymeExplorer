@@ -69,7 +69,7 @@ class PredictionResults:
     A data class to store batches of model predictions
     """
 
-    uniprot_id: list[str]
+    sequence_id: list[str]
     confidence: list[float]
 
 
@@ -108,7 +108,7 @@ def main(args: argparse.Namespace):
 
     with open(args.ckpt_root_path, "rb") as file:
         all_classifiers = pickle.load(file)
-    
+
     predict_tps(args, compute_embeddings_partial, all_classifiers)
 
 
@@ -127,9 +127,9 @@ def get_embedding_extractor(args) -> partial:
             max_len=args.max_len,
         )
     elif "ankh" in args.model:
-        model, tokenizer = ankh_get_model_and_tokenizer(args.model)
+        model, tokenizer = ankh_get_model_and_tokenizer(args.model, checkpoint_dir=args.plm_checkpoint_dir)
         compute_embeddings_partial = partial(
-            ankh_compute_embeddings, bert_model=model, tokenizer=tokenizer, checkpoint_dir=args.plm_checkpoint_dir
+            ankh_compute_embeddings, bert_model=model, tokenizer=tokenizer
         )
     else:
         raise NotImplementedError(
@@ -243,12 +243,12 @@ def predict_tps(args, compute_embeddings_partial, all_classifiers):
             continue
         if i == args.end_i:
             break
-        uniprot_id = _extract_id_from_entry(uniprot_entry)
+        sequence_id = _extract_id_from_entry(uniprot_entry)
         seq = _extract_seq_from_entry(uniprot_entry)
         if not _is_sequence_good(uniprot_entry[1], max_seq_len=args.max_len):
             seq = seq[: (args.max_len - 2)]
         next_batch.append(seq)
-        next_batch_ids.append(uniprot_id)
+        next_batch_ids.append(sequence_id)
 
         if len(next_batch) == args.batch_size:
             enzyme_encodings_list, enzyme_ids_list = _batch_predict(

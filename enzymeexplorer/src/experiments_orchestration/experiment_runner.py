@@ -187,10 +187,11 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
                     .reset_index()
                 )
                 trn_df[config.target_col_name] = trn_df[config.target_col_name].map(
-                    lambda x: x
-                if len(x.intersection({"Unknown", "precursor substr"}))
-                else x.union({"isTPS"})
+                    lambda x: x.union({"isTPS"})
+                if len(x.difference({"Unknown", "precursor substr"}))
+                else x
                 )
+                
 
                 if config.run_against_wetlab:
                     test_df_raw = get_tps_df(
@@ -221,9 +222,9 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
                     .reset_index()
                 )
                 test_df[config.target_col_name] = test_df[config.target_col_name].map(
-                    lambda x: x
-                if len(x.intersection({"Unknown", "precursor substr"}))
-                else x.union({"isTPS"})
+                    lambda x: x.union({"isTPS"})
+                if len(x.difference({"Unknown", "precursor substr"}))
+                else x
                 )
 
                 # checking if the model requires an amino acid sequence or a group (kingdom) column
