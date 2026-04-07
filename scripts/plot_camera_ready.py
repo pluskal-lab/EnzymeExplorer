@@ -977,74 +977,49 @@ def fig6_combined_heatmap(
     agg: dict,
     outdir: Path,
 ) -> None:
-    """Side-by-side heatmaps: mAP and AP."""
+    """Substrate prediction (mAP) heatmap."""
     track_order = TRACK_ORDER
     models = [m for m in MODEL_ORDER if m in agg]
     n_tracks = len(track_order)
 
-    panel_defs: list[tuple[str, str]] = [
-        ("mAP", "Substrate Prediction (mAP)"),
-        ("AP", "TPS Detection (AP)"),
-    ]
-
-    n_cols = len(panel_defs)
-
-    fig, all_axes = plt.subplots(
+    fig, axes = plt.subplots(
         1,
-        n_cols + 1,
-        figsize=(
-            2.8 * n_tracks * n_cols / 2 + 3.5,
-            0.65 * len(models) + 2.5,
-        ),
-        gridspec_kw={
-            "width_ratios": [n_tracks] * n_cols + [0.35],
-            "wspace": 0.35,
-        },
+        2,
+        figsize=(2.8 * n_tracks + 3.5, 0.65 * len(models) + 2.5),
+        gridspec_kw={"width_ratios": [n_tracks, 0.35], "wspace": 0.35},
     )
-    all_axes = all_axes.reshape(1, -1)
+    ax = axes[0]
 
-    im = None
-    for panel_i, (metric, title) in enumerate(panel_defs):
-        ax = all_axes[0, panel_i]
+    matrix = np.full((len(models), n_tracks), np.nan)
+    for mi, m in enumerate(models):
+        for ti, t in enumerate(track_order):
+            v = agg[m].get(t, {}).get("mAP")
+            if v:
+                matrix[mi, ti] = v[0]
 
-        matrix = np.full((len(models), n_tracks), np.nan)
-        for mi, m in enumerate(models):
-            for ti, t in enumerate(track_order):
-                v = agg[m].get(t, {}).get(metric)
-                if v:
-                    matrix[mi, ti] = v[0]
+    im = ax.imshow(matrix, cmap="RdYlGn", aspect="auto", vmin=0.2, vmax=1)
+    ax.set_xticks(range(n_tracks))
+    ax.set_xticklabels(track_order, fontsize=8, rotation=20, ha="right")
+    ax.set_yticks(range(len(models)))
+    ax.set_yticklabels(models, fontsize=9)
 
-        im = ax.imshow(
-            matrix, cmap="RdYlGn", aspect="auto", vmin=0.2, vmax=1
-        )
-        ax.set_xticks(range(n_tracks))
-        ax.set_xticklabels(
-            track_order, fontsize=8, rotation=20, ha="right"
-        )
-        ax.set_yticks(range(len(models)))
-        show_y = panel_i == 0
-        ax.set_yticklabels(
-            models if show_y else [""] * len(models), fontsize=9
-        )
+    for i in range(len(models)):
+        for j in range(n_tracks):
+            v = matrix[i, j]
+            if np.isnan(v):
+                ax.text(
+                    j, i, "\u2014", ha="center", va="center",
+                    fontsize=7, color="gray",
+                )
+            else:
+                tc = "white" if v > 0.7 else "black"
+                ax.text(
+                    j, i, f"{v:.3f}", ha="center", va="center",
+                    fontsize=7, color=tc, fontweight="bold",
+                )
+    ax.set_title("Substrate Prediction (mAP)", fontsize=10, fontweight="bold", pad=8)
 
-        for i in range(len(models)):
-            for j in range(n_tracks):
-                v = matrix[i, j]
-                if np.isnan(v):
-                    ax.text(
-                        j, i, "\u2014", ha="center", va="center",
-                        fontsize=7, color="gray",
-                    )
-                else:
-                    tc = "white" if v > 0.7 else "black"
-                    ax.text(
-                        j, i, f"{v:.3f}", ha="center", va="center",
-                        fontsize=7, color=tc, fontweight="bold",
-                    )
-        ax.set_title(title, fontsize=10, fontweight="bold", pad=8)
-
-    # Shared colorbar in the rightmost column
-    all_axes[0, n_cols].set_visible(False)
+    axes[1].set_visible(False)
     cax = fig.add_axes([0.92, 0.15, 0.015, 0.7])
     if im is not None:
         fig.colorbar(im, cax=cax, label="Score")
@@ -1156,10 +1131,7 @@ def main() -> None:
     for model, tracks in fold_agg.items():
         for track, metrics in tracks.items():
             for metric, val in metrics.items():
-                if model not in agg or track not in agg.get(model, {}):
-                    agg.setdefault(model, {}).setdefault(track, {})[metric] = val
-                elif metric not in agg[model][track]:
-                    agg[model][track][metric] = val
+                agg.setdefault(model, {}).setdefault(track, {})[metric] = val
 
     # CLEAN (retrained) checkpoints exist only for Track B; drop stale
     # results from evaluation CSVs for other tracks.

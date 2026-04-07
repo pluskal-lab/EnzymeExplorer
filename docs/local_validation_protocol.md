@@ -553,10 +553,9 @@ substrate prediction while PlmDomainsRF leads TPS detection.
 
 ![Cross-Track Model Comparison — Combined Heatmap](../outputs/figures/fig6_combined_heatmap.png)
 
-*Figure 6. Side-by-side heatmaps: substrate prediction mAP (left) and
-TPS detection AP (right). Dark green = strong, red = weak. CLEAN (retrained)
-results are shown only for Track B, where fold-specific checkpoints are
-available.*
+*Figure 6. Substrate prediction (mAP) heatmap across all models and tracks.
+Dark green = strong, red = weak. CLEAN (retrained) results are shown only for
+Track B, where fold-specific checkpoints are available.*
 
 The grouped bar charts below show the same data with error bars (standard error
 across 5 folds), making it easier to compare magnitudes and assess statistical
