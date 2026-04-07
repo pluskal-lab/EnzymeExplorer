@@ -8,9 +8,8 @@ Generates a complete set of publication-quality figures:
   Figure 3  – Atomic-change waterfall (A→C→D→E→B) for substrate and TPS detection
   Figure 4a – Per-similarity-bin line plots for substrate prediction (mAP)
   Figure 4b – Per-similarity-bin line plots for TPS detection (AP)
-  Figure 4c – Per-similarity-bin line plots for per-type macro-averaged TPS detection
   Figure 5  – PlmDomainsRF vs PlmRF comparison
-  Figure 6  – Combined 2×2 heatmap: mAP, AP, Macro-Type AP, Macro-Type AP excl. sub-negs
+  Figure 6  – Side-by-side heatmaps: mAP and AP
 
 Usage::
 
@@ -58,7 +57,8 @@ MODEL_DISPLAY = {
     "PlmRandomForest": "PlmRF",
     "PlmDomainsRandomForest": "PlmDomainsRF",
     "Blastp": "Blastp",
-    "CLEAN": "CLEAN (in-sample)",
+    "CLEANEcDetection": "CLEAN (in-sample)",
+    "CLEAN": "CLEAN (retrained)",
     "HMM": "HMM",
     "Foldseek": "Foldseek",
 }
@@ -67,6 +67,7 @@ PALETTE = {
     "PlmRF": "#2563eb",
     "PlmDomainsRF": "#0ea5e9",
     "CLEAN (in-sample)": "#dc2626",
+    "CLEAN (retrained)": "#b91c1c",
     "Blastp": "#f97316",
     "HMM": "#16a34a",
     "Foldseek": "#8b5cf6",
@@ -76,6 +77,7 @@ MARKERS = {
     "PlmRF": "o",
     "PlmDomainsRF": "P",
     "CLEAN (in-sample)": "D",
+    "CLEAN (retrained)": "d",
     "Blastp": "s",
     "HMM": "^",
     "Foldseek": "v",
@@ -85,6 +87,7 @@ MODEL_ORDER = [
     "PlmRF",
     "PlmDomainsRF",
     "CLEAN (in-sample)",
+    "CLEAN (retrained)",
     "Blastp",
     "HMM",
     "Foldseek",
@@ -97,10 +100,6 @@ TRACK_COLORS = {
     "E (new TPS+old neg)": "#a855f7",
     "B (new)": "#ef4444",
 }
-
-_NON_TPS_TYPES = frozenset(
-    {"unknown", "negative", "ggpps", "fpps", "gpps", "gfpps", "hsqs", "pt"}
-)
 
 TRACK_ORDER = ["A (phylo)", "C (synced)", "D (cross)", "E (new TPS+old neg)", "B (new)"]
 
@@ -156,6 +155,96 @@ def _agg(
 
 
 BINS = ["20-30", "30-40", "40-50", "50-60", "60-70"]
+
+
+def _collect_aggregate_from_folds(
+    n_folds: int = 5,
+) -> dict[str, dict[str, dict[str, tuple[float, float]]]]:
+    """Compute mAP and AP directly from fold result pkl files.
+
+    Fills in metrics for models that lack pre-computed evaluation CSVs.
+    Returns {model_display: {track_label: {"mAP": (m,s), "AP": (m,s)}}}.
+    """
+    results: dict[str, dict[str, dict[str, tuple]]] = defaultdict(
+        lambda: defaultdict(dict)
+    )
+
+    for track_label, models in _TRACK_TO_MODELS.items():
+        for model_type, version in models.items():
+            display = MODEL_DISPLAY.get(model_type, model_type)
+            fold_results = _load_fold_results(model_type, version, n_folds)
+            if not fold_results:
+                continue
+
+            fold_maps: list[float] = []
+            fold_aps: list[float] = []
+            for fold_i, (val_proba, class_names, test_df) in fold_results:
+                class_list = (
+                    list(class_names)
+                    if not isinstance(class_names, list)
+                    else class_names
+                )
+                # Per-class AP for mAP
+                per_class_aps: list[float] = []
+                for ci, cname in enumerate(class_list):
+                    if cname == "isTPS":
+                        continue
+                    col = "SMILES_substrate_canonical_no_stereo"
+                    if col not in test_df.columns:
+                        break
+                    labels = test_df[col].values
+                    y_true = np.array(
+                        [
+                            1 if (isinstance(s, set) and cname in s) or s == cname
+                            else 0
+                            for s in labels
+                        ]
+                    )
+                    if y_true.sum() < 1 or y_true.sum() == len(y_true):
+                        continue
+                    ap = average_precision_score(y_true, val_proba[:, ci])
+                    per_class_aps.append(ap)
+                if per_class_aps:
+                    fold_maps.append(float(np.mean(per_class_aps)))
+
+                # Binary AP for isTPS
+                if "isTPS" in class_list:
+                    tps_idx = class_list.index("isTPS")
+                    col = "SMILES_substrate_canonical_no_stereo"
+                    if col in test_df.columns:
+                        labels = test_df[col].values
+                        y_true = np.array(
+                            [
+                                1
+                                if (isinstance(s, set) and "isTPS" in s)
+                                else 0
+                                for s in labels
+                            ]
+                        )
+                        if 0 < y_true.sum() < len(y_true):
+                            ap = average_precision_score(
+                                y_true, val_proba[:, tps_idx]
+                            )
+                            fold_aps.append(ap)
+
+            if fold_maps:
+                m = float(np.mean(fold_maps))
+                s = (
+                    float(np.std(fold_maps, ddof=1) / np.sqrt(len(fold_maps)))
+                    if len(fold_maps) > 1
+                    else 0.0
+                )
+                results[display][track_label]["mAP"] = (m, s)
+            if fold_aps:
+                m = float(np.mean(fold_aps))
+                s = (
+                    float(np.std(fold_aps, ddof=1) / np.sqrt(len(fold_aps)))
+                    if len(fold_aps) > 1
+                    else 0.0
+                )
+                results[display][track_label]["AP"] = (m, s)
+
+    return dict(results)
 
 
 def _collect_aggregate(
@@ -278,16 +367,12 @@ def _collect_bin_counts(
     return counts
 
 
-# ───────────────────────────────────────────────────────────────
-# Per-TPS-type macro-averaged AP computation
-# ───────────────────────────────────────────────────────────────
-
 OUTPUT_ROOT = Path("outputs")
 
 _TRACK_TO_MODELS: dict[str, dict[str, str]] = {
     "A (phylo)": {
         "Blastp": "with_minor_reactions_phylo_folds",
-        "CLEAN": "with_minor_reactions_phylo_folds",
+        "CLEANEcDetection": "with_minor_reactions_phylo_folds",
         "Foldseek": "with_minor_reactions_phylo_folds",
         "HMM": "with_minor_reactions_phylo_folds",
         "PlmRandomForest": "tps_esm-1v-subseq_with_minor_reactions_phylo_folds",
@@ -295,7 +380,7 @@ _TRACK_TO_MODELS: dict[str, dict[str, str]] = {
     },
     "C (synced)": {
         "Blastp": "synced_folds",
-        "CLEAN": "synced_folds",
+        "CLEANEcDetection": "synced_folds",
         "Foldseek": "synced_folds",
         "HMM": "synced_folds",
         "PlmRandomForest": "tps_esm-1v-subseq_synced_folds",
@@ -303,6 +388,7 @@ _TRACK_TO_MODELS: dict[str, dict[str, str]] = {
     },
     "B (new)": {
         "Blastp": "new_dataset",
+        "CLEANEcDetection": "new_dataset",
         "CLEAN": "new_dataset",
         "Foldseek": "new_dataset",
         "HMM": "new_dataset",
@@ -311,7 +397,7 @@ _TRACK_TO_MODELS: dict[str, dict[str, str]] = {
     },
     "D (cross)": {
         "Blastp": "cross_synced_to_new",
-        "CLEAN": "cross_synced_to_new",
+        "CLEANEcDetection": "cross_synced_to_new",
         "Foldseek": "cross_synced_to_new",
         "HMM": "cross_synced_to_new",
         "PlmRandomForest": "tps_esm-1v-subseq_cross_synced_to_new",
@@ -319,58 +405,13 @@ _TRACK_TO_MODELS: dict[str, dict[str, str]] = {
     },
     "E (new TPS+old neg)": {
         "Blastp": "cross_new_tps_old_neg",
-        "CLEAN": "cross_new_tps_old_neg",
+        "CLEANEcDetection": "cross_new_tps_old_neg",
         "Foldseek": "cross_new_tps_old_neg",
         "HMM": "cross_new_tps_old_neg",
         "PlmRandomForest": "tps_esm-1v-subseq_cross_new_tps_old_neg",
         "PlmDomainsRandomForest": "tps_esm-1v-subseq_cross_new_tps_old_neg",
     },
 }
-
-_TRACK_TO_EVAL_CSV: dict[str, str] = {
-    "A (phylo)": "data/TPS-Nov19_2023_verified_all_reactions_with_neg_with_folds.csv",
-    "C (synced)": "data/TPS-Nov19_2023_with_synced_folds.csv",
-    "B (new)": "data/EnzymeExplorer_Dataset.csv",
-    "D (cross)": "data/EnzymeExplorer_Dataset.csv",
-    "E (new TPS+old neg)": "data/EnzymeExplorer_Dataset.csv",
-}
-
-_TRACK_TO_TYPE_COL: dict[str, str] = {
-    "A (phylo)": "Type (mono, sesq, di, \u2026)",
-    "C (synced)": "Type (mono, sesq, di, \u2026)",
-    "B (new)": "Type",
-    "D (cross)": "Type",
-    "E (new TPS+old neg)": "Type",
-}
-
-_TRACK_TO_SIM_PKL: dict[str, str] = {
-    "A (phylo)": "data/mmseqs_similarities_track_a_phylo.pkl",
-    "C (synced)": "data/mmseqs_similarities_track_c_synced.pkl",
-    "B (new)": "data/mmseqs_similarities_track_b_new.pkl",
-    "D (cross)": "data/mmseqs_similarities_track_d_cross.pkl",
-    "E (new TPS+old neg)": "data/mmseqs_similarities_track_e_cross.pkl",
-}
-
-MIN_TYPE_COUNT = 3
-
-
-def _get_substrate_bearing_neg_ids() -> frozenset[str]:
-    """Return IDs of negatives in the new dataset that have real
-    terpenoid substrate annotations (prenyltransferases, etc.)."""
-    csv_path = _TRACK_TO_EVAL_CSV.get("B (new)", "")
-    if not csv_path or not Path(csv_path).exists():
-        return frozenset()
-    df = pd.read_csv(csv_path)
-    tc = "Type" if "Type" in df.columns else "Type (mono, sesq, di, …)"
-    sc = (
-        "SMILES_substrate_canonical_no_stereo"
-        if "SMILES_substrate_canonical_no_stereo" in df.columns
-        else "SMILES of substrate"
-    )
-    idc = "ID" if "ID" in df.columns else "Uniprot ID"
-    neg = df[df[tc].str.lower() == "unknown"]
-    return frozenset(neg[neg[sc] != "Unknown"][idc].values)
-
 
 def _load_fold_results(model_type: str, version: str, n_folds: int = 5) -> list[tuple]:
     """Load fold result pkl files for a model/version."""
@@ -400,198 +441,6 @@ def _assign_pident_bin(pident: float) -> str | None:
         if lo <= pident < hi:
             return f"{lo}-{hi}"
     return None
-
-
-def _compute_macro_type_ap(
-    fold_results: list[tuple],
-    eval_df: pd.DataFrame,
-    type_col: str,
-    sim_data: dict | None = None,
-    bin_label: str | None = None,
-    exclude_ids: frozenset[str] | None = None,
-) -> tuple[float, float] | None:
-    """Compute per-type macro-averaged AP across folds.
-
-    When *bin_label* and *sim_data* are provided, only proteins within
-    that similarity bin are considered.
-
-    When *exclude_ids* is provided, those protein IDs are dropped from
-    both the positive and negative sets before computing AP.
-
-    Returns (mean, sem) or None if insufficient data.
-    """
-    id_col_eval = "ID" if "ID" in eval_df.columns else "Uniprot ID"
-    tc = "Type" if "Type" in eval_df.columns else type_col
-    id_to_type = dict(zip(eval_df[id_col_eval], eval_df[tc].fillna("Unknown")))
-
-    per_type_fold_aps: dict[str, list[float]] = defaultdict(list)
-
-    for fold_i, (val_proba, class_names, test_df) in fold_results:
-        class_list = list(class_names) if not isinstance(class_names, list) else class_names
-        if "isTPS" not in class_list:
-            continue
-        tps_idx = class_list.index("isTPS")
-        y_pred = val_proba[:, tps_idx]
-
-        id_col = "ID" if "ID" in test_df.columns else "Uniprot ID"
-        ids = test_df[id_col].values
-        types = pd.Series(
-            [str(id_to_type.get(pid, "Unknown")).lower().strip() for pid in ids]
-        )
-
-        if exclude_ids:
-            keep_mask = pd.Series(
-                [pid not in exclude_ids for pid in ids]
-            )
-        else:
-            keep_mask = pd.Series([True] * len(ids))
-
-        if bin_label is not None and sim_data is not None:
-            fold_sim = sim_data.get(fold_i, {})
-            bin_mask = pd.Series([False] * len(ids))
-            for idx, pid in enumerate(ids):
-                rec = fold_sim.get(pid, {})
-                if not isinstance(rec, dict):
-                    rec = {"pident": float(rec), "has_hit": True}
-                if not rec.get("has_hit", True):
-                    continue
-                assigned_bin = _assign_pident_bin(rec.get("pident", 0.0))
-                if assigned_bin == bin_label:
-                    bin_mask.iloc[idx] = True
-        else:
-            bin_mask = pd.Series([True] * len(ids))
-
-        active = bin_mask & keep_mask
-        neg_mask = types.isin({"unknown", "negative"}) & active
-        all_tps_types = [
-            t for t in types[active].unique() if t not in _NON_TPS_TYPES
-        ]
-
-        for tps_type in all_tps_types:
-            type_mask = (types == tps_type) & active
-            n_pos = int(type_mask.sum())
-            n_neg = int(neg_mask.sum())
-            if n_pos < MIN_TYPE_COUNT or n_neg < MIN_TYPE_COUNT:
-                continue
-            subset_mask = type_mask | neg_mask
-            y_true = type_mask[subset_mask].astype(int).values
-            y_p = y_pred[subset_mask.values]
-            ap = average_precision_score(y_true, y_p)
-            per_type_fold_aps[tps_type].append(ap)
-
-    if not per_type_fold_aps:
-        return None
-
-    type_means = [float(np.mean(aps)) for aps in per_type_fold_aps.values()]
-    macro = float(np.mean(type_means))
-    sem = (
-        float(np.std(type_means, ddof=1) / np.sqrt(len(type_means)))
-        if len(type_means) > 1
-        else 0.0
-    )
-    return (macro, sem)
-
-
-def _collect_macro_type_ap(
-    n_folds: int = 5,
-) -> dict[str, dict[str, tuple[float, float]]]:
-    """Compute aggregate per-type macro AP for all models × tracks.
-
-    Returns {model_display: {track_label: (mean, sem)}}.
-    """
-    results: dict[str, dict[str, tuple[float, float]]] = defaultdict(dict)
-
-    for track_label, models in _TRACK_TO_MODELS.items():
-        csv_path = _TRACK_TO_EVAL_CSV.get(track_label)
-        if not csv_path or not Path(csv_path).exists():
-            continue
-        eval_df = pd.read_csv(csv_path)
-        type_col = _TRACK_TO_TYPE_COL.get(track_label, "Type")
-
-        for model_type, version in models.items():
-            display = MODEL_DISPLAY.get(model_type, model_type)
-            fold_results = _load_fold_results(model_type, version, n_folds)
-            if not fold_results:
-                continue
-            val = _compute_macro_type_ap(fold_results, eval_df, type_col)
-            if val is not None:
-                results[display][track_label] = val
-
-    return dict(results)
-
-
-def _collect_macro_type_ap_excl_sub(
-    n_folds: int = 5,
-) -> dict[str, dict[str, tuple[float, float]]]:
-    """Like ``_collect_macro_type_ap`` but excludes substrate-bearing
-    negatives (prenyltransferases etc.) from the negative set.
-
-    Returns {model_display: {track_label: (mean, sem)}}.
-    """
-    excl_ids = _get_substrate_bearing_neg_ids()
-    if not excl_ids:
-        return {}
-
-    results: dict[str, dict[str, tuple[float, float]]] = defaultdict(dict)
-
-    for track_label, models in _TRACK_TO_MODELS.items():
-        csv_path = _TRACK_TO_EVAL_CSV.get(track_label)
-        if not csv_path or not Path(csv_path).exists():
-            continue
-        eval_df = pd.read_csv(csv_path)
-        type_col = _TRACK_TO_TYPE_COL.get(track_label, "Type")
-
-        for model_type, version in models.items():
-            display = MODEL_DISPLAY.get(model_type, model_type)
-            fold_results = _load_fold_results(model_type, version, n_folds)
-            if not fold_results:
-                continue
-            val = _compute_macro_type_ap(
-                fold_results, eval_df, type_col, exclude_ids=excl_ids
-            )
-            if val is not None:
-                results[display][track_label] = val
-
-    return dict(results)
-
-
-def _collect_perbin_macro_type(
-    n_folds: int = 5,
-) -> dict[str, dict[str, dict[str, float]]]:
-    """Compute per-similarity-bin per-type macro AP.
-
-    Returns {model_display: {track_label: {bin: macro_ap}}}.
-    """
-    results: dict = defaultdict(lambda: defaultdict(dict))
-
-    for track_label, models in _TRACK_TO_MODELS.items():
-        csv_path = _TRACK_TO_EVAL_CSV.get(track_label)
-        sim_path = _TRACK_TO_SIM_PKL.get(track_label)
-        if not csv_path or not Path(csv_path).exists():
-            continue
-        if not sim_path or not Path(sim_path).exists():
-            continue
-
-        eval_df = pd.read_csv(csv_path)
-        type_col = _TRACK_TO_TYPE_COL.get(track_label, "Type")
-
-        with open(sim_path, "rb") as f:
-            sim_data = pickle.load(f)
-
-        for model_type, version in models.items():
-            display = MODEL_DISPLAY.get(model_type, model_type)
-            fold_results = _load_fold_results(model_type, version, n_folds)
-            if not fold_results:
-                continue
-            for b in BINS:
-                val = _compute_macro_type_ap(
-                    fold_results, eval_df, type_col,
-                    sim_data=sim_data, bin_label=b,
-                )
-                if val is not None:
-                    results[display][track_label][b] = val[0]
-
-    return dict(results)
 
 
 # ───────────────────────────────────────────────────────────────
@@ -924,7 +773,7 @@ def fig3_waterfall(agg: dict, outdir: Path) -> None:
 
 
 # ───────────────────────────────────────────────────────────────
-# Figures 4a/4b/4c: Per-similarity-bin faceted line plots
+# Figures 4a/4b: Per-similarity-bin faceted line plots
 # ───────────────────────────────────────────────────────────────
 
 
@@ -932,7 +781,6 @@ def fig4_perbin(
     perbin: dict,
     outdir: Path,
     bin_counts: dict | None = None,
-    macro_type_perbin: dict | None = None,
 ) -> None:
     track_order = TRACK_ORDER
 
@@ -940,18 +788,11 @@ def fig4_perbin(
         ("a", "mAP", "mAP (substrate)", "Substrate Prediction"),
         ("b", "AP", "AP (TPS detection)", "TPS Detection"),
     ]
-    if macro_type_perbin:
-        plot_specs.append(
-            ("c", "MacroAP", "Macro AP (per-type TPS det.)",
-             "Per-Type Macro-Avg TPS Detection"),
-        )
 
     for fig_letter, metric, ylabel, title_suffix in plot_specs:
-        source = macro_type_perbin if metric == "MacroAP" else perbin
+        source = perbin
 
         def _get_bin_val(src: dict, m: str, t: str, b: str, met: str):
-            if met == "MacroAP":
-                return src.get(m, {}).get(t, {}).get(b)
             return src.get(m, {}).get(t, {}).get(b, {}).get(met)
 
         models = [
@@ -1135,74 +976,43 @@ def fig5_domain_comparison(agg: dict, outdir: Path) -> None:
 def fig6_combined_heatmap(
     agg: dict,
     outdir: Path,
-    macro_type_agg: dict | None = None,
-    macro_type_excl_sub_agg: dict | None = None,
 ) -> None:
-    """2×2 heatmaps: mAP, AP, Macro-Type AP, Macro-Type AP excl sub-negs."""
+    """Side-by-side heatmaps: mAP and AP."""
     track_order = TRACK_ORDER
     models = [m for m in MODEL_ORDER if m in agg]
     n_tracks = len(track_order)
 
-    has_macro = macro_type_agg is not None and any(macro_type_agg.values())
-    has_excl = (
-        macro_type_excl_sub_agg is not None
-        and any(macro_type_excl_sub_agg.values())
-    )
-
-    panel_defs: list[tuple[str, str, dict | None]] = [
-        ("mAP", "Substrate Prediction (mAP)", None),
-        ("AP", "TPS Detection (AP)", None),
+    panel_defs: list[tuple[str, str]] = [
+        ("mAP", "Substrate Prediction (mAP)"),
+        ("AP", "TPS Detection (AP)"),
     ]
-    if has_macro:
-        panel_defs.append(
-            ("MacroAP", "Per-Type Macro AP\n(TPS Det.)", macro_type_agg)
-        )
-    if has_excl:
-        panel_defs.append(
-            (
-                "MacroAP_excl",
-                "Per-Type Macro AP\n(excl. non-TPS w/ TPS substr.)",
-                macro_type_excl_sub_agg,
-            )
-        )
 
-    n_panels = len(panel_defs)
-    n_rows = 2 if n_panels == 4 else 1
-    n_cols = 2 if n_panels == 4 else n_panels
+    n_cols = len(panel_defs)
 
     fig, all_axes = plt.subplots(
-        n_rows,
+        1,
         n_cols + 1,
         figsize=(
             2.8 * n_tracks * n_cols / 2 + 3.5,
-            (0.65 * len(models) + 2.5) * n_rows,
+            0.65 * len(models) + 2.5,
         ),
         gridspec_kw={
             "width_ratios": [n_tracks] * n_cols + [0.35],
             "wspace": 0.35,
-            "hspace": 0.45,
         },
     )
-    if n_rows == 1:
-        all_axes = all_axes.reshape(1, -1)
+    all_axes = all_axes.reshape(1, -1)
 
     im = None
-    for panel_i, (metric, title, extra_data) in enumerate(panel_defs):
-        row = panel_i // n_cols
-        col = panel_i % n_cols
-        ax = all_axes[row, col]
+    for panel_i, (metric, title) in enumerate(panel_defs):
+        ax = all_axes[0, panel_i]
 
         matrix = np.full((len(models), n_tracks), np.nan)
         for mi, m in enumerate(models):
             for ti, t in enumerate(track_order):
-                if metric in ("MacroAP", "MacroAP_excl") and extra_data:
-                    v = extra_data.get(m, {}).get(t)
-                    if v is not None:
-                        matrix[mi, ti] = v[0]
-                elif metric in ("mAP", "AP"):
-                    v = agg[m].get(t, {}).get(metric)
-                    if v:
-                        matrix[mi, ti] = v[0]
+                v = agg[m].get(t, {}).get(metric)
+                if v:
+                    matrix[mi, ti] = v[0]
 
         im = ax.imshow(
             matrix, cmap="RdYlGn", aspect="auto", vmin=0.2, vmax=1
@@ -1212,7 +1022,7 @@ def fig6_combined_heatmap(
             track_order, fontsize=8, rotation=20, ha="right"
         )
         ax.set_yticks(range(len(models)))
-        show_y = col == 0
+        show_y = panel_i == 0
         ax.set_yticklabels(
             models if show_y else [""] * len(models), fontsize=9
         )
@@ -1233,9 +1043,8 @@ def fig6_combined_heatmap(
                     )
         ax.set_title(title, fontsize=10, fontweight="bold", pad=8)
 
-    # Shared colorbar in the rightmost column, spanning both rows
-    for row in range(n_rows):
-        all_axes[row, n_cols].set_visible(False)
+    # Shared colorbar in the rightmost column
+    all_axes[0, n_cols].set_visible(False)
     cax = fig.add_axes([0.92, 0.15, 0.015, 0.7])
     if im is not None:
         fig.colorbar(im, cax=cax, label="Score")
@@ -1342,7 +1151,30 @@ def main() -> None:
     agg = _collect_aggregate(
         substrate_csvs, tps_csvs, merged_extra_sub, merged_extra_tps
     )
+
+    fold_agg = _collect_aggregate_from_folds()
+    for model, tracks in fold_agg.items():
+        for track, metrics in tracks.items():
+            for metric, val in metrics.items():
+                if model not in agg or track not in agg.get(model, {}):
+                    agg.setdefault(model, {}).setdefault(track, {})[metric] = val
+                elif metric not in agg[model][track]:
+                    agg[model][track][metric] = val
+
+    # CLEAN (retrained) checkpoints exist only for Track B; drop stale
+    # results from evaluation CSVs for other tracks.
+    _retrained = MODEL_DISPLAY.get("CLEAN", "CLEAN (retrained)")
+
+    def _filter_retrained(d: dict) -> None:
+        if _retrained in d:
+            d[_retrained] = {
+                t: v for t, v in d[_retrained].items() if t == "B (new)"
+            }
+
+    _filter_retrained(agg)
+
     perbin = _collect_perbin(substrate_perbin_pkls, tps_perbin_pkls)
+    _filter_retrained(perbin)
     bin_counts = _collect_bin_counts({})
 
     logger.info(
@@ -1351,44 +1183,12 @@ def main() -> None:
         len(set().union(*(m.keys() for m in agg.values()))),
     )
 
-    logger.info("Computing per-TPS-type macro-averaged AP...")
-    macro_type_agg = _collect_macro_type_ap()
-    logger.info(
-        "Macro-type AP: %d models",
-        len(macro_type_agg),
-    )
-
-    logger.info("Computing per-TPS-type macro AP per similarity bin...")
-    macro_type_perbin = _collect_perbin_macro_type()
-    logger.info(
-        "Macro-type per-bin AP: %d models",
-        len(macro_type_perbin),
-    )
-
-    logger.info(
-        "Computing per-TPS-type macro AP excl. substrate-bearing negs..."
-    )
-    macro_type_excl_sub_agg = _collect_macro_type_ap_excl_sub()
-    logger.info(
-        "Macro-type AP (excl sub-negs): %d models",
-        len(macro_type_excl_sub_agg),
-    )
-
     fig1_grouped_bars(agg, args.outdir)
     fig2_heatmap(agg, args.outdir)
     fig3_waterfall(agg, args.outdir)
-    fig4_perbin(
-        perbin, args.outdir,
-        bin_counts=bin_counts,
-        macro_type_perbin=macro_type_perbin,
-    )
+    fig4_perbin(perbin, args.outdir, bin_counts=bin_counts)
     fig5_domain_comparison(agg, args.outdir)
-    fig6_combined_heatmap(
-        agg,
-        args.outdir,
-        macro_type_agg=macro_type_agg,
-        macro_type_excl_sub_agg=macro_type_excl_sub_agg,
-    )
+    fig6_combined_heatmap(agg, args.outdir)
 
     logger.info("All figures saved to %s", args.outdir)
 

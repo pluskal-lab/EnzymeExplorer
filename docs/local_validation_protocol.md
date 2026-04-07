@@ -549,18 +549,14 @@ The combined heatmap below provides an at-a-glance overview of every model on
 every track, for both tasks. Dark green = strong, red = weak. Two patterns
 jump out immediately: (i) retraining on the new dataset (Track B) recovers
 most of the cross-dataset gap visible in Track D, and (ii) PlmRF dominates
-the top row.
+substrate prediction while PlmDomainsRF leads TPS detection.
 
 ![Cross-Track Model Comparison — Combined Heatmap](../outputs/figures/fig6_combined_heatmap.png)
 
-*Figure 6. 2×2 heatmap of all four evaluation perspectives: substrate prediction
-mAP (top-left), TPS detection AP (top-right), per-TPS-type macro-averaged AP
-(bottom-left), and the same macro AP after excluding 1,145 substrate-bearing
-negatives (bottom-right). Prenyltransferases (pt, ggpps, fpps, etc.) are
-excluded from both bottom panels because they are not terpene synthases.
-The bottom-right panel additionally removes isoprenoid-pathway enzymes
-(IPP isomerases, squalene epoxidases, etc.) that share substrates with TPS
-but are mislabeled as negatives (see Section 14).*
+*Figure 6. Side-by-side heatmaps: substrate prediction mAP (left) and
+TPS detection AP (right). Dark green = strong, red = weak. CLEAN (retrained)
+results are shown only for Track B, where fold-specific checkpoints are
+available.*
 
 The grouped bar charts below show the same data with error bars (standard error
 across 5 folds), making it easier to compare magnitudes and assess statistical

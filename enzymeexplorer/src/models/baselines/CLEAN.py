@@ -47,6 +47,7 @@ class CLEANConfig(BaseConfig):
     seq_col_name: str
     is_halo: bool
     pretrained_models_link: str
+    use_in_sample_weights: bool = False
 
 
 class CLEAN(BaseModel):
@@ -57,7 +58,9 @@ class CLEAN(BaseModel):
     def __init__(self, config: CLEANConfig):
         super().__init__(config=config)
         self.config: CLEANConfig = config
-        self.config.clean_installation_root = Path(self.config.clean_installation_root)
+        self.config.clean_installation_root = Path(
+            self.config.clean_installation_root
+        ).expanduser()
 
         with open(config.ec_2_substrates_json_path, "r", encoding="utf-8") as file:
             self.ec_2_substrates = json.load(file)
@@ -68,8 +71,13 @@ class CLEAN(BaseModel):
         data_df = pd.read_csv(config.tps_cleaned_csv_path)
         self.is_halo = getattr(config, "is_halo", False)
         if not self.is_halo:
+            type_col = (
+                "Type (mono, sesq, di, …)"
+                if "Type (mono, sesq, di, …)" in data_df.columns
+                else "Type"
+            )
             data_df.loc[
-                data_df["Type (mono, sesq, di, …)"].isin(
+                data_df[type_col].isin(
                     {"ggpps", "fpps", "gpps", "gfpps", "hsqs"}
                 ),
                 config.target_col_name,
@@ -84,20 +92,26 @@ class CLEAN(BaseModel):
         self.pretrained_models_dir = (
             self.config.clean_installation_root / "pretrained_models"
         )
-        self._download_and_unpack_pretrained_models()
+        if not self.config.use_in_sample_weights:
+            self._download_and_unpack_pretrained_models()
 
         sys.path.insert(0, str(self.config.clean_installation_root / "app" / "src"))
 
     def _download_and_unpack_pretrained_models(self):
         pretrained_zip_path = self.config.clean_installation_root / "pretrained_models.zip"
         self.pretrained_models_dir.mkdir(parents=True, exist_ok=True)
-        for f in glob.glob(str(self.pretrained_models_dir / "*")):
-            os.remove(f)
+        if any(self.pretrained_models_dir.glob("FOLD_*_MODEL.pth")):
+            logger.info(
+                "Fold-specific pretrained models already present in %s, skipping download",
+                self.pretrained_models_dir,
+            )
+            return
 
         gdown.download(
             self.config.pretrained_models_link,
             str(pretrained_zip_path),
             quiet=False,
+            fuzzy=True,
         )
         shutil.unpack_archive(pretrained_zip_path, self.pretrained_models_dir)
         logger.info(
@@ -226,7 +240,8 @@ class CLEAN(BaseModel):
         assert (
             selected_class_name is None
         ), "This model does not support class selection."
-        assert fold_idx is not None, "CLEAN inference requires a validation fold index."
+        if not self.config.use_in_sample_weights:
+            assert fold_idx is not None, "CLEAN inference requires a validation fold index."
         assert isinstance(
             val_df, pd.DataFrame
         ), "the CLEAN requires Uniprot ID and sequences, np.array of numerical representations is not a possible input"
@@ -246,7 +261,8 @@ class CLEAN(BaseModel):
         cwd = os.getcwd()
         results_path = app_root / "results" / f"{temp_fasta_path.stem}_maxsep.csv"
         try:
-            self._stage_pretrained_files(app_root, fold_idx)
+            if not self.config.use_in_sample_weights:
+                self._stage_pretrained_files(app_root, fold_idx)
             os.chdir(app_root)
 
             clean_name_convention = str(temp_fasta_path.stem)

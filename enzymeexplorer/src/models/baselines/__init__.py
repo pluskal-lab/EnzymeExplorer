@@ -6,5 +6,10 @@ from .pfam_supfam import PfamSUPFAM
 
 try:
     from .CLEAN import CLEAN
+
+    CLEANEcDetection = CLEAN
+    CLEANBetterDetection = CLEAN
 except ImportError:
     CLEAN = None  # CLEAN package not installed
+    CLEANEcDetection = None
+    CLEANBetterDetection = None
