@@ -1,0 +1,883 @@
+{
+    "1.3.1.96": [
+        "CC(CCC=C(C)CCC=C(C)C)=CC1C(COP([O-])(=O)OP([O-])([O-])=O)C1(C)CCC=C(C)CCC=C(C)C"
+    ],
+    "1.3.1.97": [
+        "CC(CCC=C(C)CCC=C(C)C)=CC1C(COP([O-])(=O)OP([O-])([O-])=O)C1(C)CCC=C(C)CCC=C(C)C"
+    ],
+    "2.5.1.1": [
+        "precursor substr"
+    ],
+    "2.5.1.10": [
+        "precursor substr"
+    ],
+    "2.5.1.21": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O.CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "2.5.1.29": [
+        "precursor substr"
+    ],
+    "2.5.1.30": [
+        "precursor substr"
+    ],
+    "2.5.1.32": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O.CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "2.5.1.67": [
+        "precursor substr"
+    ],
+    "2.5.1.69": [
+        "precursor substr"
+    ],
+    "2.5.1.81": [
+        "precursor substr"
+    ],
+    "2.5.1.82": [
+        "precursor substr"
+    ],
+    "2.5.1.83": [
+        "precursor substr"
+    ],
+    "2.5.1.84": [
+        "precursor substr"
+    ],
+    "2.5.1.85": [
+        "precursor substr"
+    ],
+    "2.5.1.90": [
+        "precursor substr"
+    ],
+    "2.5.1.91": [
+        "precursor substr"
+    ],
+    "2.5.1.96": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O.CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "2.5.1.103": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O.CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "2.5.1.148": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O.CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",
+        "CC(C)CCCC(C)CCCC(C)CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O.CC(C)CCCC(C)CCCC(C)CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "2.5.1.150": [
+        "precursor substr"
+    ],
+    "2.5.1.158": [
+        "precursor substr"
+    ],
+    "3.1.7.5": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "3.1.7.6": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "3.1.7.10": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "3.1.7.11": [
+        "CC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "3.1.7.12": [
+        "CC1CCC2(C)C(CCC=C2C)C1(C)CCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "3.1.7.13": [
+        "CC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.1.123": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC=C(C)CCC=C(C)CCC=C(C)C"
+    ],
+    "4.2.1.124": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC=C(C)CCC=C(C)CCC1OC1(C)C"
+    ],
+    "4.2.1.125": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC=C(C)CCC=C(C)CCC1OC1(C)C"
+    ],
+    "4.2.1.128": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC=C(C)CCC=C(C)CCC1OC1(C)C"
+    ],
+    "4.2.1.129": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC=C(C)CCC=C(C)CCC=C(C)C"
+    ],
+    "4.2.1.133": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.1.137": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCCC(C)C1CC=C(C)CC=1"
+    ],
+    "4.2.1.138": [
+        "CC1CCC2C(CC2(C)C)C(=C)CCC=1"
+    ],
+    "4.2.1.173": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.1.174": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.6": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.7": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.8": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.9": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.10": [
+        "CC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.11": [
+        "CC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.13": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.15": [
+        "CC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.16": [
+        "CC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.17": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.18": [
+        "CC1(C)CCCC2(C)C1CCC(=C)C2CCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.19": [
+        "CC1(C)CCCC2(C)C1CCC(=C)C2CCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.20": [
+        "CC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.21": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.22": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.23": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.24": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.25": [
+        "CC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.26": [
+        "CC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.27": [
+        "CC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.28": [
+        "CC1(C)CCCC2(C)C1CCC(=C)C2CCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.29": [
+        "CC1(C)CCCC2(C)C1CCC(=C)C2CCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.30": [
+        "CC1(C)CCCC2(C)C1CCC(=C)C2CCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.31": [
+        "CC1(C)CCCC2(C)C1CCC(=C)C2CCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.32": [
+        "CC1(C)CCCC2(C)C1CCC(=C)C2CCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.33": [
+        "CC1(C)CCCC2(C)C1CCC(=C)C2CCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.34": [
+        "CC1(C)CCCC2(C)C1CCC(=C)C2CCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.35": [
+        "CC1(C)CCCC2(C)C1CCC(=C)C2CCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.36": [
+        "CC1CCC2(C)C(CCC=C2C)C1(C)CCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.37": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.38": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.39": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.40": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.41": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.42": [
+        "CC1(C)CCCC2(C)C1CCC(=C)C2CCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.43": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.44": [
+        "CC1(C)CCCC2(C)C1CCC(=C)C2CCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.45": [
+        "CC1(C)CCCC2(C)C1CCC(=C)C2CCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.46": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.47": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.48": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.49": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.50": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.51": [
+        "CC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.52": [
+        "CC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.53": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.54": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.55": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.56": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.57": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.58": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.59": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.60": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.61": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.62": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.63": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.64": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.65": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.66": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.67": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.68": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.69": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.70": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.71": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.72": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.73": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.74": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.75": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.76": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.77": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.78": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.79": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.80": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.81": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.82": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.83": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.84": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.85": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.86": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.87": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.88": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.89": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.90": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.91": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.92": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.93": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.94": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.95": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.96": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.97": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.98": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.99": [
+        "CC1(C)CCCC2(C)C1CCC(=C)C2CCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.100": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.101": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.102": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.103": [
+        "CC1(C)CCCC2(C)C1CCC(=C)C2CCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.104": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.105": [
+        "CC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.106": [
+        "CC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.107": [
+        "CC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.108": [
+        "CC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.109": [
+        "CC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.110": [
+        "CC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.111": [
+        "CC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.112": [
+        "CC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.113": [
+        "CC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.114": [
+        "CC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.115": [
+        "CC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.116": [
+        "CC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.117": [
+        "CC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.118": [
+        "CC(C)=CCCC(C)=C(C)COP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.119": [
+        "CC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.120": [
+        "CC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.121": [
+        "CC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.122": [
+        "CC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.123": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.125": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.126": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.127": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.128": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.129": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.130": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.131": [
+        "CC1(C)CCCC2(C)C1CCC(=C)C2CCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.132": [
+        "CC1(C)CCCC2(C)C1CCC(=C)C2CCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.133": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.135": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.136": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.137": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.138": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.139": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.140": [
+        "CC1(C)CCCC2(C)C1CCC(C)(O)C2CCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.141": [
+        "CC1(C)CCCC2(C)C1CCC(C)(O)C2CCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.142": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.143": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.144": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.145": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.146": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.147": [
+        "CC1(C)CCCC2(C)C1CCC(=C)C2CCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.148": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.149": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.150": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.151": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.156": [
+        "CC(CCC=C(C)CCC=C(C)C)=CC1C(COP([O-])(=O)OP([O-])([O-])=O)C1(C)CCC=C(C)CCC=C(C)C"
+    ],
+    "4.2.3.157": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.158": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.159": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.160": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.161": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.162": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.163": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.164": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.165": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.166": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.167": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.168": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.169": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.170": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.171": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.172": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.173": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.174": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.175": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.176": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.177": [
+        "CC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.178": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.179": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.180": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.181": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.182": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.183": [
+        "CC1(C)CCCC2(C)C1CCC(=C)C2CCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.184": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.185": [
+        "CC1(C)CCCC2(C)C1CCC(=C)C2CCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.186": [
+        "CC1(C)CCCC2(C)C1CCC(C)(O)C2CCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.187": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.188": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.189": [
+        "CC1(C)CCCC2(C)C1CCC(C)C2(O)CCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.190": [
+        "CC1(C)CCCC2(C)C1CCC(C)(O)C2CCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.191": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.192": [
+        "CC1(C)CCCC2(C)C1CC=C(C)C2CCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.193": [
+        "CC1(C)CCCC2(C)C1CCC(=C)C2CCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.194": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.195": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.196": [
+        "CC1(C)CCCC2(C)C1CCC(=C)C2CCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.197": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.198": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.199": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.200": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.201": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.202": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.203": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.204": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.205": [
+        "CC1C(C)C(C)C(C)(CCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O)C=1C"
+    ],
+    "4.2.3.206": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.207": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.208": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.209": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.210": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.211": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.212": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.213": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.214": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.215": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.216": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.217": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.218": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.219": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.220": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.221": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.222": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.223": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.224": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.225": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.226": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.227": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.228": [
+        "CC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "4.2.3.229": [
+        "CC1(C)CCCC2(C)C1CCC(=C)C2CCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "5.4.99.7": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC=C(C)CCC=C(C)CCC1OC1(C)C"
+    ],
+    "5.4.99.8": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC=C(C)CCC=C(C)CCC1OC1(C)C"
+    ],
+    "5.4.99.17": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC=C(C)CCC=C(C)CCC=C(C)C"
+    ],
+    "5.4.99.31": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC=C(C)CCC=C(C)CCC1OC1(C)C"
+    ],
+    "5.4.99.32": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC=C(C)CCC=C(C)CCC1OC1(C)C"
+    ],
+    "5.4.99.33": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC=C(C)CCC=C(C)CCC1OC1(C)C"
+    ],
+    "5.4.99.34": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC=C(C)CCC=C(C)CCC1OC1(C)C"
+    ],
+    "5.4.99.35": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC=C(C)CCC=C(C)CCC1OC1(C)C"
+    ],
+    "5.4.99.36": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC=C(C)CCC=C(C)CCC1OC1(C)C"
+    ],
+    "5.4.99.37": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC=C(C)CCC=C(C)CCC=C(C)C"
+    ],
+    "5.4.99.38": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC=C(C)CCC=C(C)CCC1OC1(C)C"
+    ],
+    "5.4.99.39": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC=C(C)CCC=C(C)CCC1OC1(C)C"
+    ],
+    "5.4.99.40": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC=C(C)CCC=C(C)CCC1OC1(C)C"
+    ],
+    "5.4.99.41": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC=C(C)CCC=C(C)CCC1OC1(C)C"
+    ],
+    "5.4.99.46": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC=C(C)CCC=C(C)CCC1OC1(C)C"
+    ],
+    "5.4.99.47": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC=C(C)CCC=C(C)CCC1OC1(C)C"
+    ],
+    "5.4.99.48": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC=C(C)CCC=C(C)CCC1OC1(C)C"
+    ],
+    "5.4.99.49": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC=C(C)CCC=C(C)CCC1OC1(C)C"
+    ],
+    "5.4.99.50": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC=C(C)CCC=C(C)CCC1OC1(C)C"
+    ],
+    "5.4.99.51": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC=C(C)CCC=C(C)CCC1OC1(C)C"
+    ],
+    "5.4.99.52": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC=C(C)CCC=C(C)CCC1OC1(C)C"
+    ],
+    "5.4.99.53": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC=C(C)CCC=C(C)CCC1OC1(C)C"
+    ],
+    "5.4.99.54": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC=C(C)CCC=C(C)CCC1OC1(C)C"
+    ],
+    "5.4.99.55": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC=C(C)CCC=C(C)CCC1OC1(C)C"
+    ],
+    "5.4.99.56": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC=C(C)CCC=C(C)CCC1OC1(C)C"
+    ],
+    "5.4.99.57": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC=C(C)CCC=C(C)CCC1OC1(C)C"
+    ],
+    "5.4.99.65": [
+        "CC1(C)OC1CCC(C)=CCCC(C)=CCCC=C(C)CCC=C(C)CCC1OC1(C)C"
+    ],
+    "5.4.99.66": [
+        "CC1(C)C(O)CCC2(C)C1CCC(=C)C2CCC=C(C)CCC=C(C)CCC1OC1(C)C"
+    ],
+    "5.5.1.8": [
+        "CC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "5.5.1.12": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "5.5.1.13": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "5.5.1.14": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "5.5.1.15": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "5.5.1.16": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "5.5.1.19": [
+        "CC(C)=CCCC(C)=CC=CC(C)=CC=CC(C)=CC=CC=C(C)C=CC=C(C)C=CC1=C(C)CCCC1(C)C",
+        "CC(C)=CCCC(C)=CC=CC(C)=CC=CC(C)=CC=CC=C(C)C=CC=C(C)C=CC=C(C)CCC=C(C)C",
+        "CC(CCC=C(C)C)=CCCC(C)=CC=CC(C)=CC=CC=C(C)C=CC=C(C)C=CC=C(C)CCC=C(C)C"
+    ],
+    "5.5.1.28": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "5.5.1.29": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ],
+    "5.5.1.30": [
+        "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    ]
+}

@@ -136,6 +136,7 @@ class BaseModel(ABC, BaseEstimator):
         self,
         val_df: pd.DataFrame | np.ndarray,
         selected_class_name: Optional[str] = None,
+        fold_idx: Optional[int] = None,
     ) -> np.ndarray:  # pylint: disable=R0801
         """
         It's a function returning predicted probabilities per either all classes or only for the selected class
