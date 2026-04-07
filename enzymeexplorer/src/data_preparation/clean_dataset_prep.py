@@ -28,10 +28,10 @@ def parse_args():
         default="./data/EnzymeExplorer_Dataset.csv",
     )
     parser.add_argument(
-        "--martsDB-csv-path",
+        "--prefix",
         type=str,
-        help="Path to the raw MartsDB CSV file",
-        default="./data/martsDB_reactions_2026_02_22.csv",
+        help="Prefix for the output files",
+        default="enzexp",
     )
     parser.add_argument(
         "--output-dir",
@@ -49,7 +49,6 @@ def main():
     Path(output_dir).mkdir(parents=True, exist_ok=True)
     
     marts2ec = pd.read_csv(args.marts2ec_csv_path)
-    martsDB = pd.read_csv(args.martsDB_csv_path)
     dataset = pd.read_csv(args.enzyme_explorer_dataset_csv_path)
     swissprot = pd.read_csv(args.swissprot_csv_path, sep="\t")
     swissprot = swissprot[["Entry", "EC number", "Sequence"]].dropna()
@@ -69,15 +68,18 @@ def main():
         fold_i_train = fold_i_train[["ID", "ECs", "Aminoacid_sequence"]].drop_duplicates("ID")
         fold_i_train["ECs"] = fold_i_train["ECs"].apply(lambda x: ";".join(x))
         fold_i_train.columns = ["Entry", "EC number", "Sequence"]
-        fold_i_train.to_csv(output_dir / f"clean_enzexp_tps_{i}_train.csv", index=False, sep="\t")
+        fold_i_train.to_csv(output_dir / f"{args.prefix}_fold_{i}_train.csv", index=False, sep="\t")
         
         fold_i_test = dataset[dataset["Fold"] == i]
         fold_i_test = fold_i_test[["ID", "Aminoacid_sequence"]].drop_duplicates("ID")
-        with open(output_dir / f"clean_enzexp_tps_{i}_test.fasta", "w") as f:
+        with open(output_dir / f"{args.prefix}_fold_{i}_test.fasta", "w") as f:
             for _, row in fold_i_test.iterrows():
                 f.write(f">{row['ID']}\n{row['Aminoacid_sequence']}\n")
 
     combined = dataset[["ID", "ECs", "Aminoacid_sequence"]].drop_duplicates("ID")
     combined["ECs"] = combined["ECs"].apply(lambda x: ";".join(x))
     combined.columns = ["Entry", "EC number", "Sequence"]
-    combined.to_csv(output_dir / "combined_data.csv", index=False, sep="\t")
+    combined.to_csv(output_dir / f"{args.prefix}_combined_data.csv", index=False, sep="\t")
+    
+if __name__ == "__main__":
+    main()

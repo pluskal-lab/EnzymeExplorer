@@ -31,7 +31,24 @@ def get_canonical_products_no_stereo(rxn_smiles: str):
     products = trxn.GetProducts()
     return [get_canonical_smiles(MolToSmiles(product)) for product in products]
 
+def fix_multi_molecule_substrate(row):
+    if row["Type"] == "pt":
+        return row["SMILES_substrate_canonical_no_stereo"]
+    if (
+        row["SMILES_product_canonical_no_stereo"].count("C")
+        % row["SMILES_substrate_canonical_no_stereo"].count("C")
+        != 0
+    ):
+        return row["SMILES_substrate_canonical_no_stereo"]
 
+    mol_ctr = row["SMILES_product_canonical_no_stereo"].count("C") // row[
+        "SMILES_substrate_canonical_no_stereo"
+    ].count("C")
+    return ".".join(
+        [row["SMILES_substrate_canonical_no_stereo"] for _ in range(mol_ctr)]
+    )
+    
+    
 def extract_canonical_tps_smiles_from_rhea_and_marts(rhea_reaction_smiles: pd.DataFrame, martsDB: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
     rhea_smiles = rhea_reaction_smiles.copy()
     rhea_smiles["canonical_substrates_no_stereo"] = rhea_smiles[
@@ -62,12 +79,18 @@ def extract_canonical_tps_smiles_from_rhea_and_marts(rhea_reaction_smiles: pd.Da
             ]
         )
     )
+    
+    marts_reaction_smiles["SMILES_substrate_canonical_no_stereo"] = marts_reaction_smiles.apply(
+        fix_multi_molecule_substrate, axis=1
+    )
+    
     marts_reaction_smiles["canonical_substrates_no_stereo"] = marts_reaction_smiles[
         "SMILES_substrate_canonical_no_stereo"
     ].map(lambda x: x.split("."))
     marts_reaction_smiles["canonical_products_no_stereo"] = marts_reaction_smiles[
         "SMILES_product_canonical_no_stereo"
     ].map(lambda x: x.split("."))
+    
 
     marts_substrate_set = set(
         marts_reaction_smiles["canonical_substrates_no_stereo"].explode().to_list()
@@ -164,6 +187,7 @@ def map_marts_reactions_to_ec_numbers_via_rhea_ids(marts_reaction_smiles: pd.Dat
         right_on="MASTER_ID",
         how="inner",
     )
+    marts2ec = marts2ec[~marts2ec["ID"].isin(NON_TPS_ECS)]
     return marts2ec
 
 def get_ec_to_substrate_mapping(marts2ec: pd.DataFrame) -> dict[str, set[str]]:
@@ -173,8 +197,7 @@ def get_ec_to_substrate_mapping(marts2ec: pd.DataFrame) -> dict[str, set[str]]:
             if row.Type == "pt":
                 ec_to_substrate_mapping[row.ID].add("precursor substr")
             else:
-                for substrate in row.SMILES_substrate_canonical_no_stereo.split("."):
-                    ec_to_substrate_mapping[row.ID].add(substrate)
+                ec_to_substrate_mapping[row.ID].add(row.SMILES_substrate_canonical_no_stereo)
     for ec, substrate in TPS_ECS_TO_SUBSTRATES_BASE.items():
         if ec not in NON_TPS_ECS:
             ec_to_substrate_mapping[ec].add(substrate)

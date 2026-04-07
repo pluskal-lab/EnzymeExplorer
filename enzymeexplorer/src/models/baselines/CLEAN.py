@@ -3,20 +3,21 @@
 Please note, that before using this wrapper you would need to install CLEAN as per https://github.com/tttianhao/CLEAN
 """
 import json
+import logging
 import os
-from collections import defaultdict
-from shutil import copyfile
-from dataclasses import dataclass
-from typing import Type, Optional
-from pathlib import Path
-from uuid import uuid4
+import shutil
 import sys
+import glob
+from collections import defaultdict
+from dataclasses import dataclass
+from pathlib import Path
+from shutil import copyfile
+from typing import Optional, Type
+from uuid import uuid4
+
+import gdown
 import numpy as np  # type: ignore
 import pandas as pd  # type: ignore
-import wget  # type: ignore
-import logging
-
-from rdkit.Chem import MolToSmiles, rdChemReactions  # type: ignore
 
 # remove additional 'data' folder from CLEAN's codebase (at the time of my experiments, the CLEAN's scripts were unrunnable without fixes of paths)
 from CLEAN.utils import (  # type: ignore
@@ -28,9 +29,8 @@ from CLEAN.infer import (  # type: ignore
     infer_maxsep,
 )
 
-from enzymeexplorer.src.models.ifaces import BaseModel, BaseConfig
+from enzymeexplorer.src.models.ifaces import BaseConfig, BaseModel
 from enzymeexplorer.src.utils.msa import get_fasta_seqs
-from enzymeexplorer.src.utils.data import get_canonical_smiles
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -44,10 +44,9 @@ class CLEANConfig(BaseConfig):
 
     clean_installation_root: Path
     ec_2_substrates_json_path: str
-    clean_working_dir: str
     seq_col_name: str
     is_halo: bool
-    pretrained_model_name: str
+    pretrained_models_link: str
 
 
 class CLEAN(BaseModel):
@@ -57,24 +56,17 @@ class CLEAN(BaseModel):
 
     def __init__(self, config: CLEANConfig):
         super().__init__(config=config)
-        self.working_path = Path(config.clean_working_dir)
-        if not self.working_path.exists():
-            self.working_path.mkdir()
-
         self.config: CLEANConfig = config
         self.config.clean_installation_root = Path(self.config.clean_installation_root)
 
-        self.ec_2_substrates = json.load(open(config.ec_2_substrates_json_path, "r"))
+        with open(config.ec_2_substrates_json_path, "r", encoding="utf-8") as file:
+            self.ec_2_substrates = json.load(file)
         self.ec_2_substrates = {
-            ec: set(substrates)
-            for ec, substrates in self.ec_2_substrates.items()
+            ec: set(substrates) for ec, substrates in self.ec_2_substrates.items()
         }
 
         data_df = pd.read_csv(config.tps_cleaned_csv_path)
-        if hasattr(config, "is_halo"):
-            self.is_halo = config.is_halo
-        else:
-            self.is_halo = False
+        self.is_halo = getattr(config, "is_halo", False)
         if not self.is_halo:
             data_df.loc[
                 data_df["Type (mono, sesq, di, …)"].isin(
@@ -82,23 +74,133 @@ class CLEAN(BaseModel):
                 ),
                 config.target_col_name,
             ] = "precursor substr"
-            self.precursor_smiles = set(
-                data_df.loc[
-                    data_df["Type (mono, sesq, di, …)"].isin(
-                        {"ggpps", "fpps", "gpps", "gfpps", "hsqs"}
-                    ),
-                    config.target_col_name,
-                ].values
-            )
-        else:
-            self.precursor_smiles = set()
 
         self.tps_substrate_smiles = {
             substr
             for substr in data_df[config.target_col_name].values
             if substr not in {"Unknown", "Negative"}
         }
+
+        self.pretrained_models_dir = (
+            self.config.clean_installation_root / "pretrained_models"
+        )
+        self._download_and_unpack_pretrained_models()
+
         sys.path.insert(0, str(self.config.clean_installation_root / "app" / "src"))
+
+    def _download_and_unpack_pretrained_models(self):
+        pretrained_zip_path = self.config.clean_installation_root / "pretrained_models.zip"
+        self.pretrained_models_dir.mkdir(parents=True, exist_ok=True)
+        for f in glob.glob(str(self.pretrained_models_dir / "*")):
+            os.remove(f)
+
+        gdown.download(
+            self.config.pretrained_models_link,
+            str(pretrained_zip_path),
+            quiet=False,
+        )
+        shutil.unpack_archive(pretrained_zip_path, self.pretrained_models_dir)
+        logger.info(
+            "Pretrained models downloaded and unpacked to %s",
+            self.pretrained_models_dir,
+        )
+
+    def _stage_pretrained_files(self, app_root: Path, fold_idx: int):
+        pretrained_dir = app_root / "data" / "pretrained"
+        pretrained_dir.mkdir(parents=True, exist_ok=True)
+
+        source_to_destination = {
+            self.pretrained_models_dir
+            / f"FOLD_{fold_idx}_MODEL.pth": pretrained_dir
+            / "split100.pth",
+            self.pretrained_models_dir
+            / f"FOLD_{fold_idx}_GMM.pkl": pretrained_dir
+            / "gmm_ensumble.pkl",
+            self.pretrained_models_dir
+            / f"FOLD_{fold_idx}_EMBEDDINGS.pt": pretrained_dir
+            / "100.pt",
+            self.pretrained_models_dir
+            / f"FOLD_{fold_idx}_TRAIN_DATA.csv": app_root
+            / "data"
+            / "split100.csv",
+        }
+        for source_path, destination_path in source_to_destination.items():
+            if not source_path.exists():
+                raise FileNotFoundError(
+                    "Missing CLEAN pretrained asset for fold "
+                    f"{fold_idx}: {source_path}"
+                )
+            destination_path.parent.mkdir(parents=True, exist_ok=True)
+            copyfile(source_path, destination_path)
+
+    def _read_clean_predictions(
+        self, results_path: Path
+    ) -> dict[str, list[tuple[str, float]]]:
+        id_2_ec_scores: dict[str, list[tuple[str, float]]] = defaultdict(list)
+        with open(results_path, "r", encoding="utf-8") as file:
+            for line in file:
+                entries = line.strip().split(",")
+                if not entries or not entries[0]:
+                    continue
+                protein_id = entries[0]
+                for entry in entries[1:]:
+                    if not entry:
+                        continue
+                    ec_class, score = entry.split("/")
+                    normalized_ec = ec_class.replace("EC:", "")
+                    confidence = float(score)
+                    if confidence == 0:
+                        confidence = 1e-6
+                    id_2_ec_scores[protein_id].append((normalized_ec, confidence))
+        return id_2_ec_scores
+
+    def _convert_clean_output_to_probabilities(
+        self, id_2_ec_scores: dict[str, list[tuple[str, float]]], ids: np.ndarray
+    ) -> np.ndarray:
+        val_proba_np = np.zeros((len(ids), len(self.config.class_names)))
+        class_name_2_idx = {
+            class_name: class_i
+            for class_i, class_name in enumerate(self.config.class_names)
+        }
+
+        for row_i, protein_id in enumerate(ids):
+            ec_scores = id_2_ec_scores.get(protein_id, [])
+            if self.is_halo:
+                for ec_num, conf in ec_scores:
+                    class_i = class_name_2_idx.get(ec_num)
+                    if class_i is not None:
+                        val_proba_np[row_i, class_i] = conf
+                continue
+
+            neg_score = 0.0
+            tps_pos_score = 0.0
+            class_2_pos_score: dict[str, float] = defaultdict(float)
+
+            for ec_num, conf in ec_scores:
+                substrates = self.ec_2_substrates.get(ec_num, set())
+                if not substrates:
+                    neg_score += conf
+                    continue
+                if substrates - {"precursor substr"}:
+                    tps_pos_score += conf
+                for substrate in substrates.intersection(self.tps_substrate_smiles):
+                    class_2_pos_score[substrate] += conf
+
+            tps_denominator = tps_pos_score + neg_score
+            if "isTPS" in class_name_2_idx and tps_denominator > 0:
+                val_proba_np[row_i, class_name_2_idx["isTPS"]] = (
+                    tps_pos_score / tps_denominator
+                )
+
+            for class_name, class_i in class_name_2_idx.items():
+                if class_name == "isTPS":
+                    continue
+                pos_score = class_2_pos_score.get(class_name, 0.0)
+                denominator = pos_score + neg_score
+                if denominator > 0:
+                    val_proba_np[row_i, class_i] = pos_score / denominator
+
+        return val_proba_np
 
     def fit_core(self, train_df: pd.DataFrame, class_name: str = None):
         """Just a placeholder for the interface compatibility"""
@@ -124,102 +226,46 @@ class CLEAN(BaseModel):
         assert (
             selected_class_name is None
         ), "This model does not support class selection."
+        assert fold_idx is not None, "CLEAN inference requires a validation fold index."
+        assert isinstance(
+            val_df, pd.DataFrame
+        ), "the CLEAN requires Uniprot ID and sequences, np.array of numerical representations is not a possible input"
+
         seqs = val_df[self.config.seq_col_name].values
         ids = val_df[self.config.id_col_name].values
         fasta_str = get_fasta_seqs(seqs, ids)
 
-        temp_fasta_path = (
-            self.config.clean_installation_root / "app" / f"_temp_msa_{uuid4()}.fasta"
-        )
+        app_root = self.config.clean_installation_root / "app"
+        temp_fasta_path = app_root / f"_temp_msa_{uuid4()}.fasta"
         with open(temp_fasta_path, "w", encoding="utf-8") as file:
             file.writelines(fasta_str.replace("'", "").replace('"', ""))
-        # maybe some locations are redundant,
-        # but CLEAN codebase tends to look into multiple places for the same input, so to be safe:
-        copyfile(
-            temp_fasta_path,
-            self.config.clean_installation_root
-            / "app"
-            / "data"
-            / "inputs"
-            / temp_fasta_path.name,
-        )
-        copyfile(
-            temp_fasta_path,
-            self.config.clean_installation_root / "app" / "data" / temp_fasta_path.name,
-        )
+
+        copyfile(temp_fasta_path, app_root / "data" / "inputs" / temp_fasta_path.name)
+        copyfile(temp_fasta_path, app_root / "data" / temp_fasta_path.name)
+
         cwd = os.getcwd()
-        os.chdir(self.config.clean_installation_root / "app")
+        results_path = app_root / "results" / f"{temp_fasta_path.stem}_maxsep.csv"
+        try:
+            self._stage_pretrained_files(app_root, fold_idx)
+            os.chdir(app_root)
 
-        clean_name_convention = str(temp_fasta_path.stem)
-        logger.info(f"Running CLEAN on {clean_name_convention}")
-        prepare_infer_fasta(clean_name_convention)
-        train_data = "split100"
-        pretrained_model = None
-        gmm = "data/pretrained/gmm_ensumble.pkl"
-        if self.config.pretrained_model_name is not None:
-            train_data = self.config.pretrained_model_name + f"_{fold_idx}_train"
-            pretrained_model = self.config.pretrained_model_name + f"_{fold_idx}"
-            gmm = f"data/pretrained/gmm_{self.config.pretrained_model_name}_{fold_idx}.pkl"
-        infer_maxsep(
-            train_data,
-            clean_name_convention,
-            report_metrics=False,
-            pretrained=True,
-            model_name=pretrained_model,
-            gmm=gmm,
-        )
-
-        with open(
-            f"results/{temp_fasta_path.stem}_maxsep.csv", "r", encoding="utf-8"
-        ) as file:
-            clean_pred_lines = file.readlines()
-        os.chdir(cwd)
-        os.remove(temp_fasta_path)
-        id_2_class_2_conf: dict = defaultdict(dict)
-        for line in clean_pred_lines:
-            line_splitted = line.split(",")
-            for ec_classes in line_splitted[1:]:
-                ec_class, dist = ec_classes.replace("\n", "").split("/")
-                id_2_class_2_conf[line_splitted[0]][ec_class] = float(dist)
-
-        id_2_substr_2_conf: dict = defaultdict(dict)
-        if not self.is_halo:
-            for uni_id, ec_num_2_conf in id_2_class_2_conf.items():
-                for ec_num, conf in ec_num_2_conf.items():
-                    if ec_num in self.ec_2_substrates:
-                        if len(self.ec_2_substrates[ec_num] - {"precursor substr"}):
-                            id_2_substr_2_conf[uni_id]["isTPS"] = max(
-                                conf, id_2_substr_2_conf[uni_id].get("isTPS", 0)
-                            )
-                        if len(
-                            self.ec_2_substrates[ec_num].intersection(
-                                self.tps_substrate_smiles
-                            )
-                        ):
-                            ec_num_substrates = self.ec_2_substrates[ec_num]
-                            substrates = ec_num_substrates.intersection(
-                                self.tps_substrate_smiles
-                            )
-                            for substr in substrates:
-                                id_2_substr_2_conf[uni_id][substr] = conf
-        else:
-            for uni_id, ec_num_2_conf in id_2_class_2_conf.items():
-                for ec_num, conf in ec_num_2_conf.items():
-                    ec_num = ec_num.replace("EC:", "")
-                    if ec_num in self.config.class_names:
-                        id_2_substr_2_conf[uni_id][ec_num] = conf
-        assert isinstance(
-            val_df, pd.DataFrame
-        ), "the CLEAN requires Uniprot ID and sequences, np.array of numerical representations is not a possible input"
-        val_df["substr_2_conf"] = val_df[self.config.id_col_name].map(
-            lambda x: {} if x not in id_2_substr_2_conf else id_2_substr_2_conf[x]
-        )
-        val_proba_np = np.zeros((len(val_df), len(self.config.class_names)))
-        for class_i, class_name in enumerate(self.config.class_names):
-            val_proba_np[:, class_i] = val_df["substr_2_conf"].map(
-                lambda x: x.get(class_name, 0)
+            clean_name_convention = str(temp_fasta_path.stem)
+            logger.info("Running CLEAN on %s", clean_name_convention)
+            prepare_infer_fasta(clean_name_convention)
+            infer_maxsep(
+                "split100",
+                clean_name_convention,
+                report_metrics=False,
+                pretrained=True,
+                model_name=None,
+                gmm="data/pretrained/gmm_ensumble.pkl",
             )
-        return val_proba_np
+            id_2_ec_scores = self._read_clean_predictions(results_path)
+            return self._convert_clean_output_to_probabilities(id_2_ec_scores, ids)
+        finally:
+            os.chdir(cwd)
+            if temp_fasta_path.exists():
+                os.remove(temp_fasta_path)
 
     @classmethod
     def config_class(cls) -> Type[CLEANConfig]:
