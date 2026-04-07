@@ -69,9 +69,20 @@ def get_folds_from_csv(csv_path: str, split_col_name: str) -> list[str]:
     """
     df = pd.read_csv(csv_path, usecols=[split_col_name])
     folds = df[split_col_name].dropna().unique()
-    # Filter valid folds (fold_0, fold_1, etc.) and sort
-    valid_folds = sorted([str(f) for f in folds if str(f).startswith("fold_")])
-    return [f.replace("fold_", "") for f in valid_folds]
+    prefixed = sorted([str(f) for f in folds if str(f).startswith("fold_")])
+    if prefixed:
+        return [f.replace("fold_", "") for f in prefixed]
+    # Fall back to bare non-negative integers (new dataset)
+    bare = []
+    for f in folds:
+        s = str(f)
+        try:
+            n = int(float(s))
+            if n >= 0:
+                bare.append(str(n))
+        except (ValueError, OverflowError):
+            continue
+    return sorted(bare, key=int)
 
 
 def get_unsplittable_targets(split_desc: str, path: str = "data/tps_folds.h5") -> set:

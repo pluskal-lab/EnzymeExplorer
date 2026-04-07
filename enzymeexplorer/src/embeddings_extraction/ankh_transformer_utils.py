@@ -1,8 +1,9 @@
 """This script contains utils for Ankh embeddings extraction"""
+from typing import Optional
+
 import ankh  # type: ignore
 import numpy as np  # type: ignore
 import torch  # type: ignore
-
 
 def get_model_and_tokenizer(
     model_name: str,
