@@ -30,6 +30,25 @@ _PRECURSOR_TYPES = frozenset({"ggpps", "fpps", "gpps", "gfpps", "hsqs", "pt"})
 
 _DEFAULT_TYPE_COL = "Type (mono, sesq, di, …)"
 
+_SUBSTRATE_COL = "SMILES_substrate_canonical_no_stereo"
+
+
+def _remap_substrates_by_type(df: pd.DataFrame, type_col: str) -> None:
+    """Override substrate labels for non-TPS protein types.
+
+    * Precursor types (``_PRECURSOR_TYPES``) → ``"precursor substr"``
+    * Unknown / negative types → ``"Unknown"``
+
+    This prevents substrate-bearing negatives from being labelled
+    ``isTPS=True`` by :func:`assign_is_tps_label`.
+    """
+    if type_col not in df.columns:
+        return
+    df.loc[
+        df[type_col].isin(_PRECURSOR_TYPES), _SUBSTRATE_COL
+    ] = "precursor substr"
+    df.loc[df[type_col] == "Unknown", _SUBSTRATE_COL] = "Unknown"
+
 
 def _normalize_fold_column(df: pd.DataFrame, col: str) -> None:
     """Ensure fold-column values use ``fold_N`` format.
@@ -82,11 +101,7 @@ def _load_eval_dataset(config: BaseConfig) -> pd.DataFrame:
         eval_df.rename(columns=renames, inplace=True)
     _normalize_fold_column(eval_df, config.split_col_name)
     type_col = getattr(config, "type_col_name", _DEFAULT_TYPE_COL)
-    if type_col in eval_df.columns:
-        eval_df.loc[
-            eval_df[type_col].isin(_PRECURSOR_TYPES),
-            "SMILES_substrate_canonical_no_stereo",
-        ] = "precursor substr"
+    _remap_substrates_by_type(eval_df, type_col)
     logger.info(
         "Cross-dataset eval: test folds from %s (%d rows)",
         config.eval_csv_path,
@@ -211,11 +226,7 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
     _normalize_fold_column(data_df, config.split_col_name)
     if not is_halo:
         type_col = getattr(config, "type_col_name", _DEFAULT_TYPE_COL)
-        if type_col in data_df.columns:
-            data_df.loc[
-                data_df[type_col].isin(_PRECURSOR_TYPES),
-                "SMILES_substrate_canonical_no_stereo",
-            ] = "precursor substr"
+        _remap_substrates_by_type(data_df, type_col)
 
     cross_dataset_eval = bool(getattr(config, "eval_csv_path", ""))
     eval_data_df = None

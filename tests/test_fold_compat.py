@@ -222,6 +222,104 @@ class TestBuildSyncedDataset:
             assert "P_OLD" in result["Uniprot ID"].values
 
 
+class TestRemapSubstratesByType:
+    """_remap_substrates_by_type must override substrates for non-TPS types."""
+
+    def test_precursor_types_remapped(self) -> None:
+        from enzymeexplorer.src.experiments_orchestration.experiment_runner import (
+            _remap_substrates_by_type,
+        )
+
+        df = pd.DataFrame(
+            {
+                "Type": ["mono", "fpps", "gpps", "sesq"],
+                "SMILES_substrate_canonical_no_stereo": [
+                    "GPP",
+                    "FPP",
+                    "GPP",
+                    "FPP",
+                ],
+            }
+        )
+        _remap_substrates_by_type(df, "Type")
+        assert df.loc[0, "SMILES_substrate_canonical_no_stereo"] == "GPP"
+        assert df.loc[1, "SMILES_substrate_canonical_no_stereo"] == "precursor substr"
+        assert df.loc[2, "SMILES_substrate_canonical_no_stereo"] == "precursor substr"
+        assert df.loc[3, "SMILES_substrate_canonical_no_stereo"] == "FPP"
+
+    def test_unknown_type_substrates_overridden(self) -> None:
+        from enzymeexplorer.src.experiments_orchestration.experiment_runner import (
+            _remap_substrates_by_type,
+        )
+
+        df = pd.DataFrame(
+            {
+                "Type": ["mono", "Unknown", "Unknown", "sesq"],
+                "SMILES_substrate_canonical_no_stereo": [
+                    "GPP",
+                    "FPP",
+                    "Unknown",
+                    "GGPP",
+                ],
+            }
+        )
+        _remap_substrates_by_type(df, "Type")
+        assert df.loc[0, "SMILES_substrate_canonical_no_stereo"] == "GPP"
+        assert df.loc[1, "SMILES_substrate_canonical_no_stereo"] == "Unknown"
+        assert df.loc[2, "SMILES_substrate_canonical_no_stereo"] == "Unknown"
+        assert df.loc[3, "SMILES_substrate_canonical_no_stereo"] == "GGPP"
+
+    def test_substrate_bearing_negative_no_istps(self) -> None:
+        """End-to-end: Unknown-type protein with real substrate must NOT get isTPS."""
+        from enzymeexplorer.src.experiments_orchestration.experiment_runner import (
+            _remap_substrates_by_type,
+            assign_is_tps_label,
+        )
+
+        df = pd.DataFrame(
+            {
+                "id": ["TPS1", "TPS1", "NEG1", "NEG1"],
+                "Type": ["mono", "mono", "Unknown", "Unknown"],
+                "SMILES_substrate_canonical_no_stereo": [
+                    "GPP",
+                    "FPP",
+                    "GPP",
+                    "Unknown",
+                ],
+            }
+        )
+        _remap_substrates_by_type(df, "Type")
+        grouped = (
+            df.groupby("id")["SMILES_substrate_canonical_no_stereo"]
+            .agg(set)
+            .reset_index()
+        )
+        grouped["SMILES_substrate_canonical_no_stereo"] = grouped[
+            "SMILES_substrate_canonical_no_stereo"
+        ].map(assign_is_tps_label)
+
+        tps_labels = grouped.loc[
+            grouped["id"] == "TPS1", "SMILES_substrate_canonical_no_stereo"
+        ].iloc[0]
+        assert "isTPS" in tps_labels
+
+        neg_labels = grouped.loc[
+            grouped["id"] == "NEG1", "SMILES_substrate_canonical_no_stereo"
+        ].iloc[0]
+        assert "isTPS" not in neg_labels
+
+    def test_missing_type_col_is_noop(self) -> None:
+        from enzymeexplorer.src.experiments_orchestration.experiment_runner import (
+            _remap_substrates_by_type,
+        )
+
+        df = pd.DataFrame(
+            {"SMILES_substrate_canonical_no_stereo": ["GPP", "FPP"]}
+        )
+        _remap_substrates_by_type(df, "NonExistentCol")
+        assert list(df["SMILES_substrate_canonical_no_stereo"]) == ["GPP", "FPP"]
+
+
 class TestLoadEvalDataset:
     """_load_eval_dataset should rename eval columns to match training schema."""
 
