@@ -276,6 +276,51 @@ no single metric adequately captures model quality under class imbalance.
 
 ### 5.1 Average Precision (AP) / Mean Average Precision (mAP)
 
+- **Definition**: Average precision summarizes the precision-recall curve as the
+  weighted mean of precisions at each threshold, where the weight is the increase
+  in recall. Computed via `sklearn.metrics.average_precision_score`.
+
+- **TPS detection (AP)**: Each protein is labelled `isTPS = True` if its
+  substrate set contains at least one real terpenoid substrate (after remapping
+  prenyltransferase types to `"precursor substr"` and removing `"Unknown"`
+  labels). AP is computed per fold on the binary `isTPS` column and averaged
+  across folds.
+
+- **Substrate prediction (mAP)**: For each fold, AP is computed independently
+  for every substrate class that has at least one positive test sample. The
+  per-fold mAP is the arithmetic mean of those per-class APs. The final mAP
+  is the arithmetic mean of per-fold mAPs across 5 folds.
+
+  Concretely, for fold *k* with *C_k* evaluable substrate classes:
+
+  > mAP_k = (1 / C_k) × Σ_{c ∈ classes_k} AP(y_true_c, ŷ_c)
+  >
+  > mAP = (1 / 5) × Σ_{k=0}^{4} mAP_k
+
+- **Substrate classes used**: Models are trained on 9 substrate classes
+  (8 terpenoid SMILES + `precursor substr`) plus the binary `isTPS` target.
+  Two of the 9 — the dimeric substrates 2×FPP and 2×GGPP — have zero or
+  near-zero positive test samples across most folds and are effectively
+  excluded by the "≥1 positive" filter. The remaining 7 classes that
+  contribute to mAP in most folds are:
+
+  | # | Short name | Terpene family | Positive test samples (Track A, per fold) |
+  |---|-----------|----------------|------------------------------------------|
+  | 1 | FPP | Sesquiterpene | ~147 |
+  | 2 | GPP | Monoterpene | ~12 |
+  | 3 | GGPP | Diterpene (type I) | ~60 |
+  | 4 | SqOx | Squalene oxide / Triterpene | ~6 (present in 3/5 folds) |
+  | 5 | CPP | Diterpene (type II) | ~42 |
+  | 6 | GFPP | Sesterterpene | ~13 |
+  | 7 | precursor substr | Prenyltransferase (remapped) | ~26 |
+
+  **Figure 6 (full evaluation)** uses all classes with ≥1 positive per fold
+  (typically 6–7 of the above).
+
+  **Figure 7 (major substrates)** restricts to the 6 monomeric terpenoid
+  substrates (rows 1–6 above), excluding `precursor substr` and the two
+  dimeric substrates. This subset covers all five principal terpene
+  families: mono-, sesqui-, di-, tri-, and sesterterpenes.
 
 ### 5.2 ROC-AUC
 
@@ -294,9 +339,10 @@ no single metric adequately captures model quality under class imbalance.
 
 For **substrate prediction**, metrics are computed per substrate class and then
 macro-averaged (mAP, macro-ROC-AUC, macro-MCC-F1). This prevents dominant classes
-from masking poor performance on rare substrates. Substrate classes with fewer than
-3 positive test samples in any fold are excluded from evaluation (minimum sample
-threshold) to avoid unreliable point estimates.
+from masking poor performance on rare substrates. Substrate classes with zero
+positive test samples in a given fold are excluded from that fold's mAP computation
+(they cannot produce a meaningful AP). Classes where all test samples are positive
+are likewise excluded.
 
 For **TPS detection**, metrics are computed on the binary TPS-vs-non-TPS task
 directly, with no macro-averaging needed.
@@ -560,22 +606,33 @@ fold-specific checkpoints are available.*
 
 #### Major-substrate evaluation
 
-The mAP values above include all substrate classes, some of which have very
-few test examples (e.g., dimeric substrates) or are intrinsically hard for
-alignment-based methods (e.g., monoterpene/GPP). To provide a comparison
-point closer to the pre-print evaluation setup, we restrict substrate
-prediction to the three major substrates where all models have sufficient
-coverage: **FPP** (sesquiterpene), **squalene oxide** (triterpene), and
-**GFPP** (sesterterpene). On Track A (phylo), Blastp achieves mAP = 0.692
-on this subset, consistent with the ~0.71 reported in the pre-print
-(which used MMseqs-based splits).
+Figure 6 evaluates all substrate classes the models were trained on (see
+Section 9.1.3 below for the full list). To complement this, Figure 7
+restricts substrate prediction to the six major monomeric substrates that
+cover all principal terpene families:
+
+| Short name | Terpene class | Substrate |
+|-----------|--------------|-----------|
+| FPP | Sesquiterpene | Farnesyl diphosphate |
+| GPP | Monoterpene | Geranyl diphosphate |
+| GGPP | Diterpene (type I) | Geranylgeranyl diphosphate |
+| SqOx | Triterpene | Squalene oxide |
+| CPP | Diterpene (type II) | Copalyl diphosphate |
+| GFPP | Sesterterpene | Geranylfarnesyl diphosphate |
+
+This subset excludes the two dimeric substrates (2×FPP, 2×GGPP) that have
+zero or near-zero test positives across folds, and excludes the
+`precursor substr` class (prenyltransferase substrates remapped by
+`_remap_substrates_by_type`).
 
 ![Major Substrates — Combined Heatmap](../outputs/figures/fig7_major_substrate_heatmap.png)
 
-*Figure 7. Side-by-side heatmaps restricted to the three major substrates
-(FPP, SqOx, GFPP). Left: substrate prediction mAP. Right: TPS detection AP
-(unchanged from Figure 6). The higher mAP values compared to Figure 6
-reflect the exclusion of low-coverage and harder substrate classes.*
+*Figure 7. Side-by-side heatmaps restricted to the six major monomeric
+substrates (FPP, GPP, GGPP, SqOx, CPP, GFPP), covering mono-, sesqui-,
+di-, tri-, and sesterterpenes. Left: substrate prediction mAP. Right: TPS
+detection AP (unchanged from Figure 6). The mAP values are close to
+Figure 6 because the excluded classes (dimeric substrates, precursor
+substr) contribute minimally to the full-evaluation average.*
 
 The grouped bar charts below show the same data with error bars (standard error
 across 5 folds), making it easier to compare magnitudes and assess statistical

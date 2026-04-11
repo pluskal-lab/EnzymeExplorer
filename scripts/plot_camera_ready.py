@@ -1054,8 +1054,17 @@ def fig6_combined_heatmap(
 # ───────────────────────────────────────────────────────────────
 
 MAJOR_SUBSTRATES: set[str] = {
+    # FPP – sesquiterpene
     "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",
+    # GPP – monoterpene
+    "CC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",
+    # GGPP – diterpene
+    "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",
+    # Squalene oxide – triterpene
     "CC(C)=CCCC(C)=CCCC(C)=CCCC=C(C)CCC=C(C)CCC1OC1(C)C",
+    # CPP – diterpene (type II cyclase)
+    "CC1(C)CCCC2(C)C1CCC(=C)C2CCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",
+    # GFPP – sesterterpene
     "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",
 }
 
@@ -1150,7 +1159,7 @@ def fig7_major_substrate_heatmap(
     n_tracks = len(track_order)
 
     panel_defs: list[tuple[str, str]] = [
-        ("mAP", "Substrate Prediction — Major 3 (mAP)"),
+        ("mAP", "Substrate Prediction — Major Substrates (mAP)"),
         ("AP", "TPS Detection (AP)"),
     ]
     n_cols = len(panel_defs)
@@ -1203,7 +1212,7 @@ def fig7_major_substrate_heatmap(
         fig.colorbar(im, cax=cax, label="Score")
 
     fig.suptitle(
-        "Major Substrates Only (FPP, SqOx, GFPP)",
+        "Major Substrates Only (FPP, GPP, GGPP, SqOx, CPP, GFPP)",
         fontsize=14,
         fontweight="bold",
         y=1.01,
