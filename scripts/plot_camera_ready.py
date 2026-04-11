@@ -9,7 +9,8 @@ Generates a complete set of publication-quality figures:
   Figure 4a – Per-similarity-bin line plots for substrate prediction (mAP)
   Figure 4b – Per-similarity-bin line plots for TPS detection (AP)
   Figure 5  – PlmDomainsRF vs PlmRF comparison
-  Figure 6  – Side-by-side heatmaps: mAP and AP
+  Figure 6  – Side-by-side heatmaps: substrate prediction (mAP) & TPS detection (AP)
+  Figure 7  – Major-substrate subset heatmaps (FPP, SqOx, GFPP): mAP & AP
 
 Usage::
 
@@ -977,50 +978,61 @@ def fig6_combined_heatmap(
     agg: dict,
     outdir: Path,
 ) -> None:
-    """Substrate prediction (mAP) heatmap."""
+    """Side-by-side heatmaps: substrate prediction (mAP) and TPS detection (AP)."""
     track_order = TRACK_ORDER
     models = [m for m in MODEL_ORDER if m in agg]
     n_tracks = len(track_order)
 
+    panel_defs: list[tuple[str, str]] = [
+        ("mAP", "Substrate Prediction (mAP)"),
+        ("AP", "TPS Detection (AP)"),
+    ]
+    n_cols = len(panel_defs)
+
     fig, axes = plt.subplots(
         1,
-        2,
-        figsize=(2.8 * n_tracks + 3.5, 0.65 * len(models) + 2.5),
-        gridspec_kw={"width_ratios": [n_tracks, 0.35], "wspace": 0.35},
+        n_cols + 1,
+        figsize=(2.8 * n_tracks * n_cols + 3.5, 0.65 * len(models) + 2.5),
+        gridspec_kw={
+            "width_ratios": [n_tracks] * n_cols + [0.35],
+            "wspace": 0.45,
+        },
     )
-    ax = axes[0]
 
-    matrix = np.full((len(models), n_tracks), np.nan)
-    for mi, m in enumerate(models):
-        for ti, t in enumerate(track_order):
-            v = agg[m].get(t, {}).get("mAP")
-            if v:
-                matrix[mi, ti] = v[0]
+    im = None
+    for pi, (metric_key, panel_title) in enumerate(panel_defs):
+        ax = axes[pi]
+        matrix = np.full((len(models), n_tracks), np.nan)
+        for mi, m in enumerate(models):
+            for ti, t in enumerate(track_order):
+                v = agg[m].get(t, {}).get(metric_key)
+                if v:
+                    matrix[mi, ti] = v[0]
 
-    im = ax.imshow(matrix, cmap="RdYlGn", aspect="auto", vmin=0.2, vmax=1)
-    ax.set_xticks(range(n_tracks))
-    ax.set_xticklabels(track_order, fontsize=8, rotation=20, ha="right")
-    ax.set_yticks(range(len(models)))
-    ax.set_yticklabels(models, fontsize=9)
+        im = ax.imshow(matrix, cmap="RdYlGn", aspect="auto", vmin=0.2, vmax=1)
+        ax.set_xticks(range(n_tracks))
+        ax.set_xticklabels(track_order, fontsize=8, rotation=20, ha="right")
+        ax.set_yticks(range(len(models)))
+        ax.set_yticklabels(models if pi == 0 else [], fontsize=9)
 
-    for i in range(len(models)):
-        for j in range(n_tracks):
-            v = matrix[i, j]
-            if np.isnan(v):
-                ax.text(
-                    j, i, "\u2014", ha="center", va="center",
-                    fontsize=7, color="gray",
-                )
-            else:
-                tc = "white" if v > 0.7 else "black"
-                ax.text(
-                    j, i, f"{v:.3f}", ha="center", va="center",
-                    fontsize=7, color=tc, fontweight="bold",
-                )
-    ax.set_title("Substrate Prediction (mAP)", fontsize=10, fontweight="bold", pad=8)
+        for i in range(len(models)):
+            for j in range(n_tracks):
+                v = matrix[i, j]
+                if np.isnan(v):
+                    ax.text(
+                        j, i, "\u2014", ha="center", va="center",
+                        fontsize=7, color="gray",
+                    )
+                else:
+                    tc = "white" if v > 0.7 else "black"
+                    ax.text(
+                        j, i, f"{v:.3f}", ha="center", va="center",
+                        fontsize=7, color=tc, fontweight="bold",
+                    )
+        ax.set_title(panel_title, fontsize=10, fontweight="bold", pad=8)
 
-    axes[1].set_visible(False)
-    cax = fig.add_axes([0.92, 0.15, 0.015, 0.7])
+    axes[-1].set_visible(False)
+    cax = fig.add_axes([0.93, 0.15, 0.012, 0.7])
     if im is not None:
         fig.colorbar(im, cax=cax, label="Score")
 
@@ -1030,11 +1042,177 @@ def fig6_combined_heatmap(
         fontweight="bold",
         y=1.01,
     )
-    plt.tight_layout(rect=[0, 0, 0.91, 0.98])
+    plt.tight_layout(rect=[0, 0, 0.92, 0.98])
     for ext in ("png", "pdf", "svg"):
         fig.savefig(outdir / f"fig6_combined_heatmap.{ext}")
     plt.close(fig)
     logger.info("Saved fig6_combined_heatmap")
+
+
+# ───────────────────────────────────────────────────────────────
+# Figure 7: Major-substrate subset heatmap (mAP + AP)
+# ───────────────────────────────────────────────────────────────
+
+MAJOR_SUBSTRATES: set[str] = {
+    "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",
+    "CC(C)=CCCC(C)=CCCC(C)=CCCC=C(C)CCC=C(C)CCC1OC1(C)C",
+    "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",
+}
+
+
+def _collect_major_substrate_agg(
+    n_folds: int = 5,
+) -> dict[str, dict[str, dict[str, tuple[float, float]]]]:
+    """Compute mAP restricted to MAJOR_SUBSTRATES from fold pkl files."""
+    results: dict[str, dict[str, dict[str, tuple]]] = defaultdict(
+        lambda: defaultdict(dict)
+    )
+    col = "SMILES_substrate_canonical_no_stereo"
+    for track_label, models in _TRACK_TO_MODELS.items():
+        for model_type, version in models.items():
+            display = MODEL_DISPLAY.get(model_type, model_type)
+            fold_results = _load_fold_results(model_type, version, n_folds)
+            if not fold_results:
+                continue
+            fold_maps: list[float] = []
+            fold_aps: list[float] = []
+            for fold_i, (val_proba, class_names, test_df) in fold_results:
+                class_list = (
+                    list(class_names)
+                    if not isinstance(class_names, list)
+                    else class_names
+                )
+                if col not in test_df.columns:
+                    continue
+                labels = test_df[col].values
+
+                per_class_aps: list[float] = []
+                for ci, cname in enumerate(class_list):
+                    if cname == "isTPS" or cname not in MAJOR_SUBSTRATES:
+                        continue
+                    y_true = np.array(
+                        [
+                            1
+                            if (isinstance(s, set) and cname in s) or s == cname
+                            else 0
+                            for s in labels
+                        ]
+                    )
+                    if y_true.sum() < 1 or y_true.sum() == len(y_true):
+                        continue
+                    ap = average_precision_score(y_true, val_proba[:, ci])
+                    per_class_aps.append(ap)
+                if per_class_aps:
+                    fold_maps.append(float(np.mean(per_class_aps)))
+
+                if "isTPS" in class_list:
+                    tps_idx = class_list.index("isTPS")
+                    y_true = np.array(
+                        [
+                            1
+                            if (isinstance(s, set) and "isTPS" in s)
+                            else 0
+                            for s in labels
+                        ]
+                    )
+                    if 0 < y_true.sum() < len(y_true):
+                        ap = average_precision_score(
+                            y_true, val_proba[:, tps_idx]
+                        )
+                        fold_aps.append(ap)
+
+            if fold_maps:
+                m = float(np.mean(fold_maps))
+                s = (
+                    float(np.std(fold_maps, ddof=1) / np.sqrt(len(fold_maps)))
+                    if len(fold_maps) > 1
+                    else 0.0
+                )
+                results[display][track_label]["mAP"] = (m, s)
+            if fold_aps:
+                m = float(np.mean(fold_aps))
+                s = (
+                    float(np.std(fold_aps, ddof=1) / np.sqrt(len(fold_aps)))
+                    if len(fold_aps) > 1
+                    else 0.0
+                )
+                results[display][track_label]["AP"] = (m, s)
+    return dict(results)
+
+
+def fig7_major_substrate_heatmap(
+    major_agg: dict,
+    outdir: Path,
+) -> None:
+    """Side-by-side heatmaps for major-substrate mAP and TPS detection AP."""
+    track_order = TRACK_ORDER
+    models = [m for m in MODEL_ORDER if m in major_agg]
+    n_tracks = len(track_order)
+
+    panel_defs: list[tuple[str, str]] = [
+        ("mAP", "Substrate Prediction — Major 3 (mAP)"),
+        ("AP", "TPS Detection (AP)"),
+    ]
+    n_cols = len(panel_defs)
+
+    fig, axes = plt.subplots(
+        1,
+        n_cols + 1,
+        figsize=(2.8 * n_tracks * n_cols + 3.5, 0.65 * len(models) + 2.5),
+        gridspec_kw={
+            "width_ratios": [n_tracks] * n_cols + [0.35],
+            "wspace": 0.45,
+        },
+    )
+
+    im = None
+    for pi, (metric_key, panel_title) in enumerate(panel_defs):
+        ax = axes[pi]
+        matrix = np.full((len(models), n_tracks), np.nan)
+        for mi, m in enumerate(models):
+            for ti, t in enumerate(track_order):
+                v = major_agg[m].get(t, {}).get(metric_key)
+                if v:
+                    matrix[mi, ti] = v[0]
+
+        im = ax.imshow(matrix, cmap="RdYlGn", aspect="auto", vmin=0.2, vmax=1)
+        ax.set_xticks(range(n_tracks))
+        ax.set_xticklabels(track_order, fontsize=8, rotation=20, ha="right")
+        ax.set_yticks(range(len(models)))
+        ax.set_yticklabels(models if pi == 0 else [], fontsize=9)
+
+        for i in range(len(models)):
+            for j in range(n_tracks):
+                v = matrix[i, j]
+                if np.isnan(v):
+                    ax.text(
+                        j, i, "\u2014", ha="center", va="center",
+                        fontsize=7, color="gray",
+                    )
+                else:
+                    tc = "white" if v > 0.7 else "black"
+                    ax.text(
+                        j, i, f"{v:.3f}", ha="center", va="center",
+                        fontsize=7, color=tc, fontweight="bold",
+                    )
+        ax.set_title(panel_title, fontsize=10, fontweight="bold", pad=8)
+
+    axes[-1].set_visible(False)
+    cax = fig.add_axes([0.93, 0.15, 0.012, 0.7])
+    if im is not None:
+        fig.colorbar(im, cax=cax, label="Score")
+
+    fig.suptitle(
+        "Major Substrates Only (FPP, SqOx, GFPP)",
+        fontsize=14,
+        fontweight="bold",
+        y=1.01,
+    )
+    plt.tight_layout(rect=[0, 0, 0.92, 0.98])
+    for ext in ("png", "pdf", "svg"):
+        fig.savefig(outdir / f"fig7_major_substrate_heatmap.{ext}")
+    plt.close(fig)
+    logger.info("Saved fig7_major_substrate_heatmap")
 
 
 # ───────────────────────────────────────────────────────────────
@@ -1161,6 +1339,9 @@ def main() -> None:
     fig4_perbin(perbin, args.outdir, bin_counts=bin_counts)
     fig5_domain_comparison(agg, args.outdir)
     fig6_combined_heatmap(agg, args.outdir)
+
+    major_agg = _collect_major_substrate_agg()
+    fig7_major_substrate_heatmap(major_agg, args.outdir)
 
     logger.info("All figures saved to %s", args.outdir)
 

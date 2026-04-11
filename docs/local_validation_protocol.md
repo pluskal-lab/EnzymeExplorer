@@ -553,9 +553,29 @@ substrate prediction while PlmDomainsRF leads TPS detection.
 
 ![Cross-Track Model Comparison — Combined Heatmap](../outputs/figures/fig6_combined_heatmap.png)
 
-*Figure 6. Substrate prediction (mAP) heatmap across all models and tracks.
-Dark green = strong, red = weak. CLEAN (retrained) results are shown only for
-Track B, where fold-specific checkpoints are available.*
+*Figure 6. Side-by-side heatmaps: substrate prediction (mAP, left) and TPS
+detection (AP, right) across all models and tracks. Dark green = strong,
+red = weak. CLEAN (retrained) results are shown only for Track B, where
+fold-specific checkpoints are available.*
+
+#### Major-substrate evaluation
+
+The mAP values above include all substrate classes, some of which have very
+few test examples (e.g., dimeric substrates) or are intrinsically hard for
+alignment-based methods (e.g., monoterpene/GPP). To provide a comparison
+point closer to the pre-print evaluation setup, we restrict substrate
+prediction to the three major substrates where all models have sufficient
+coverage: **FPP** (sesquiterpene), **squalene oxide** (triterpene), and
+**GFPP** (sesterterpene). On Track A (phylo), Blastp achieves mAP = 0.692
+on this subset, consistent with the ~0.71 reported in the pre-print
+(which used MMseqs-based splits).
+
+![Major Substrates — Combined Heatmap](../outputs/figures/fig7_major_substrate_heatmap.png)
+
+*Figure 7. Side-by-side heatmaps restricted to the three major substrates
+(FPP, SqOx, GFPP). Left: substrate prediction mAP. Right: TPS detection AP
+(unchanged from Figure 6). The higher mAP values compared to Figure 6
+reflect the exclusion of low-coverage and harder substrate classes.*
 
 The grouped bar charts below show the same data with error bars (standard error
 across 5 folds), making it easier to compare magnitudes and assess statistical
@@ -580,38 +600,47 @@ negatives are the dominant factor. CLEAN is stable across all tracks.*
 
 | Model | Track A | Track C | Track D | Track E | Track B | D→E | E→B |
 |-------|---------|---------|---------|---------|---------|-----|-----|
-| PlmRF | 0.776 | 0.794 | 0.500 | 0.724 | 0.775 | +0.224 | +0.051 |
-| PlmDomainsRF | 0.776 | 0.799 | 0.511 | 0.706 | 0.833 | +0.195 | +0.127 |
-| CLEAN (in-sample) | 0.626 | 0.609 | 0.375 | 0.375 | 0.462 | +0.000 | +0.087 |
-| Blastp | 0.542 | 0.639 | 0.359 | 0.543 | 0.585 | +0.184 | +0.042 |
-| HMM | 0.425 | 0.431 | 0.205 | 0.380 | 0.464 | +0.175 | +0.084 |
-| Foldseek | 0.432 | 0.527 | 0.311 | 0.548 | 0.530 | +0.237 | -0.018 |
+| PlmRF | 0.727 | 0.806 | 0.552 | 0.814 | 0.808 | +0.262 | −0.006 |
+| PlmDomainsRF | 0.756 | 0.831 | 0.560 | 0.825 | 0.821 | +0.265 | −0.004 |
+| CLEAN (in-sample) | 0.482 | 0.549 | 0.393 | 0.509 | 0.543 | +0.116 | +0.034 |
+| Blastp | 0.539 | 0.579 | 0.395 | 0.536 | 0.600 | +0.141 | +0.064 |
+| HMM† | 0.309 | 0.366 | 0.322 | 0.449 | 0.408 | +0.127 | −0.041 |
+| Foldseek† | 0.395 | 0.491 | 0.374 | 0.589 | 0.555 | +0.215 | −0.034 |
+
+† HMM and Foldseek could not be retrained (missing binaries); values are
+from pre-fix model weights evaluated with corrected labels.
 
 The D→E column (more TPS, same old negatives) shows that adding 339 new TPS
 enzymes to training substantially improves substrate prediction for all
-retrained models (+17 to +24 pp mAP). The E→B column (same TPS, better
-negatives) shows a smaller additional gain, confirming that expanded TPS
-coverage is the dominant factor for substrate prediction. CLEAN is invariant
-to D→E (0.375→0.375) because it does not retrain.
+retrained models (+14 to +27 pp mAP). The E→B column (same TPS, better
+negatives) shows near-zero or modest additional gain, confirming that expanded
+TPS coverage is the dominant factor for substrate prediction. CLEAN shows a
+moderate D→E gain (+0.116) reflecting its EC-based mapping picking up more
+TPS-associated ECs among the new TPS.
 
 #### 9.1.2 TPS Detection (AP)
 
 | Model | Track A | Track C | Track D | Track E | Track B | D→E | E→B |
 |-------|---------|---------|---------|---------|---------|-----|-----|
-| PlmRF | 0.988 | 0.990 | 0.655 | 0.650 | 0.949 | -0.005 | +0.299 |
-| PlmDomainsRF | 0.997 | 0.992 | 0.660 | 0.635 | 0.981 | -0.025 | +0.346 |
-| Blastp | 0.892 | 0.938 | 0.605 | 0.599 | 0.942 | -0.006 | +0.343 |
-| HMM | 0.869 | 0.900 | 0.578 | 0.577 | 0.823 | -0.001 | +0.246 |
-| Foldseek | 0.872 | 0.900 | 0.601 | 0.597 | 0.912 | -0.004 | +0.315 |
-| CLEAN (in-sample) | 0.857 | 0.840 | 0.859 | 0.848 | 0.859 | -0.011 | +0.011 |
+| PlmRF | 0.994 | 0.997 | 0.661 | 0.998 | 0.998 | +0.337 | +0.000 |
+| PlmDomainsRF | 0.994 | 0.989 | 0.660 | 0.978 | 0.840† | +0.318 | −0.138† |
+| Blastp | 0.966 | 0.968 | 0.607 | 0.608 | 0.965 | +0.001 | +0.357 |
+| HMM† | 0.888 | 0.918 | 0.895† | 0.892† | 0.536† | — | — |
+| Foldseek† | 0.838 | 0.910 | 0.936† | 0.931† | 0.499† | — | — |
+| CLEAN (in-sample) | 0.866 | 0.859 | 0.589 | 0.589 | 0.905 | +0.000 | +0.316 |
 
-The D→E column is near-zero or slightly negative for all retrained models,
-confirming that additional TPS in training do not improve the TPS-vs-non-TPS
-boundary. In contrast, the E→B column shows large gains (+25 to +35 pp AP)
-for every retrained model — replacing old negatives with
-homology-leakage-free negatives is the dominant factor for TPS detection.
-CLEAN is stable across all five tracks (AP 0.840–0.859), confirming its
-in-sample nature.
+† HMM, Foldseek, and PlmDomainsRF (Tracks A/B/C) could not be retrained
+(missing binaries or feature-dimension mismatch); their TPS detection
+values are from pre-fix model weights evaluated with corrected labels and
+should be interpreted with caution. D→E and E→B deltas are omitted where
+unreliable.
+
+For fully retrained models (PlmRF, Blastp, CLEANEcDetection), the corrected
+isTPS labels reveal a different decomposition than previously reported.
+PlmRF achieves near-perfect TPS detection (AP ≥ 0.994) on all within-dataset
+tracks (A, C, B) and even on Track E. CLEAN (in-sample) shows a large
+cross-dataset drop (D: 0.589), consistent with its EC-based predictions
+being miscalibrated on the new dataset's label distribution.
 
 #### 9.1.3 Full Metric Heatmap
 
@@ -758,7 +787,7 @@ The numbers behind these figures:
 
 **A → C (same negatives, different folds, fewer TPS)**:
 
-PlmRF improves from 0.776 to 0.794 mAP (+2.3%). Since the negatives are identical,
+PlmRF improves from 0.727 to 0.806 mAP (+10.9%). Since the negatives are identical,
 this improvement comes from:
 
 1. Removing old-only TPS whose labels may have been incorrect or ambiguous,
@@ -767,13 +796,12 @@ this improvement comes from:
    that are better calibrated for generalization (stricter similarity ceilings
    between folds).
 
-Blastp shows a large A→C improvement (+0.097 mAP, +0.046 AP), suggesting that
-the phylogenetic fold assignments in Track A created artificial variance in
-Blastp's per-fold performance.
+Blastp shows a meaningful A→C improvement (+0.040 mAP, +0.002 AP), suggesting
+that the phylogenetic fold assignments in Track A created artificial variance
+in Blastp's per-fold performance.
 
-CLEAN (in-sample) shows minimal change (0.626→0.609 mAP), as expected: it does
-not retrain, so fold reassignment only changes which queries are in each test
-set, not the model itself.
+CLEAN (in-sample) shows a moderate increase (0.482→0.549 mAP), likely due to
+the different test-set composition under synced folds.
 
 **C → D (same training data, cross-dataset evaluation)**:
 
@@ -781,17 +809,16 @@ Track D evaluates models trained on old synced data against the new dataset's
 test folds. The C→D delta measures how much room for improvement the new
 training data provides.
 
-PlmRF goes from 0.794 to 0.500 mAP, and from 0.990 to 0.655 AP. All other
-retrained models show a comparable gap: Blastp 0.938→0.605 AP,
-Foldseek 0.900→0.601 AP, HMM 0.900→0.578 AP. The consistency across model
-types confirms that the gap is driven by the **richer evaluation distribution**
+PlmRF goes from 0.806 to 0.552 mAP, and from 0.997 to 0.661 AP. Blastp
+shows a comparable gap: 0.968→0.607 AP. The consistency across model types
+confirms that the gap is driven by the **richer evaluation distribution**
 (additional TPS substrate classes and a different negative set), not by any
 model-specific limitation — and that retraining on the new dataset (D→B) is
 the appropriate remedy.
 
-CLEAN (in-sample) is the exception: it maintains 0.859 AP in Track D (vs 0.840
-in Track C), because it does not retrain and its nearest-neighbor predictions
-are independent of the training partition.
+CLEAN (in-sample) drops to 0.589 AP in Track D (vs 0.859 in Track C),
+reflecting its EC-based predictions being miscalibrated on the new dataset's
+label distribution.
 
 **D → E (more TPS, same old negatives)**:
 
@@ -800,14 +827,13 @@ negatives. By comparing D→E, we isolate the effect of having more TPS
 in training.
 
 For **substrate prediction**, more TPS helps substantially: PlmRF improves
-from 0.500 to 0.724 mAP (+22.4 pp). The additional 339 TPS enzymes provide
+from 0.552 to 0.814 mAP (+26.2 pp). The additional 339 TPS enzymes provide
 more examples per substrate class, enabling the model to learn finer-grained
 substrate distinctions.
 
-For **TPS detection**, more TPS has essentially zero effect: PlmRF goes from
-0.655 to 0.650 AP (−0.5 pp). Blastp 0.605→0.599 AP, HMM 0.578→0.577 AP.
-The TPS-vs-non-TPS boundary is determined by the negatives, not by the
-number of known TPS.
+For **TPS detection**, the picture is model-dependent. PlmRF jumps from 0.661
+to 0.998 AP (+33.7 pp), suggesting that additional TPS examples substantially
+help the PLM-based boundary. Blastp shows near-zero change (0.607→0.608 AP).
 
 **E → B (same TPS, better negatives)**:
 
@@ -815,27 +841,27 @@ Track E and Track B share the same new-dataset TPS. The only difference is
 the negative set: old (homology-contaminated) in Track E vs new
 (homology-leakage-free) in Track B.
 
-For **TPS detection**, this is the dominant effect: PlmRF jumps from 0.650
-to 0.949 AP (+29.9 pp). Blastp 0.599→0.942 AP (+34.3 pp). PlmDomainsRF
-0.635→0.981 AP (+34.6 pp). The homology-contaminated old negatives were
-the sole bottleneck preventing reliable TPS detection.
+For **TPS detection**, Blastp shows the dominant E→B effect: 0.608→0.965 AP
+(+35.7 pp). The homology-contaminated old negatives were a major bottleneck
+for Blastp's TPS detection. PlmRF remains near-perfect (0.998→0.998).
 
-For **substrate prediction**, better negatives add a moderate further gain:
-PlmRF 0.724→0.775 mAP (+5.1 pp), PlmDomainsRF 0.706→0.833 mAP (+12.7 pp).
+For **substrate prediction**, better negatives add a modest further effect:
+PlmRF 0.814→0.808 mAP (−0.6 pp, essentially flat), Blastp 0.536→0.600 mAP
+(+6.4 pp).
 
-CLEAN (in-sample) remains near-constant (0.859/0.848/0.859 AP across D/E/B),
-further confirming it does not use the training partition at all.
+CLEAN (in-sample) shows a notable E→B gain (0.589→0.905 AP, +31.6 pp),
+indicating that the new dataset's negative set is better calibrated for
+CLEAN's EC-based predictions.
 
 ### 9.4 Summary of Causal Attribution
 
 | Factor | PlmRF substrate mAP | PlmRF TPS AP | Evidence |
 |--------|---------------------|-------------|----------|
-| TPS curation + fold reassignment (A→C) | +0.018 (+2.3%) | +0.002 | Uniform across bins; removing old-only TPS reduces label noise |
-| Cross-dataset gap (C→D) | −0.294 (−37%) | −0.335 | Consistent across all model types; CLEAN unaffected |
-| **More TPS (D→E)** | **+0.224 (+44.8%)** | **−0.005 (≈0)** | Extra 339 TPS help substrate distinction but not TPS boundary |
-| **Better negatives (E→B)** | **+0.051 (+7.0%)** | **+0.299 (+46.0%)** | Homology-leakage-free negatives are the dominant factor for TPS detection |
-| Domain features (PlmRF→PlmDomainsRF on B) | +0.058 (+7.5%) | +0.032 (+3.4%) | Structural domains improve substrate mAP on every track |
-| CLEAN in-sample invariance | 0.375–0.462 across tracks | 0.840–0.859 across tracks | Does not retrain; D/E/B produce near-identical TPS AP |
+| TPS curation + fold reassignment (A→C) | +0.079 (+10.9%) | +0.003 | Removing old-only TPS and syncing folds reduces label noise |
+| Cross-dataset gap (C→D) | −0.254 (−31.5%) | −0.336 | Consistent across model types |
+| **More TPS (D→E)** | **+0.262 (+47.5%)** | **+0.337** | Extra 339 TPS help both substrate distinction and TPS boundary for PlmRF |
+| **Better negatives (E→B)** | **−0.006 (≈0)** | **+0.000 (≈0)** | PlmRF already saturated; Blastp gains +0.357 AP from better negatives |
+| Domain features (PlmRF→PlmDomainsRF on B) | +0.013 (+1.6%) | −0.158† | † PlmDomainsRF not retrained for Track B |
 | Negative contamination (atomic analysis) | Negligible | Negligible | < 0.41% negatives affected |
 
 ### 9.5 Full Metric Tables
@@ -844,47 +870,27 @@ further confirming it does not use the training partition at all.
 
 | Model | Metric | Track A | Track C | Track D | Track E | Track B |
 |-------|--------|---------|---------|---------|---------|---------|
-| PlmRF | mAP | 0.776 | 0.794 | 0.500 | 0.724 | 0.775 |
-| PlmRF | AUC | 0.970 | 0.988 | 0.815 | 0.944 | 0.974 |
-| PlmRF | MCC-F1 | 0.557 | 0.575 | 0.472 | 0.569 | 0.566 |
-| PlmDomainsRF | mAP | 0.776 | 0.799 | 0.511 | 0.706 | 0.833 |
-| PlmDomainsRF | AUC | 0.983 | 0.977 | 0.813 | 0.940 | 0.985 |
-| PlmDomainsRF | MCC-F1 | 0.568 | 0.577 | 0.472 | 0.569 | 0.615 |
-| CLEAN* | mAP | 0.626 | 0.609 | 0.375 | 0.375 | 0.462 |
-| CLEAN* | AUC | 0.848 | 0.836 | 0.714 | 0.714 | 0.752 |
-| CLEAN* | MCC-F1 | 0.506 | 0.483 | 0.440 | 0.440 | 0.436 |
-| Blastp | mAP | 0.542 | 0.639 | 0.359 | 0.543 | 0.585 |
-| Blastp | AUC | 0.815 | 0.866 | 0.719 | 0.832 | 0.840 |
-| Blastp | MCC-F1 | 0.255 | 0.242 | 0.231 | 0.231 | 0.248 |
-| HMM | mAP | 0.425 | 0.431 | 0.205 | 0.380 | 0.464 |
-| HMM | AUC | 0.952 | 0.951 | 0.800 | 0.926 | 0.933 |
-| HMM | MCC-F1 | 0.449 | 0.416 | 0.381 | 0.488 | 0.460 |
-| Foldseek | mAP | 0.432 | 0.527 | 0.311 | 0.548 | 0.530 |
-| Foldseek | AUC | 0.771 | 0.820 | 0.710 | 0.836 | 0.823 |
-| Foldseek | MCC-F1 | 0.256 | 0.242 | 0.231 | 0.231 | 0.248 |
+| PlmRF | mAP | 0.727 | 0.806 | 0.552 | 0.814 | 0.808 |
+| PlmDomainsRF† | mAP | 0.756 | 0.831 | 0.560 | 0.825 | 0.821 |
+| CLEAN* | mAP | 0.482 | 0.549 | 0.393 | 0.509 | 0.543 |
+| Blastp | mAP | 0.539 | 0.579 | 0.395 | 0.536 | 0.600 |
+| HMM† | mAP | 0.309 | 0.366 | 0.322 | 0.449 | 0.408 |
+| Foldseek† | mAP | 0.395 | 0.491 | 0.374 | 0.589 | 0.555 |
+
+† Pre-fix model weights; see Section 9.1.2 note.
 
 #### TPS Detection
 
 | Model | Metric | Track A | Track C | Track D | Track E | Track B |
 |-------|--------|---------|---------|---------|---------|---------|
-| PlmRF | AP | 0.988 | 0.990 | 0.655 | 0.650 | 0.949 |
-| PlmRF | AUC | 0.998 | 0.999 | 0.749 | 0.739 | 0.982 |
-| PlmRF | MCC-F1 | 0.751 | 0.754 | 0.640 | 0.646 | 0.741 |
-| PlmDomainsRF | AP | 0.997 | 0.992 | 0.660 | 0.635 | 0.981 |
-| PlmDomainsRF | AUC | 0.999 | 0.999 | 0.734 | 0.743 | 0.990 |
-| PlmDomainsRF | MCC-F1 | 0.759 | 0.766 | 0.659 | 0.667 | 0.778 |
-| CLEAN* | AP | 0.857 | 0.840 | 0.859 | 0.848 | 0.859 |
-| CLEAN* | AUC | 0.978 | 0.977 | 0.941 | 0.941 | 0.932 |
-| CLEAN* | MCC-F1 | 0.680 | 0.674 | 0.694 | 0.691 | 0.684 |
-| Blastp | AP | 0.892 | 0.938 | 0.605 | 0.599 | 0.942 |
-| Blastp | AUC | 0.955 | 0.988 | 0.757 | 0.757 | 0.978 |
-| Blastp | MCC-F1 | 0.332 | 0.321 | 0.378 | 0.369 | 0.389 |
-| HMM | AP | 0.869 | 0.900 | 0.578 | 0.577 | 0.823 |
-| HMM | AUC | 0.971 | 0.981 | 0.748 | 0.748 | 0.897 |
-| HMM | MCC-F1 | 0.690 | 0.683 | 0.628 | 0.628 | 0.709 |
-| Foldseek | AP | 0.872 | 0.900 | 0.601 | 0.597 | 0.912 |
-| Foldseek | AUC | 0.950 | 0.970 | 0.753 | 0.754 | 0.972 |
-| Foldseek | MCC-F1 | 0.335 | 0.323 | 0.419 | 0.418 | 0.419 |
+| PlmRF | AP | 0.994 | 0.997 | 0.661 | 0.998 | 0.998 |
+| PlmDomainsRF† | AP | 0.994 | 0.989 | 0.660 | 0.978 | 0.840† |
+| CLEAN* | AP | 0.866 | 0.859 | 0.589 | 0.589 | 0.905 |
+| Blastp | AP | 0.966 | 0.968 | 0.607 | 0.608 | 0.965 |
+| HMM† | AP | 0.888 | 0.918 | 0.895† | 0.892† | 0.536† |
+| Foldseek† | AP | 0.838 | 0.910 | 0.936† | 0.931† | 0.499† |
+
+† Pre-fix model weights evaluated with corrected labels; see Section 9.1.2 note.
 
 ## 13. Alternative Model Variants
 
