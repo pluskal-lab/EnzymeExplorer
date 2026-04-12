@@ -247,6 +247,14 @@ model family.
 
 ### 4.2 Blastp (Sequence Similarity Baseline)
 
+Blastp is run with `n_neighbours=1` and `e_threshold=0.001`. We use a
+modified version of the ProFun library where, for `n_neighbours=1`, the
+prediction confidence is derived from the BLAST e-value via log-linear
+scaling (`confidence = (log10(evalue) − log10(threshold)) / (−180 − log10(threshold))`,
+clipped to [0, 1]) instead of the default binary count-based voting
+(which gives degenerate 0/1 scores for a single neighbour). This ensures
+meaningful ranking of predictions for AP/mAP computation.
+
 ### 4.3 CLEAN (Pre-trained Enzyme Function Predictor)
 - **Critical caveat**: CLEAN's pre-training data **includes all TPS and negative
   enzymes** in our evaluation sets. Its numbers reflect in-sample (or near-in-sample)
@@ -660,12 +668,14 @@ negatives are the dominant factor. CLEAN is stable across all tracks.*
 | PlmRF | 0.727 | 0.806 | 0.552 | 0.814 | 0.808 | +0.262 | −0.006 |
 | PlmDomainsRF | 0.756 | 0.831 | 0.560 | 0.825 | 0.821 | +0.265 | −0.004 |
 | CLEAN (in-sample) | 0.482 | 0.549 | 0.393 | 0.509 | 0.543 | +0.116 | +0.034 |
-| Blastp | 0.539 | 0.579 | 0.395 | 0.536 | 0.600 | +0.141 | +0.064 |
+| Blastp | 0.572 | 0.595 | 0.412 | 0.595 | 0.660 | +0.183 | +0.065 |
 | HMM† | 0.309 | 0.366 | 0.322 | 0.449 | 0.408 | +0.127 | −0.041 |
 | Foldseek† | 0.395 | 0.491 | 0.374 | 0.589 | 0.555 | +0.215 | −0.034 |
 
 † HMM and Foldseek could not be retrained (missing binaries); values are
-from pre-fix model weights evaluated with corrected labels.
+from pre-fix model weights evaluated with corrected labels. Blastp values
+reflect the e-value confidence fix (continuous [0, 1] scores instead of
+binary 0/1).
 
 The D→E column (more TPS, same old negatives) shows that adding 339 new TPS
 enzymes to training substantially improves substrate prediction for all
@@ -681,7 +691,7 @@ TPS-associated ECs among the new TPS.
 |-------|---------|---------|---------|---------|---------|-----|-----|
 | PlmRF | 0.994 | 0.997 | 0.661 | 0.998 | 0.998 | +0.337 | +0.000 |
 | PlmDomainsRF | 0.994 | 0.989 | 0.660 | 0.978 | 0.840† | +0.318 | −0.138† |
-| Blastp | 0.966 | 0.968 | 0.607 | 0.608 | 0.965 | +0.001 | +0.357 |
+| Blastp | 0.961 | 0.981 | 0.622 | 0.625 | 0.982 | +0.003 | +0.357 |
 | HMM† | 0.888 | 0.918 | 0.895† | 0.892† | 0.536† | — | — |
 | Foldseek† | 0.838 | 0.910 | 0.936† | 0.931† | 0.499† | — | — |
 | CLEAN (in-sample) | 0.866 | 0.859 | 0.589 | 0.589 | 0.905 | +0.000 | +0.316 |
@@ -867,7 +877,7 @@ test folds. The C→D delta measures how much room for improvement the new
 training data provides.
 
 PlmRF goes from 0.806 to 0.552 mAP, and from 0.997 to 0.661 AP. Blastp
-shows a comparable gap: 0.968→0.607 AP. The consistency across model types
+shows a comparable gap: 0.981→0.622 AP. The consistency across model types
 confirms that the gap is driven by the **richer evaluation distribution**
 (additional TPS substrate classes and a different negative set), not by any
 model-specific limitation — and that retraining on the new dataset (D→B) is
@@ -890,7 +900,7 @@ substrate distinctions.
 
 For **TPS detection**, the picture is model-dependent. PlmRF jumps from 0.661
 to 0.998 AP (+33.7 pp), suggesting that additional TPS examples substantially
-help the PLM-based boundary. Blastp shows near-zero change (0.607→0.608 AP).
+help the PLM-based boundary. Blastp shows near-zero change (0.622→0.625 AP).
 
 **E → B (same TPS, better negatives)**:
 
@@ -898,13 +908,13 @@ Track E and Track B share the same new-dataset TPS. The only difference is
 the negative set: old (homology-contaminated) in Track E vs new
 (homology-leakage-free) in Track B.
 
-For **TPS detection**, Blastp shows the dominant E→B effect: 0.608→0.965 AP
+For **TPS detection**, Blastp shows the dominant E→B effect: 0.625→0.982 AP
 (+35.7 pp). The homology-contaminated old negatives were a major bottleneck
 for Blastp's TPS detection. PlmRF remains near-perfect (0.998→0.998).
 
 For **substrate prediction**, better negatives add a modest further effect:
-PlmRF 0.814→0.808 mAP (−0.6 pp, essentially flat), Blastp 0.536→0.600 mAP
-(+6.4 pp).
+PlmRF 0.814→0.808 mAP (−0.6 pp, essentially flat), Blastp 0.595→0.660 mAP
+(+6.5 pp).
 
 CLEAN (in-sample) shows a notable E→B gain (0.589→0.905 AP, +31.6 pp),
 indicating that the new dataset's negative set is better calibrated for
@@ -930,7 +940,7 @@ CLEAN's EC-based predictions.
 | PlmRF | mAP | 0.727 | 0.806 | 0.552 | 0.814 | 0.808 |
 | PlmDomainsRF† | mAP | 0.756 | 0.831 | 0.560 | 0.825 | 0.821 |
 | CLEAN* | mAP | 0.482 | 0.549 | 0.393 | 0.509 | 0.543 |
-| Blastp | mAP | 0.539 | 0.579 | 0.395 | 0.536 | 0.600 |
+| Blastp | mAP | 0.572 | 0.595 | 0.412 | 0.595 | 0.660 |
 | HMM† | mAP | 0.309 | 0.366 | 0.322 | 0.449 | 0.408 |
 | Foldseek† | mAP | 0.395 | 0.491 | 0.374 | 0.589 | 0.555 |
 
@@ -943,7 +953,7 @@ CLEAN's EC-based predictions.
 | PlmRF | AP | 0.994 | 0.997 | 0.661 | 0.998 | 0.998 |
 | PlmDomainsRF† | AP | 0.994 | 0.989 | 0.660 | 0.978 | 0.840† |
 | CLEAN* | AP | 0.866 | 0.859 | 0.589 | 0.589 | 0.905 |
-| Blastp | AP | 0.966 | 0.968 | 0.607 | 0.608 | 0.965 |
+| Blastp | AP | 0.961 | 0.981 | 0.622 | 0.625 | 0.982 |
 | HMM† | AP | 0.888 | 0.918 | 0.895† | 0.892† | 0.536† |
 | Foldseek† | AP | 0.838 | 0.910 | 0.936† | 0.931† | 0.499† |
 
