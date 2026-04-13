@@ -7,6 +7,7 @@ from typing import Optional
 from sklearn.metrics import average_precision_score, roc_auc_score, precision_recall_curve  # type: ignore
 import numpy as np  # type: ignore
 import pandas as pd  # type: ignore
+from pathlib import Path
 
 
 from enzymeexplorer.src.evaluation.metrics import summary_mccf1
@@ -90,7 +91,7 @@ def eval_experiment(
             id_2_category = pickle.load(file)
     else:
         id_2_category = None
-    if blast_identities_path is not None:
+    if blast_identities_path is not None and Path(blast_identities_path).exists():
         with open(blast_identities_path, "rb") as file:
             fold_2_id_max_blast_identity = pickle.load(file)
     else:
