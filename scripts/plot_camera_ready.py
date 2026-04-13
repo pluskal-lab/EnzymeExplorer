@@ -1009,7 +1009,7 @@ def fig6_combined_heatmap(
                 if v:
                     matrix[mi, ti] = v[0]
 
-        im = ax.imshow(matrix, cmap="RdYlGn", aspect="auto", vmin=0.2, vmax=1)
+        im = ax.imshow(matrix, cmap="RdYlGn", aspect="auto", vmin=0, vmax=1)
         ax.set_xticks(range(n_tracks))
         ax.set_xticklabels(track_order, fontsize=8, rotation=20, ha="right")
         ax.set_yticks(range(len(models)))
@@ -1024,7 +1024,7 @@ def fig6_combined_heatmap(
                         fontsize=7, color="gray",
                     )
                 else:
-                    tc = "white" if v > 0.7 else "black"
+                    tc = "white" if v > 0.65 else "black"
                     ax.text(
                         j, i, f"{v:.3f}", ha="center", va="center",
                         fontsize=7, color=tc, fontweight="bold",
@@ -1184,7 +1184,7 @@ def fig7_major_substrate_heatmap(
                 if v:
                     matrix[mi, ti] = v[0]
 
-        im = ax.imshow(matrix, cmap="RdYlGn", aspect="auto", vmin=0.2, vmax=1)
+        im = ax.imshow(matrix, cmap="RdYlGn", aspect="auto", vmin=0, vmax=1)
         ax.set_xticks(range(n_tracks))
         ax.set_xticklabels(track_order, fontsize=8, rotation=20, ha="right")
         ax.set_yticks(range(len(models)))
@@ -1199,7 +1199,7 @@ def fig7_major_substrate_heatmap(
                         fontsize=7, color="gray",
                     )
                 else:
-                    tc = "white" if v > 0.7 else "black"
+                    tc = "white" if v > 0.65 else "black"
                     ax.text(
                         j, i, f"{v:.3f}", ha="center", va="center",
                         fontsize=7, color=tc, fontweight="bold",

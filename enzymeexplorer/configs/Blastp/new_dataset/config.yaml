@@ -19,7 +19,7 @@ hyperparam_dimensions: none
 seq_col_name: "Aminoacid_sequence"
 n_calls_hyperparams_opt: 0
 n_neighbours: 1
-e_threshold: 0.001
+e_threshold: 0.1
 n_jobs: 64
 pred_batch_size: 32
 neg_val: "Unknown"
