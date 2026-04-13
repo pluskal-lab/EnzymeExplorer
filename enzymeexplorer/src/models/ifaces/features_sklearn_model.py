@@ -178,6 +178,7 @@ class FeaturesSklearnModel(BaseModel):
         self,
         val_df: pd.DataFrame | np.ndarray,
         selected_class_name: Optional[str] = None,
+        fold_idx: Optional[int] = None,
     ) -> np.ndarray:
         if isinstance(val_df, pd.DataFrame):  # local validation
             assert isinstance(self.features_df, pd.DataFrame)

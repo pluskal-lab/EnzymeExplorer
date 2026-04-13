@@ -50,6 +50,7 @@ class HMM(BaseModel):
         self,
         val_df: pd.DataFrame,
         selected_class_name: Optional[str] = None,
+        fold_idx: Optional[int] = None,
     ) -> np.ndarray:
         """
         Function to predict class probabilities for the given validation data using the Hidden Markov Model (HMM).

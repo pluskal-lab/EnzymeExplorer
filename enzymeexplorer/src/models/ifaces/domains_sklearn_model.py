@@ -102,7 +102,7 @@ class DomainsSklearnModel(FeaturesSklearnModel):
         super().fit_core(train_df, class_name)
 
     def predict_proba(
-        self, val_df: pd.DataFrame, selected_class_name: Optional[str] = None
+        self, val_df: pd.DataFrame, selected_class_name: Optional[str] = None, fold_idx: Optional[int] = None
     ) -> np.ndarray:
         self._setup_features_df_for_current_data(val_df)
         return super().predict_proba(val_df, selected_class_name)
