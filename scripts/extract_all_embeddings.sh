@@ -1,8 +1,8 @@
 #!/bin/bash
 
-id_column_name="Uniprot ID"
-sequence_column_name="Amino acid sequence"
-input_csv_path=data/TPS-Nov19_2023_verified_all_reactions_with_neg_with_folds_mmseqs_30_50.csv
+id_column_name="ID"
+sequence_column_name="Aminoacid_sequence"
+input_csv_path=data/EnzymeExplorer_Dataset.csv
 num_gpus=1
 
 # plm models
