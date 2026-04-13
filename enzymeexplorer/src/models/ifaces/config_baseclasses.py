@@ -1,6 +1,6 @@
 """This module defines an abstract class for model configs"""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Union
 
@@ -19,6 +19,7 @@ class BaseConfig:
     id_col_name: str
     target_col_name: str
     split_col_name: str
+    type_col_name: str = "Type"
     class_names: list[str]
     optimize_hyperparams: bool
     n_calls_hyperparams_opt: int

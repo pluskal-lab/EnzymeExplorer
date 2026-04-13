@@ -1,6 +1,7 @@
 """This file contains an experiment runner
 which is capable of gathering all the required pieces of information for a particular experiment
-and consequently performing the computational experiment, i.e. instantiating, training and scoring the selected model"""
+and consequently performing the computational experiment, i.e. instantiating, training and scoring the selected model
+"""
 
 import inspect
 import logging
@@ -75,7 +76,7 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
 
     if hasattr(config, "gpu_id"):
         os.environ["CUDA_VISIBLE_DEVICES"] = str(config.gpu_id)
-        
+
     if hasattr(config, "is_halo"):
         is_halo = config.is_halo
     else:
@@ -137,13 +138,16 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
     )
 
     data_df = pd.read_csv(config.tps_cleaned_csv_path)
+    data_df.loc[data_df[config.type_col_name] == "Unknown", config.target_col_name] = (
+        "Unknown"
+    )
     if not is_halo:
         data_df.loc[
-            data_df["Type (mono, sesq, di, …)"].isin(
-            {"ggpps", "fpps", "gpps", "gfpps", "hsqs"}
-        ),
-        "SMILES_substrate_canonical_no_stereo",
-    ] = "precursor substr"
+            data_df[config.type_col_name].isin(
+                {"ggpps", "fpps", "gpps", "gfpps", "hsqs"}
+            ),
+            "SMILES_substrate_canonical_no_stereo",
+        ] = "precursor substr"
 
     try:
         save_trained_model = config.save_trained_model
@@ -153,33 +157,39 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
     with logging_redirect_tqdm([logger]):
         # pylint: disable=too-many-nested-blocks
         for test_fold in tqdm(
-            get_folds_from_csv(
-                csv_path=config.tps_cleaned_csv_path,
-                split_col_name=config.split_col_name,
-            ) if not is_halo else [0],
+            (
+                get_folds_from_csv(
+                    csv_path=config.tps_cleaned_csv_path,
+                    split_col_name=config.split_col_name,
+                )
+                if not is_halo
+                else [0]
+            ),
             desc=f"Iterating over validation folds per {config.split_col_name}..",
         ):
             # selecting a single fold to run if specified
             if experiment_info.fold in {"all_folds", test_fold}:
-                logger.info("Fold: %s", test_fold)
+                logger.info("Fold: %d", test_fold)
                 fold_needs_resetting = experiment_info.fold == "all_folds"
-                model.config.experiment_info.fold = test_fold
+                model.config.experiment_info.fold = str(test_fold)
                 if not is_halo:
                     trn_folds = [
-                        f"fold_{fold_trn}"
-                    for fold_trn in get_folds_from_csv(
-                        csv_path=config.tps_cleaned_csv_path,
-                        split_col_name=config.split_col_name,
-                    )
+                        fold_trn
+                        for fold_trn in get_folds_from_csv(
+                            csv_path=config.tps_cleaned_csv_path,
+                            split_col_name=config.split_col_name,
+                        )
                         if fold_trn != test_fold
                     ]
                 else:
-                    trn_folds = ['train']                    
-                trn_df = data_df[data_df[config.split_col_name].isin(set(trn_folds))].copy()
+                    trn_folds = ["train"]
+                trn_df = data_df[
+                    data_df[config.split_col_name].isin(set(trn_folds))
+                ].copy()
                 if not is_halo:
                     trn_df.loc[
                         trn_df[f"{config.split_col_name}_ignore_in_eval"] == 1,
-                    config.target_col_name,
+                        config.target_col_name,
                     ] = "other"
                 trn_df = (
                     trn_df.groupby(config.id_col_name)[config.target_col_name]
@@ -187,11 +197,12 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
                     .reset_index()
                 )
                 trn_df[config.target_col_name] = trn_df[config.target_col_name].map(
-                    lambda x: x.union({"isTPS"})
-                if len(x.difference({"Unknown", "precursor substr"}))
-                else x
+                    lambda x: (
+                        x.union({"isTPS"})
+                        if len(x.difference({"Unknown", "precursor substr"}))
+                        else x
+                    )
                 )
-                
 
                 if config.run_against_wetlab:
                     test_df_raw = get_tps_df(
@@ -206,13 +217,11 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
                     data_df[test_id_column_name] = data_df[raw_dataset_id_colunm_name]
                     model.config.id_col_name = test_id_column_name
                 else:
-                    test_df_raw = data_df[
-                        data_df[config.split_col_name] == f"fold_{test_fold}"
-                    ]
-                    if not is_halo: 
+                    test_df_raw = data_df[data_df[config.split_col_name] == test_fold]
+                    if not is_halo:
                         test_df_raw.loc[
                             test_df_raw[f"{config.split_col_name}_ignore_in_eval"] == 1,
-                        config.target_col_name,
+                            config.target_col_name,
                         ] = "other"
                     test_id_column_name = config.id_col_name
                     model.config.id_col_name = test_id_column_name
@@ -222,9 +231,11 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
                     .reset_index()
                 )
                 test_df[config.target_col_name] = test_df[config.target_col_name].map(
-                    lambda x: x.union({"isTPS"})
-                if len(x.difference({"Unknown", "precursor substr"}))
-                else x
+                    lambda x: (
+                        x.union({"isTPS"})
+                        if len(x.difference({"Unknown", "precursor substr"}))
+                        else x
+                    )
                 )
 
                 # checking if the model requires an amino acid sequence or a group (kingdom) column
@@ -268,9 +279,11 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
                     # pylint: disable=R0801
                     if per_class_optimization:
                         class_names = [
-                            model.config.class_names
-                            if not hasattr(model.config, "class_name")
-                            else [model.config.class_name]
+                            (
+                                model.config.class_names
+                                if not hasattr(model.config, "class_name")
+                                else [model.config.class_name]
+                            )
                         ]
                     else:
                         class_names = ["all_classes"]
@@ -281,7 +294,9 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
                             elif (fold_root_dir / "all_classes").exists():
                                 fold_class_path = fold_root_dir / "all_classes"
                             else:
-                                raise ValueError(f"No fold_class_path found for class {class_name} in folder {fold_root_dir}")
+                                raise ValueError(
+                                    f"No fold_class_path found for class {class_name} in folder {fold_root_dir}"
+                                )
                             previous_results = list(
                                 fold_class_path.glob(
                                     "*/hyperparameters_optimization/optimization_results_detailed_*.pkl"

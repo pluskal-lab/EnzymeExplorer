@@ -66,17 +66,19 @@ class CLEAN(BaseModel):
         }
 
         data_df = pd.read_csv(config.tps_cleaned_csv_path)
+        
+        data_df.loc[data_df[config.type_col_name] == "Unknown", config.target_col_name] = "Unknown"
         self.is_halo = getattr(config, "is_halo", False)
         if not self.is_halo:
             data_df.loc[
-                data_df["Type"].isin(
+                data_df[config.type_col_name].isin(
                 {"pt"}
             ),
             config.target_col_name,
             ] = "precursor substr"
             self.precursor_smiles = set(
                 data_df.loc[
-                    data_df["Type"].isin(
+                    data_df[config.type_col_name].isin(
                         {"pt"}
                     ),
                     config.target_col_name,
