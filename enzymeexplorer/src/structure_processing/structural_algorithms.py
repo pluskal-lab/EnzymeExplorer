@@ -37,6 +37,9 @@ class MappedRegion:
     domain: str
     tmscore: float
     residues_mapping: dict[int, int]
+    aligned_template: str = ""
+    def __post_init__(self):
+        self.aligned_template = self.domain
 
 
 # https://pymolwiki.org/index.php/Selection_Exists
@@ -152,6 +155,19 @@ def compute_full_mapping(
     domain_intervals = []
     mapped_intervals = []
     sorted_domain_residues = sorted(map(int, file_2_all_residues[domain_obj]))
+    sorted_mapped_domain_residues = sorted(map(int, residues_mapping.values()))
+    domain_map_first = max(map(int, residues_mapping.values()))
+    domain_map_last = min(map(int, residues_mapping.values()))
+    for i in range(len(residues_mapping.values())-3):
+        if [sorted_mapped_domain_residues[i+j] - sorted_mapped_domain_residues[i] for j in range(3)] == [0, 1, 2]:
+            domain_map_first = sorted_mapped_domain_residues[i]
+            break
+    for i in range(len(residues_mapping.values())-3, 0, -1):
+        if [sorted_mapped_domain_residues[i+j] - sorted_mapped_domain_residues[i] for j in range(3)] == [0, 1, 2]:
+             domain_map_last = sorted_mapped_domain_residues[i]
+             break
+
+    sorted_domain_residues = [res for res in sorted_domain_residues if res >= domain_map_first and res <= domain_map_last]
     obj_residues_set = set(map(int, file_2_all_residues[larger_obj]))
     residues_mapping_full = {}
     for domain_res in sorted_domain_residues:
@@ -499,7 +515,6 @@ def get_alignments(
         list_of_alignment_results = pool.map(align_partial, pdb_filenames)
 
     file_2_tmscore_residues = defaultdict(list)
-
     for pdb_filename, (tmscore, residues_mapping) in zip(
         pdb_filenames, list_of_alignment_results
     ):
@@ -511,14 +526,14 @@ def get_alignments(
 
 def get_remaining_residues_per_file(
     all_residues: set[str],
-    mapped_regions: list[MappedRegion],
+    mapped_regions: list[dict[int, int]],
 ) -> set[str]:
     """
     Function retrieving currently unassigned residues
     """
     mapped_residues: set[int] = set()
     for mapping in mapped_regions:
-        mapped_residues = mapped_residues.union(set(mapping.residues_mapping.keys()))
+        mapped_residues = mapped_residues.union(set(mapping.keys()))
     return all_residues.difference({str(val) for val in mapped_residues})
 
 
@@ -533,10 +548,24 @@ def get_remaining_residues(
     for filename, all_residues in file_2_previously_remaining_residues.items():
         mapped_regions = file_2_mapped_regions.get(filename, [])
         file_2_remaining_residues[filename] = get_remaining_residues_per_file(
-            all_residues, mapped_regions
+            all_residues, [region.residues_mapping for region in mapped_regions]
         )
     return file_2_remaining_residues
 
+def get_remaining_residues_from_residue_mapping(
+    file_2_mapped_regions: dict[str, list[dict[int, int]]],
+    file_2_previously_remaining_residues: dict[str, set[str]],
+) -> dict[str, set[str]]:
+    """
+    Function retrieving currently unassigned residues for each file from the `file_2_previously_remaining_residues` keys
+    """
+    file_2_remaining_residues = {}
+    for filename, all_residues in file_2_previously_remaining_residues.items():
+        mapped_regions = file_2_mapped_regions.get(filename, [])
+        file_2_remaining_residues[filename] = get_remaining_residues_per_file(
+            all_residues, mapped_regions
+        )
+    return file_2_remaining_residues
 
 def get_currently_longest_unmapped_regions(
     file_2_remaining_residues: dict[str, set[str]],
@@ -608,7 +637,8 @@ def get_mapped_regions_with_surroundings(
     filename: str,
     file_2_all_residues: dict[str, set[str]],
     filename_2_known_regions: dict[str, list[MappedRegion]],
-    helix_sheet_dist_threshold: float = 17,
+    helix_sheet_neighbor_dist_threshold: float = 20,
+    helix_sheet_domain_dist_threshold: float = 30,
     max_allowed_segment_len: int = 7,
 ) -> list[MappedRegion]:
     """
@@ -665,6 +695,7 @@ def get_mapped_regions_with_surroundings(
             min_dist = float("inf")
             closest_region_i = None
             all_dists_with_regions = []
+            region_to_dists = defaultdict(list[float])
             for mapped_region_i, mapped_region in enumerate(
                 filename_2_known_regions[filename]
             ):
@@ -676,6 +707,7 @@ def get_mapped_regions_with_surroundings(
                         selection2=segment_selection,
                         mode=4,
                     )
+                    region_to_dists[mapped_region_i].append(float(distance))
                     region_dist_min = min(region_dist_min, distance)
                     cmd.delete("dist")
                 all_dists_with_regions.append((region_dist_min, mapped_region_i))
@@ -684,9 +716,20 @@ def get_mapped_regions_with_surroundings(
                     closest_region_i = mapped_region_i
             cmd.delete("small_selection")
 
-            if min_dist < helix_sheet_dist_threshold:
+            region_to_num_dists = {
+                region: len([dist for dist in dists if dist < helix_sheet_domain_dist_threshold])
+                for region, dists in region_to_dists.items()
+            }
+            
+            num_dists_to_regions = {
+                num_dists_val: [region for region, num_dists in region_to_num_dists.items() if num_dists == num_dists_val]
+                for num_dists_val in set(region_to_num_dists.values())
+            }
+
+            if min_dist < helix_sheet_neighbor_dist_threshold:
                 if len(all_dists_with_regions) >= 2:
                     # leave unassigned if it is similarly close to two different regions
+                    
                     regions_apart_from_the_closest = [
                         (dist, region)
                         for (dist, region) in all_dists_with_regions
@@ -704,6 +747,14 @@ def get_mapped_regions_with_surroundings(
                             mapped_region_2_added_residues[closest_region_i].extend(
                                 residue_segment_remaining
                             )
+                        else:
+                            overall_closest_regions = max(
+                                num_dists_to_regions.items(), key=lambda x: x[0]
+                            )[1]
+                            if len(overall_closest_regions) == 1:
+                                mapped_region_2_added_residues[overall_closest_regions[0]].extend(
+                                    residue_segment_remaining
+                                )
                 else:
                     mapped_region_2_added_residues[closest_region_i].extend(
                         residue_segment_remaining
@@ -739,6 +790,8 @@ def get_mapped_regions_with_surroundings_parallel(
     file_2_all_residues: dict[str, set[str]],
     filename_2_known_regions: dict[str, list[MappedRegion]],
     n_jobs: int = 8,
+    helix_sheet_neighbor_dist_threshold: float = 17,
+    helix_sheet_domain_dist_threshold: float = 25,
 ) -> dict[str, list[MappedRegion]]:
     """
     A function for detecting unassigned parts of secondary structure which are close a particular domain in 3D space
@@ -748,6 +801,8 @@ def get_mapped_regions_with_surroundings_parallel(
         get_mapped_regions_with_surroundings,
         file_2_all_residues=file_2_all_residues,
         filename_2_known_regions=filename_2_known_regions,
+        helix_sheet_neighbor_dist_threshold=helix_sheet_neighbor_dist_threshold,
+        helix_sheet_domain_dist_threshold=helix_sheet_domain_dist_threshold,
     )
     pdb_filenames = [
         filepath.stem if isinstance(filepath, Path) else filepath.replace(".pdb", "")

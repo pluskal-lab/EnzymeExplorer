@@ -1,8 +1,5 @@
-# TODO: Refactor the code to use pandas DataFrames instead of dictionaries for mappings. This will make the code cleaner and more efficient.
-
 import logging
 import subprocess
-from typing import Optional
 from enzymeexplorer.src.structure_processing.structural_algorithms import (
     MappedRegion,
     compress_selection_list,
@@ -31,7 +28,7 @@ import configargparse
 from functools import partial
 import pickle
 
-FEATURE_DOMAIN_TYPES = ["alpha_1", "alpha_2", "beta", "gamma"]
+
 
 logger = logging.getLogger(__file__)
 logger.setLevel(logging.INFO)
@@ -71,9 +68,10 @@ def __get_domain_2_seq_id_and_domain_type_maps(
 def get_foldseek_alignment_df(
     query_seq_2_regions: dict[str, list[MappedRegion]],
     query_domains_dir: str,
+    query_preprocessed_name_map: dict[str, str],
     ref_seq_2_regions: dict[str, list[MappedRegion]],
     reference_domains_dir: str,
-    reference_domain_subset_path: str | None = None,
+    ref_preprocessed_name_map: dict[str, str],
 ) -> pd.DataFrame:
     """Compute pairwise distance based features between domains.
 
@@ -82,7 +80,6 @@ def get_foldseek_alignment_df(
         query_domains_dir (str): Directory containing query domain structures.
         ref_seq_2_regions (dict[str, list[MappedRegion]]): A mapping from reference sequence IDs to lists of MappedRegion objects.
         reference_domains_dir (str): Directory containing reference domain structures.
-        reference_domain_subset_path (str): Path to the pickled list of reference domains to consider.
 
     Returns:
         pd.DataFrame: DataFrame containing foldseek alignment results.
@@ -94,22 +91,12 @@ def get_foldseek_alignment_df(
     assert set(
         [file.stem for file in Path(reference_domains_dir).glob("*.pdb")]
     ) >= set(
-        reference_domains
+        [ref_preprocessed_name_map.get(domain, domain) for domain in reference_domains]
     ), "Reference domains directory does not contain all required domain structures."
 
     assert set([file.stem for file in Path(query_domains_dir).glob("*.pdb")]) >= set(
-        query_domains
+        [query_preprocessed_name_map.get(domain, domain) for domain in query_domains]
     ), "Query domains directory does not contain all required domain structures."
-
-    if reference_domain_subset_path:
-        # Load reference domain subset
-        with open(reference_domain_subset_path, "rb") as f:
-            reference_domain_subset, _ = pickle.load(f)
-
-        assert set(reference_domain_subset).issubset(
-            set(reference_domains)
-        ), "Reference domain subset contains domains not present in the reference regions data."
-        reference_domains = reference_domain_subset
 
     logger.info(
         f"Running Foldseek alignment for {len(query_domains)} query domains against {len(reference_domains)} reference domains... (eg. {query_domains[0]} vs {reference_domains[0]})"
@@ -122,11 +109,11 @@ def get_foldseek_alignment_df(
         Path(reference_pdbs_dir).mkdir(parents=True, exist_ok=True)
         # Copy relevant PDB files to temporary directories
         for domain in reference_domains:
-            src_path = os.path.join(reference_domains_dir, f"{domain}.pdb")
+            src_path = os.path.join(reference_domains_dir, f"{ref_preprocessed_name_map.get(domain, domain)}.pdb")
             dst_path = os.path.join(reference_pdbs_dir, f"{domain}.pdb")
             os.symlink(src_path, dst_path)
         for domain in query_domains:
-            src_path = os.path.join(query_domains_dir, f"{domain}.pdb")
+            src_path = os.path.join(query_domains_dir, f"{query_preprocessed_name_map.get(domain, domain)}.pdb")
             dst_path = os.path.join(query_pdbs_dir, f"{domain}.pdb")
             os.symlink(src_path, dst_path)
 
@@ -135,6 +122,7 @@ def get_foldseek_alignment_df(
             target_dir=reference_pdbs_dir,
             tmp_dir=os.path.join(tmpdir, "tmp_foldseek"),
             output=os.path.join(tmpdir, "foldseek_output.tsv"),
+            max_seqs=len(reference_domains) * 2,
         )
 
     query_domain_2_seq_id, query_domain_2_domain_type = (
@@ -187,9 +175,44 @@ def get_reference_domain_type_2_module_ids(
         )
     return ref_domain_type_2_module_id
 
+def preprocess_domains_by_renaming_domain_types(
+    seq_2_regions: dict[str, list[MappedRegion]], domain_type_preprocessing_config: dict[str, str]
+) -> tuple[dict[str, list[MappedRegion]], dict[str, str]]:
+    """Preprocess domains by renaming their types according to the provided configuration.
+
+    Args:
+        seq_2_regions (dict[str, list[MappedRegion]]): A dictionary mapping sequence ids to lists of domains.
+        domain_type_preprocessing_config (dict[str, list[str]]): A dictionary mapping new domain types to lists of old domain types.
+
+    Returns:
+        tuple[dict[str, list[MappedRegion]], dict[str, str]]: A tuple containing the preprocessed sequence-to-domains mapping and the preprocessed name map.
+    """
+    renamed_modules_name_map = {}
+    preprocessed_seq_2_regions = {}
+    for seq_id, regions in seq_2_regions.items():
+        preprocessed_regions = []
+        domain_type_ctrs = defaultdict(int)
+        for region in regions:
+            new_domain_type = domain_type_preprocessing_config[region.domain]
+            new_region = MappedRegion(
+                module_id=f"{seq_id}_{new_domain_type}_{domain_type_ctrs[new_domain_type]}",
+                domain=new_domain_type,
+                tmscore=region.tmscore,
+                residues_mapping=region.residues_mapping,
+                aligned_template=region.domain,
+            )
+            new_region.aligned_template = region.domain
+            preprocessed_regions.append(new_region)
+            renamed_modules_name_map[new_region.module_id] = region.module_id
+            domain_type_ctrs[new_domain_type] += 1
+        preprocessed_seq_2_regions[seq_id] = preprocessed_regions
+
+    return preprocessed_seq_2_regions, renamed_modules_name_map
+
 
 def get_col_idx_for_structural_features(
     ref_domain_type_2_module_ids: dict[str, list[str]],
+    feature_domain_types: list[str]
 ) -> dict[str, dict[str, int]]:
     """Initialize a numpy array to store structural features.
 
@@ -201,7 +224,7 @@ def get_col_idx_for_structural_features(
     """
     domain_type_2_module_id_2_col_idx = {}
     idx = 0
-    for feature_domain_type in FEATURE_DOMAIN_TYPES:
+    for feature_domain_type in feature_domain_types:
         domain_type_2_module_id_2_col_idx[feature_domain_type] = {}
         for domain_name in ref_domain_type_2_module_ids[feature_domain_type]:
             domain_type_2_module_id_2_col_idx[feature_domain_type][domain_name] = idx
@@ -352,7 +375,8 @@ def save_file_to_all_residues(
 
         for domain_template in domain_templates:
             template_dst_path = sec_str_input_dir / f"{domain_template['path'].name}"
-            os.symlink(Path(domain_template["path"]), template_dst_path)
+            if not template_dst_path.exists():
+                os.symlink(Path(domain_template["path"]), template_dst_path)
 
         subprocess.check_output(
             f"python -m enzymeexplorer.src.structure_processing.compute_secondary_structure_residues --input-directory {str(sec_str_input_dir)} --output-path {secondary_structure_residues_path}".split(),
@@ -396,14 +420,17 @@ def filter_pdb_files_by_foldseek_alignments(
     pdb_files: list[Path],
     domain_templates: list[dict[str, Path | str]],
     batch_size: int = 1000,
-) -> list[Path]:
+    e_value: float = 10,
+    cov_mode: int = 1,
+    coverage: float = 0.5,
+) -> dict[str, list[Path]]:
     with tempfile.TemporaryDirectory() as tmpdir:
         tmpdir_path = Path(tmpdir)
         target_dir = tmpdir_path / "target"
         target_dir.mkdir()
         store_templates(domain_templates, target_dir)
 
-        filtered_pdb_file_names = set()
+        filtered_pdb_file_names: defaultdict[str, set] = defaultdict(set)
         query_dir = tmpdir_path / "query"
         query_dir.mkdir()
         for idx in range(0, len(pdb_files), batch_size):
@@ -418,15 +445,27 @@ def filter_pdb_files_by_foldseek_alignments(
                 tmp_dir=str(tmpdir_path / "tmp_foldseek"),
                 output=str(tmpdir_path / "foldseek_output.tsv"),
                 max_seqs=batch_size * 2,
-                e_value=10
+                e_value=e_value,
+                cov_mode=cov_mode,
+                coverage=coverage,
             )
-            filtered_pdb_file_names.update(set(alignment_df["query"].unique()))
+            for domain_template in domain_templates:
+                filtered_pdb_file_names[str(domain_template["name"])].update(
+                    set(
+                        alignment_df[alignment_df["target"] == domain_template["name"]][
+                            "query"
+                        ].unique()
+                    )
+                )
 
-        return [
-            pdb_file
-            for pdb_file in pdb_files
-            if pdb_file.stem in filtered_pdb_file_names
-        ]
+        return {
+            domain_name: [
+                pdb_file
+                for pdb_file in pdb_files
+                if pdb_file.stem in filtered_pdb_files
+            ]
+            for domain_name, filtered_pdb_files in filtered_pdb_file_names.items()
+        }
 
 
 def filter_domains_by_foldseek_alignments(
@@ -434,9 +473,23 @@ def filter_domains_by_foldseek_alignments(
     supported_domains: list[str],
     domain_templates: list[dict[str, Path | str]],
     domain_pdbs_root: Path,
+    e_value: float = 10,
 ) -> dict[str, list[MappedRegion]]:
-    all_regions = set([region.module_id for regions in filename_2_known_regions_completed_confident.values() for region in regions])
-    high_conf_regions = set([region.module_id for regions in filename_2_known_regions_completed_confident.values() for region in regions if region.tmscore >= 0.4])
+    all_regions = set(
+        [
+            region.module_id
+            for regions in filename_2_known_regions_completed_confident.values()
+            for region in regions
+        ]
+    )
+    high_conf_regions = set(
+        [
+            region.module_id
+            for regions in filename_2_known_regions_completed_confident.values()
+            for region in regions
+            if region.tmscore >= 0.4
+        ]
+    )
     filtered_domain_pdb_files = set()
     filtered_regions = set()
     filename_2_known_regions_completed_confident_filtered = defaultdict(list)
@@ -444,38 +497,57 @@ def filter_domains_by_foldseek_alignments(
         domain_pdbs_dir = domain_pdbs_root / domain
         if domain_pdbs_dir.exists():
             domain_pdb_files = [
-                path.absolute() for path in domain_pdbs_dir.glob(f"*.pdb")
+                path.absolute()
+                for path in domain_pdbs_dir.glob(f"*.pdb")
                 if path.stem in set([region for region in all_regions])
             ]
             if domain_pdb_files:
                 filtered_domains = set(
-                    filter_pdb_files_by_foldseek_alignments(
-                        domain_pdb_files,
-                        [
-                            domain_template
-                            for domain_template in domain_templates
-                            if domain_template["name"] == domain
-                        ],
-                        batch_size=3000,
-                    )
+                    [
+                        pdb_file
+                        for pdb_files in filter_pdb_files_by_foldseek_alignments(
+                            domain_pdb_files,
+                            [
+                                domain_template
+                                for domain_template in domain_templates
+                                if domain_template["name"] == domain
+                            ],
+                            batch_size=3000,
+                            e_value=e_value,
+                            cov_mode=2,
+                            coverage=0.6,
+                        ).values()
+                        for pdb_file in pdb_files
+                    ]
                 )
-                filtered_domains.update([domain_pdbs_dir / f"{region}.pdb" for region in high_conf_regions])
+                filtered_domains.update(
+                    [domain_pdbs_dir / f"{region}.pdb" for region in high_conf_regions]
+                )
 
                 filtered_domain_regions_ids = set(
                     [filtered_domain.stem for filtered_domain in filtered_domains]
                 )
-                filtered_domain_pdb_files.update([filtered_domain.name for filtered_domain in filtered_domains])
+                filtered_domain_pdb_files.update(
+                    [filtered_domain.name for filtered_domain in filtered_domains]
+                )
                 filtered_regions.update(filtered_domain_regions_ids)
                 for domain_pdb_file in domain_pdb_files:
                     if domain_pdb_file not in filtered_domains:
                         os.remove(domain_pdb_file)
 
-    root_pdb_files = [path.absolute() for path in domain_pdbs_root.glob(f"*.pdb") if path.stem in all_regions]
+    root_pdb_files = [
+        path.absolute()
+        for path in domain_pdbs_root.glob(f"*.pdb")
+        if path.stem in all_regions
+    ]
     for domain_pdb_file in root_pdb_files:
         if domain_pdb_file.name not in filtered_domain_pdb_files:
-            logger.info(f"Removing domain pdb file {domain_pdb_file} due to lack of foldseek alignment.")
+            logger.info(
+                f"Removing domain pdb file {domain_pdb_file} due to lack of foldseek alignment."
+            )
             os.remove(domain_pdb_file)
 
+    renamed = {}
     for filename in filename_2_known_regions_completed_confident:
         filtered_regions_for_filename = sorted(
             [
@@ -503,10 +575,11 @@ def filter_domains_by_foldseek_alignments(
                         domain_pdbs_root / domain / f"{region.module_id}.pdb",
                     )
                     os.rename(
-                        domain_pdbs_root / f"{old_module_id}.pkl",
-                        domain_pdbs_root / f"{region.module_id}.pkl",
+                        domain_pdbs_root / f"{old_module_id}.pdb",
+                        domain_pdbs_root / f"{region.module_id}.pdb",
                     )
                     regions_for_file.append(region)
+                    renamed[old_module_id] = region.module_id
             else:
                 for region in group_by_domain_type[domain]:
                     regions_for_file.append(region)
@@ -675,7 +748,7 @@ def plot_aligned_domains(
 
 
 def detect_domains_roughly(
-    specified_pdb_files: list[Path],
+    domain_to_pdb_files: dict[str, list[Path]],
     file_2_all_residues_mapping: dict[str, set[str]],
     domain_templates: list[dict],
     args: configargparse.Namespace,
@@ -698,7 +771,7 @@ def detect_domains_roughly(
         logger.info("Started detection of domain %s", domain_this)
         start_t = time.time()
         file_2_tmscore_residues_domain = get_alignments(
-            specified_pdb_files,
+            domain_to_pdb_files[domain_this],
             domain_template=domain_template,
             file_2_current_residues=file_2_all_residues_mapping,
             n_jobs=args.n_jobs,
@@ -889,16 +962,25 @@ def get_confident_residue_mappings(
     return filename_2_known_regions_completed_confident
 
 
-def pick_disjoint_domains(domains: list[MappedRegion]) -> list[MappedRegion]:
-    if len(domains) == 0:
+def pick_disjoint_domains(sorted_domains: list[MappedRegion]) -> list[MappedRegion]:
+    if len(sorted_domains) == 0:
         return []
     picked = []
-    for domain in domains:
+    for domain in sorted_domains:
         pick = True
+        replace = None
         for picked_domain in picked:
-            if is_similar_to_known_region(picked_domain, domain, threshold_recall_threshold=0.2):
-                pick = False
-                break
+            if is_similar_to_known_region(
+                picked_domain, domain, threshold_recall_threshold=0.2
+            ):
+                if picked_domain.tmscore < domain.tmscore + 0.01 and len(picked_domain.residues_mapping) * 1.15 < len(domain.residues_mapping):
+                    replace = picked_domain
+                else:
+                    pick = False
+                    break
         if pick:
-            picked.append(domain)
+            if replace is not None:
+                picked = [d if d != replace else domain for d in picked]
+            else:
+                picked.append(domain)
     return picked

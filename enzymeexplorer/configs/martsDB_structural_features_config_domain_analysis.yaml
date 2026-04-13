@@ -1,0 +1,5 @@
+reference-domains-file-path: "data/detected_domains/martsDB_detected_domains_for_analysis/martsDB_detected_domains.pkl"
+reference-domains-structures-directory: "data/detected_domains/martsDB_detected_domains_for_analysis/domains/"
+query-domains-file-path: "data/detected_domains/martsDB_detected_domains_for_analysis/martsDB_detected_domains.pkl"
+query-domains-structures-directory: "data/detected_domains/martsDB_detected_domains_for_analysis/domains/"
+output-directory: "data/martsDB_structural_features_for_analysis"
