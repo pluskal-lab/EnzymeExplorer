@@ -1,9 +1,17 @@
 """This script contains utils for ESM embeddings extraction"""
+import logging
 from typing import Optional
 
 import esm  # type: ignore
 import numpy as np  # type: ignore
 import torch  # type: ignore
+import logging
+from pathlib import Path
+import gdown  # type: ignore
+from filelock import FileLock
+
+logger = logging.getLogger(__file__)
+logger.setLevel(logging.INFO)
 
 CHECKPOINT_NAMES = {
     "esm-1v-finetuned": "checkpoint-tps-esm1v-t33-finetuned.ckpt",
@@ -18,6 +26,18 @@ MODEL_LAYERS = {
     "esm-2": 36,
     "esm-2-t30": 30,
 }
+
+
+def download_plm_checkpoint(checkpoint_name: str, checkpoint_dir: Optional[str] = "data/plm_checkpoints") -> None:
+    logger.info("checking TPS language model checkpoint presence")
+    plm_chkpt_path = Path(checkpoint_dir if checkpoint_dir is not None else "data/plm_checkpoints")
+    if not plm_chkpt_path.exists():
+        plm_chkpt_path.mkdir(parents=True)
+    plm_path = plm_chkpt_path / checkpoint_name
+    if not plm_path.exists():
+        logger.info("Downloading TPS language model checkpoint..")
+        url = "https://drive.google.com/uc?id=1jU76oUl0-CmiB9m3XhaKmI2HorFhyxC7"
+        gdown.download(url, str(plm_path), quiet=False)
 
 
 def get_model_and_tokenizer(
@@ -38,6 +58,9 @@ def get_model_and_tokenizer(
         checkpoint_names = CHECKPOINT_NAMES
     if model_name in checkpoint_names:
         checkpoint_name = checkpoint_names[model_name]
+        file_lock = FileLock(f"{checkpoint_name}.lock")
+        with file_lock:
+            download_plm_checkpoint(checkpoint_name, checkpoint_dir)
         ckpt = torch.load(
             f"{checkpoint_dir}/{checkpoint_name}",
             map_location=torch.device("cpu"),
