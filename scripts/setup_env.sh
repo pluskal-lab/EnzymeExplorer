@@ -4,7 +4,7 @@
 conda create -n enzyme_explorer python==3.10.0 scikit-learn==1.5.1 pandas==2.2.2 numpy==1.26.4 scipy==1.13.0 jupyter matplotlib seaborn foldseek==9.427df8a pymol-bundle pymol-psico==3.4.19 tmalign==20170708 bioconda::mmseqs2 mafft==7.525 iqtree==2.3.0 biopython==1.83 fastapi rdkit==2022.9.5 -c schrodinger -c speleo3 -c conda-forge -c bioconda -y
 conda activate enzyme_explorer
 
-pip install torch --index-url https://download.pytorch.org/whl/cu121
+pip install torch==2.6.0 torchvision==0.21.0 torchaudio==2.6.0 --index-url https://download.pytorch.org/whl/cu124
 # pip install torch --index-url https://download.pytorch.org/whl/rocm6.0  # for amd gpu's
 pip install epam.indigo
 pip install openpyxl
