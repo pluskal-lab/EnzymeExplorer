@@ -1,6 +1,7 @@
 id_col_name: "ID"
 target_col_name: "SMILES_substrate_canonical_no_stereo"
 split_col_name: "Fold"
+type_col_name: "Type"
 class_names: ["isTPS"]
 optimize_hyperparams: false
 random_state: 0

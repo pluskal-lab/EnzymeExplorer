@@ -1,6 +1,7 @@
 id_col_name: "ID"
 target_col_name: "SMILES_substrate_canonical_no_stereo"
 split_col_name: "Fold"
+type_col_name: "Type"
 class_names: ["CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",
             "CC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",
             "precursor substr",
@@ -14,7 +15,7 @@ class_names: ["CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",
 optimize_hyperparams: false
 random_state: 0
 hyperparam_dimensions: none
-seq_col_name: "Amino acid sequence"
+seq_col_name: "Aminoacid_sequence"
 n_calls_hyperparams_opt: 0
 n_neighbours: 1
 e_threshold: 0.001
