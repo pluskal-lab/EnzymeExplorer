@@ -978,3 +978,26 @@ does not improve performance in practice. The joint model's implicit
 integration of detection and substrate prediction is already effective. The
 multiplicative combination is strictly worse because it penalizes true TPS
 proteins whose P(TPS) is less than 1.0.
+
+---
+
+## Changelog
+
+- **2026-04-14 — Retrain HMM & PlmDomainsRF; remove CLEAN**
+  - Removed CLEAN (both in-sample and retrained variants) from all tables,
+    figures, and prose. CLEAN's EC-number-based predictions are not
+    comparable with the direct substrate-level classifiers evaluated here.
+  - Retrained HMM on all five tracks with corrected `isTPS` labels and
+    updated environment (`hmmer 3.4`, `mafft`). Track B TPS detection AP
+    improved from 0.451 to 0.872.
+  - Retrained PlmDomainsRF on all five tracks using the **latest improved
+    domain detection pipeline** (updated AlphaFold-based domain extraction,
+    refined Foldseek structural comparisons, and reconstructed cross-dataset
+    domain PDBs) — not the original domain detection algorithms from the
+    initial publication. Fixed a feature-concatenation bug in `predict_proba`
+    that doubled domain features (5 934 vs 3 607 expected), and a
+    cross-dataset feature-swap bug in `experiment_runner.py`. Track B
+    substrate mAP improved from 0.840 to 0.831 (within noise after the
+    bugfix; previous 0.840 was inflated by the doubled-feature artifact),
+    Track B TPS detection AP improved to 0.999.
+  - Regenerated all camera-ready figures (Figures 1–4) without CLEAN.
