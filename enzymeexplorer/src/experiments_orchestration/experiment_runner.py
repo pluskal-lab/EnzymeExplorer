@@ -1,6 +1,7 @@
 """This file contains an experiment runner
 which is capable of gathering all the required pieces of information for a particular experiment
-and consequently performing the computational experiment, i.e. instantiating, training and scoring the selected model"""
+and consequently performing the computational experiment, i.e. instantiating, training and scoring the selected model
+"""
 
 import inspect
 import logging
@@ -13,7 +14,7 @@ from tqdm.contrib.logging import logging_redirect_tqdm  # type: ignore
 
 from enzymeexplorer.src import models
 from enzymeexplorer.src.models.ifaces import BaseConfig, BaseModel
-from enzymeexplorer.src.utils.data import get_folds, get_folds_from_csv, get_tps_df
+from enzymeexplorer.src.utils.data import get_folds_from_csv, get_tps_df
 from enzymeexplorer.src.utils.project_info import (
     ExperimentInfo,
     get_config_root,
@@ -22,6 +23,91 @@ from enzymeexplorer.src.utils.project_info import (
 
 logger = logging.getLogger(__file__)
 logger.setLevel(logging.INFO)
+
+_NON_TPS_LABELS = frozenset({"Unknown", "precursor substr"})
+
+_PRECURSOR_TYPES = frozenset({"ggpps", "fpps", "gpps", "gfpps", "hsqs", "pt"})
+
+_DEFAULT_TYPE_COL = "Type (mono, sesq, di, …)"
+
+_SUBSTRATE_COL = "SMILES_substrate_canonical_no_stereo"
+
+
+def _remap_substrates_by_type(df: pd.DataFrame, type_col: str) -> None:
+    """Override substrate labels for non-TPS protein types.
+
+    * Precursor types (``_PRECURSOR_TYPES``) → ``"precursor substr"``
+    * Unknown / negative types → ``"Unknown"``
+
+    This prevents substrate-bearing negatives from being labelled
+    ``isTPS=True`` by :func:`assign_is_tps_label`.
+    """
+    if type_col not in df.columns:
+        return
+    df.loc[
+        df[type_col].isin(_PRECURSOR_TYPES), _SUBSTRATE_COL
+    ] = "precursor substr"
+    df.loc[df[type_col] == "Unknown", _SUBSTRATE_COL] = "Unknown"
+
+
+def _normalize_fold_column(df: pd.DataFrame, col: str) -> None:
+    """Ensure fold-column values use ``fold_N`` format.
+
+    Old datasets already store ``fold_0``, ``fold_1``, etc.  New datasets
+    (e.g. *EnzymeExplorer_Dataset.csv*) store bare integers ``0, 1, …``.
+    This helper normalises the latter to ``fold_0, fold_1, …`` in-place so
+    that downstream code can use a single format.
+    """
+    vals = df[col].dropna().astype(str)
+    if vals.empty or vals.str.startswith("fold_").any():
+        return
+    mask = df[col].notna()
+    df.loc[mask, col] = "fold_" + df.loc[mask, col].astype(int).astype(str)
+
+
+def assign_is_tps_label(label_set: set[str]) -> set[str]:
+    """Add ``isTPS`` to *label_set* when it contains at least one real TPS substrate.
+
+    A set that only contains non-TPS sentinel values (``Unknown``,
+    ``precursor substr``) is returned unchanged.  Any other substrate
+    present -- even alongside ``precursor substr`` -- indicates the
+    protein is a TPS and should carry the ``isTPS`` flag.
+    """
+    if label_set.issubset(_NON_TPS_LABELS):
+        return label_set
+    return label_set | {"isTPS"}
+
+
+def _load_eval_dataset(config: BaseConfig) -> pd.DataFrame:
+    """Load the cross-dataset evaluation CSV and rename its columns
+    to match the training-dataset schema so downstream code works
+    unchanged."""
+    eval_df = pd.read_csv(config.eval_csv_path)
+    renames: dict[str, str] = {}
+    if config.eval_id_col_name:
+        renames[config.eval_id_col_name] = config.id_col_name
+    if config.eval_split_col_name:
+        renames[config.eval_split_col_name] = config.split_col_name
+    for eval_attr, cfg_attr in [
+        ("eval_seq_col_name", "seq_col_name"),
+        ("eval_type_col_name", "type_col_name"),
+        ("eval_group_col_name", "group_column_name"),
+    ]:
+        eval_col = getattr(config, eval_attr, "")
+        cfg_col = getattr(config, cfg_attr, None)
+        if eval_col and cfg_col and eval_col != cfg_col:
+            renames[eval_col] = cfg_col
+    if renames:
+        eval_df.rename(columns=renames, inplace=True)
+    _normalize_fold_column(eval_df, config.split_col_name)
+    type_col = getattr(config, "type_col_name", _DEFAULT_TYPE_COL)
+    _remap_substrates_by_type(eval_df, type_col)
+    logger.info(
+        "Cross-dataset eval: test folds from %s (%d rows)",
+        config.eval_csv_path,
+        len(eval_df),
+    )
+    return eval_df
 
 
 def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool = False):
@@ -75,7 +161,7 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
 
     if hasattr(config, "gpu_id"):
         os.environ["CUDA_VISIBLE_DEVICES"] = str(config.gpu_id)
-        
+
     if hasattr(config, "is_halo"):
         is_halo = config.is_halo
     else:
@@ -137,13 +223,21 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
     )
 
     data_df = pd.read_csv(config.tps_cleaned_csv_path)
+    _normalize_fold_column(data_df, config.split_col_name)
     if not is_halo:
-        data_df.loc[
-            data_df["Type (mono, sesq, di, …)"].isin(
-            {"ggpps", "fpps", "gpps", "gfpps", "hsqs"}
-        ),
-        "SMILES_substrate_canonical_no_stereo",
-    ] = "precursor substr"
+        type_col = getattr(config, "type_col_name", _DEFAULT_TYPE_COL)
+        _remap_substrates_by_type(data_df, type_col)
+
+    cross_dataset_eval = bool(getattr(config, "eval_csv_path", ""))
+    eval_data_df = None
+    eval_features_df = None
+    if cross_dataset_eval:
+        eval_data_df = _load_eval_dataset(config)
+        eval_repr_path = getattr(config, "eval_representations_path", "")
+        if eval_repr_path:
+            eval_features_df = pd.read_hdf(eval_repr_path)
+            eval_features_df.columns = [config.id_col_name, "Emb"]
+            eval_features_df.drop_duplicates(subset=[config.id_col_name], inplace=True)
 
     try:
         save_trained_model = config.save_trained_model
@@ -153,10 +247,14 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
     with logging_redirect_tqdm([logger]):
         # pylint: disable=too-many-nested-blocks
         for test_fold in tqdm(
-            get_folds_from_csv(
-                csv_path=config.tps_cleaned_csv_path,
-                split_col_name=config.split_col_name,
-            ) if not is_halo else [0],
+            (
+                get_folds_from_csv(
+                    csv_path=config.tps_cleaned_csv_path,
+                    split_col_name=config.split_col_name,
+                )
+                if not is_halo
+                else [0]
+            ),
             desc=f"Iterating over validation folds per {config.split_col_name}..",
         ):
             # selecting a single fold to run if specified
@@ -167,19 +265,21 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
                 if not is_halo:
                     trn_folds = [
                         f"fold_{fold_trn}"
-                    for fold_trn in get_folds_from_csv(
-                        csv_path=config.tps_cleaned_csv_path,
-                        split_col_name=config.split_col_name,
-                    )
+                        for fold_trn in get_folds_from_csv(
+                            csv_path=config.tps_cleaned_csv_path,
+                            split_col_name=config.split_col_name,
+                        )
                         if fold_trn != test_fold
                     ]
                 else:
-                    trn_folds = ['train']                    
-                trn_df = data_df[data_df[config.split_col_name].isin(set(trn_folds))].copy()
+                    trn_folds = ["train"]
+                trn_df = data_df[
+                    data_df[config.split_col_name].isin(set(trn_folds))
+                ].copy()
                 if not is_halo:
                     trn_df.loc[
                         trn_df[f"{config.split_col_name}_ignore_in_eval"] == 1,
-                    config.target_col_name,
+                        config.target_col_name,
                     ] = "other"
                 trn_df = (
                     trn_df.groupby(config.id_col_name)[config.target_col_name]
@@ -187,9 +287,7 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
                     .reset_index()
                 )
                 trn_df[config.target_col_name] = trn_df[config.target_col_name].map(
-                    lambda x: x
-                if len(x.intersection({"Unknown", "precursor substr"}))
-                else x.union({"isTPS"})
+                    assign_is_tps_label
                 )
 
                 if config.run_against_wetlab:
@@ -204,14 +302,27 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
                     trn_df[test_id_column_name] = trn_df[raw_dataset_id_colunm_name]
                     data_df[test_id_column_name] = data_df[raw_dataset_id_colunm_name]
                     model.config.id_col_name = test_id_column_name
+                elif cross_dataset_eval:
+                    test_df_raw = eval_data_df[
+                        eval_data_df[config.split_col_name] == f"fold_{test_fold}"
+                    ]
+                    _eval_ignore = f"{config.split_col_name}_ignore_in_eval"
+                    if not is_halo and _eval_ignore in test_df_raw.columns:
+                        test_df_raw = test_df_raw.copy()
+                        test_df_raw.loc[
+                            test_df_raw[_eval_ignore] == 1,
+                            config.target_col_name,
+                        ] = "other"
+                    test_id_column_name = config.id_col_name
+                    model.config.id_col_name = test_id_column_name
                 else:
                     test_df_raw = data_df[
                         data_df[config.split_col_name] == f"fold_{test_fold}"
                     ]
-                    if not is_halo: 
+                    if not is_halo:
                         test_df_raw.loc[
                             test_df_raw[f"{config.split_col_name}_ignore_in_eval"] == 1,
-                        config.target_col_name,
+                            config.target_col_name,
                         ] = "other"
                     test_id_column_name = config.id_col_name
                     model.config.id_col_name = test_id_column_name
@@ -221,12 +332,11 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
                     .reset_index()
                 )
                 test_df[config.target_col_name] = test_df[config.target_col_name].map(
-                    lambda x: x
-                if len(x.intersection({"Unknown", "precursor substr"}))
-                else x.union({"isTPS"})
+                    assign_is_tps_label
                 )
 
                 # checking if the model requires an amino acid sequence or a group (kingdom) column
+                _test_source_df = eval_data_df if cross_dataset_eval else data_df
                 for optional_column_attribute in ["seq_col_name", "group_column_name"]:
                     if (
                         hasattr(config, optional_column_attribute)
@@ -242,16 +352,15 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
                             id_seq_df,
                             on=config.id_col_name,
                         )
-                        test_id_seq_df = test_df_raw[
-                            [
-                                test_id_column_name,
-                                getattr(config, optional_column_attribute),
-                            ]
-                        ].drop_duplicates(test_id_column_name)
-                        test_df = test_df.merge(
-                            test_id_seq_df,
-                            on=test_id_column_name,
-                        )
+                        _col = getattr(config, optional_column_attribute)
+                        if _col in _test_source_df.columns:
+                            test_id_seq_df = test_df_raw[
+                                [test_id_column_name, _col]
+                            ].drop_duplicates(test_id_column_name)
+                            test_df = test_df.merge(
+                                test_id_seq_df,
+                                on=test_id_column_name,
+                            )
                 logger.info(f"A number of training samples: {len(trn_df)}")
                 logger.info(f"A number of testing samples: {len(test_df)}")
 
@@ -267,9 +376,11 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
                     # pylint: disable=R0801
                     if per_class_optimization:
                         class_names = [
-                            model.config.class_names
-                            if not hasattr(model.config, "class_name")
-                            else [model.config.class_name]
+                            (
+                                model.config.class_names
+                                if not hasattr(model.config, "class_name")
+                                else [model.config.class_name]
+                            )
                         ]
                     else:
                         class_names = ["all_classes"]
@@ -280,7 +391,9 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
                             elif (fold_root_dir / "all_classes").exists():
                                 fold_class_path = fold_root_dir / "all_classes"
                             else:
-                                raise ValueError(f"No fold_class_path found for class {class_name} in folder {fold_root_dir}")
+                                raise ValueError(
+                                    f"No fold_class_path found for class {class_name} in folder {fold_root_dir}"
+                                )
                             previous_results = list(
                                 fold_class_path.glob(
                                     "*/hyperparameters_optimization/optimization_results_detailed_*.pkl"
@@ -309,7 +422,25 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
                     model.save()
 
                 # scoring the model
-                val_proba_np = model.predict_proba(test_df)
+                _stashed_features = None
+                _stashed_plm_features = None
+                if (
+                    cross_dataset_eval
+                    and eval_features_df is not None
+                    and hasattr(model, "features_df")
+                ):
+                    _stashed_features = model.features_df
+                    model.features_df = eval_features_df
+                    if hasattr(model, "features_df_plm"):
+                        _stashed_plm_features = model.features_df_plm
+                        model.features_df_plm = eval_features_df
+                val_proba_np = model.predict_proba(
+                    test_df, fold_idx=int(test_fold)
+                )
+                if _stashed_features is not None:
+                    model.features_df = _stashed_features
+                if _stashed_plm_features is not None:
+                    model.features_df_plm = _stashed_plm_features
                 with open(
                     model.output_root / f"fold_{test_fold}_results.pkl", "wb"
                 ) as file:

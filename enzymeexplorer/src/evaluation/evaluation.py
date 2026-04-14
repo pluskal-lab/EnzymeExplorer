@@ -1,9 +1,11 @@
 """File containing experiment evaluation"""
+
 import argparse
 import logging
 import pickle
 from collections import defaultdict
-from typing import Optional
+from typing import Optional, Union
+
 from sklearn.metrics import average_precision_score, roc_auc_score, precision_recall_curve  # type: ignore
 import numpy as np  # type: ignore
 import pandas as pd  # type: ignore
@@ -25,6 +27,103 @@ from enzymeexplorer.src.utils.project_info import (
 logger = logging.getLogger(__file__)
 logger.setLevel(level=logging.INFO)
 
+DEFAULT_SIMILARITY_BINS: list[tuple[float, float]] = [
+    (0, 30),
+    (30, 50),
+    (50, 70),
+    (70, 90),
+    (90, 100),
+]
+
+_NO_HIT_LABEL = "no_hit"
+_ALL_LABEL = "all"
+
+MIN_NEGATIVES_FOR_EVAL = 3
+
+
+def load_similarity_artifact(
+    path: str,
+) -> dict[int, dict[str, dict[str, Union[float, bool]]]]:
+    """Load a similarity pickle and normalise to the rich MMseqs schema.
+
+    Legacy BLAST format::
+
+        {fold_i: {seq_id: max_blast_identity_float}}
+
+    MMseqs format::
+
+        {fold_i: {seq_id: {"pident": float, "qcov": float,
+                           "evalue": float, "has_hit": bool}}}
+
+    Returns the MMseqs-style dict in both cases.  Legacy entries are
+    tagged ``is_synthetic: True`` so that downstream code can skip
+    qcov-based filtering for imputed values.
+    """
+    with open(path, "rb") as fh:
+        raw: dict = pickle.load(fh)
+
+    normalised: dict[int, dict[str, dict[str, Union[float, bool]]]] = {}
+    for fold_key, id_map in raw.items():
+        fold_idx = int(fold_key)
+        norm_map: dict[str, dict[str, Union[float, bool]]] = {}
+        for seq_id, value in id_map.items():
+            if isinstance(value, dict):
+                norm_map[seq_id] = value
+            else:
+                norm_map[seq_id] = {
+                    "pident": float(value),
+                    "qcov": 1.0,
+                    "evalue": 0.0,
+                    "has_hit": True,
+                    "is_synthetic": True,
+                }
+        normalised[fold_idx] = norm_map
+    return normalised
+
+
+def _get_pident(
+    sim_record: dict[str, Union[float, bool]],
+) -> float:
+    return float(sim_record.get("pident", 0.0))
+
+
+def _has_hit(
+    sim_record: dict[str, Union[float, bool]],
+) -> bool:
+    return bool(sim_record.get("has_hit", True))
+
+
+def _build_bin_label(lo: float, hi: float) -> str:
+    return f"{lo:.0f}-{hi:.0f}"
+
+
+def _compute_metrics_for_bin(
+    y_true: pd.Series,
+    y_pred: np.ndarray,
+    mask: pd.Series,
+    min_pos: int,
+    min_neg: int,
+) -> Optional[dict]:
+    """Compute AP, ROC-AUC, MCC-F1 for a subset, returning None if ineligible."""
+    y_t = y_true[mask]
+    y_p = y_pred[mask]
+    n_pos = int(y_t.sum())
+    n_neg = int(len(y_t) - n_pos)
+    if n_pos < min_pos or n_neg < min_neg:
+        return None
+    ap = average_precision_score(y_t, y_p)
+    auc = roc_auc_score(y_t, y_p)
+    mccf1 = summary_mccf1(y_t, y_p)["mccf1_metric"]
+    pr = precision_recall_curve(y_t, y_p)
+    return {
+        "ap": ap,
+        "auc": auc,
+        "mccf1": mccf1,
+        "pr": pr,
+        "n_pos": n_pos,
+        "n_neg": n_neg,
+    }
+
 
 def eval_experiment(
     experiment_info: ExperimentInfo,
@@ -36,28 +135,31 @@ def eval_experiment(
     blast_identities_path: Optional[str] = None,
     id_col_name: Optional[str] = "Uniprot ID",
     max_allowed_blast_identity: Optional[int] = 60,
+    similarity_bins: Optional[list[tuple[float, float]]] = None,
+    min_negatives_for_eval: int = MIN_NEGATIVES_FOR_EVAL,
 ) -> tuple[list, list, list, list]:
     """
-    Function for evaluating results of the specified experiment
+    Evaluate results of the specified experiment.
 
-    :param experiment_info: Information about the experiment to evaluate
-    :param target_col: The name of the target column in the dataset
-    :param min_sample_count_for_eval: The minimum number of samples required for evaluation
-    :param n_folds: The number of folds used in the experiment
-    :param classes: A list of class names for which separate evaluations are conducted
-    :param id_2_category_path: Optional path to a file mapping IDs to categories
-    :param blast_identities_path: Optional path to a file mapping IDs to BLAST identities
+    Supports both legacy BLAST identity pickles and rich MMseqs
+    similarity artifacts (auto-detected).  When *similarity_bins* is
+    provided the configurable bins are used; otherwise the legacy
+    10-step bucketing is applied for backward compatibility.
 
-    :return: A tuple containing lists of average precision values, ROC AUC values, MCC F1 values, and precision-recall curves
+    :param similarity_bins: list of (lo, hi) tuples in percent-identity
+        space, e.g. ``[(0, 30), (30, 50), ...]``.  An "all" and
+        "no_hit" pseudo-bin are always added automatically.
+    :param min_negatives_for_eval: Minimum negatives in a bin for it
+        to be eligible (in addition to *min_sample_count_for_eval*
+        for positives).
     """
-    # retrieve the model class
     experiment_output_folder_root = (
         get_output_root() / experiment_info.model_type / experiment_info.model_version
     )
     assert (
         experiment_output_folder_root.exists()
     ), f"Output folder {experiment_output_folder_root} for {experiment_info} does not exist"
-    # discover available fold results
+
     model_version_fold_folders = {
         x.stem for x in experiment_output_folder_root.glob("*")
     }
@@ -78,7 +180,8 @@ def eval_experiment(
         }
     else:
         raise NotImplementedError(
-            f"Not all fold outputs found. Please run corresponding experiments ({experiment_info}) before evaluation"
+            f"Not all fold outputs found. Please run corresponding experiments "
+            f"({experiment_info}) before evaluation"
         )
 
     class_2_ap_vals, class_2_rocauc_vals, class_2_mccf1_vals, class_2_pr_vals = [
@@ -90,114 +193,202 @@ def eval_experiment(
             id_2_category = pickle.load(file)
     else:
         id_2_category = None
+
+    fold_2_similarity: Optional[dict] = None
     if blast_identities_path is not None:
-        with open(blast_identities_path, "rb") as file:
-            fold_2_id_max_blast_identity = pickle.load(file)
-    else:
-        fold_2_id_max_blast_identity = None
-    print(fold_2_id_max_blast_identity)
+        fold_2_similarity = load_similarity_artifact(blast_identities_path)
+
+    if similarity_bins is None:
+        similarity_bins = [
+            (float(lb), float(lb + 10))
+            for lb in range(0, (max_allowed_blast_identity or 60) + 1, 10)
+        ]
+
     # pylint: disable=R1702
     for fold_i, fold_root_dir in fold_2_root_dir.items():
         logger.info("Processing fold %d with root dir %s", fold_i, str(fold_root_dir))
-        class_2_ap = {}
-        class_2_mccf1 = {}
-        class_2_auc = {}
-        class_2_pr = {}
+        class_2_ap: dict = {}
+        class_2_mccf1: dict = {}
+        class_2_auc: dict = {}
+        class_2_pr: dict = {}
+
         for class_name in classes:
-            if class_name not in {"Unknown", "other"}:
-                if (fold_root_dir / f"{class_name}").exists():
-                    fold_class_path = fold_root_dir / f"{class_name}"
-                elif (fold_root_dir / "all_classes").exists():
-                    fold_class_path = fold_root_dir / "all_classes"
-                else:
-                    fold_class_path = None
-                logger.info(
-                    "Processing class %s with path %s", class_name, str(fold_class_path)
+            if class_name in {"Unknown", "other"}:
+                continue
+
+            if (fold_root_dir / f"{class_name}").exists():
+                fold_class_path = fold_root_dir / f"{class_name}"
+            elif (fold_root_dir / "all_classes").exists():
+                fold_class_path = fold_root_dir / "all_classes"
+            else:
+                fold_class_path = None
+
+            logger.info(
+                "Processing class %s with path %s", class_name, str(fold_class_path)
+            )
+            if fold_class_path is None:
+                continue
+
+            try:
+                fold_class_latest_path = sorted(fold_class_path.glob("*"))[-1]
+            except IndexError as index_error:
+                raise NotImplementedError(
+                    f"Please run corresponding experiments "
+                    f"({experiment_info}) before evaluation"
+                ) from index_error
+            try:
+                with open(
+                    fold_class_latest_path / f"fold_{fold_i}_results.pkl", "rb"
+                ) as file:
+                    val_proba_np, class_names_in_fold, test_df = pickle.load(file)
+
+                if class_name not in class_names_in_fold:
+                    continue
+                if not isinstance(class_names_in_fold, list):
+                    class_names_in_fold = list(class_names_in_fold)
+
+                y_true = test_df[target_col].map(lambda x: class_name in x)
+                y_pred = val_proba_np[:, class_names_in_fold.index(class_name)]
+
+                current_categories = test_df[id_col_name].map(
+                    lambda x: (
+                        id_2_category.get(x, "Unknown")
+                        if id_2_category is not None
+                        else ""
+                    )
                 )
-                if fold_class_path is not None:
-                    try:
-                        fold_class_latest_path = sorted(fold_class_path.glob("*"))[-1]
-                    except IndexError as index_error:
-                        raise NotImplementedError(
-                            f"Please run corresponding experiments ({experiment_info}) before evaluation"
-                        ) from index_error
-                    try:
-                        with open(
-                            fold_class_latest_path / f"fold_{fold_i}_results.pkl", "rb"
-                        ) as file:
-                            val_proba_np, class_names_in_fold, test_df = pickle.load(
-                                file
-                            )
-                        if class_name in class_names_in_fold:
-                            if not isinstance(class_names_in_fold, list):
-                                class_names_in_fold = list(class_names_in_fold)
-                            y_true = test_df[target_col].map(lambda x: class_name in x)
-                            y_pred = val_proba_np[
-                                :, class_names_in_fold.index(class_name)
-                            ]
-                            current_categories = test_df[id_col_name].map(
-                                lambda x: id_2_category.get(x, "Unknown")
-                                if id_2_category is not None
-                                else ""
-                            )
-                            current_blast_identities = test_df[id_col_name].map(
-                                lambda x: fold_2_id_max_blast_identity[fold_i].get(x, 0)
-                                if fold_2_id_max_blast_identity is not None
-                                else 100
-                            )
-                            for category in set(current_categories).difference(
-                                {"Unknown"}
-                            ):
-                                for blast_identity_bucket_lb in range(-10, max_allowed_blast_identity + 1, 10):
-                                    print('blast_identity_bucket_lb: ', blast_identity_bucket_lb)
-                                    is_category_bool = current_categories.isin(
-                                        {category, "Unknown"}
-                                    )
-                                    is_blast_identity_bucket_bool = current_blast_identities.map(
-                                        lambda x: blast_identity_bucket_lb < 0  or (blast_identity_bucket_lb <= x < blast_identity_bucket_lb + 10)
-                                    )
-                                    y_true_category = y_true[is_category_bool & is_blast_identity_bucket_bool]
-                                    y_pred_category = y_pred[is_category_bool & is_blast_identity_bucket_bool]
-                                    class_name_to_record_with_category = (
-                                        class_name
-                                        if category == ""
-                                        else f"{category}_|_{class_name}"
-                                    )
-                                    class_name_to_record_with_category_and_blast_identity_bucket = (
-                                        class_name_to_record_with_category
-                                        if blast_identity_bucket_lb < 0
-                                        else f"{blast_identity_bucket_lb}_||_{class_name_to_record_with_category}"
-                                    )
-                                    if y_true_category.sum() >= min_sample_count_for_eval:
-                                        average_precision = average_precision_score(
-                                            y_true_category, y_pred_category
-                                        )
-                                        mccf1 = summary_mccf1(
-                                            y_true_category, y_pred_category
-                                        )["mccf1_metric"]
-                                        auc = roc_auc_score(
-                                            y_true_category, y_pred_category
-                                        )
-                                        class_2_mccf1[class_name_to_record_with_category_and_blast_identity_bucket] = mccf1
-                                        class_2_ap[class_name_to_record_with_category_and_blast_identity_bucket] = average_precision
-                                        class_2_auc[class_name_to_record_with_category_and_blast_identity_bucket] = auc
-                                        class_2_pr[
-                                            class_name_to_record_with_category_and_blast_identity_bucket
-                                        ] = precision_recall_curve(
-                                            y_true_category, y_pred_category
-                                        )
-                    except FileNotFoundError:
-                        logger.warning(
-                            "Fold %d results were not found for (%s)",
-                            fold_i,
-                            str(experiment_info),
+
+                fold_sim = (
+                    fold_2_similarity[fold_i] if fold_2_similarity is not None else None
+                )
+                _no_hit_default: dict[str, Union[float, bool]] = {
+                    "pident": 0.0,
+                    "has_hit": False,
+                }
+                _full_hit_default: dict[str, Union[float, bool]] = {
+                    "pident": 100.0,
+                    "has_hit": True,
+                }
+
+                current_sim_records = test_df[id_col_name].map(
+                    lambda x: (
+                        fold_sim.get(x, _no_hit_default)
+                        if fold_sim is not None
+                        else _full_hit_default
+                    )
+                )
+                current_pidents = current_sim_records.map(_get_pident)
+                current_has_hit = current_sim_records.map(_has_hit)
+
+                for category in set(current_categories).difference({"Unknown"}):
+                    is_category = current_categories.isin({category, "Unknown"})
+
+                    # ── "all" bucket (no similarity filter) ──────
+                    all_key = _make_record_key(class_name, category, _ALL_LABEL)
+                    res = _compute_metrics_for_bin(
+                        y_true,
+                        y_pred,
+                        is_category,
+                        min_pos=min_sample_count_for_eval,
+                        min_neg=min_negatives_for_eval,
+                    )
+                    if res is not None:
+                        class_2_ap[all_key] = res["ap"]
+                        class_2_auc[all_key] = res["auc"]
+                        class_2_mccf1[all_key] = res["mccf1"]
+                        class_2_pr[all_key] = res["pr"]
+                        logger.info(
+                            "  [%s] n_pos=%d n_neg=%d AP=%.3f",
+                            all_key,
+                            res["n_pos"],
+                            res["n_neg"],
+                            res["ap"],
                         )
+
+                    # ── "no_hit" bucket ──────────────────────────
+                    if fold_2_similarity is not None:
+                        no_hit_mask = is_category & ~current_has_hit
+                        no_hit_key = _make_record_key(
+                            class_name, category, _NO_HIT_LABEL
+                        )
+                        res = _compute_metrics_for_bin(
+                            y_true,
+                            y_pred,
+                            no_hit_mask,
+                            min_pos=min_sample_count_for_eval,
+                            min_neg=min_negatives_for_eval,
+                        )
+                        if res is not None:
+                            class_2_ap[no_hit_key] = res["ap"]
+                            class_2_auc[no_hit_key] = res["auc"]
+                            class_2_mccf1[no_hit_key] = res["mccf1"]
+                            class_2_pr[no_hit_key] = res["pr"]
+                            logger.info(
+                                "  [%s] n_pos=%d n_neg=%d AP=%.3f",
+                                no_hit_key,
+                                res["n_pos"],
+                                res["n_neg"],
+                                res["ap"],
+                            )
+
+                    # ── similarity bins ──────────────────────────
+                    for lo, hi in similarity_bins:
+                        in_bin = (
+                            is_category
+                            & current_has_hit
+                            & current_pidents.map(
+                                lambda x, _lo=lo, _hi=hi: _lo <= x < _hi
+                            )
+                        )
+                        bin_key = _make_record_key(
+                            class_name,
+                            category,
+                            _build_bin_label(lo, hi),
+                        )
+                        res = _compute_metrics_for_bin(
+                            y_true,
+                            y_pred,
+                            in_bin,
+                            min_pos=min_sample_count_for_eval,
+                            min_neg=min_negatives_for_eval,
+                        )
+                        if res is not None:
+                            class_2_ap[bin_key] = res["ap"]
+                            class_2_auc[bin_key] = res["auc"]
+                            class_2_mccf1[bin_key] = res["mccf1"]
+                            class_2_pr[bin_key] = res["pr"]
+                            logger.info(
+                                "  [%s] n_pos=%d n_neg=%d AP=%.3f",
+                                bin_key,
+                                res["n_pos"],
+                                res["n_neg"],
+                                res["ap"],
+                            )
+
+            except FileNotFoundError:
+                logger.warning(
+                    "Fold %d results were not found for (%s)",
+                    fold_i,
+                    str(experiment_info),
+                )
 
         class_2_ap_vals.append(class_2_ap)
         class_2_mccf1_vals.append(class_2_mccf1)
         class_2_rocauc_vals.append(class_2_auc)
         class_2_pr_vals.append(class_2_pr)
     return class_2_ap_vals, class_2_rocauc_vals, class_2_mccf1_vals, class_2_pr_vals
+
+
+def _make_record_key(class_name: str, category: str, bin_label: str) -> str:
+    """Build the composite key used in per-class metric dicts.
+
+    Backward-compatible: when *category* is empty and *bin_label* is
+    "all" the key collapses to just the class name.
+    """
+    base = class_name if category == "" else f"{category}_|_{class_name}"
+    if bin_label == _ALL_LABEL:
+        return base
+    return f"{bin_label}_||_{base}"
 
 
 def evaluate_selected_experiments(args: argparse.Namespace):
@@ -259,9 +450,17 @@ def evaluate_selected_experiments(args: argparse.Namespace):
                 f"{experiment_info.model_type}__{experiment_info.model_version}"
             )
             if model_name not in args.models:
-                logger.info("Skipping %s, with all models %s", model_name, ', '.join(args.models))
+                logger.info(
+                    "Skipping %s, with all models %s",
+                    model_name,
+                    ", ".join(args.models),
+                )
                 continue
-            logger.info("Evaluating %s/%s", experiment_info.model_type, experiment_info.model_version)
+            logger.info(
+                "Evaluating %s/%s",
+                experiment_info.model_type,
+                experiment_info.model_version,
+            )
             config_path = (
                 config_root_path
                 / experiment_info.model_type
@@ -295,7 +494,7 @@ def evaluate_selected_experiments(args: argparse.Namespace):
                     f"Please run corresponding experiments ({experiment_info}) before evaluation"
                 )
                 continue
-            
+
             model_2_class_2_ap_vals[model_name] = class_2_ap_vals
             model_2_class_2_rocauc_vals[model_name] = class_2_rocauc_vals
             model_2_class_2_mccf1_vals[model_name] = class_2_mccf1_vals

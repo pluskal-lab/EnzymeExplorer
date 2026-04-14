@@ -1,4 +1,5 @@
 """This module contains routines to access data systematically, e.g. to iterate over validation schemas"""
+
 import pickle
 from typing import Tuple, Union
 import logging
@@ -6,6 +7,7 @@ import numpy as np  # type: ignore
 import pandas as pd  # type: ignore
 from indigo import Indigo  # type: ignore
 from Bio.PDB import PDBParser, PPBuilder  # type: ignore
+
 logging.getLogger("h5py").setLevel(logging.INFO)
 import h5py  # type: ignore # pylint: disable=C0413
 from pathlib import Path
@@ -62,16 +64,32 @@ def get_folds(split_desc: str, path: str = "data/tps_folds_nov2023.h5") -> list[
 def get_folds_from_csv(csv_path: str, split_col_name: str) -> list[str]:
     """
     Extract fold names from a CSV file's split column.
-    
+
+    Supports two fold formats:
+    - ``fold_N`` strings (old phylo-based datasets)
+    - bare non-negative integers (new EnzymeExplorer dataset)
+
     :param csv_path: Path to the CSV file containing fold assignments
     :param split_col_name: Name of the column containing fold assignments
     :return: list of fold names (e.g., ['0', '1', '2', '3', '4'])
     """
     df = pd.read_csv(csv_path, usecols=[split_col_name])
     folds = df[split_col_name].dropna().unique()
-    # Filter valid folds (fold_0, fold_1, etc.) and sort
-    valid_folds = sorted([str(f) for f in folds if str(f).startswith("fold_")])
-    return [f.replace("fold_", "") for f in valid_folds]
+    # Try fold_N format first (old phylo datasets)
+    prefixed = sorted([str(f) for f in folds if str(f).startswith("fold_")])
+    if prefixed:
+        return [f.replace("fold_", "") for f in prefixed]
+    # Fall back to bare non-negative integers (new dataset)
+    bare = []
+    for f in folds:
+        s = str(f)
+        try:
+            n = int(float(s))
+            if n >= 0:
+                bare.append(str(n))
+        except (ValueError, OverflowError):
+            continue
+    return sorted(bare, key=int)
 
 
 def get_unsplittable_targets(split_desc: str, path: str = "data/tps_folds.h5") -> set:
@@ -246,7 +264,6 @@ def get_canonical_smiles(smiles: str, without_stereo: bool = True):
     return mol.canonicalSmiles()
 
 
-
 def compute_mmseqs2_clusters(
     sequences_df: pd.DataFrame,
     id_column: str,
@@ -257,7 +274,7 @@ def compute_mmseqs2_clusters(
 ) -> Tuple[Dict[str, int], list[list[str]]]:
     """
     Create phylogenetic clusters using MMseqs2 and return id_2_group mapping.
-    
+
     Args:
         sequences_df: DataFrame containing sequences and their IDs
         id_column: Name of the column containing sequence IDs
@@ -265,7 +282,7 @@ def compute_mmseqs2_clusters(
         output_dir: Directory to store temporary files
         identity_threshold: Sequence identity threshold (default: 0.3)
         coverage_threshold: Alignment coverage threshold (default: 0.8)
-    
+
     Returns:
         Tuple containing:
         - Dictionary mapping sequence IDs to cluster groups
@@ -273,55 +290,65 @@ def compute_mmseqs2_clusters(
     """
     output_dir = Path(output_dir)
     output_dir.mkdir(exist_ok=True, parents=True)
-    
+
     # Create FASTA file
     fasta_path: Path = output_dir / "sequences.fasta"
     with open(fasta_path, "w") as f:
         for _, row in sequences_df.iterrows():
             f.write(f">{row[id_column]}\n{row[sequence_column]}\n")
-    
+
     # Run easy-cluster with memory-efficient parameters
     cluster_result_path: Path = output_dir / "clusterRes"
     tmp_path: Path = output_dir / "tmp"
     tmp_path.mkdir(exist_ok=True)
-    
-    subprocess.run([
-        "mmseqs", "easy-cluster",
-        str(fasta_path),
-        str(cluster_result_path),
-        str(tmp_path),
-        "--min-seq-id", str(identity_threshold),
-        "-c", str(coverage_threshold),
-        "--cov-mode", "1",  # bidirectional coverage mode
-        "--max-seqs", "5000",  # limit number of sequences per query
-        "--split-memory-limit", "60G",  # memory limit per split
-        "-s", "7.5",  # sensitivity, lower = faster but less sensitive
-        "--remove-tmp-files", "1"  # clean up temporary files
-    ], check=True)
-    
+
+    subprocess.run(
+        [
+            "mmseqs",
+            "easy-cluster",
+            str(fasta_path),
+            str(cluster_result_path),
+            str(tmp_path),
+            "--min-seq-id",
+            str(identity_threshold),
+            "-c",
+            str(coverage_threshold),
+            "--cov-mode",
+            "1",  # bidirectional coverage mode
+            "--max-seqs",
+            "5000",  # limit number of sequences per query
+            "--split-memory-limit",
+            "60G",  # memory limit per split
+            "-s",
+            "7.5",  # sensitivity, lower = faster but less sensitive
+            "--remove-tmp-files",
+            "1",  # clean up temporary files
+        ],
+        check=True,
+    )
+
     # Parse clustering results from the TSV file
     tsv_path: Path = output_dir / "clusterRes_cluster.tsv"
     id_2_group: dict[str, int] = {}
     clusters: list[list[str]] = []
-    
+
     with open(tsv_path) as f:
         current_cluster: list[str] = []
         current_representative: str | None = None
-        
+
         for line in f:
             representative, member = line.strip().split("\t")
-            
+
             if current_representative != representative:
                 if current_cluster:
                     clusters.append(current_cluster)
                 current_cluster = []
                 current_representative = representative
-            
+
             current_cluster.append(member)
             id_2_group[member] = len(clusters)
-    
+
     if current_cluster:
         clusters.append(current_cluster)
-    
-    
+
     return id_2_group, clusters

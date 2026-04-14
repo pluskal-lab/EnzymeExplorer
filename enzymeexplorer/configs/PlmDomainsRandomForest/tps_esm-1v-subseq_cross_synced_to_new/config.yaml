@@ -1,0 +1,14 @@
+# Track D: Train on old synced dataset, evaluate on new dataset folds
+# PlmDomainsRF: uses combined domain features (old + new proteins).
+include: ../main_config.yaml
+representations_path: "data/gathered_embs_esm-1v-finetuned-subseq_old_dataset_embs_avg.h5"
+per_class_optimization: false
+n_calls_hyperparams_opt: 350
+split_col_name: "synced_fold"
+tps_cleaned_csv_path: "data/TPS-Nov19_2023_with_synced_folds.csv"
+domain_dist_path: "data/clustering__domain_dist_based_features_combined.pkl"
+
+eval_csv_path: "data/EnzymeExplorer_Dataset.csv"
+eval_split_col_name: "Fold"
+eval_id_col_name: "ID"
+eval_representations_path: "data/gathered_embs_esm-1v-finetuned-subseq_new_dataset_embs_avg.h5"

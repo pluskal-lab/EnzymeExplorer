@@ -1,11 +1,13 @@
-""" This is the main script running the experiments specified in the configs and/or selected via CLI or GUI """
+"""This is the main script running the experiments specified in the configs and/or selected via CLI or GUI"""
 
 import argparse
 import logging
 
 from enzymeexplorer.src.evaluation import evaluate_selected_experiments
 from enzymeexplorer.src.evaluation.plotting import plot_selected_results
-from enzymeexplorer.src.experiments_orchestration.experiment_runner import run_experiment
+from enzymeexplorer.src.experiments_orchestration.experiment_runner import (
+    run_experiment,
+)
 from enzymeexplorer.src.experiments_orchestration.experiment_selector import (
     collect_single_experiment_arguments,
     discover_experiments_from_configs,
@@ -83,9 +85,11 @@ def parse_args() -> argparse.Namespace:
     )
     parser_eval.add_argument(
         "--blast-identities-path",
-        help="A path to file containing BLAST identities",
+        "--similarities-path",
+        help="A path to file containing per-fold similarity data (BLAST or MMseqs2 artifact)",
         type=str,
-        default="data/blast_identities_per_fold.pkl",
+        default=None,
+        dest="blast_identities_path",
     )
     parser_eval.add_argument(
         "--models",

@@ -1,6 +1,6 @@
 """A class for Random Forest predictive models on top of protein language model (PLM) embeddings"""
 import pickle
-from typing import Type
+from typing import Optional, Type
 
 import numpy as np  # type: ignore
 import pandas as pd  # type: ignore
@@ -37,7 +37,9 @@ class PlmDomainsRandomForest(PlmRandomForest):
             config=config,
         )
         # pylint: disable=R0801
-        if hasattr(config, "foldseek_distances") and config.foldseek_distances:
+        if hasattr(config, "domain_dist_path") and config.domain_dist_path:
+            domain_dist_path = config.domain_dist_path
+        elif hasattr(config, "foldseek_distances") and config.foldseek_distances:
             domain_dist_path = "data/clustering__domain_dist_based_features_foldseek.pkl"
         else:
             domain_dist_path = "data/clustering__domain_dist_based_features.pkl"
@@ -107,6 +109,42 @@ class PlmDomainsRandomForest(PlmRandomForest):
         self.features_df.drop("Emb_dom", axis=1, inplace=True)
 
         super().fit_core(train_df, class_name)
+
+    def predict_proba(
+        self,
+        val_df: pd.DataFrame,
+        selected_class_name: Optional[str] = None,
+        fold_idx: Optional[int] = None,
+    ) -> np.ndarray:
+        ids_with_domain_detections = set(self.all_ids_list_dom)
+        dom_features_df = pd.DataFrame(
+            {
+                self.config.id_col_name: self.all_ids_list_dom,
+                "Emb_dom": [
+                    self.feats_dom_dists[i][self.allowed_feat_indices]
+                    for i in range(len(self.feats_dom_dists))
+                ],
+            }
+        )
+        merged = self.features_df_plm.merge(
+            dom_features_df, on=self.config.id_col_name, how="left"
+        )
+        missing = merged["Emb_dom"].isnull()
+        if missing.any():
+            merged.loc[missing, "Emb_dom"] = pd.Series(
+                [np.ones(len(self.allowed_feat_indices)) for _ in range(missing.sum())],
+                index=merged.loc[missing].index,
+            )
+        merged["Emb"] = merged.apply(
+            lambda row: np.concatenate((row["Emb"], row["Emb_dom"])), axis=1
+        )
+        merged.drop("Emb_dom", axis=1, inplace=True)
+
+        stashed = self.features_df
+        self.features_df = merged
+        result = super().predict_proba(val_df, selected_class_name)
+        self.features_df = stashed
+        return result
 
     @classmethod
     def config_class(cls) -> Type[BaseConfig]:

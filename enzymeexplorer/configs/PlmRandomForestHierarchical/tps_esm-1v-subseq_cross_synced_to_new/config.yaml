@@ -1,0 +1,13 @@
+# Track D: Train on old synced dataset, evaluate on new dataset folds
+# Cross-dataset generalization: tests how well old-data-trained PlmRF
+# performs on the larger, curated new dataset.
+include: ../main_config.yaml
+representations_path: "data/gathered_embs_esm-1v-finetuned-subseq_old_dataset_embs_avg.h5"
+per_class_optimization: false
+split_col_name: "synced_fold"
+tps_cleaned_csv_path: "data/TPS-Nov19_2023_with_synced_folds.csv"
+
+eval_csv_path: "data/EnzymeExplorer_Dataset.csv"
+eval_split_col_name: "Fold"
+eval_id_col_name: "ID"
+eval_representations_path: "data/gathered_embs_esm-1v-finetuned-subseq_new_dataset_embs_avg.h5"

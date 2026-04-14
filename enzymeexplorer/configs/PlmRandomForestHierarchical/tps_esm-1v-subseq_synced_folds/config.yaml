@@ -1,0 +1,6 @@
+# PlmRandomForest on old dataset with synchronized folds (for cross-dataset comparison)
+include: ../main_config.yaml
+representations_path: "data/gathered_embs_esm-1v-finetuned-subseq_old_dataset_embs_avg.h5"
+per_class_optimization: false
+split_col_name: "synced_fold"
+tps_cleaned_csv_path: "data/TPS-Nov19_2023_with_synced_folds.csv"

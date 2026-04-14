@@ -56,7 +56,9 @@ class DomainsSklearnModel(FeaturesSklearnModel):
         for param, value in config.__dict__.items():
             setattr(self, param, value)
         self.config = config
-        if hasattr(config, "foldseek_distances") and config.foldseek_distances:
+        if hasattr(config, "domain_dist_path") and config.domain_dist_path:
+            domain_dist_path = config.domain_dist_path
+        elif hasattr(config, "foldseek_distances") and config.foldseek_distances:
             domain_dist_path = "data/clustering__domain_dist_based_features_foldseek.pkl"
         else:
             domain_dist_path = "data/clustering__domain_dist_based_features.pkl"
@@ -100,7 +102,10 @@ class DomainsSklearnModel(FeaturesSklearnModel):
         super().fit_core(train_df, class_name)
 
     def predict_proba(
-        self, val_df: pd.DataFrame, selected_class_name: Optional[str] = None
+        self,
+        val_df: pd.DataFrame,
+        selected_class_name: Optional[str] = None,
+        fold_idx: Optional[int] = None,
     ) -> np.ndarray:
         self._setup_features_df_for_current_data(val_df)
         return super().predict_proba(val_df, selected_class_name)
