@@ -423,6 +423,7 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
 
                 # scoring the model
                 _stashed_features = None
+                _stashed_plm_features = None
                 if (
                     cross_dataset_eval
                     and eval_features_df is not None
@@ -430,11 +431,16 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
                 ):
                     _stashed_features = model.features_df
                     model.features_df = eval_features_df
+                    if hasattr(model, "features_df_plm"):
+                        _stashed_plm_features = model.features_df_plm
+                        model.features_df_plm = eval_features_df
                 val_proba_np = model.predict_proba(
                     test_df, fold_idx=int(test_fold)
                 )
                 if _stashed_features is not None:
                     model.features_df = _stashed_features
+                if _stashed_plm_features is not None:
+                    model.features_df_plm = _stashed_plm_features
                 with open(
                     model.output_root / f"fold_{test_fold}_results.pkl", "wb"
                 ) as file:

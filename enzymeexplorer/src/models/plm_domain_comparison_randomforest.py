@@ -126,7 +126,7 @@ class PlmDomainsRandomForest(PlmRandomForest):
                 ],
             }
         )
-        merged = self.features_df.merge(
+        merged = self.features_df_plm.merge(
             dom_features_df, on=self.config.id_col_name, how="left"
         )
         missing = merged["Emb_dom"].isnull()

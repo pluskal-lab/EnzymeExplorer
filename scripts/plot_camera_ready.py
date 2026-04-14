@@ -87,8 +87,6 @@ MARKERS = {
 MODEL_ORDER = [
     "PlmRF",
     "PlmDomainsRF",
-    "CLEAN (in-sample)",
-    "CLEAN (retrained)",
     "Blastp",
     "HMM",
     "Foldseek",
@@ -373,7 +371,6 @@ OUTPUT_ROOT = Path("outputs")
 _TRACK_TO_MODELS: dict[str, dict[str, str]] = {
     "A (phylo)": {
         "Blastp": "with_minor_reactions_phylo_folds",
-        "CLEANEcDetection": "with_minor_reactions_phylo_folds",
         "Foldseek": "with_minor_reactions_phylo_folds",
         "HMM": "with_minor_reactions_phylo_folds",
         "PlmRandomForest": "tps_esm-1v-subseq_with_minor_reactions_phylo_folds",
@@ -381,7 +378,6 @@ _TRACK_TO_MODELS: dict[str, dict[str, str]] = {
     },
     "C (synced)": {
         "Blastp": "synced_folds",
-        "CLEANEcDetection": "synced_folds",
         "Foldseek": "synced_folds",
         "HMM": "synced_folds",
         "PlmRandomForest": "tps_esm-1v-subseq_synced_folds",
@@ -389,8 +385,6 @@ _TRACK_TO_MODELS: dict[str, dict[str, str]] = {
     },
     "B (new)": {
         "Blastp": "new_dataset",
-        "CLEANEcDetection": "new_dataset",
-        "CLEAN": "new_dataset",
         "Foldseek": "new_dataset",
         "HMM": "new_dataset",
         "PlmRandomForest": "tps_esm-1v-subseq_new_dataset",
@@ -398,7 +392,6 @@ _TRACK_TO_MODELS: dict[str, dict[str, str]] = {
     },
     "D (cross)": {
         "Blastp": "cross_synced_to_new",
-        "CLEANEcDetection": "cross_synced_to_new",
         "Foldseek": "cross_synced_to_new",
         "HMM": "cross_synced_to_new",
         "PlmRandomForest": "tps_esm-1v-subseq_cross_synced_to_new",
@@ -406,7 +399,6 @@ _TRACK_TO_MODELS: dict[str, dict[str, str]] = {
     },
     "E (new TPS+old neg)": {
         "Blastp": "cross_new_tps_old_neg",
-        "CLEANEcDetection": "cross_new_tps_old_neg",
         "Foldseek": "cross_new_tps_old_neg",
         "HMM": "cross_new_tps_old_neg",
         "PlmRandomForest": "tps_esm-1v-subseq_cross_new_tps_old_neg",
@@ -974,79 +966,75 @@ def fig5_domain_comparison(agg: dict, outdir: Path) -> None:
 # ───────────────────────────────────────────────────────────────
 
 
+_HEATMAP_EXCLUDE = {"CLEAN (in-sample)", "CLEAN (retrained)"}
+
+
+def _single_heatmap(
+    agg: dict,
+    metric_key: str,
+    title: str,
+    stem: str,
+    outdir: Path,
+) -> None:
+    """Render one heatmap (models × tracks) for a single metric."""
+    track_order = TRACK_ORDER
+    models = [
+        m for m in MODEL_ORDER if m in agg and m not in _HEATMAP_EXCLUDE
+    ]
+    n_tracks = len(track_order)
+
+    fig, ax = plt.subplots(
+        figsize=(2.2 * n_tracks + 2.0, 0.65 * len(models) + 1.8),
+    )
+
+    matrix = np.full((len(models), n_tracks), np.nan)
+    for mi, m in enumerate(models):
+        for ti, t in enumerate(track_order):
+            v = agg[m].get(t, {}).get(metric_key)
+            if v:
+                matrix[mi, ti] = v[0]
+
+    im = ax.imshow(matrix, cmap="RdYlGn", aspect="auto", vmin=0, vmax=1)
+    ax.set_xticks(range(n_tracks))
+    ax.set_xticklabels(track_order, fontsize=9, rotation=20, ha="right")
+    ax.set_yticks(range(len(models)))
+    ax.set_yticklabels(models, fontsize=10)
+
+    for i in range(len(models)):
+        for j in range(n_tracks):
+            v = matrix[i, j]
+            if np.isnan(v):
+                ax.text(
+                    j, i, "\u2014", ha="center", va="center",
+                    fontsize=8, color="gray",
+                )
+            else:
+                tc = "white" if v > 0.65 else "black"
+                ax.text(
+                    j, i, f"{v:.3f}", ha="center", va="center",
+                    fontsize=8, color=tc, fontweight="bold",
+                )
+
+    ax.set_title(title, fontsize=12, fontweight="bold", pad=10)
+    plt.colorbar(im, ax=ax, shrink=0.75, pad=0.03, label="Score")
+    plt.tight_layout()
+    for ext in ("png", "pdf", "svg"):
+        fig.savefig(outdir / f"{stem}.{ext}")
+    plt.close(fig)
+    logger.info("Saved %s", stem)
+
+
 def fig6_combined_heatmap(
     agg: dict,
     outdir: Path,
 ) -> None:
-    """Side-by-side heatmaps: substrate prediction (mAP) and TPS detection (AP)."""
-    track_order = TRACK_ORDER
-    models = [m for m in MODEL_ORDER if m in agg]
-    n_tracks = len(track_order)
-
-    panel_defs: list[tuple[str, str]] = [
-        ("mAP", "Substrate Prediction (mAP)"),
-        ("AP", "TPS Detection (AP)"),
-    ]
-    n_cols = len(panel_defs)
-
-    fig, axes = plt.subplots(
-        1,
-        n_cols + 1,
-        figsize=(2.8 * n_tracks * n_cols + 3.5, 0.65 * len(models) + 2.5),
-        gridspec_kw={
-            "width_ratios": [n_tracks] * n_cols + [0.35],
-            "wspace": 0.45,
-        },
+    """Separate heatmaps: substrate prediction (mAP) and TPS detection (AP)."""
+    _single_heatmap(
+        agg, "mAP", "Substrate Prediction (mAP)", "fig6a_heatmap_map", outdir,
     )
-
-    im = None
-    for pi, (metric_key, panel_title) in enumerate(panel_defs):
-        ax = axes[pi]
-        matrix = np.full((len(models), n_tracks), np.nan)
-        for mi, m in enumerate(models):
-            for ti, t in enumerate(track_order):
-                v = agg[m].get(t, {}).get(metric_key)
-                if v:
-                    matrix[mi, ti] = v[0]
-
-        im = ax.imshow(matrix, cmap="RdYlGn", aspect="auto", vmin=0, vmax=1)
-        ax.set_xticks(range(n_tracks))
-        ax.set_xticklabels(track_order, fontsize=8, rotation=20, ha="right")
-        ax.set_yticks(range(len(models)))
-        ax.set_yticklabels(models if pi == 0 else [], fontsize=9)
-
-        for i in range(len(models)):
-            for j in range(n_tracks):
-                v = matrix[i, j]
-                if np.isnan(v):
-                    ax.text(
-                        j, i, "\u2014", ha="center", va="center",
-                        fontsize=7, color="gray",
-                    )
-                else:
-                    tc = "white" if v > 0.65 else "black"
-                    ax.text(
-                        j, i, f"{v:.3f}", ha="center", va="center",
-                        fontsize=7, color=tc, fontweight="bold",
-                    )
-        ax.set_title(panel_title, fontsize=10, fontweight="bold", pad=8)
-
-    axes[-1].set_visible(False)
-    cax = fig.add_axes([0.93, 0.15, 0.012, 0.7])
-    if im is not None:
-        fig.colorbar(im, cax=cax, label="Score")
-
-    fig.suptitle(
-        "Cross-Track Model Comparison",
-        fontsize=14,
-        fontweight="bold",
-        y=1.01,
+    _single_heatmap(
+        agg, "AP", "TPS Detection (AP)", "fig6b_heatmap_ap", outdir,
     )
-    plt.tight_layout(rect=[0, 0, 0.92, 0.98])
-    for ext in ("png", "pdf", "svg"):
-        fig.savefig(outdir / f"fig6_combined_heatmap.{ext}")
-    plt.close(fig)
-    logger.info("Saved fig6_combined_heatmap")
 
 
 # ───────────────────────────────────────────────────────────────
@@ -1153,75 +1141,21 @@ def fig7_major_substrate_heatmap(
     major_agg: dict,
     outdir: Path,
 ) -> None:
-    """Side-by-side heatmaps for major-substrate mAP and TPS detection AP."""
-    track_order = TRACK_ORDER
-    models = [m for m in MODEL_ORDER if m in major_agg]
-    n_tracks = len(track_order)
-
-    panel_defs: list[tuple[str, str]] = [
-        ("mAP", "Substrate Prediction — Major Substrates (mAP)"),
-        ("AP", "TPS Detection (AP)"),
-    ]
-    n_cols = len(panel_defs)
-
-    fig, axes = plt.subplots(
-        1,
-        n_cols + 1,
-        figsize=(2.8 * n_tracks * n_cols + 3.5, 0.65 * len(models) + 2.5),
-        gridspec_kw={
-            "width_ratios": [n_tracks] * n_cols + [0.35],
-            "wspace": 0.45,
-        },
+    """Separate heatmaps for major-substrate mAP and TPS detection AP."""
+    _single_heatmap(
+        major_agg,
+        "mAP",
+        "Substrate Prediction \u2014 Major Substrates (mAP)",
+        "fig7a_major_heatmap_map",
+        outdir,
     )
-
-    im = None
-    for pi, (metric_key, panel_title) in enumerate(panel_defs):
-        ax = axes[pi]
-        matrix = np.full((len(models), n_tracks), np.nan)
-        for mi, m in enumerate(models):
-            for ti, t in enumerate(track_order):
-                v = major_agg[m].get(t, {}).get(metric_key)
-                if v:
-                    matrix[mi, ti] = v[0]
-
-        im = ax.imshow(matrix, cmap="RdYlGn", aspect="auto", vmin=0, vmax=1)
-        ax.set_xticks(range(n_tracks))
-        ax.set_xticklabels(track_order, fontsize=8, rotation=20, ha="right")
-        ax.set_yticks(range(len(models)))
-        ax.set_yticklabels(models if pi == 0 else [], fontsize=9)
-
-        for i in range(len(models)):
-            for j in range(n_tracks):
-                v = matrix[i, j]
-                if np.isnan(v):
-                    ax.text(
-                        j, i, "\u2014", ha="center", va="center",
-                        fontsize=7, color="gray",
-                    )
-                else:
-                    tc = "white" if v > 0.65 else "black"
-                    ax.text(
-                        j, i, f"{v:.3f}", ha="center", va="center",
-                        fontsize=7, color=tc, fontweight="bold",
-                    )
-        ax.set_title(panel_title, fontsize=10, fontweight="bold", pad=8)
-
-    axes[-1].set_visible(False)
-    cax = fig.add_axes([0.93, 0.15, 0.012, 0.7])
-    if im is not None:
-        fig.colorbar(im, cax=cax, label="Score")
-
-    fig.suptitle(
-        "Major Substrates Only (FPP, GPP, GGPP, SqOx, CPP, GFPP)",
-        fontsize=14,
-        fontweight="bold",
-        y=1.01,
+    _single_heatmap(
+        major_agg,
+        "AP",
+        "TPS Detection \u2014 Major Substrates (AP)",
+        "fig7b_major_heatmap_ap",
+        outdir,
     )
-    plt.tight_layout(rect=[0, 0, 0.92, 0.98])
-    for ext in ("png", "pdf", "svg"):
-        fig.savefig(outdir / f"fig7_major_substrate_heatmap.{ext}")
-    plt.close(fig)
-    logger.info("Saved fig7_major_substrate_heatmap")
 
 
 # ───────────────────────────────────────────────────────────────
@@ -1320,20 +1254,7 @@ def main() -> None:
             for metric, val in metrics.items():
                 agg.setdefault(model, {}).setdefault(track, {})[metric] = val
 
-    # CLEAN (retrained) checkpoints exist only for Track B; drop stale
-    # results from evaluation CSVs for other tracks.
-    _retrained = MODEL_DISPLAY.get("CLEAN", "CLEAN (retrained)")
-
-    def _filter_retrained(d: dict) -> None:
-        if _retrained in d:
-            d[_retrained] = {
-                t: v for t, v in d[_retrained].items() if t == "B (new)"
-            }
-
-    _filter_retrained(agg)
-
     perbin = _collect_perbin(substrate_perbin_pkls, tps_perbin_pkls)
-    _filter_retrained(perbin)
     bin_counts = _collect_bin_counts({})
 
     logger.info(
