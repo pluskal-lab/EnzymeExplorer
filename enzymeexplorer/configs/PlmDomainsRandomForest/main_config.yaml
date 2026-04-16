@@ -1,5 +1,6 @@
 id_col_name: "ID"
 target_col_name: "SMILES_substrate_canonical_no_stereo"
+seq_col_name: "Aminoacid_sequence"
 split_col_name: "Fold"
 type_col_name: "Type"
 class_names: ["CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",

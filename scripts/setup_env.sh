@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Create env and install required packages
-conda create -n enzyme_explorer python==3.10.0 scikit-learn==1.5.1 pandas==2.2.2 numpy==1.26.4 scipy==1.13.0 jupyter matplotlib seaborn foldseek==9.427df8a pymol-bundle pymol-psico==3.4.19 tmalign==20170708 bioconda::mmseqs2 mafft==7.525 iqtree==2.3.0 biopython==1.83 fastapi rdkit==2022.9.5 -c schrodinger -c speleo3 -c conda-forge -c bioconda -y
+conda create -n enzyme_explorer python==3.10.0 scikit-learn==1.5.1 pandas==2.2.2 numpy==1.26.4 scipy==1.13.0 jupyter matplotlib foldseek==9.427df8a pymol-bundle pymol-psico==3.4.19 tmalign==20170708 bioconda::mmseqs2 mafft==7.525 iqtree==2.3.0 biopython==1.83 fastapi rdkit==2022.9.5 -c schrodinger -c speleo3 -c conda-forge -c bioconda -y
 conda activate enzyme_explorer
 
 pip install torch==2.6.0 torchvision==0.21.0 torchaudio==2.6.0 --index-url https://download.pytorch.org/whl/cu124
@@ -9,6 +9,7 @@ pip install torch==2.6.0 torchvision==0.21.0 torchaudio==2.6.0 --index-url https
 pip install epam.indigo
 pip install openpyxl
 pip install py3Dmol
+pip install seaborn
 pip install hdbscan==0.8.33
 pip install scikit-learn-extra
 pip install plotly
@@ -33,7 +34,11 @@ if [ -d CLEAN ]; then
     rm -rf CLEAN
 fi
 git clone https://github.com/tttianhao/CLEAN.git
-cd CLEAN/app/src
+cd CLEAN/app
+python build.py install
+git clone https://github.com/facebookresearch/esm.git
+mkdir data/esm_data
+cd src
 echo "export PATH=\$PATH:$(pwd)" >> ~/.bashrc
 source ~/.bashrc
 cd $cwd

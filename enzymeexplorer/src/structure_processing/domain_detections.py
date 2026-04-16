@@ -112,7 +112,6 @@ def parse_args() -> configargparse.Namespace:
     parser.add_argument(
         "--prefilter-pdbs-by-foldseek",
         action="store_true",
-        default=True,
     )
     parser.add_argument(
         "--prefilter-e-value",
@@ -122,7 +121,6 @@ def parse_args() -> configargparse.Namespace:
     parser.add_argument(
         "--postfilter-domains-by-foldseek",
         action="store_true",
-        default=True,
     )
     parser.add_argument(
         "--postfilter-e-value",

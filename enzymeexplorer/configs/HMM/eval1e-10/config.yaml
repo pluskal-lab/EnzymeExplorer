@@ -17,10 +17,11 @@ random_state: 0
 hyperparam_dimensions: none
 seq_col_name: "Aminoacid_sequence"
 n_calls_hyperparams_opt: 0
-n_neighbours: 1
-e_threshold: 0.001
+search_e_threshold: 1e-10
 n_jobs: 64
 pred_batch_size: 32
+zero_conf_level: 0.1
+group_column_name: "Kingdom"
 neg_val: "Unknown"
 negatives_sample_path: "data/sampled_id_2_seq.pkl"
 tps_cleaned_csv_path: "data/EnzymeExplorer_Dataset.csv"

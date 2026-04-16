@@ -8,7 +8,7 @@ random_state: 0
 hyperparam_dimensions: none
 seq_col_name: "Aminoacid_sequence"
 n_calls_hyperparams_opt: 0
-e_threshold: 10
+bitscore: 15
 n_jobs: 64
 root_path_to_models: "data/supfam_models"
 working_directory: "supfam_temp"

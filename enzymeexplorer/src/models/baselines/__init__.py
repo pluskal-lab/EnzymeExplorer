@@ -4,7 +4,4 @@ from .foldseek import Foldseek
 from .hmm import HMM
 from .pfam_supfam import PfamSUPFAM
 
-try:
-    from .CLEAN import CLEAN
-except ImportError:
-    CLEAN = None  # CLEAN package not installed
+from .CLEAN import CLEAN

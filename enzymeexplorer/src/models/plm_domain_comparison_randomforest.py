@@ -1,6 +1,6 @@
 """A class for Random Forest predictive models on top of protein language model (PLM) embeddings"""
 import pickle
-from typing import Type
+from typing import Type, Optional
 
 import numpy as np  # type: ignore
 import pandas as pd  # type: ignore
@@ -123,7 +123,7 @@ class PlmDomainsRandomForest(PlmRandomForest):
                 ],
             }
         )
-        merged = self.features_df.merge(
+        merged = self.features_df_plm.merge(
             dom_features_df, on=self.config.id_col_name, how="left"
         )
         missing = merged["Emb_dom"].isnull()

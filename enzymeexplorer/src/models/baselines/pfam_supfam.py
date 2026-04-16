@@ -5,7 +5,9 @@ from typing import Type, Optional
 from uuid import uuid4
 import logging
 import subprocess
-
+import tempfile
+from enzymeexplorer.src.data_preparation.hmmer_wrapper import HMMerWrapper
+import os
 import numpy as np  # type: ignore
 import pandas as pd  # type: ignore
 
@@ -22,7 +24,7 @@ class PFamSUPFAMConfig(BaseConfig):
     A data class to store Blast-model attributes
     """
 
-    e_threshold: float
+    bitscore: float
     root_path_to_models: str
     working_directory: str
     seq_col_name: str
@@ -39,9 +41,10 @@ class PfamSUPFAM(BaseModel):
         self.working_path = Path(config.working_directory)
         if not self.working_path.exists():
             self.working_path.mkdir()
-        self.paths_to_models = list(Path(config.root_path_to_models).glob("*.hmm"))
-        self.e_threshold = config.e_threshold
+        self.root_path_to_models = config.root_path_to_models
+        self.bitscore = config.bitscore
         self.config: PFamSUPFAMConfig = config
+        self.hmmer = HMMerWrapper(threads=config.n_jobs if config.n_jobs is not None else 8)
 
     def fit_core(self, train_df: pd.DataFrame, class_name: str = None):
         """A placeholder for the compatibility with the BaseModel interface"""
@@ -68,32 +71,25 @@ class PfamSUPFAM(BaseModel):
         assert (
             selected_class_name is None
         ), "This model does not support class selection."
-        fasta_str = get_fasta_seqs(
-            val_df[self.config.seq_col_name].values,
-            val_df[self.config.id_col_name].values,
-        )
-        temp_fasta_path = self.working_path / f"_temp_msa_{uuid4()}.fasta"
-        with open(temp_fasta_path, "w", encoding="utf-8") as file:
-            file.writelines(fasta_str.replace("'", "").replace('"', ""))
-        id_2_min_eval: dict = {}
-        for model_path in self.paths_to_models:
-            logger.info("Processing pHMM model %s...", str(model_path))
-            output_path = self.working_path / model_path.stem
-            subprocess.run(
-                f"hmmsearch --noali --notextw --tblout {output_path} -E {self.e_threshold} --cpu {self.config.n_jobs} {model_path} {temp_fasta_path}".split(),
-                check=False,
+        
+        with tempfile.TemporaryDirectory() as tmpdir:
+            uuid = str(uuid4())
+            input_fasta_path = os.path.join(tmpdir, f"input_{uuid}.fasta")
+            with open(input_fasta_path, "w") as fasta_file:
+                for _, row in val_df.iterrows():
+                    fasta_file.write(f">{row[self.config.id_col_name]}\n{row[self.config.seq_col_name]}\n")
+
+            pfam_db_path = os.path.join(tmpdir, f"pfam_models_{uuid}")
+            self.hmmer.hmm_concat(self.root_path_to_models, pfam_db_path)
+            self.hmmer.hmmpress(pfam_db_path)
+            pfam_hits_df = self.hmmer.hmmscan(
+                query_fasta=input_fasta_path,
+                hmm_path=pfam_db_path,
+                output=os.path.join(tmpdir, f"pfam_scan_{uuid}.tbl"),
+                bitscore=self.bitscore,
             )
-            with open(output_path, "r", encoding="utf-8") as file:
-                lines = file.readlines()
-            for line in lines:
-                if line[0] != "#":
-                    entries = line.split()
-                    id_2_min_eval[entries[0]] = max(
-                        float(entries[5]), id_2_min_eval.get(entries[0], -1000000)
-                    )
-        val_df["isTPS"] = val_df["ID"].map(
-            lambda x: id_2_min_eval.get(x, -1000000)
-        )
+        hit_seqs = set(pfam_hits_df["query_name"].unique())
+        val_df["isTPS"] = val_df[self.config.id_col_name].apply(lambda x: 1 if x in hit_seqs else 0)
         val_proba_np = np.zeros((len(val_df), len(self.config.class_names)))
         for class_i, class_name in enumerate(self.config.class_names):
             if class_name == "isTPS":

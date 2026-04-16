@@ -19,16 +19,6 @@ import gdown
 import numpy as np  # type: ignore
 import pandas as pd  # type: ignore
 
-# remove additional 'data' folder from CLEAN's codebase (at the time of my experiments, the CLEAN's scripts were unrunnable without fixes of paths)
-from CLEAN.utils import (  # type: ignore
-    prepare_infer_fasta,
-)
-
-# also remove additional 'data' folder from CLEAN's codebase
-from CLEAN.infer import (  # type: ignore
-    infer_maxsep,
-)
-
 from enzymeexplorer.src.models.ifaces import BaseConfig, BaseModel
 from enzymeexplorer.src.utils.msa import get_fasta_seqs
 
@@ -58,6 +48,7 @@ class CLEAN(BaseModel):
         super().__init__(config=config)
         self.config: CLEANConfig = config
         self.config.clean_installation_root = Path(self.config.clean_installation_root)
+        self._load_clean_imports()
 
         with open(config.ec_2_substrates_json_path, "r", encoding="utf-8") as file:
             self.ec_2_substrates = json.load(file)
@@ -99,7 +90,15 @@ class CLEAN(BaseModel):
         self._download_and_unpack_pretrained_models()
 
         sys.path.insert(0, str(self.config.clean_installation_root / "app" / "src"))
-
+        
+    def _load_clean_imports(self):
+        sys.path.insert(0, str(self.config.clean_installation_root / "app" / "src"))
+        from CLEAN.utils import prepare_infer_fasta  # type: ignore
+        from CLEAN.infer import infer_maxsep  # type: ignore
+        self.prepare_infer_fasta = prepare_infer_fasta
+        self.infer_maxsep = infer_maxsep
+        
+        
     def _download_and_unpack_pretrained_models(self):
         pretrained_zip_path = self.config.clean_installation_root / "pretrained_models.zip"
         self.pretrained_models_dir.mkdir(parents=True, exist_ok=True)
@@ -263,8 +262,8 @@ class CLEAN(BaseModel):
 
             clean_name_convention = str(temp_fasta_path.stem)
             logger.info("Running CLEAN on %s", clean_name_convention)
-            prepare_infer_fasta(clean_name_convention)
-            infer_maxsep(
+            self.prepare_infer_fasta(clean_name_convention)
+            self.infer_maxsep(
                 "split100",
                 clean_name_convention,
                 report_metrics=False,
