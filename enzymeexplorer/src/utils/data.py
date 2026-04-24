@@ -5,7 +5,9 @@ import logging
 import numpy as np  # type: ignore
 import pandas as pd  # type: ignore
 from indigo import Indigo  # type: ignore
-from Bio.PDB import PDBParser, PPBuilder  # type: ignore
+from Bio.PDB import PDBParser, PPBuilder
+
+from enzymeexplorer.src.data_preparation.constants import TPS_DETECTION_LABEL  # type: ignore
 logging.getLogger("h5py").setLevel(logging.INFO)
 import h5py  # type: ignore # pylint: disable=C0413
 from pathlib import Path
@@ -244,7 +246,7 @@ def get_canonical_smiles(smiles: str, without_stereo: bool = True):
 
     :return: The canonical SMILES string or the original input if it is invalid or in a predefined set of non-processable values.
     """
-    if isinstance(smiles, float) or smiles in {"Unknown", "Negative"}:
+    if isinstance(smiles, float) or smiles in {TPS_DETECTION_LABEL.UNKNOWN.value, "Negative"}:
         return smiles
     indigo = Indigo()
     mol = indigo.loadMolecule(smiles.strip())

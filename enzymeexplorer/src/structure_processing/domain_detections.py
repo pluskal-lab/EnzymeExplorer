@@ -241,7 +241,7 @@ def main():
                     pdb_file
                     for pdb_file in pdb_files
                     if (len(filename_2_remaining_residues.get(pdb_file.stem, [])) >= 20)
-                    and (pdb_file not in domain_type_to_files_with_no_detections[domain_type])
+                    and (pdb_file.stem not in domain_type_to_files_with_no_detections[domain_type])
                 ]
                 for domain_type, pdb_files in domain_type_to_pdb_files.items()
             },  # only considering files for which there are remaining residues
@@ -250,12 +250,12 @@ def main():
             args=args,
             iteration=detection_iter + 1,
         )
-        for domain_type in supported_domains:
+        for domain_type, pdb_files in domain_type_to_pdb_files.items():
             domain_type_to_files_with_no_detections[domain_type].update(
             [
-                filename
-                for filename in filename_2_potential_regions
-                if domain_type not in [region.domain for region in filename_2_potential_regions[filename]]
+                pdb_file.stem
+                for pdb_file in pdb_files
+                if domain_type not in [region.domain for region in filename_2_potential_regions.get(pdb_file.stem, [])]
             ]
         )
 

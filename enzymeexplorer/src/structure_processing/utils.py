@@ -124,6 +124,7 @@ def get_foldseek_alignment_df(
             output=os.path.join(tmpdir, "foldseek_output.tsv"),
             max_seqs=len(reference_domains) * 2,
         )
+        alignment_df["query"] = alignment_df["query"].map(lambda x: x if x in query_domains else ("_".join(x.split("_")[:-1]) if "_".join(x.split("_")[:-1]) in query_domains else x))
 
     query_domain_2_seq_id, query_domain_2_domain_type = (
         __get_domain_2_seq_id_and_domain_type_maps(query_seq_2_regions)

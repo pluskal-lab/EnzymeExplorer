@@ -1,3 +1,5 @@
+# TODO: Adjust evaluation logic for the tps prediction
+
 """ This is a wrapper to use TPS Pfam and SUPFAM models for TPS detection. """
 from dataclasses import dataclass
 from pathlib import Path

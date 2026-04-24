@@ -1,3 +1,5 @@
+# TODO: Adjust evaluation logic for the substrate prediction and tps prediction
+
 # pylint: disable=C0103
 """This is a wrapper to use the CLEAN model for substrate prediction.
 Please note, that before using this wrapper you would need to install CLEAN as per https://github.com/tttianhao/CLEAN

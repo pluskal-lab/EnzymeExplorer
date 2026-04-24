@@ -12,6 +12,7 @@ import pandas as pd  # type: ignore
 from tqdm.auto import tqdm  # type: ignore
 from tqdm.contrib.logging import logging_redirect_tqdm  # type: ignore
 
+from enzymeexplorer.src.data_preparation.constants import TPS_DETECTION_LABEL
 from enzymeexplorer.src import models
 from enzymeexplorer.src.models.ifaces import BaseConfig, BaseModel
 from enzymeexplorer.src.utils.data import get_folds, get_folds_from_csv, get_tps_df
@@ -138,9 +139,16 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
     )
 
     data_df = pd.read_csv(config.tps_cleaned_csv_path)
-    data_df.loc[data_df[config.type_col_name] == "Unknown", config.target_col_name] = (
-        "Unknown"
+    # data_df.loc[data_df[config.type_col_name] == "Unknown", config.target_col_name] = (
+    #     "Unknown"
+    # )
+    hard_negative_ids = set(
+        data_df[
+            (data_df[config.type_col_name] == TPS_DETECTION_LABEL.UNKNOWN.value) &
+            (data_df["SMILES_substrate_canonical_no_stereo"] != TPS_DETECTION_LABEL.UNKNOWN.value)
+        ][config.id_col_name].to_list()
     )
+
     if not is_halo:
         data_df.loc[
             data_df[config.type_col_name].isin(
@@ -185,6 +193,7 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
                     trn_folds = ["train"]
                 trn_df = data_df[
                     data_df[config.split_col_name].isin(set(trn_folds))
+                    & ~data_df[config.id_col_name].isin(hard_negative_ids)
                 ].copy()
                 if not is_halo:
                     trn_df.loc[
@@ -196,6 +205,7 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
                     .agg(set)
                     .reset_index()
                 )
+                # TODO: remove
                 trn_df[config.target_col_name] = trn_df[config.target_col_name].map(
                     lambda x: (
                         x.union({"isTPS"})
@@ -225,11 +235,13 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
                         ] = "other"
                     test_id_column_name = config.id_col_name
                     model.config.id_col_name = test_id_column_name
+                test_df_raw.loc[test_df_raw[config.id_col_name].isin(hard_negative_ids), config.target_col_name] = "Unknown"
                 test_df = (
                     test_df_raw.groupby(test_id_column_name)[config.target_col_name]
                     .agg(set)
                     .reset_index()
                 )
+                # TODO: remove
                 test_df[config.target_col_name] = test_df[config.target_col_name].map(
                     lambda x: (
                         x.union({"isTPS"})

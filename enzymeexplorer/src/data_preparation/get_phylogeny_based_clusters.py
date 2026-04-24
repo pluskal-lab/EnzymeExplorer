@@ -43,14 +43,14 @@ def main():
     cli_args = parse_args()
     logger.info("Loading data...")
     tps_df = pd.read_csv(cli_args.tps_cleaned_csv_path)
-    tps_df = tps_df.drop_duplicates("Uniprot ID")
+    tps_df = tps_df.drop_duplicates("Enzyme_marts_ID")
     logger.info("Data were loaded! There are %s loaded records in total.", len(tps_df))
 
     logger.info("Generating MSA...")
     msa_path_working = "data/_mafft_msa_tps_all.fasta"
     generate_msa_mafft(
-        seqs=tps_df["Amino acid sequence"],
-        ids=tps_df["Uniprot ID"],
+        seqs=tps_df["Aminoacid_sequence"],
+        ids=tps_df["Enzyme_marts_ID"],
         output_name=msa_path_working,
         num_workers=cli_args.n_workers,
     )

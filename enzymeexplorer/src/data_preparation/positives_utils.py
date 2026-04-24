@@ -1,15 +1,12 @@
 import logging
 from pathlib import Path
 import pandas as pd
-from enzymeexplorer.src.data_preparation.constants import (
-    MAJOR_CLASSES,
-)
 from enzymeexplorer.src.utils.data import get_canonical_smiles
 from enzymeexplorer.src.data_preparation.mmseqs2_wrapper import MMSeqs2Wrapper
 from collections import defaultdict
 import pickle
 from enzymeexplorer.src.data_preparation.common_utils import (
-    cluster_dataset,
+    cluster_dataset_sensitive,
     get_is_splittable,
     get_stratified_group_kfold_splits,
 )
@@ -18,6 +15,13 @@ logger = logging.getLogger(__file__)
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
+
+def preprocess_for_substrate_prediction(
+    martsDB: pd.DataFrame, label_column_name: str
+) -> pd.DataFrame:
+    martsDB[label_column_name] = martsDB["SMILES_substrate_canonical_no_stereo"]
+
+    return martsDB
 
 
 def preprocess_martsdb(martsDB: pd.DataFrame) -> tuple[pd.DataFrame, list[list[str]]]:
@@ -44,9 +48,7 @@ def preprocess_martsdb(martsDB: pd.DataFrame) -> tuple[pd.DataFrame, list[list[s
     # fixing multi-molecule substrates
 
     def fix_multi_molecule_substrate(row):
-        if row["Type"] == "pt":
-            return "precursor substr"
-        if (
+        if row["Type"] == "pt" or (
             row["SMILES_product_canonical_no_stereo"].count("C")
             % row["SMILES_substrate_canonical_no_stereo"].count("C")
             != 0
@@ -115,35 +117,14 @@ def preprocess_martsdb(martsDB: pd.DataFrame) -> tuple[pd.DataFrame, list[list[s
 
     martsDB.loc[martsDB["Kingdom"] == "Amoebozoa", "Kingdom"] = "Protists"
 
-    martsDB["OriginalType"] = martsDB["Type"]
-    # Map Squalene Synthase and Phytoene Synthases to tetra and tri TPS types
-    martsDB.loc[
-        (martsDB["Type"] == "sqs")
-        & (martsDB["SMILES_substrate_canonical_no_stereo"].str.count("C") == 40),
-        "Type",
-    ] = "tetra"
-    martsDB.loc[
-        (martsDB["Type"] == "sqs")
-        & (martsDB["SMILES_substrate_canonical_no_stereo"].str.count("C") == 30),
-        "Type",
-    ] = "tri"
-    martsDB.loc[
-        (martsDB["Type"] == "psy")
-        & (martsDB["SMILES_substrate_canonical_no_stereo"].str.count("C") == 40),
-        "Type",
-    ] = "tetra"
-    martsDB.loc[
-        (martsDB["Type"] == "psy")
-        & (martsDB["SMILES_substrate_canonical_no_stereo"].str.count("C") == 30),
-        "Type",
-    ] = "tri"
-
     return martsDB, marts_duplicates
 
 
 def prepare_positives_set(
     martsDB: pd.DataFrame,
     mmseqs: MMSeqs2Wrapper,
+    labels_column_name: str,
+    labels: list[str],
     id_to_kingdom_output_path: str | None,
     substrate_to_tps_type_output_path: str | None,
     min_seq_id: float,
@@ -170,8 +151,8 @@ def prepare_positives_set(
             .groupby("SMILES_substrate_canonical_no_stereo")["Type"]
             .apply(set)
             .reset_index()
-        .set_index("SMILES_substrate_canonical_no_stereo")
-        .to_dict()["Type"]
+            .set_index("SMILES_substrate_canonical_no_stereo")
+            .to_dict()["Type"]
         )
         with open(substrate_to_tps_type_output_path, "wb") as file:
             pickle.dump(substrate_2_tps_type, file)
@@ -180,8 +161,8 @@ def prepare_positives_set(
             f"Saved substrate to TPS type mapping to {substrate_to_tps_type_output_path}"
         )
 
-    martsDB_clusters_df, _ = cluster_dataset(
-        martsDB,
+    martsDB_clusters_df, _ = cluster_dataset_sensitive(
+        dataset=martsDB,
         id_column="Enzyme_marts_ID",
         seq_column="Aminoacid_sequence",
         mmseqs=mmseqs,
@@ -208,8 +189,8 @@ def prepare_positives_set(
         martsDB_with_clusters,
         id_column="Enzyme_marts_ID",
         cluster_id_column="Representative",
-        target_col="SMILES_substrate_canonical_no_stereo",
-        classes=MAJOR_CLASSES,
+        target_col=labels_column_name,
+        classes=labels,
         n_folds=n_folds,
     )
     if not is_martsdb_splittable:
@@ -225,9 +206,10 @@ def prepare_positives_set(
         id_column="Enzyme_marts_ID",
         cluster_id_column="Representative",
         optimize_distribution=True,
-        target_col="SMILES_substrate_canonical_no_stereo",
-        classes=MAJOR_CLASSES,
+        target_col=labels_column_name,
+        classes=labels,
         n_folds=n_folds,
+        max_fold_size_variation=[0.2],
     )
 
     logger.info("Generated stratified group K-Fold splits for positives.")
@@ -239,9 +221,9 @@ def prepare_positives_set(
             "SMILES_substrate_canonical_no_stereo",
             "SMILES_product_canonical_no_stereo",
             "Type",
-            "OriginalType",
             "Kingdom",
             "Class",
+            labels_column_name,
         ]
     ].rename({"Enzyme_marts_ID": "ID"}, axis="columns")
     positives_data["Fold"] = None
@@ -253,9 +235,7 @@ def prepare_positives_set(
     positives_data["Fold_ignore_in_eval"] = None
 
     positives_data.loc[
-        positives_data["SMILES_substrate_canonical_no_stereo"].isin(
-            unsplittable_target_values
-        ),
+        positives_data[labels_column_name].isin(unsplittable_target_values),
         "Fold_ignore_in_eval",
     ] = 1
 

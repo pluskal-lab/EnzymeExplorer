@@ -7,6 +7,7 @@ from enzymeexplorer.src.data_preparation.constants import (
     PUTATIVE_TPS_IDS,
     TPS_ECS_TO_SUBSTRATES_BASE,
     TPS_GO_BLACKLIST,
+    TPS_DETECTION_LABEL,
 )
 from enzymeexplorer.src.data_preparation.mmseqs2_wrapper import MMSeqs2Wrapper
 from enzymeexplorer.src.data_preparation.common_utils import (
@@ -153,7 +154,7 @@ def filter_by_pfam_supfam(
     return nontps_swiss[~nontps_swiss.Entry.isin(swiss_with_pfam_supfam_hits)]
 
 
-def proprocess_negatives(
+def preprocess_negatives(
     swissprot_df: pd.DataFrame,
     martsdb_seqs: list,
     pfam_models_dir: str,
@@ -161,6 +162,7 @@ def proprocess_negatives(
     go_dag: GODag,
     mmseqs: MMSeqs2Wrapper,
     hmmer: HMMerWrapper,
+    hard_neg_rhea_master_ids: set[int],
     filter_by_putative_tpss: bool = True,
 ) -> pd.DataFrame:
     swissprot_df = swissprot_df.drop_duplicates("Sequence")
@@ -209,13 +211,7 @@ def proprocess_negatives(
         logger.info(
             f"Filtered by GO terms. Remaining non-TPS SwissProt size: {len(nontps_swissprot)}"
         )
-
-        nontps_swissprot = redundancy_reduce(nontps_swissprot, mmseqs=mmseqs)
-
-        logger.info(
-            f"95% Sequence Identity Redundancy reduced non-TPS SwissProt size: {len(nontps_swissprot)}"
-        )
-
+        
         nontps_swissprot = filter_by_pfam_supfam(
             nontps_swissprot,
             pfam_models_dir=pfam_models_dir,
@@ -226,9 +222,28 @@ def proprocess_negatives(
         logger.info(
             f"Filtered out sequences with Pfam/Supfam hits. Remaining non-TPS SwissProt size: {len(nontps_swissprot)}"
         )
+        
+        add_tps_substrate_accepting_negatives_based_on_rhea(
+            swissprot_df, nontps_swissprot, hard_neg_rhea_master_ids
+        )
+
+        nontps_swissprot, _ = redundancy_reduce(mmseqs=mmseqs, dataset=nontps_swissprot)
+
+        logger.info(
+            f"95% Sequence Identity Redundancy reduced non-TPS SwissProt size: {len(nontps_swissprot)}"
+        )
+
 
     return nontps_swissprot
 
+
+def add_tps_substrate_accepting_negatives_based_on_rhea(
+    swissprot_df: pd.DataFrame, nontps_swissprot: pd.DataFrame, hard_neg_rhea_master_ids: set[int]
+):
+    swissprot_tmp = swissprot_df[swissprot_df["Rhea ID"].notna()].copy()
+    swissprot_tmp["Rhea ID"] = swissprot_tmp["Rhea ID"].apply(lambda x: set([int(r.strip()[5:]) for r in x.split(" ")]))
+    hard_neg_ids = set(swissprot_tmp[swissprot_tmp["Rhea ID"].apply(lambda rhea_ids: len(rhea_ids.intersection(hard_neg_rhea_master_ids)) > 0)]["Entry"].unique())
+    return pd.concat([nontps_swissprot, swissprot_df[swissprot_df["Entry"].isin(hard_neg_ids)]])
 
 def get_substrate_based_hard_negatives(
     nontps_swissprot: pd.DataFrame,
@@ -352,7 +367,7 @@ def _get_sequence_based_hard_negative_clusters_sensitive(
     mmseqs: MMSeqs2Wrapper,
     num_iterations: int = 2,
     e_value: float = 0.1,
-    seq_id: float = 0.2,
+    seq_id: float = 0.15,
 ) -> set[str]:
 
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -393,8 +408,8 @@ def get_sequence_based_hard_negative_cluster_ids(
     )
 
     typed_hard_negatives = set()
-    for t in martsDB.OriginalType.unique():
-        t_martsDB = martsDB[martsDB.OriginalType == t].drop_duplicates(
+    for t in martsDB.Type.unique():
+        t_martsDB = martsDB[martsDB.Type == t].drop_duplicates(
             subset=["Enzyme_marts_ID"]
         )
         typed_hard_negatives.update(
@@ -497,6 +512,19 @@ def mmseqs_based_negative_sampling(
     hard_negative_clusters["Type"] = "Hard"
 
     logger.info(f"Identified {len(hard_negative_clusters)} hard negative samples.")
+    
+    cluster_id_to_weights = hard_negative_clusters["Representative"].value_counts().to_dict()
+    num_of_hard_neg_clusters = len(hard_negative_clusters["Representative"].unique())
+    hard_negative_clusters["Sampling_weight"] = hard_negative_clusters["Representative"].map(
+        lambda x: 1 / (cluster_id_to_weights[x] * num_of_hard_neg_clusters)
+    )
+    hard_negative_clusters = hard_negative_clusters.sample(
+        n=min(number_of_negatives, len(hard_negative_clusters)),
+        weights="Sampling_weight",
+        random_state=42
+    )[["Member", "Representative", "Type"]]
+    
+    logger.info(f"Sampled {len(hard_negative_clusters)} hard negative samples with weighted sampling to balance cluster representation.")
 
     easy_negative_cluster_ids = nontps_swissprot_clusters_df[
         ~nontps_swissprot_clusters_df["Representative"].isin(hard_negative_cluster_ids)
@@ -505,7 +533,7 @@ def mmseqs_based_negative_sampling(
     if number_of_negatives != -1:
         easy_negative_cluster_ids = np.random.choice(
             easy_negative_cluster_ids,
-            size=number_of_negatives - len(hard_negative_clusters),
+            size=np.maximum(number_of_negatives - len(hard_negative_clusters), 0),
             replace=False,
         )
 
@@ -531,34 +559,43 @@ def mmseqs_based_negative_sampling(
         cluster_id_column="Representative",
         optimize_distribution=False,
         target_col="Type",
-        classes=["Easy", "Hard"],
+        classes=negative_clusters["Type"].unique().tolist(),
         n_folds=n_folds,
     )
 
     logger.info("Generated stratified group K-Fold splits for negatives.")
 
     negative_ids = set(negative_clusters.Member.unique())
+    
+    for hard_neg_id in hard_negative_clusters["Member"].unique():
+        if hard_neg_id not in negatives_to_accepted_tps_substrates:
+            negatives_to_accepted_tps_substrates[hard_neg_id] = set(["HardUnknown"])
+
     return negative_ids, negatives_folds, negatives_to_accepted_tps_substrates
 
 
 def prepare_negatives_set(
     nontps_swissprot: pd.DataFrame,
-    negative_ids: set,
-    negatives_to_accepted_tps_substrates: dict,
+    negative_ids: set[str],
+    negatives_to_accepted_tps_substrates: dict[str, set[str]],
     negatives_folds: list[set[str]],
+    label_column_name: str,
 ) -> pd.DataFrame:
+    negatives_to_accepted_tps_substrates = {
+        neg: substrates for neg, substrates in negatives_to_accepted_tps_substrates.items() if neg in negative_ids
+    }
     negatives_data = nontps_swissprot[nontps_swissprot.Entry.isin(negative_ids)][
         ["Entry", "Sequence"]
     ].rename(columns={"Entry": "ID", "Sequence": "Aminoacid_sequence"})
 
-    negatives_data["SMILES_substrate_canonical_no_stereo"] = "Unknown"
-    negatives_data["SMILES_product_canonical_no_stereo"] = "Unknown"
-    negatives_data["Kingdom"] = "Unknown"
-    negatives_data["Class"] = "Unknown"
-    negatives_data["Type"] = "Unknown"
-    negatives_data["OriginalType"] = "Unknown"
+    negatives_data["SMILES_substrate_canonical_no_stereo"] = TPS_DETECTION_LABEL.UNKNOWN.value
+    negatives_data["SMILES_product_canonical_no_stereo"] = TPS_DETECTION_LABEL.UNKNOWN.value
+    negatives_data["Kingdom"] = TPS_DETECTION_LABEL.UNKNOWN.value
+    negatives_data["Class"] = TPS_DETECTION_LABEL.UNKNOWN.value
+    negatives_data["Type"] = TPS_DETECTION_LABEL.UNKNOWN.value
     negatives_data["Fold"] = None
     negatives_data["Fold_ignore_in_eval"] = None
+    negatives_data[label_column_name] = TPS_DETECTION_LABEL.UNKNOWN.value
 
     negatives_data = negatives_data.reindex(
         negatives_data.index.repeat(
@@ -571,7 +608,6 @@ def prepare_negatives_set(
             )
         )
     ).reset_index(drop=True)
-
     for negative_id in negatives_to_accepted_tps_substrates:
         accepted_substrates = negatives_to_accepted_tps_substrates[negative_id]
         negatives_data.loc[

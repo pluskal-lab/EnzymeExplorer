@@ -21,6 +21,7 @@ class MMSeqs2Wrapper:
         min_seq_id: float,
         coverage: float,
         coverage_mode: int = 0,
+        max_seqs: int = 15000,
     ) -> tuple[pd.DataFrame, pd.DataFrame]:
         cmd = [
             self.mmseqs_path,
@@ -32,6 +33,7 @@ class MMSeqs2Wrapper:
             "-c", str(coverage),
             "--cov-mode", str(coverage_mode),
             "--threads", str(self.threads),
+            "--max-seqs", str(max_seqs)
         ]
         
         result = subprocess.run(cmd, capture_output=True, text=True, check=False)
@@ -54,6 +56,12 @@ class MMSeqs2Wrapper:
         e_value: float | None = None,
         seq_id: float | None = None,
         num_iterations: int = 1,
+        coverage: float | None = None,
+        coverage_mode: int | None = None,
+        alignment_mode: int | None = None,
+        sensitivity: float | None = None,
+        get_best_hit: bool = True,
+        max_seqs: int | None = None,
     ) -> pd.DataFrame:
         cmd = [
             self.mmseqs_path,
@@ -69,6 +77,16 @@ class MMSeqs2Wrapper:
             cmd.extend(["--min-seq-id", str(seq_id)])
         if e_value is not None:
             cmd.extend(["-e", str(e_value)])
+        if coverage is not None:
+            cmd.extend(["-c", str(coverage)])
+        if coverage_mode is not None:
+            cmd.extend(["--cov-mode", str(coverage_mode)])
+        if alignment_mode is not None:
+            cmd.extend(["--alignment-mode", str(alignment_mode)])
+        if sensitivity is not None:
+            cmd.extend(["-s", str(sensitivity)])
+        if max_seqs is not None:
+            cmd.extend(["--max-seqs", str(max_seqs)])
         result = subprocess.run(cmd, capture_output=True, text=True, check=False)
         
         if result.returncode != 0:
@@ -76,6 +94,7 @@ class MMSeqs2Wrapper:
             raise RuntimeError(f"mmseqs easy-search failed with return code {result.returncode}")
     
         search_results_df = pd.read_csv(output, sep="\t", header=None, names=["query", "target", "perc_identity", "alignment_length", "mismatches", "gap_opens", "q_start", "q_end", "s_start", "s_end", "evalue", "bit_score"])
-        search_results_df.sort_values("evalue", inplace=True)
-        search_results_df.drop_duplicates("query", inplace=True)
+        if get_best_hit:
+            search_results_df.sort_values("evalue", inplace=True)
+            search_results_df.drop_duplicates("query", inplace=True)
         return search_results_df

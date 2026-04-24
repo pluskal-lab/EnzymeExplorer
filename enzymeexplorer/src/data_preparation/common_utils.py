@@ -3,15 +3,17 @@ from uuid import uuid4
 import pandas as pd
 from enzymeexplorer.src.data_preparation.mmseqs2_wrapper import MMSeqs2Wrapper
 from enzymeexplorer.src.utils.data import get_canonical_smiles
+from enzymeexplorer.src.data_preparation.constants import BLACKLISTED_RHEA_MASTER_IDS
 import os
 import tempfile
 import warnings
-from rdkit.Chem import MolToSmiles, rdChemReactions # type: ignore
+from rdkit.Chem import MolToSmiles, rdChemReactions  # type: ignore
 from collections import defaultdict
 import numpy as np
 from scipy.spatial.distance import jensenshannon
 from sklearn.model_selection import StratifiedGroupKFold
 from tqdm.auto import tqdm
+
 tqdm.pandas()
 
 
@@ -20,6 +22,20 @@ logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
+
+def get_non_tps_rhea_ids_with_tps_substrates(marts_rhea_ids: set[int], rhea_id_to_master_id: dict[int, int], rhea_reaction_smiles: pd.DataFrame, martsDB: pd.DataFrame) -> set[int]:
+    rhea_reaction_smiles = add_tps_substrates_to_rhea_data(rhea_reaction_smiles, martsDB)
+    rhea_reaction_smiles["MASTER_ID"] = rhea_reaction_smiles["rhea_id"].map(rhea_id_to_master_id)
+    marts_rhea_master_ids = set([rhea_id_to_master_id[rhea_id] for rhea_id in marts_rhea_ids])
+    blacklist_rhea_master_ids = marts_rhea_master_ids.union(set(BLACKLISTED_RHEA_MASTER_IDS))
+    non_tps_rhea_ids_with_tps_substrates = set(
+        rhea_reaction_smiles[
+            ~(rhea_reaction_smiles["MASTER_ID"].isin(blacklist_rhea_master_ids))
+            & (rhea_reaction_smiles["accepted_tps_substrates"].apply(lambda x: len(x) > 0))
+        ]["MASTER_ID"].tolist()
+    )
+    return non_tps_rhea_ids_with_tps_substrates
+    
 
 def get_canonical_substrates(rxn_smiles: str):
     rxn = rdChemReactions.ReactionFromSmarts(rxn_smiles, useSmiles=True)
@@ -42,9 +58,11 @@ def add_tps_substrates_to_rhea_data(
         )
     )
     return rhea_reaction_smiles
-    
 
-def get_rhea_id_to_master_id_mappings(reaction_directions: pd.DataFrame) -> dict[int, int]:
+
+def get_rhea_id_to_master_id_mappings(
+    reaction_directions: pd.DataFrame,
+) -> dict[int, int]:
     rhea_id_to_master_id = {}
     for _, row in reaction_directions.iterrows():
         rhea_id_to_master_id[row["RHEA_ID_LR"]] = row["RHEA_ID_MASTER"]
@@ -52,28 +70,37 @@ def get_rhea_id_to_master_id_mappings(reaction_directions: pd.DataFrame) -> dict
         rhea_id_to_master_id[row["RHEA_ID_BI"]] = row["RHEA_ID_MASTER"]
     return rhea_id_to_master_id
 
+
 def redundancy_reduce(
-    nontps_swissprot: pd.DataFrame, mmseqs: MMSeqs2Wrapper
-) -> pd.DataFrame:
+    mmseqs: MMSeqs2Wrapper,
+    dataset: pd.DataFrame,
+    id_column: str = "Entry",
+    seq_column: str = "Sequence",
+    min_seq_id: float = 0.95,
+    coverage: float = 0.80
+) -> tuple[pd.DataFrame, pd.DataFrame]:
     with tempfile.TemporaryDirectory() as tmpdir:
         uuid = str(uuid4())
         input_fasta_path = os.path.join(tmpdir, f"sequences_{uuid}.fasta")
         with open(input_fasta_path, "w") as fasta_file:
-            for _, row in nontps_swissprot.iterrows():
-                fasta_file.write(f">{row['Entry']}\n{row['Sequence']}\n")
+            for _, row in dataset.iterrows():
+                fasta_file.write(f">{row[id_column]}\n{row[seq_column]}\n")
         output_prefix = os.path.join(tmpdir, f"clusters_{uuid}")
         tmpdir = os.path.join(tmpdir, f"tmp_{uuid}")
-        _, representatives_df = mmseqs.easy_cluster(
+        clusters_df, representatives_df = mmseqs.easy_cluster(
             input_fasta=input_fasta_path,
             output=output_prefix,
             tmp=tmpdir,
-            min_seq_id=0.95,
-            coverage=0.8,
+            min_seq_id=min_seq_id,
+            coverage=coverage,
+            coverage_mode=0,
+            max_seqs=2*len(dataset),
         )
-    reduced_nontps_swissprot = nontps_swissprot[
-        nontps_swissprot["Entry"].isin(representatives_df["Representative"].tolist())
-    ]
-    return reduced_nontps_swissprot
+    representatives = set(clusters_df["Representative"].unique())
+    reduced_dataset = dataset[
+        dataset[id_column].isin(representatives)
+    ].copy()
+    return reduced_dataset, clusters_df
 
 
 def cluster_dataset(
@@ -106,6 +133,71 @@ def cluster_dataset(
         )
 
     return clusters_df, representatives_df
+
+
+
+def cluster_dataset_sensitive(
+    dataset: pd.DataFrame,
+    mmseqs: MMSeqs2Wrapper,
+    id_column: str,
+    seq_column: str,
+    min_seq_id: float,
+    coverage: float
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Cluster the dataset sequences using MMseqs2 and return cluster assignments and representatives DataFrames"""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        input_fasta_path = os.path.join(tmp_dir, "input.fasta")
+        with open(input_fasta_path, "w") as f:
+            for _, row in dataset.drop_duplicates(
+                subset=[id_column, seq_column]
+            ).iterrows():
+                f.write(f">{row[id_column]}\n{row[seq_column]}\n")
+        duplicates = mmseqs.easy_search(
+            input_fasta_path,
+            input_fasta_path,
+            tmp_dir + "/red_reduction.m8",
+            tmp_dir + "/tmp",
+            seq_id=min_seq_id,
+            coverage=coverage,
+            coverage_mode=0,
+            max_seqs=2*len(dataset),
+            sensitivity=7.5,
+            alignment_mode=3,
+            get_best_hit=False,
+        )
+
+    no_hits = set(dataset[id_column]) - (
+        set(duplicates["query"]) | set(duplicates["target"])
+    )
+    non_clustered_ids = set(duplicates["query"]) | set(duplicates["target"])
+    clusters = []
+    while non_clustered_ids:
+        current_id = non_clustered_ids.pop()
+        current_cluster = set(
+            duplicates[duplicates["query"] == current_id]["target"]
+        ) | set(duplicates[duplicates["target"] == current_id]["query"])
+        current_cluster.add(current_id)
+        cluster_found = False
+        for cluster in clusters:
+            if current_cluster & cluster:
+                cluster.update(current_cluster)
+                cluster_found = True
+                non_clustered_ids -= cluster
+                break
+        if not cluster_found:
+            clusters.append(current_cluster)
+            non_clustered_ids -= current_cluster
+    clusters = clusters + [set([enz_id]) for enz_id in no_hits]
+    clusters = [sorted(list(cluster)) for cluster in clusters]
+    clusters_df = pd.DataFrame(
+        [(cluster[0], member) for cluster in clusters for member in cluster],
+            columns=["Representative", "Member"],
+    )
+    representatives_df = dataset[dataset[id_column].isin(clusters_df["Representative"])][
+        [id_column, seq_column]
+    ].drop_duplicates().rename(columns={id_column: "Representative", seq_column: "Sequence"})
+    return clusters_df, representatives_df
+
 
 
 def get_is_splittable(
@@ -170,16 +262,17 @@ def pick_best_fold(
     classes: list[str],
     n_folds: int,
     class_dist: pd.Series,
-) -> list[tuple[np.ndarray, np.ndarray]]:
-    min_max_jensenshannon_val = float("inf")
-    final_folds = []
+    max_fold_size_variation: list[float] = [-1],
+) -> list[list[tuple[np.ndarray, np.ndarray]]]:
+    min_max_jensenshannon_vals = [float("inf") for _ in max_fold_size_variation]
+    final_folds_list = [[] for _ in max_fold_size_variation]
     invalid_fold = set()
+    optimal_fold_size = len(dataset[id_column].unique()) / n_folds
     for random_state in tqdm(range(2000), desc="Optimizing K-Fold splits"):
         _t = []
         kfold = StratifiedGroupKFold(
             n_splits=n_folds, shuffle=True, random_state=random_state
         )
-
         folds = list(
             kfold.split(
                 dataset,
@@ -187,6 +280,10 @@ def pick_best_fold(
                 dataset[cluster_id_column],
             )
         )
+        fold_sizes = [len(dataset.iloc[val_idx][id_column].unique()) for _, val_idx in folds]
+        lower_variation = (optimal_fold_size - min(fold_sizes)) / optimal_fold_size
+        upper_variation = (max(fold_sizes) - optimal_fold_size) / optimal_fold_size
+        
         for _, val_idx in folds:
             val_df = dataset.iloc[val_idx].copy()
             fold_class_dist = get_class_distribution(
@@ -204,10 +301,18 @@ def pick_best_fold(
         if len(invalid_fold) > 0:
             continue
         mean_jensenshannon = np.mean(_t)
-        if mean_jensenshannon < min_max_jensenshannon_val:
-            min_max_jensenshannon_val = mean_jensenshannon
-            final_folds = folds
-    return final_folds
+        for i, max_variation in enumerate(max_fold_size_variation):
+            if max_variation != -1:
+                if lower_variation <= max_variation and upper_variation <= max_variation and mean_jensenshannon < min_max_jensenshannon_vals[i]:
+                    min_max_jensenshannon_vals[i] = mean_jensenshannon
+                    final_folds_list[i] = folds
+            else:
+                if mean_jensenshannon < min_max_jensenshannon_vals[i]:
+                    min_max_jensenshannon_vals[i] = mean_jensenshannon
+                    final_folds_list[i] = folds
+    if len(final_folds_list) == 0:
+        raise ValueError("No valid folds found.")
+    return final_folds_list
 
 
 def get_stratified_group_kfold_splits(
@@ -218,6 +323,7 @@ def get_stratified_group_kfold_splits(
     target_col: str,
     classes: list[str],
     n_folds: int = 5,
+    max_fold_size_variation: list[float] = [-1],
 ) -> list[set[str]]:
     """Generate stratified group k-fold splits based on MMseqs2 clusters.
 
@@ -256,7 +362,8 @@ def get_stratified_group_kfold_splits(
             classes,
             n_folds,
             class_dist,
-        )
+            max_fold_size_variation=max_fold_size_variation,
+        )[0]
         warnings.resetwarnings()
 
         return [set(dataset[id_column].values[val_idx]) for _, val_idx in folds]
@@ -270,4 +377,3 @@ def get_stratified_group_kfold_splits(
             )
         )
         return [set(dataset[id_column].values[val_idx]) for _, val_idx in folds]
-

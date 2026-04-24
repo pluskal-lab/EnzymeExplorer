@@ -1,4 +1,45 @@
+from enum import Enum
+
 import numpy as np
+
+class TPS_DETECTION_LABEL(Enum):
+    TPS = "TPS"
+    IDS = "IDS"
+    UNKNOWN = "Unknown"
+    
+    def __str__(self) -> str:
+        return self.value
+
+class SUBSTRATE_PREDICTION_LABEL(Enum):
+    FPP = "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    GPP = "CC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    GGPP = "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    EPSQ = "CC(C)=CCCC(C)=CCCC(C)=CCCC=C(C)CCC=C(C)CCC1OC1(C)C"
+    CPP = "CC1(C)CCCC2(C)C1CCC(=C)C2CCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    GFPP = "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O"
+    
+    def __str__(self) -> str:
+        return self.value
+
+class DATASET_MODE(Enum):
+    TPS = "tps"
+    SUBSTRATE = "substrate"
+    
+    def __str__(self) -> str:
+        return self.value
+
+MAJOR_CLASSES = [
+    "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",  # FPP
+    "CC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",  # GPP
+    "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",  # GGPP
+    "CC(C)=CCCC(C)=CCCC(C)=CCCC=C(C)CCC=C(C)CCC1OC1(C)C",  # squalene epoxide
+    "CC1(C)CCCC2(C)C1CCC(=C)C2CCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",  # copalyl PP
+    "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",  # GFPP
+    "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O.CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",  # FPP + FPP
+    "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O.CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",  # GGPP + GGPP
+    "precursor substr",
+]
+
 
 # Potential TPS SwissProt IDs without any functional annotation (manually curated)
 PUTATIVE_TPS_IDS = [
@@ -22,6 +63,46 @@ PUTATIVE_TPS_IDS = [
     "P0DXD5",
 ]
 
+BLACKLISTED_RHEA_MASTER_IDS = [
+    17449,
+    14009,
+    18209,
+    21676,
+    22296,
+    23284,
+    27563,
+    27594,
+    21496,
+    27794,
+    27798,
+    27802,
+    30675,
+    31551,
+    32075,
+    32707,
+    33215,
+    40007,
+    40019,
+    40023,
+    43000,
+    47984,
+    53124,
+    55364,
+    68712,
+    78279,
+    78283,
+    79011,
+    79687,
+    80215,
+    80395,
+    80979,
+    81103,
+    81851,
+    82723,
+    85619,
+    85707,
+    85767
+]
 
 TPS_ECS_TO_SUBSTRATES_BASE = {
     "2.5.1.30": "precursor substr",
@@ -92,15 +173,3 @@ TPS_GO_BLACKLIST = set(
         "GO:0016838",
     ]
 )
-
-MAJOR_CLASSES = [
-    "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",  # FPP
-    "CC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",  # GPP
-    "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",  # GGPP
-    "CC(C)=CCCC(C)=CCCC(C)=CCCC=C(C)CCC=C(C)CCC1OC1(C)C",  # squalene epoxide
-    "CC1(C)CCCC2(C)C1CCC(=C)C2CCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",  # copalyl PP
-    "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",  # GFPP
-    "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O.CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",  # FPP + FPP
-    "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O.CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",  # GGPP + GGPP
-    "precursor substr",
-]

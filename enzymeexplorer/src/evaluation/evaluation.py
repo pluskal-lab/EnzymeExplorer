@@ -10,6 +10,7 @@ import pandas as pd  # type: ignore
 from pathlib import Path
 
 
+from enzymeexplorer.src.data_preparation.constants import TPS_DETECTION_LABEL
 from enzymeexplorer.src.evaluation.metrics import summary_mccf1
 from enzymeexplorer.src.experiments_orchestration.experiment_selector import (
     collect_single_experiment_arguments,
@@ -105,7 +106,7 @@ def eval_experiment(
         class_2_auc = {}
         class_2_pr = {}
         for class_name in classes:
-            if class_name not in {"Unknown", "other"}:
+            if class_name not in {TPS_DETECTION_LABEL.UNKNOWN.value, "other"}:
                 if (fold_root_dir / f"{class_name}").exists():
                     fold_class_path = fold_root_dir / f"{class_name}"
                 elif (fold_root_dir / "all_classes").exists():
@@ -137,7 +138,7 @@ def eval_experiment(
                                 :, class_names_in_fold.index(class_name)
                             ]
                             current_categories = test_df[id_col_name].map(
-                                lambda x: id_2_category.get(x, "Unknown")
+                                lambda x: id_2_category.get(x, TPS_DETECTION_LABEL.UNKNOWN.value)
                                 if id_2_category is not None
                                 else ""
                             )
@@ -147,12 +148,12 @@ def eval_experiment(
                                 else 100
                             )
                             for category in set(current_categories).difference(
-                                {"Unknown"}
+                                {TPS_DETECTION_LABEL.UNKNOWN.value}
                             ):
                                 for blast_identity_bucket_lb in range(-10, max_allowed_blast_identity + 1, 10):
                                     print('blast_identity_bucket_lb: ', blast_identity_bucket_lb)
                                     is_category_bool = current_categories.isin(
-                                        {category, "Unknown"}
+                                        {category, TPS_DETECTION_LABEL.UNKNOWN.value}
                                     )
                                     is_blast_identity_bucket_bool = current_blast_identities.map(
                                         lambda x: blast_identity_bucket_lb < 0  or (blast_identity_bucket_lb <= x < blast_identity_bucket_lb + 10)
