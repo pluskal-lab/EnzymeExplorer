@@ -17,7 +17,6 @@ class BlastConfig(BaseConfig):
 
     n_neighbours: int
     e_threshold: float
-    seq_col_name: str
     pred_batch_size: Optional[int] = 32
     n_jobs: Optional[int] = 64
     is_halo: bool = False

@@ -1,0 +1,5 @@
+include: ../main_config.yaml
+representations_path: "data/gathered_embs_esm-2_embs_avg.h5"
+per_class_optimization: false
+n_calls_hyperparams_opt: 50
+optimize_hyperparams: true

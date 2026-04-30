@@ -25,13 +25,13 @@ def parse_args():
         "--enzyme-explorer-dataset-csv-path",
         type=str,
         help="Path to the EnzymeExplorer dataset CSV file",
-        default="./data/EnzymeExplorer_Dataset.csv",
+        default="./data/clean_datasets/EnzymeExplorer_Dataset_with_all_negs.csv",
     )
     parser.add_argument(
         "--prefix",
         type=str,
         help="Prefix for the output files",
-        default="enzexp",
+        default="fullnegs",
     )
     parser.add_argument(
         "--output-dir",

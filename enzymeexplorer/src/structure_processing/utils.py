@@ -117,13 +117,22 @@ def get_foldseek_alignment_df(
             dst_path = os.path.join(query_pdbs_dir, f"{domain}.pdb")
             os.symlink(src_path, dst_path)
 
+        # E-value cutoff for predict-time sensitivity. Foldseek's default of 1.0
+        # was missing weakly-aligned divergent TPS domains (e.g. A0A2P0VN22)
+        # that TMalign could still align to the template at tmscore ≈ 0.37.
+        # Raising to 100 admits those weak hits — the downstream classifier
+        # uses the resulting (1 - tmscore) distance directly so noise is
+        # bounded, and false positives at this layer just produce small
+        # signal in the feature vector.
         alignment_df = FoldseekWrapper().easy_search(
             query_dir=query_pdbs_dir,
             target_dir=reference_pdbs_dir,
             tmp_dir=os.path.join(tmpdir, "tmp_foldseek"),
             output=os.path.join(tmpdir, "foldseek_output.tsv"),
             max_seqs=len(reference_domains) * 2,
+            e_value=100.0,
         )
+        alignment_df["query"] = alignment_df["query"].map(lambda x: x if x in query_domains else ("_".join(x.split("_")[:-1]) if "_".join(x.split("_")[:-1]) in query_domains else x))
 
     query_domain_2_seq_id, query_domain_2_domain_type = (
         __get_domain_2_seq_id_and_domain_type_maps(query_seq_2_regions)

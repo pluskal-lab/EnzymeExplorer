@@ -1,94 +1,81 @@
-"""This script gathers the detection results into a CSV file"""
+"""Concatenate per-shard screening CSVs into a single output file.
+
+The screening worker (:mod:`tps_predict_fasta`) writes one CSV per shard
+under ``<output-root>/shards/``. This script merges them into a single
+table sorted by ``isTPS_score`` (when present) and optionally deletes the
+per-shard files.
+"""
+
+from __future__ import annotations
 
 import argparse
-import json
 import logging
-import os
-from collections import defaultdict
-from datetime import datetime
 from pathlib import Path
+
 import pandas as pd  # type: ignore
-from tqdm import tqdm  # type: ignore
 
-logger = logging.getLogger(__file__)
-logger.setLevel(logging.INFO)
-
-SUBSTR_2_NAME = {"CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O": "Farnesyl pyrophosphate",
-                            "CC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O": "Geranyl pyrophosphate",
-                            "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O":  "Geranylgeranyl pyrophosphate",
-                            "CC(C)=CCCC(C)=CCCC(C)=CCCC=C(C)CCC=C(C)CCC1OC1(C)C": "(S)-2,3-epoxysqualene",
-                            "CC1(C)CCCC2(C)C1CCC(=C)C2CCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O": "copalyl diphosphate",
-                            "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O": "Geranylfarnesyl pyrophosphate",
-                            "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O.CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O":  "2x Farnesyl pyrophosphate",
-                            "CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O.CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O": "2x Geranylgeranyl pyrophosphate",
-                 }
+logger = logging.getLogger(__name__)
 
 
 def parse_args() -> argparse.Namespace:
-    """
-    This function parses arguments
-    :return: current argparse.Namespace
-    """
-    parser = argparse.ArgumentParser(
-        description="A script to gather screening detections into a CSV file"
-    )
+    parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "--delete-individual-files",
-        help="A flag to delete individual files",
-        action="store_true",
-    )
-    parser.add_argument(
-        "--screening-results-root",
-        help="Root folder with screening results",
-        type=str,
-        default="trembl_screening/detections_plm",
+        "--shards-dir",
+        required=True,
+        type=Path,
+        help="Directory containing the per-shard CSVs.",
     )
     parser.add_argument(
         "--output-path",
-        help="A file to save the CSV with detections to",
+        required=True,
+        type=Path,
+        help="Path to the combined CSV.",
+    )
+    parser.add_argument(
+        "--delete-shards",
+        action="store_true",
+        help="Remove per-shard CSVs (and shards-dir if empty) on success.",
+    )
+    parser.add_argument(
+        "--sort-by",
         type=str,
-        default=f"trembl_screening/detections_plm/detections_{datetime.now().strftime('%Y%m%d-%H%M%S')}.csv",
+        default="isTPS_score",
+        help=(
+            "Column to sort by, descending. Skipped if absent. Default: "
+            "isTPS_score."
+        ),
     )
     return parser.parse_args()
 
 
-def main(args: argparse.Namespace):
-    screening_results_root = Path(args.screening_results_root)
-    assert (
-        screening_results_root.exists()
-    ), f"Folder {screening_results_root} does not exist"
-    ids = []
-    predicted_class_2_vals = defaultdict(list)
+def main(args: argparse.Namespace) -> None:
+    shard_paths = sorted(args.shards_dir.glob("*.csv"))
+    if not shard_paths:
+        raise FileNotFoundError(f"No CSV shards found under {args.shards_dir}")
+    logger.info("Concatenating %d shard CSV(s)", len(shard_paths))
 
-    processed_files = []
-    all_files = [file for file in screening_results_root.glob("*") if file.is_file()]
-    for detected_file in tqdm(all_files, desc="Processing detection files"):
-        if ".csv" not in detected_file.name:
-            with open(detected_file, "r", encoding="utf-8") as file:
-                content = json.load(file)
-            ids.append(detected_file.name)
-            for class_name, prob in content.items():
-                predicted_class_2_vals[class_name].append(prob)
-            processed_files.append(str(detected_file))
+    frames = [pd.read_csv(p) for p in shard_paths]
+    combined = pd.concat(frames, ignore_index=True)
+    if args.sort_by in combined.columns:
+        combined = combined.sort_values(args.sort_by, ascending=False)
 
-    predicted_class_2_vals.update({"ID": ids})
-    df_detections = pd.DataFrame({f"{class_name} {('(' if class_name in SUBSTR_2_NAME else '') + SUBSTR_2_NAME.get(class_name, '') + (')' if class_name in SUBSTR_2_NAME else '')}": values for class_name, values in predicted_class_2_vals.items()})
-    if len(df_detections) and "isTPS" in df_detections.columns:
-        df_detections = df_detections.sort_values("isTPS", ascending=False)
-    df_detections.to_csv(args.output_path, index=False)
-    logger.info(
-        "Screening results gathered into %s with %d rows",
-        args.output_path,
-        len(df_detections),
-    )
+    args.output_path.parent.mkdir(parents=True, exist_ok=True)
+    combined.to_csv(args.output_path, index=False)
+    logger.info("Wrote %d rows to %s", len(combined), args.output_path)
 
-    if args.delete_individual_files:
-        for file_to_delete in processed_files:
-            os.remove(file_to_delete)
-        os.rmdir(args.screening_results_root)
-        logger.info("Deleted %d individual files", len(processed_files))
+    if args.delete_shards:
+        for p in shard_paths:
+            p.unlink()
+        try:
+            args.shards_dir.rmdir()
+        except OSError:
+            pass
+        logger.info("Removed %d shard file(s)", len(shard_paths))
 
 
 if __name__ == "__main__":
-    args = parse_args()
-    main(args)
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    )
+    main(parse_args())

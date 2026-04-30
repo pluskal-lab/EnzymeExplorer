@@ -97,9 +97,26 @@ def parse_args() -> configargparse.Namespace:
     return parser.parse_args()
 
 
-if __name__ == "__main__":
-    args = parse_args()
+def compute_structural_features(args) -> dict:
+    """Run the foldseek-based structural feature computation.
 
+    Operates on a parsed args object with the same attributes as :func:`parse_args`.
+    Writes the artefacts into ``args.output_directory`` and returns a dict
+    summarising the in-memory results::
+
+        {
+            "structural_features": np.ndarray  # [n_query, n_features]
+            "query_seq_ids": list[str]
+            "ref_seq_2_col_idxs": dict
+            "ref_domain_id_2_col_idxs": dict
+            "domain_type_2_start_end_cols": dict
+            "alignment_df": pd.DataFrame
+            "regions_ids_2_tmscore": dict
+            "output_directory": str
+        }
+
+    Use :func:`run_structural_feature_computation` for a kwargs-only entry.
+    """
     args.query_domains_file_path = os.path.abspath(args.query_domains_file_path)
     args.reference_domains_file_path = os.path.abspath(args.reference_domains_file_path)
 
@@ -271,3 +288,60 @@ if __name__ == "__main__":
     logger.info(
         f"Structural features and related mappings saved to {args.output_directory}"
     )
+
+    return {
+        "structural_features": structural_features,
+        "query_seq_ids": query_seq_ids,
+        "ref_seq_2_col_idxs": ref_seq_2_col_idxs,
+        "ref_domain_id_2_col_idxs": ref_domain_id_2_col_idxs,
+        "domain_type_2_start_end_cols": domain_type_2_start_end_cols,
+        "alignment_df": alignment_df,
+        "regions_ids_2_tmscore": regions_ids_2_tmscore,
+        "output_directory": args.output_directory,
+    }
+
+
+def run_structural_feature_computation(
+    *,
+    query_domains_file_path,
+    reference_domains_file_path,
+    query_domains_structures_directory,
+    reference_domains_structures_directory,
+    output_directory=None,
+    store_intermediate_results=False,
+    domain_type_preprocessing_config=None,
+) -> dict:
+    """Python-callable wrapper around :func:`compute_structural_features`."""
+    import argparse as _argparse
+
+    if domain_type_preprocessing_config is None:
+        domain_type_preprocessing_config = {
+            "alpha": "alpha",
+            "beta": "beta",
+            "gamma": "gamma",
+            "delta": "delta",
+            "epsilon": "epsilon",
+            "ids": "alpha",
+            "alpha_cls2": "alpha",
+        }
+    args = _argparse.Namespace(
+        query_domains_file_path=str(query_domains_file_path),
+        reference_domains_file_path=str(reference_domains_file_path),
+        query_domains_structures_directory=str(query_domains_structures_directory),
+        reference_domains_structures_directory=str(
+            reference_domains_structures_directory
+        ),
+        output_directory=str(output_directory) if output_directory else None,
+        store_intermediate_results=store_intermediate_results,
+        domain_type_preprocessing_config=domain_type_preprocessing_config,
+    )
+    return compute_structural_features(args)
+
+
+def main():
+    args = parse_args()
+    compute_structural_features(args)
+
+
+if __name__ == "__main__":
+    main()

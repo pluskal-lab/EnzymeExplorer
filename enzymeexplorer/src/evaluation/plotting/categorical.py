@@ -1,0 +1,270 @@
+"""Categorical (per-Kingdom / per-TPS-type) plots driven by a CI summary
+that includes a ``category`` column.
+
+Two views on the same data:
+  * ``plot_category_boxplot`` — one box per classifier; the box's data
+    points are the per-category point estimates (e.g. one AP per kingdom).
+    Classifiers are ordered by increasing mean performance across
+    categories. Each box gets a distinct colorblind-safe colour, with
+    individual category points overlaid as a strip for transparency.
+  * ``plot_category_heatmap`` — rows=categories, cols=classifiers, cell
+    colour = point estimate. Best for systematic at-a-glance scans.
+
+Both consume the dataframe returned by ``bootstrap.compute_cis`` (which
+must include ``category`` in its columns).
+"""
+
+from __future__ import annotations
+
+from typing import Iterable
+
+import matplotlib.pyplot as plt  # type: ignore
+import numpy as np  # type: ignore
+import pandas as pd  # type: ignore
+import seaborn as sns  # type: ignore
+
+from enzymeexplorer.src.evaluation.plotting import theme
+
+
+def _scale_pct(values: pd.Series) -> pd.Series:
+    return values * 100.0
+
+
+def _filter(
+    cis_df: pd.DataFrame,
+    target_class: str,
+    metric: str,
+    *,
+    categories: Iterable[str] | None,
+    classifier_subset: Iterable[str] | None,
+    skip_nan: bool,
+) -> tuple[pd.DataFrame, list[str]]:
+    if "category" not in cis_df.columns:
+        raise ValueError("cis_df must include a 'category' column")
+    df = cis_df[
+        (cis_df["class"] == target_class) & (cis_df["metric"] == metric)
+    ].copy()
+    if df.empty:
+        raise ValueError(
+            f"No rows for class={target_class!r} metric={metric!r}"
+        )
+    if classifier_subset is not None:
+        df = df[df["classifier"].isin(list(classifier_subset))]
+    if categories is not None:
+        df = df[df["category"].isin(list(categories))]
+    if skip_nan:
+        df = df.dropna(subset=["point"])
+    cats: list[str]
+    if categories is None:
+        cats = sorted(df["category"].unique())
+    else:
+        cats = [c for c in categories if c in set(df["category"])]
+    return df, cats
+
+
+def plot_category_boxplot(
+    bootstrap_long: pd.DataFrame,
+    target_class: str,
+    *,
+    metric: str = "ap",
+    categories: Iterable[str] | None = None,
+    classifier_subset: Iterable[str] | None = None,
+    classifier_order: list[str] | None = None,
+    palette: dict[str, tuple[float, float, float]] | None = None,
+    title: str = "",
+    ylabel: str | None = None,
+    xlabel: str = "",
+    ylim: tuple[float, float] | None = None,
+    figsize: tuple[float, float] | None = None,
+    showfliers: bool = True,
+) -> plt.Figure:
+    """Grouped boxplot: one column per classifier, one box per category
+    inside each column. Box colour is by category (Kingdom / TPS type), so
+    the same colour identifies the same category across classifiers.
+
+    Each box draws the bootstrap distribution for its (classifier, category)
+    cell — whisker IQR + outliers reflect the actual spread of metric values
+    over all bootstrap draws. Classifiers are ordered by ascending mean
+    performance across categories.
+
+    Pass the ``bootstrap_long.csv`` dataframe (with columns
+    ``classifier, class, metric, category, bootstrap_idx, value``).
+    """
+    if "category" not in bootstrap_long.columns:
+        raise ValueError("Expected `bootstrap_long` with a 'category' column")
+    df = bootstrap_long[
+        (bootstrap_long["class"] == target_class)
+        & (bootstrap_long["metric"] == metric)
+    ].copy()
+    if classifier_subset is not None:
+        df = df[df["classifier"].isin(list(classifier_subset))]
+    if categories is not None:
+        df = df[df["category"].isin(list(categories))]
+    df = df.dropna(subset=["value"])
+    if df.empty:
+        raise ValueError(
+            f"No bootstrap rows for class={target_class!r} metric={metric!r}"
+        )
+
+    cats: list[str]
+    if categories is None:
+        cats = sorted(df["category"].unique())
+    else:
+        cats = [c for c in categories if c in set(df["category"])]
+
+    if classifier_order is None:
+        means = df.groupby("classifier")["value"].mean().sort_values()
+        classifier_order = means.index.tolist()
+    else:
+        classifier_order = [c for c in classifier_order if c in set(df["classifier"])]
+    ee_pin = "PLM_Domains"
+    if ee_pin in classifier_order and classifier_order[-1] != ee_pin:
+        classifier_order = [c for c in classifier_order if c != ee_pin] + [ee_pin]
+
+    if palette is None:
+        all_cats = sorted(
+            bootstrap_long["category"].dropna().astype(str).unique()
+        )
+        full_palette = theme.categorical_palette(all_cats)
+        palette = {c: full_palette[c] for c in cats}
+
+    df["value_pct"] = df["value"] * 100.0
+    df["classifier"] = pd.Categorical(
+        df["classifier"], categories=classifier_order, ordered=True
+    )
+    df["category"] = pd.Categorical(df["category"], categories=cats, ordered=True)
+
+    target_box_inches = 0.11
+    cluster_width = 0.5
+    if figsize is None:
+        figsize = (
+            max(
+                9.0,
+                target_box_inches * len(classifier_order) * len(cats) / cluster_width
+                + 2.5,
+            ),
+            5.5,
+        )
+    fig, ax = plt.subplots(figsize=figsize)
+    sns.boxplot(
+        data=df,
+        x="classifier",
+        y="value_pct",
+        hue="category",
+        order=classifier_order,
+        hue_order=cats,
+        palette=palette,
+        showfliers=showfliers,
+        flierprops=dict(
+            marker="o", markersize=2.5, markerfacecolor="white",
+            markeredgecolor="0.4", linestyle="none",
+        ),
+        whis=(2.5, 97.5),
+        linewidth=0.7,
+        width=cluster_width,
+        gap=0.0,
+        ax=ax,
+    )
+    ax.margins(x=0.04)
+
+    ax.set_xticks(range(len(classifier_order)))
+    ax.set_xticklabels(
+        [theme.display_name(clf) for clf in classifier_order],
+        rotation=0, ha="center",
+    )
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel if ylabel is not None else f"{metric.upper()} (%)")
+    ax.set_title(title)
+    if ylim is not None:
+        ax.set_ylim(*ylim)
+    ax.legend(
+        loc="lower center",
+        bbox_to_anchor=(0.5, -0.30),
+        ncols=len(cats),
+        frameon=False,
+        title=None,
+    )
+    fig.tight_layout()
+    return fig
+
+
+def plot_category_heatmap(
+    cis_df: pd.DataFrame,
+    target_class: str,
+    *,
+    metric: str = "ap",
+    categories: Iterable[str] | None = None,
+    classifier_subset: Iterable[str] | None = None,
+    classifier_order: list[str] | None = None,
+    cmap: str = "viridis",
+    annotate: bool = True,
+    annotation_fmt: str = "{:.1f}",
+    figsize: tuple[float, float] | None = None,
+    title: str = "",
+    skip_nan_categories: bool = True,
+    vmin: float | None = None,
+    vmax: float | None = None,
+) -> plt.Figure:
+    """Heatmap: rows=categories, cols=classifiers (ordered by mean perf)."""
+    df, cats = _filter(
+        cis_df, target_class, metric,
+        categories=categories,
+        classifier_subset=classifier_subset,
+        skip_nan=skip_nan_categories,
+    )
+    if df.empty:
+        raise ValueError("No rows match the requested filters")
+
+    if classifier_order is None:
+        means = df.groupby("classifier")["point"].mean().sort_values()
+        classifier_order = means.index.tolist()
+    else:
+        df = df[df["classifier"].isin(classifier_order)]
+
+    matrix = (
+        df.pivot(index="category", columns="classifier", values="point")
+        .reindex(index=cats, columns=classifier_order)
+        * 100.0
+    )
+    if figsize is None:
+        figsize = (
+            max(6, 1.0 * len(classifier_order) + 2),
+            max(3, 0.55 * len(cats) + 1.5),
+        )
+    fig, ax = plt.subplots(figsize=figsize)
+    norm_vmin = float(np.nanmin(matrix.values)) if vmin is None else vmin
+    norm_vmax = float(np.nanmax(matrix.values)) if vmax is None else vmax
+    if not np.isfinite(norm_vmin) or not np.isfinite(norm_vmax):
+        norm_vmin, norm_vmax = 0.0, 100.0
+    im = ax.imshow(
+        matrix.values,
+        cmap=cmap,
+        aspect="auto",
+        vmin=norm_vmin,
+        vmax=norm_vmax,
+    )
+    ax.set_xticks(np.arange(len(classifier_order)))
+    ax.set_xticklabels(
+        [theme.display_name(c) for c in classifier_order],
+        rotation=20, ha="right",
+    )
+    ax.set_yticks(np.arange(len(cats)))
+    ax.set_yticklabels(cats)
+    ax.set_title(title)
+    cbar = fig.colorbar(im, ax=ax, fraction=0.046, pad=0.02)
+    cbar.set_label(f"{metric.upper()} (%)")
+
+    if annotate:
+        threshold = (norm_vmin + norm_vmax) / 2
+        for i in range(matrix.shape[0]):
+            for j in range(matrix.shape[1]):
+                v = matrix.values[i, j]
+                if not np.isfinite(v):
+                    txt = "—"
+                    color = "0.4"
+                else:
+                    txt = annotation_fmt.format(v)
+                    color = "white" if v < threshold else "black"
+                ax.text(j, i, txt, ha="center", va="center", color=color, fontsize=9)
+    fig.tight_layout()
+    return fig

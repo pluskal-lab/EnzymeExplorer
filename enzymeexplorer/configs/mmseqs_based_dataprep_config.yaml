@@ -12,12 +12,12 @@ rhea-reaction-smiles-tsv-path: "data/rhea-reaction-smiles_2026_03_14.tsv"
 rhea-directions-tsv-path: "data/rhea-directions_2026_03_14.tsv"
 dataset-output-path: "data/EnzymeExplorer_Dataset.csv"
 structures-root: "data/enzyme_explorer_pdbs"
-pos_seq_id: 0.5 
+pos_seq_id: 0.5
 neg_seq_id: 0.5
-pos_coverage: 0.6
-neg_coverage: 0.6
+pos_coverage: 0.8
+neg_coverage: 0.8
 do-not-filter-negatives-by-putative-tpss: False
 sample-negatives-randomly: False
 presplit-martsdb-clusters-csv-path: "data/EnzymeExplorer_Dataset_TPS.csv"
 # preprocessed-swissprot-load-path: "data/non_tpss_swissprot.tsv"
-# preprocessed-swissprot-save-path: "data/non_tpss_swissprot.tsv"
+preprocessed-swissprot-save-path: "data/non_tpss_swissprot.tsv"

@@ -59,7 +59,6 @@ class EmbWithDomainsRandomForestConfig(EmbSklearnBaseConfig, DomainFeaturesRando
     """
     A data class to store the corresponding model attributes
     """
-    seq_col_name: str
     requires_multioutputwrapper_for_multilabel: bool = False
     is_halo: bool = False
 
@@ -80,6 +79,7 @@ class EmbMLPConfig(EmbSklearnBaseConfig, SklearnBaseConfig):
     hidden_layer_sizes: int
     alpha: float
     max_iter: int
+    domain_dist_path: str = field(default="", kw_only=True)
 
 
 @dataclass
@@ -89,6 +89,7 @@ class EmbLogisticRegressionConfig(EmbSklearnBaseConfig, SklearnBaseConfig):
     """
 
     penalty: str
+    domain_dist_path: str = field(default="", kw_only=True)
     tol: float
     C: float  # pylint: disable=C0103
     max_iter: int

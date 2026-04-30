@@ -1,8 +1,33 @@
 # Python
 __pycache__/
 
+build/
+
 # EnzymeExplorer
 /enzymeexplorer.egg-info/
 
 # data
 /scripts/data/
+
+/tmp
+
+outputs/
+
+.vscode
+
+data/enzyme_explorer_pdbs
+data/martsDB_pdbs
+data/detected_domains
+data/plm_checkpoints
+data/enzyme_explorer_structural_features
+data/martsDB_structural_features
+data/martsDB_structural_features_initial
+data/clean_datasets
+data/gathered_*
+data/go-basic_2026_03_14.obo
+data/rhea*
+data/enzyme_explorer_checkpoints.pkl
+data/enzyme_explorer_plm_checkpoints.pkl
+.codex
+.claude/
+

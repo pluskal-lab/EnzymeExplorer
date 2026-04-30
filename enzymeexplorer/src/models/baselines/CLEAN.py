@@ -34,7 +34,6 @@ class CLEANConfig(BaseConfig):
 
     clean_installation_root: Path
     ec_2_substrates_json_path: str
-    seq_col_name: str
     is_halo: bool
     pretrained_models_link: str
 

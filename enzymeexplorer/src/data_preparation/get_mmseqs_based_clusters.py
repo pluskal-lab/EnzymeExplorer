@@ -6,14 +6,23 @@ import json
 import pandas as pd
 import numpy as np
 from tqdm.auto import tqdm
+import os
+from enzymeexplorer.src.data_preparation.ec_utils import (
+    extract_canonical_tps_smiles_from_rhea_and_marts,
+    get_matched_rhea_ids_for_marts_reactions,
+)
 from enzymeexplorer.src.data_preparation.mmseqs2_wrapper import MMSeqs2Wrapper
 from enzymeexplorer.src.data_preparation.hmmer_wrapper import HMMerWrapper
 from enzymeexplorer.src.data_preparation.positives_utils import (
     preprocess_martsdb,
     prepare_positives_set,
 )
+from enzymeexplorer.src.data_preparation.common_utils import (
+    get_rhea_id_to_master_id_mappings,
+    get_non_tps_rhea_ids_with_tps_substrates,
+)
 from enzymeexplorer.src.data_preparation.negatives_utils import (
-    proprocess_negatives,
+    preprocess_negatives,
     mmseqs_based_negative_sampling,
     randomised_negative_sampling,
     prepare_negatives_set,
@@ -152,6 +161,12 @@ def parse_args() -> configargparse.Namespace:
         help="Path to the Rhea reaction SMILES TSV file for determining reaction directionality",
     )
     parser.add_argument(
+        "--martsDB-rhea-mapping-csv-path",
+        type=str,
+        default="data/martsDB_reactions_2026_02_22_rhea.csv",
+        help="Path to the MartsDB to Rhea mapping CSV",
+    )
+    parser.add_argument(
         "--dataset-output-path",
         type=str,
         default="data/EnzymeExplorer_Dataset.csv",
@@ -214,6 +229,12 @@ def main():
     logger.info(f"Loaded SwissProt dataset size: {len(swissprot)}")
 
     swissprot = swissprot[swissprot["AF_structure_available"] == True]
+    rhea_reaction_smiles = pd.read_csv(
+        cli_args.rhea_reaction_smiles_tsv_path,
+        sep="\t",
+        names=["rhea_id", "reaction_smiles"],
+    )
+    rhea_directions = pd.read_csv(cli_args.rhea_directions_tsv_path, sep="\t")
 
     logger.info(
         f"Filtered SwissProt dataset to entries with available AlphaFold structures. Remaining size: {len(swissprot)}"
@@ -235,7 +256,48 @@ def main():
         )
         go_dag = GODag(cli_args.go_dag_path)
         hmmer = HMMerWrapper(threads=8)
-        nontps_swissprot = proprocess_negatives(
+        if (
+            cli_args.martsDB_rhea_mapping_csv_path
+            and Path(cli_args.martsDB_rhea_mapping_csv_path).exists()
+        ):
+            logger.info(
+                f"Loading MartsDB to Rhea mapping from {cli_args.martsDB_rhea_mapping_csv_path}"
+            )
+            marts_reaction_smiles = pd.read_csv(cli_args.martsDB_rhea_mapping_csv_path)
+            marts_reaction_smiles["rhea_ids"] = marts_reaction_smiles['rhea_ids'].map(eval)
+        else:
+            rhea_smiles_canonical, marts_reaction_smiles = (
+                extract_canonical_tps_smiles_from_rhea_and_marts(
+                    rhea_reaction_smiles, martsDB
+                )
+            )
+            rhea_smiles_canonical = rhea_smiles_canonical[
+                (rhea_smiles_canonical.canonical_products_no_stereo.map(len) > 0)
+                & (rhea_smiles_canonical.canonical_substrates_no_stereo.map(len) > 0)
+            ]
+            marts_reaction_smiles["rhea_ids"] = (
+                get_matched_rhea_ids_for_marts_reactions(
+                    rhea_smiles_canonical, marts_reaction_smiles
+                )
+            )
+            logger.info(
+                f"Extracted canonical reaction SMILES for Rhea reactions and matched them to MartsDB reactions. Sample of matched Rhea IDs for MartsDB reactions: {marts_reaction_smiles['rhea_ids'].explode().dropna().unique()[:10]}"
+            )
+            marts_reaction_smiles.to_csv(
+                cli_args.martsDB_rhea_mapping_csv_path, index=False
+            )
+            logger.info(
+                f"Saved MartsDB to Rhea mapping to {cli_args.martsDB_rhea_mapping_csv_path}"
+            )
+
+        marts_rhea_ids = set(
+            marts_reaction_smiles["rhea_ids"].explode().dropna().unique()
+        )
+        rhea_id_to_master_id = get_rhea_id_to_master_id_mappings(rhea_directions)
+        
+        hard_negative_rhea_ids = get_non_tps_rhea_ids_with_tps_substrates(marts_rhea_ids, rhea_id_to_master_id, rhea_reaction_smiles, martsDB)
+        
+        nontps_swissprot = preprocess_negatives(
             swissprot,
             martsDB.Aminoacid_sequence.unique().tolist(),
             cli_args.pfam_models_dir,
@@ -243,6 +305,7 @@ def main():
             go_dag,
             mmseqs,
             hmmer,
+            hard_negative_rhea_ids,
             not cli_args.do_not_filter_negatives_by_putative_tpss,
         )
 
@@ -275,14 +338,6 @@ def main():
 
         rhea_to_swissprot = pd.read_csv(cli_args.rhea_to_swissprot_tsv_path, sep="\t")
 
-        rhea_reaction_smiles = pd.read_csv(
-            cli_args.rhea_reaction_smiles_tsv_path,
-            sep="\t",
-            names=["rhea_id", "reaction_smiles"],
-        )
-
-        rhea_directions = pd.read_csv(cli_args.rhea_directions_tsv_path, sep="\t")
-
         negative_ids, negatives_folds, negatives_to_accepted_tps_substrates = (
             mmseqs_based_negative_sampling(
                 nontps_swissprot,
@@ -308,6 +363,7 @@ def main():
     logger.info(f"Prepared negatives dataset size: {len(negatives_data)}")
 
     if cli_args.structures_root:
+        os.makedirs(cli_args.structures_root, exist_ok=True)
         logger.info(
             "Downloading AlphaFold structures for negative samples. This may take some time..."
         )

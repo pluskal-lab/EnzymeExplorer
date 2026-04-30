@@ -1,5 +1,6 @@
 id_col_name: "ID"
 target_col_name: "SMILES_substrate_canonical_no_stereo"
+seq_col_name: "Aminoacid_sequence"
 split_col_name: "Fold"
 type_col_name: "Type"
 class_names: ["CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",
@@ -14,7 +15,7 @@ class_names: ["CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",
             "isTPS"]
 optimize_hyperparams: true
 random_state: 0
-n_calls_hyperparams_opt: 350
+n_calls_hyperparams_opt: 50
 hyperparam_dimensions:
   hidden_layer_sizes:
     type: "int"
@@ -33,6 +34,6 @@ neg_val: "Unknown"
 save_trained_model: true
 negatives_sample_path: "data/sampled_id_2_seq.pkl"
 tps_cleaned_csv_path: "data/EnzymeExplorer_Dataset.csv"
-per_class_optimization: true
+per_class_optimization: false
 reuse_existing_partial_results: false
 load_per_class_params_from: ""

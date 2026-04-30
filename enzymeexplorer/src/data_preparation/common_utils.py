@@ -6,6 +6,7 @@ from enzymeexplorer.src.utils.data import get_canonical_smiles
 import os
 import tempfile
 import warnings
+from enzymeexplorer.src.data_preparation.constants import BLACKLISTED_RHEA_MASTER_IDS
 from rdkit.Chem import MolToSmiles, rdChemReactions # type: ignore
 from collections import defaultdict
 import numpy as np
@@ -20,6 +21,18 @@ logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
+def get_non_tps_rhea_ids_with_tps_substrates(marts_rhea_ids: set[int], rhea_id_to_master_id: dict[int, int], rhea_reaction_smiles: pd.DataFrame, martsDB: pd.DataFrame) -> set[int]:
+    rhea_reaction_smiles = add_tps_substrates_to_rhea_data(rhea_reaction_smiles, martsDB)
+    rhea_reaction_smiles["MASTER_ID"] = rhea_reaction_smiles["rhea_id"].map(rhea_id_to_master_id)
+    marts_rhea_master_ids = set([rhea_id_to_master_id[rhea_id] for rhea_id in marts_rhea_ids])
+    blacklist_rhea_master_ids = marts_rhea_master_ids.union(set(BLACKLISTED_RHEA_MASTER_IDS))
+    non_tps_rhea_ids_with_tps_substrates = set(
+        rhea_reaction_smiles[
+            ~(rhea_reaction_smiles["MASTER_ID"].isin(blacklist_rhea_master_ids))
+            & (rhea_reaction_smiles["accepted_tps_substrates"].apply(lambda x: len(x) > 0))
+        ]["MASTER_ID"].tolist()
+    )
+    return non_tps_rhea_ids_with_tps_substrates
 
 def get_canonical_substrates(rxn_smiles: str):
     rxn = rdChemReactions.ReactionFromSmarts(rxn_smiles, useSmiles=True)

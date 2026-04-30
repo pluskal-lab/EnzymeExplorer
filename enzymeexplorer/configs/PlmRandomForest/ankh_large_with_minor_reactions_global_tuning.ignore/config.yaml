@@ -1,3 +1,0 @@
-include: ../main_config.yaml
-representations_path: "data/gathered_embs_ankh_large_embs_avg.h5"
-per_class_optimization: false

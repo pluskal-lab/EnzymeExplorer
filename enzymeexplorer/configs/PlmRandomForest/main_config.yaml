@@ -42,6 +42,7 @@ max_train_negs_proportion: 0.98
 neg_val: "Unknown"
 save_trained_model: true
 negatives_sample_path: "data/sampled_id_2_seq.pkl"
+seq_col_name: "Aminoacid_sequence"
 tps_cleaned_csv_path: "data/EnzymeExplorer_Dataset.csv"
 per_class_optimization: false
 per_class_with_multilabel_regularization: 0

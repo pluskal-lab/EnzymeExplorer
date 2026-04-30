@@ -7,11 +7,10 @@ num_gpus=1
 
 # plm models
 model_parameters=(
-    "ankh_base 16 -1"
-    "ankh_large 6 -1"
-    "esm-1v 8 33"
-    "ankh_tps 16 -1"
-    "esm-1v-finetuned 8 33"
+    "ankh_base 4 -1"
+    "ankh_large 4 -1"
+    "esm-1v 4 33"
+    "ankh_tps 4 -1"
     "esm-1v-finetuned-subseq 8 33"
     "esm-2 4 36"
 )

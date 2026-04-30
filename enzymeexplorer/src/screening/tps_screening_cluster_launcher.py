@@ -1,198 +1,143 @@
-"""This script scores the models against UniProt proteins"""
+"""Multi-GPU launcher for FASTA screening.
+
+Splits the input FASTA into ``n_gpus`` contiguous shards and spawns one
+:mod:`tps_predict_fasta` worker per shard. Each worker is given a disjoint
+``[start_i, end_i)`` slice and a per-shard CSV path; the launcher pins the
+worker to a GPU via ``CUDA_VISIBLE_DEVICES`` (also set as
+``HIP_VISIBLE_DEVICES`` so the same launcher works on AMD ROCm without
+modification).
+
+For SLURM array jobs, ``--session-i`` lets one array task pick up its own
+contiguous chunk of the FASTA: each session processes
+``n_gpus * shard_size`` sequences, so set ``--array=1-K`` where
+``K = ceil(N / (n_gpus * shard_size))``.
+
+After all workers finish, aggregate the per-shard CSVs with
+``python -m enzymeexplorer.src.screening.gather_detections_to_csv``.
+"""
+
+from __future__ import annotations
+
 import argparse
-import subprocess
-import time
 import logging
+import os
+import subprocess
+import sys
+from pathlib import Path
 
-# import GPUtil  # type: ignore
-
-logger = logging.getLogger(__file__)
-logger.setLevel(logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 def parse_args() -> argparse.Namespace:
-    """
-    This function parses arguments
-    :return: current argparse.Namespace
-    """
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--delta", type=int, default=40000)
-    parser.add_argument("--session-i", type=int, default=1)
-    parser.add_argument("--n-gpus", type=int, default=8)
-    parser.add_argument("--fasta-path", type=str, default="data/uniprot_trembl.fasta")
-    parser.add_argument("--output-root", type=str, default="trembl_screening")
-    parser.add_argument("--model", type=str, default="esm-1v-finetuned-subseq")
-    parser.add_argument("--detection-threshold", type=float, default=0.2)
-    parser.add_argument("--detect-precursor-synthases", action="store_true")
-
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--fasta-path", required=True, type=Path,
+        help="Input FASTA to screen.",
+    )
+    parser.add_argument(
+        "--output-root", required=True, type=Path,
+        help="Per-shard CSVs are written under <output-root>/shards/.",
+    )
+    parser.add_argument(
+        "--n-gpus", type=int, default=8,
+        help="Number of parallel workers; one GPU each, round-robin.",
+    )
+    parser.add_argument(
+        "--shard-size", type=int, default=40_000,
+        help="Number of sequences per shard.",
+    )
+    parser.add_argument(
+        "--session-i", type=int, default=1,
+        help=(
+            "1-indexed session number for SLURM array jobs. Session i "
+            "processes sequences "
+            "[(i-1)*n_gpus*shard_size, i*n_gpus*shard_size)."
+        ),
+    )
+    parser.add_argument(
+        "--plm-model", type=str, default="esm-1v-finetuned-subseq",
+    )
+    parser.add_argument("--plm-batch-size", type=int, default=32)
+    parser.add_argument(
+        "--keep-negatives", action="store_true",
+        help="Forwarded to each worker; see tps_predict_fasta --help.",
+    )
     return parser.parse_args()
 
 
-def get_amd_gpu_utilization():
-    """
-    Function to retrieve the utilization of AMD GPUs using the `rocm-smi` tool.
+def _spawn_worker(
+    *,
+    gpu_id: int,
+    fasta_path: Path,
+    output_csv: Path,
+    start_i: int,
+    end_i: int,
+    plm_model: str,
+    plm_batch_size: int,
+    keep_negatives: bool,
+) -> subprocess.Popen:
+    """Spawn one screening worker pinned to the given GPU."""
+    env = os.environ.copy()
+    env["CUDA_VISIBLE_DEVICES"] = str(gpu_id)
+    env["HIP_VISIBLE_DEVICES"] = str(gpu_id)
 
-    :return: A dictionary mapping GPU IDs to their utilization rates as a float value between 0 and 1.
-    """
-
-    result = subprocess.run(
-        ["rocm-smi", "--showuse"], capture_output=True, text=True, check=False
-    )
-    gpu_utilization = {}
-    lines = result.stdout.split("\n")
-    for line in lines:
-        if "GPU use" in line:
-            parts = line.split()
-            gpu_id = int(parts[0].replace("GPU[", "").replace("]", ""))
-            gpu_usage = float(parts[5]) / 100.0
-            gpu_utilization[gpu_id] = gpu_usage
-    return gpu_utilization
-
-
-class GpuAllocator:
-    """
-    Class to manage GPU allocation on a cluster node with 8 GPUs
-    """
-
-    def __init__(self, n_gpus: int = 8):
-        # self.available_gpus = set(
-        #     GPUtil.getAvailable(
-        #         order="PCI_BUS_ID",
-        #         limit=100,  # big M (i.e. unreachable upper bound)
-        #         maxLoad=0.5,
-        #         maxMemory=0.5,
-        #         includeNan=False,
-        #         excludeID=[],
-        #         excludeUUID=[],
-        #     )
-        # )
-
-        def get_amd_gpu_memory_usage():
-            result = subprocess.run(
-                ["rocm-smi", "--showmemuse"],
-                capture_output=True,
-                text=True,
-                check=False,
-            )
-            gpu_memory_usage = {}
-            lines = result.stdout.split("\n")
-            for line in lines:
-                if "GPU memory use" in line:
-                    parts = line.split()
-                    gpu_id = int(parts[0].replace("GPU[", "").replace("]", ""))
-                    memory_usage = float(parts[6]) / 100.0
-                    gpu_memory_usage[gpu_id] = memory_usage
-            return gpu_memory_usage
-
-        def get_available_amd_gpus(max_load=0.5, max_memory=0.5):
-            gpu_utilization = get_amd_gpu_utilization()
-            gpu_memory_usage = get_amd_gpu_memory_usage()
-            available_gpus = set()
-            for gpu_id, current_utilization in gpu_utilization.items():
-                if (
-                    current_utilization <= max_load
-                    and gpu_memory_usage.get(gpu_id, 1.0) <= max_memory
-                ):
-                    available_gpus.add(gpu_id)
-            return available_gpus
-
-        self.available_gpus = get_available_amd_gpus(max_load=0.5, max_memory=0.5)
-        self.process_id_2_gpu_id: dict[subprocess.Popen, int] = {}
-        self.n_gpus = n_gpus
-
-    def check_dead_processes(self):
-        """
-        Check if any of the processes have finished and free the GPU
-        """
-        for process in list(self.process_id_2_gpu_id.keys()):
-            if process.poll() is not None:
-                self.available_gpus.add(self.process_id_2_gpu_id[process])
-                del self.process_id_2_gpu_id[process]
-
-    def assign_process_to_gpu(self, process: subprocess.Popen, gpu_id: int):
-        """
-        Assign a process to a GPU
-        """
-        self.process_id_2_gpu_id[process] = gpu_id
-        self.available_gpus.remove(gpu_id)
-
-    def is_gpu_available(self):
-        """
-        Check if any GPU is available
-        :return:
-        """
-        return len(self.available_gpus) > 0
-
-    def are_all_gpus_available(self):
-        """
-        Check if all GPUs are available
-        :return:
-        """
-        return len(self.available_gpus) == self.n_gpus
-
-    def get_available_gpu(self):
-        """
-        Get the first available GPU
-        :return:
-        """
-        assert self.is_gpu_available(), "No gpus"
-        return list(self.available_gpus)[0]
-
-    def wait_for_free_gpu(self):
-        """
-        Actively wait until a GPU is available
-        """
-        while not self.is_gpu_available():
-            self.check_dead_processes()
-            time.sleep(5)
-
-    def wait_for_complete_finish(self):
-        """
-        Actively wait until all processes are finished
-        """
-        while not self.are_all_gpus_available():
-            self.check_dead_processes()
-            time.sleep(120)
+    cmd = [
+        sys.executable,
+        "-m",
+        "enzymeexplorer.src.screening.tps_predict_fasta",
+        "--fasta-path", str(fasta_path),
+        "--output-csv", str(output_csv),
+        "--start-i", str(start_i),
+        "--end-i", str(end_i),
+        "--plm-model", plm_model,
+        "--plm-batch-size", str(plm_batch_size),
+    ]
+    if keep_negatives:
+        cmd.append("--keep-negatives")
+    logger.info("Launching worker on GPU %d → %s", gpu_id, output_csv)
+    return subprocess.Popen(cmd, env=env)
 
 
-def main(args: argparse.Namespace):
-    gpu_allocator = GpuAllocator()
+def main(args: argparse.Namespace) -> None:
+    shards_dir = args.output_root / "shards"
+    shards_dir.mkdir(parents=True, exist_ok=True)
 
-    starting_i = (args.session_i - 1) * args.n_gpus * args.delta
+    session_offset = (args.session_i - 1) * args.n_gpus * args.shard_size
 
+    processes: list[subprocess.Popen] = []
     for gpu_i in range(args.n_gpus):
-        # pylint: disable=R1732
-        current_process = subprocess.Popen(
-            [
-                "python",
-                "-m",
-                "enzymeexplorer.src.screening.tps_predict_fasta",
-                "--gpu",
-                str(gpu_i),
-                "--starting-i",
-                str(starting_i + gpu_i * args.delta),
-                "--end-i",
-                str(starting_i + (gpu_i + 1) * args.delta),
-                "--batch-size",
-                "32",
-                "--clf-batch-size",
-                "4096",
-                "--fasta-path",
-                args.fasta_path,
-                "--output-root",
-                args.output_root,
-                "--model",
-                args.model,
-                "--detection-threshold",
-                str(args.detection_threshold),
-                " --detect-precursor-synthases" if args.detect_precursor_synthases else " --no-detect-precursor-synthases",
-            ]
+        start_i = session_offset + gpu_i * args.shard_size
+        end_i = start_i + args.shard_size
+        output_csv = (
+            shards_dir
+            / f"session_{args.session_i:03d}_gpu_{gpu_i}_{start_i:09d}_{end_i:09d}.csv"
         )
-        gpu_allocator.assign_process_to_gpu(current_process, gpu_i)
+        processes.append(
+            _spawn_worker(
+                gpu_id=gpu_i,
+                fasta_path=args.fasta_path,
+                output_csv=output_csv,
+                start_i=start_i,
+                end_i=end_i,
+                plm_model=args.plm_model,
+                plm_batch_size=args.plm_batch_size,
+                keep_negatives=args.keep_negatives,
+            )
+        )
 
-    gpu_allocator.wait_for_complete_finish()
+    failures = 0
+    for proc in processes:
+        rc = proc.wait()
+        if rc != 0:
+            logger.error("Worker pid=%d exited with code %d", proc.pid, rc)
+            failures += 1
+    if failures:
+        sys.exit(1)
 
 
 if __name__ == "__main__":
-    args = parse_args()
-    main(args)
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    )
+    main(parse_args())

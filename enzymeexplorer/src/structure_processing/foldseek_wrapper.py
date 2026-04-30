@@ -18,8 +18,8 @@ class FoldseekWrapper:
         output: str,
         tmp_dir: str,
         max_seqs: int = 5000,
-        e_value: float = 1,
-        sensitivity: float = 10,
+        e_value: float = 100,
+        sensitivity: float = 9.5,
         cov_mode: int | None = None,
         coverage: float | None = None
     ) -> pd.DataFrame:

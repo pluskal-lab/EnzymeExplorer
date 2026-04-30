@@ -1,428 +1,523 @@
-from functools import partial
-from uuid import uuid4
+"""FastAPI app — single-protein TPS prediction API.
 
-from fastapi import FastAPI, File, UploadFile, BackgroundTasks, Form
-from fastapi.responses import FileResponse
-from pathlib import Path
-import os
-import pickle
-from shutil import copyfile, rmtree
-import logging
-import subprocess
-from dataclasses import dataclass
-import re
-import numpy as np
-from enzymeexplorer.src.embeddings_extraction.esm_transformer_utils import (
-    compute_embeddings,
-    get_model_and_tokenizer,
+Endpoint URLs and response shapes are kept on the legacy contract so the
+published ``notebooks/EnzymeExplorer_*.ipynb`` colabs continue to work without
+modification:
+
+* ``POST /detect_domains/`` — multipart upload (``file=<pdb>``) + form field
+  ``is_bfactor_confidence``. Returns the legacy 6-key payload.
+* ``POST /predict_tps/`` — same upload form. Returns
+  ``{"predictions": [{<raw class name>: prob, ...}]}`` where the class names
+  are the *raw* model labels (``isTPS``, ``precursor substr``, substrate
+  SMILES) — the notebooks rely on those keys.
+* ``GET /download_pdb/{aligned_pdb_name}`` — serves a per-domain PDB written
+  during ``/detect_domains/`` and removes it after the response.
+
+Domain *type* prediction is currently stubbed (``domain_type_predictions: {}``)
+pending the new domain-type predictor; the notebooks gate their visualization
+on this field, so an empty dict cleanly skips that branch without errors.
+Other metadata fields previously sourced from legacy auxiliary pickles
+(``closest_id_reaction_types``, ``closest_id_kingdom``,
+``whole_structure_domain_config``) are returned as ``None`` for the same
+reason — the gate also keeps them from being dereferenced.
+"""
+
+from __future__ import annotations
+
+# --- Critical import order ---
+# PyMOL must load *before* numpy/pandas/BioPython so the conda env's
+# libstdc++.so.6 (with GLIBCXX_3.4.30, required by libvtkm_cont-1.8.so.1) is
+# the one resolved by the dynamic loader. If pandas/numpy load first they
+# pull in the system libstdc++ and the later PyMOL import fails. The
+# standalone ``detect_domains`` CLI works without setting LD_LIBRARY_PATH for
+# the same reason — it imports PyMOL on line 11 of its module.
+from pymol import cmd as _pymol_cmd  # type: ignore  # noqa: F401, E402
+
+import logging  # noqa: E402
+import pickle  # noqa: E402
+import re  # noqa: E402
+import tempfile  # noqa: E402
+import uuid  # noqa: E402
+from dataclasses import dataclass  # noqa: E402
+from pathlib import Path  # noqa: E402
+from shutil import copyfile, rmtree  # noqa: E402
+
+import pandas as pd  # type: ignore  # noqa: E402
+from Bio import SeqIO  # type: ignore  # noqa: E402
+from fastapi import (  # noqa: E402
+    BackgroundTasks,
+    FastAPI,
+    File,
+    Form,
+    HTTPException,
+    UploadFile,
 )
-from enzymeexplorer.src.utils.pdb import _extract_sequences_from_pdb
+from fastapi.responses import FileResponse  # noqa: E402
+
+from enzymeexplorer.src.evaluation.classes import SHORT_TO_SMILES  # noqa: E402
+from enzymeexplorer.src.prediction.domains import (  # noqa: E402
+    detect_and_align_domains,
+)
+from enzymeexplorer.src.prediction.embeddings import load_plm_embedder  # noqa: E402
+from enzymeexplorer.src.prediction.ensemble import load_fold_bundle  # noqa: E402
+from enzymeexplorer.src.prediction.pipeline import (  # noqa: E402
+    DEFAULT_PLM_DOMAINS_BUNDLE,
+    DEFAULT_PLM_ONLY_BUNDLE,
+    DEFAULT_REFERENCE_DOMAINS_PICKLE,
+    DEFAULT_REFERENCE_DOMAINS_STRUCTURES_DIR,
+    predict_with_structures,
+)
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-
-# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[
-        logging.StreamHandler()  # Output to console
-    ]
 )
 
+
+# ---------------------------------------------------------------------------
+# Startup state
+# ---------------------------------------------------------------------------
+PLM_MODEL = "esm-1v-finetuned-subseq"
+TEMP_DIR = Path("_temp")
+TEMP_DIR.mkdir(exist_ok=True)
+
+# Per-protein metadata used to enrich /detect_domains responses (kingdom and
+# reaction types of the closest known domain's parent protein). Loaded once
+# from the martsDB reactions CSV. Falls back to empty maps if the file is
+# missing — clients see ``None`` for these fields.
+DATASET_CSV = Path("data/martsDB_reactions_2026_02_22_preprocessed.csv")
+_DATASET_ID_COL = "Enzyme_marts_ID"
+
+
+def _load_dataset_metadata(
+    csv_path: Path,
+) -> tuple[dict[str, str], dict[str, list[str]]]:
+    """Build ``(id_2_kingdom, id_2_reaction_types)`` from the martsDB CSV.
+
+    The CSV has multiple rows per protein (one per substrate/product
+    reaction). We take the first non-null Kingdom for each ID and the unique
+    sorted list of ``Type`` values.
+    """
+    if not csv_path.exists():
+        logger.warning(
+            "Dataset CSV %s not found — closest_id_kingdom / "
+            "closest_id_reaction_types will be returned as None.",
+            csv_path,
+        )
+        return {}, {}
+    df = pd.read_csv(csv_path, usecols=[_DATASET_ID_COL, "Type", "Kingdom"])
+    id_2_kingdom = (
+        df.dropna(subset=["Kingdom"])
+        .drop_duplicates(subset=[_DATASET_ID_COL])
+        .set_index(_DATASET_ID_COL)["Kingdom"]
+        .to_dict()
+    )
+    id_2_reaction_types = (
+        df.dropna(subset=["Type"])
+        .groupby(_DATASET_ID_COL)["Type"]
+        .apply(lambda s: sorted(set(s.astype(str))))
+        .to_dict()
+    )
+    return id_2_kingdom, id_2_reaction_types
+
+
+logger.info("Loading per-protein metadata from %s…", DATASET_CSV)
+ID_2_KINGDOM, ID_2_REACTION_TYPES = _load_dataset_metadata(DATASET_CSV)
+logger.info(
+    "Loaded metadata for %d proteins (kingdom) / %d proteins (reaction types)",
+    len(ID_2_KINGDOM),
+    len(ID_2_REACTION_TYPES),
+)
+
+logger.info("Loading PLM embedder (%s)…", PLM_MODEL)
+embedder = load_plm_embedder(PLM_MODEL)
+
+# Eagerly load the bundles so request latency is dominated by the actual
+# work, not pickle.load. The PLM_Domains bundle is the largest (~3 GB) but
+# is shared across all requests.
+logger.info("Loading PLM_Domains fold bundle…")
+_PLM_DOMAINS_FOLDS = load_fold_bundle(DEFAULT_PLM_DOMAINS_BUNDLE)
+logger.info("Loading PLM-only fold bundle…")
+_PLM_ONLY_FOLDS = load_fold_bundle(DEFAULT_PLM_ONLY_BUNDLE)
+
+app = FastAPI(title="EnzymeExplorer prediction API")
+
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
 @dataclass
-class MotifDetection:
+class _MotifDetection:
     start: int
     end: int
     motif: str
     class_tps: str
 
-model, batch_converter, alphabet = get_model_and_tokenizer(
-        "esm-1v-finetuned-subseq", return_alphabet=True
-    )
 
-compute_embeddings_partial = partial(
-    compute_embeddings,
-    bert_model=model,
-    converter=batch_converter,
-    padding_idx=alphabet.padding_idx,
-    model_repr_layer=33,
-    max_len=1022,
-)
-
-model_fallback, batch_converter_fallback, alphabet_fallback = get_model_and_tokenizer(
-        "esm-1v", return_alphabet=True
-    )
-compute_embeddings_partial_fallback = partial(
-    compute_embeddings,
-    bert_model=model_fallback,
-    converter=batch_converter_fallback,
-    padding_idx=alphabet_fallback.padding_idx,
-    model_repr_layer=33,
-    max_len=1022,
-)
-
-with open('data/classifier_domain_and_plm_checkpoints.pkl', 'rb') as file:
-    fold_classifiers = pickle.load(file)
-
-with open('data/classifier_plm_checkpoints.pkl', 'rb') as file:
-    fold_plm_classifiers = pickle.load(file)
-
-with open('data/classifier_plm_checkpoints_esm1v.pkl', 'rb') as file:
-    fold_plm_classifiers_fallback = pickle.load(file)
-
-# Create FastAPI app instance
-app = FastAPI()
+# Regex motifs from the legacy implementation, unchanged.
+_MOTIF_PATTERNS: list[tuple[str, str, str]] = [
+    ("DD..D", "DDxxD", "class I"),
+    ("[ND]D..[ST]...E", "NSE/DTE", "class I"),
+    ("D.DD", "DxDD", "class II"),
+]
 
 
-def detect_domains(file_contents, filename, is_bfactor_confidence):
-    # Define the path where the .pdb file will be saved
-    pdb_directory_temp = Path("_temp")
-    if not pdb_directory_temp.exists():
-        pdb_directory_temp.mkdir()
-        af_source_path = Path("/home/samusevich/TerpeneMiner/data/alphafold_structs")
-        for pdb_standard_id in ["1ps1", "5eat", "3p5r", "P48449", "Q7Z859"]:
-            pdb_standard_file_path = af_source_path / f"{pdb_standard_id}.pdb"
-            copyfile(pdb_standard_file_path, pdb_directory_temp / f"{pdb_standard_id}.pdb")
-
-    # Getting the ID
-    pdb_id = filename.split(".")[0]
-    pdb_id = re.sub(r'\(.*?\)', '', pdb_id)
-    pdb_id = "".join(pdb_id.replace("-", "").split())
-
-    # Define the path where the .pdb file will be saved
-    pdb_file_path = pdb_directory_temp / f"{pdb_id}.pdb"
-    pdb_file_to_delete_afterwards = not pdb_file_path.exists()
-
-    # Saving the ID into a csv file
-    id_filepath = f'{pdb_directory_temp / "dummy_id.csv"}'
-    with open(id_filepath, "a") as file:
-        file.writelines(f"ID\n{pdb_id}\n")
-
-    # Save the content as a .pdb file
-    if pdb_file_to_delete_afterwards:
-        with open(pdb_file_path, "wb") as pdb_file:
-            pdb_file.write(file_contents)
-    temp_filepath_name = Path("data/alphafold_structs") / f"{pdb_id}.pdb"
-    temp_filepath_name_to_delete = not temp_filepath_name.exists()
-    if not temp_filepath_name.exists():
-        copyfile(pdb_file_path, temp_filepath_name)
-
-    domain_detections_path = f"_temp/filename_2_detected_domains_completed_confident_{pdb_id}.pkl"
-    detected_domain_structures_root = Path("_temp/detected_domains")
-    if not detected_domain_structures_root.exists():
-        detected_domain_structures_root.mkdir()
-    os.system(
-        "python -m enzymeexplorer.src.structure_processing.domain_detections "
-        f'--needed-proteins-csv-path "{id_filepath}" '
-        "--csv-id-column ID "
-        "--n-jobs 16 "
-        "--input-directory-with-structures _temp "
-        f"{'--is-bfactor-confidence ' if is_bfactor_confidence else ''}"
-        f'--detections-output-path "{domain_detections_path}" '
-        f'--detected-regions-root-path _temp '
-        f'--domains-output-path "{detected_domain_structures_root}" '
-        "--store-domains "
-        "--recompute-existing-secondary-structure-residues "
-        "--do-not-store-intermediate-files"
-    )
-
-    return pdb_id, pdb_file_path, temp_filepath_name, id_filepath, domain_detections_path, detected_domain_structures_root, pdb_file_to_delete_afterwards, temp_filepath_name_to_delete
+def _detect_motifs(sequence: str) -> list[dict]:
+    out: list[dict] = []
+    for pattern, label, class_tps in _MOTIF_PATTERNS:
+        for match in re.finditer(pattern, sequence):
+            out.append(
+                {
+                    "start": match.start() + 1,
+                    "end": match.end() + 1,
+                    "motif": label,
+                    "class_tps": class_tps,
+                }
+            )
+    return out
 
 
-def detect_known_motifs(sequence: str) -> list[MotifDetection]:
-    simple_regex = "DD..D"
-    motif_detections = []
-    for x in re.finditer(simple_regex, sequence):
-        motif_detections.append(MotifDetection(x.start() + 1, x.end() + 1, "DDxxD", 'class I'))
+def _normalise_pdb_id(filename: str) -> str:
+    """Mirror the legacy ID normalisation: drop ``(...)`` substrings, dashes
+    and whitespace from the filename stem."""
+    stem = Path(filename).stem
+    stem = re.sub(r"\(.*?\)", "", stem)
+    return "".join(stem.replace("-", "").split())
 
-    simple_regex = "[ND]D..[ST]...E"
-    for x in re.finditer(simple_regex, sequence):
-        motif_detections.append(MotifDetection(x.start() + 1, x.end() + 1, "NSE/DTE", 'class I'))
 
-    simple_regex = "D.DD"
-    for x in re.finditer(simple_regex, sequence):
-        motif_detections.append(MotifDetection(x.start() + 1, x.end() + 1, "DxDD", 'class II'))
-    return motif_detections
+def _save_pdb_upload(contents: bytes, filename: str) -> tuple[Path, str]:
+    """Save the upload into a fresh temp workdir; return (input_dir, pdb_id)."""
+    pdb_id = _normalise_pdb_id(filename)
+    if not pdb_id:
+        raise HTTPException(status_code=400, detail="filename has no usable stem")
+    workdir = Path(tempfile.mkdtemp(prefix="api_"))
+    input_dir = workdir / "input"
+    input_dir.mkdir(parents=True)
+    (input_dir / f"{pdb_id}.pdb").write_bytes(contents)
+    return workdir, pdb_id
 
-@app.post("/detect_domains/")
-async def upload_file(file: UploadFile = File(...),
-                      is_bfactor_confidence: bool = Form(...)):
-    # Read the contents of the uploaded file
-    file_contents = await file.read()
 
-    pdb_id, pdb_file_path, temp_filepath_name, id_filepath, domain_detections_path, detected_domain_structures_root, pdb_file_to_delete_afterwards, temp_filepath_name_to_delete = detect_domains(file_contents, file.filename, is_bfactor_confidence)
+def _sequence_from_pdb(pdb_path: Path) -> str:
+    records = list(SeqIO.parse(str(pdb_path), "pdb-atom"))
+    seqs = list({str(r.seq) for r in records if str(r.seq)})
+    if not seqs:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Could not extract any sequence from {pdb_path.name}",
+        )
+    if len(seqs) > 1:
+        logger.warning(
+            "Multiple distinct chains in %s; using the first", pdb_path.name
+        )
+    return seqs[0]
 
-    with open(domain_detections_path, "rb") as file:
-        detected_domains = pickle.load(file)
 
-    all_secondary_structure_residues_path = "_temp/file_2_all_residues.pkl"
-    with open(all_secondary_structure_residues_path, "rb") as file:
-        file_2_all_residues = pickle.load(file)
-    if pdb_id in file_2_all_residues:
-        secondary_structure_res = file_2_all_residues[pdb_id]
-    else:
-        secondary_structure_res = None
+def _domain_to_dict(region) -> dict:
+    return {
+        "module_id": getattr(region, "module_id", None),
+        "domain": getattr(region, "domain", None),
+        "tmscore": getattr(region, "tmscore", None),
+        "residues_mapping": dict(getattr(region, "residues_mapping", {})),
+    }
 
-    logger.info("Detected %d domains. Starting comparison to the known domains..", len(detected_domains))
-    if detected_domains:
-        current_computation_id = uuid4()
-        comparison_results_path = f"_temp/filename_2_regions_vs_known_reg_dists_{current_computation_id}.pkl"
-        os.system("python -m enzymeexplorer.src.structure_processing.comparing_to_known_domains_foldseek "
-                  f'--known-domain-structures-root data/detected_domains/all '
-                  f'--detected-domain-structures-root "{detected_domain_structures_root}" '
-                  '--path-to-known-domains-subset data/domains_subset.pkl '
-                  f'--output-path "{comparison_results_path}" '
-                  f'--pdb-id "{pdb_id}"')
 
-        logger.info("Compared detected domains to the known ones!")
+def _legacy_predictions_from_table(table: pd.DataFrame) -> dict:
+    """Wide-form prediction table → ``{raw_class_name: prob}`` dict using the
+    legacy keys (``isTPS``, ``precursor substr``, substrate SMILES) the
+    notebooks consume."""
+    if table.empty:
+        return {}
+    row = table.iloc[0].to_dict()
+    out: dict[str, float] = {}
+    for col, val in row.items():
+        if not isinstance(col, str) or not col.endswith("_score"):
+            continue
+        short_name = col[: -len("_score")]
+        legacy_name = SHORT_TO_SMILES.get(short_name, short_name)
+        out[legacy_name] = float(val)
+    return out
 
-        with open(comparison_results_path, "rb") as file:
-            comparison_results = pickle.load(file)
 
-        domain_id_2_aligned_pdb = {}
+def _load_secondary_structure_residues(
+    workdir: Path, pdb_id: str
+) -> list[str] | None:
+    """Read back the per-protein residue set the detector cached in the
+    workdir."""
+    ssr_path = workdir / "_work" / "secondary_structure_residues.pkl"
+    if not ssr_path.exists():
+        return None
+    with ssr_path.open("rb") as f:
+        ssr = pickle.load(f)
+    if pdb_id not in ssr:
+        return None
+    return sorted(ssr[pdb_id], key=lambda r: int(r) if str(r).lstrip("-").isdigit() else 0)
 
-        with open('data/reaction_types_and_kingdoms.pkl', 'rb') as file:
-            id_2_reaction_types, id_2_kingdom = pickle.load(file)
-        with open('data/domain_module_id_2_domain_type.pkl', 'rb') as file:
-            domain_module_id_2_domain_type = pickle.load(file)
-        with open('data/id_2_domain_config.pkl', 'rb') as file:
-            id_2_domain_config = pickle.load(file)
 
-        for detected_domain_id in comparison_results[pdb_id]:
-            detected_domain_file_path = detected_domain_structures_root / f"{detected_domain_id}.pdb"
-            pdb_id_current = detected_domain_id.split('_')[0]
-            closest_known_domain_id, foldseek_tm_score = max([(known_domain_id, tmscore)
-                                                              for known_domain_id, tmscore in comparison_results[pdb_id][detected_domain_id]
-                                                              if known_domain_id.split('_')[0] != pdb_id_current and known_domain_id.split('_')[0] in id_2_domain_config],
-                                                             key=lambda x: x[1])
-            closest_known_domain_id_pdb_id = closest_known_domain_id.split('_')[0]
-            closest_known_domain_file_path = Path("data/detected_domains/all") / f"{closest_known_domain_id}.pdb"
+def _closest_known_per_detection(
+    alignment_df: pd.DataFrame, detected_for_pdb: list
+) -> dict[str, dict]:
+    """For each detection, return the row of the foldseek alignment table
+    with the highest ``alntmscore``: ``{module_id: {target, alntmscore,
+    target_domain_type, ...}}``.
+    """
+    if alignment_df is None or alignment_df.empty:
+        return {}
+    detection_module_ids = {
+        getattr(d, "module_id", None) for d in detected_for_pdb
+    }
+    detection_module_ids.discard(None)
+    sub = alignment_df[alignment_df["query"].isin(detection_module_ids)]
+    if sub.empty:
+        return {}
+    out: dict[str, dict] = {}
+    for module_id, group in sub.groupby("query"):
+        best = group.loc[group["alntmscore"].idxmax()]
+        out[str(module_id)] = best.to_dict()
+    return out
 
-            aligned_pdb_path = Path("_temp") / f"aligned_{detected_domain_id}_to_{closest_known_domain_id}"
-            # Run TM-align and capture the output
+
+def _superpose_and_save(
+    detected_pdb: Path,
+    closest_pdb: Path,
+    out_path: Path,
+) -> float | None:
+    """TMalign-superpose ``detected_pdb`` onto ``closest_pdb`` inside PyMOL
+    (via psico) and write a combined ``ref + rotated mobile`` PDB to
+    ``out_path``. Returns the TMalign score, or ``None`` if alignment failed.
+    """
+    from psico.fitting import tmalign  # type: ignore
+
+    suffix = uuid.uuid4().hex[:8]
+    ref_obj = f"ref_{suffix}"
+    mobile_obj = f"mob_{suffix}"
+    aln_obj = f"aln_{suffix}"
+    combined_obj = f"cmb_{suffix}"
+    try:
+        _pymol_cmd.load(str(closest_pdb), ref_obj)
+        _pymol_cmd.load(str(detected_pdb), mobile_obj)
+        try:
+            tm_score = float(
+                tmalign(mobile_obj, ref_obj, object=aln_obj, quiet=1)
+            )
+        except Exception as exc:  # pragma: no cover — best-effort logging
+            logger.warning(
+                "TMalign failed for %s vs %s: %s",
+                detected_pdb.name,
+                closest_pdb.name,
+                exc,
+            )
+            return None
+        _pymol_cmd.create(combined_obj, f"({ref_obj}) or ({mobile_obj})")
+        _pymol_cmd.save(str(out_path), combined_obj)
+        return tm_score
+    finally:
+        for obj in (ref_obj, mobile_obj, aln_obj, combined_obj):
             try:
-                result = subprocess.run(
-                    ["TMalign", closest_known_domain_file_path, detected_domain_file_path, "-o", aligned_pdb_path],
-                    check=True,
-                    capture_output=True,  # Capture stdout and stderr
-                    text=True  # Ensure output is in text form, not bytes
+                _pymol_cmd.delete(obj)
+            except Exception:
+                pass
+
+
+def _build_aligned_pdb_filepaths(
+    detected_for_pdb: list,
+    domain_structures_dir: Path,
+    alignment_df: pd.DataFrame,
+    reference_domains_dir: Path,
+) -> dict | None:
+    """Build the legacy ``aligned_pdb_filepaths`` mapping with real TMalign
+    superpositions of each detected domain onto its closest known reference.
+
+    For every detection:
+
+      1. Find the closest known reference module via the foldseek alignment
+         table (highest ``alntmscore`` row keyed by ``query==module_id``).
+      2. Superpose the detected domain onto that reference using psico's
+         ``tmalign`` (PyMOL-internal — no external binary needed).
+      3. Save the combined ref + rotated-mobile PDB to ``TEMP_DIR/<module_id>.pdb``
+         so ``/download_pdb/<module_id>`` can serve it.
+
+    ``closest_id_reaction_types`` and ``closest_id_kingdom`` are read from
+    the in-memory maps populated at startup from
+    ``data/EnzymeExplorer_Dataset.csv`` (matched by the closest known
+    domain's parent protein ID). ``whole_structure_domain_config`` was
+    previously sourced from a separate auxiliary pickle that's no longer
+    maintained — it stays ``None`` until the new domain-type predictor lands;
+    the notebooks gate on ``domain_type_predictions`` (currently stubbed)
+    before dereferencing it.
+    """
+    if not detected_for_pdb:
+        return None
+    closest = _closest_known_per_detection(alignment_df, detected_for_pdb)
+    out: dict = {}
+    for det in detected_for_pdb:
+        module_id = getattr(det, "module_id", None)
+        if module_id is None:
+            continue
+        detected_pdb = domain_structures_dir / f"{module_id}.pdb"
+        if not detected_pdb.exists():
+            continue
+
+        best = closest.get(module_id)
+        closest_module_id = (
+            str(best["target"]) if best is not None else None
+        )
+        # ``target_seq_id`` is populated by ``get_foldseek_alignment_df`` —
+        # use it directly rather than splitting the module_id, which is
+        # brittle for IDs that themselves contain underscores
+        # (e.g. ``marts_E00001`` vs the legacy single-token ``1ps1``).
+        closest_pdb_id = (
+            str(best["target_seq_id"]) if best is not None else None
+        )
+        closest_domain_type = (
+            best.get("target_domain_type") if best is not None else None
+        )
+
+        out_path = TEMP_DIR / f"{module_id}.pdb"
+        tm_score: float | None = None
+        if closest_module_id:
+            closest_pdb = reference_domains_dir / f"{closest_module_id}.pdb"
+            if closest_pdb.exists():
+                tm_score = _superpose_and_save(
+                    detected_pdb, closest_pdb, out_path
                 )
-            except subprocess.CalledProcessError as e:
-                raise ValueError(f"TM-align failed, details {e}")
+        if tm_score is None:
+            # Fallback: serve the unaligned detected domain so /download_pdb
+            # still has something to return.
+            copyfile(detected_pdb, out_path)
+            tm_score = (
+                float(best["alntmscore"]) if best is not None else None
+            )
 
-            # Extract TM-score from the output
-            output = result.stdout
-            tm_score = None
-            for line in output.splitlines():
-                if "TM-score" in line and "Chain_1" in line:  # TM-score line (ignores local TM-scores)
-                    tm_score = float(line.split()[1])
-                    break
-            domain_id_2_aligned_pdb[detected_domain_id] = {"closest_known_domain_pdb_id": closest_known_domain_id_pdb_id,
-                                                           "whole_structure_domain_config": id_2_domain_config[closest_known_domain_id_pdb_id],
-                                                           "closest_domain_type": domain_module_id_2_domain_type[closest_known_domain_id],
-                                                           "closest_id_reaction_types": [tps_type.replace('Class', 'class')
-                                                                                         for tps_type in id_2_reaction_types[closest_known_domain_id_pdb_id]],
-                                                           "closest_id_kingdom": id_2_kingdom[closest_known_domain_id_pdb_id],
-                                                           "tm_score": tm_score,
-                                                           "aligned_pdb_name": f"{aligned_pdb_path.name}_all_atm"}
-            os.remove(aligned_pdb_path)
-            os.remove(f"{aligned_pdb_path}_all")
-            os.remove(f"{aligned_pdb_path}_atm")
-            os.remove(f"{aligned_pdb_path}_all_atm_lig")
+        reaction_types = (
+            ID_2_REACTION_TYPES.get(closest_pdb_id) if closest_pdb_id else None
+        )
+        if reaction_types is not None:
+            # Mirror the legacy normalisation — uppercase "Class" was used
+            # for some entries and notebooks expected the lowercase form.
+            reaction_types = [t.replace("Class", "class") for t in reaction_types]
+        out[module_id] = {
+            "closest_known_domain_pdb_id": closest_pdb_id,
+            "whole_structure_domain_config": None,
+            "closest_domain_type": closest_domain_type
+            or getattr(det, "domain", None),
+            "closest_id_reaction_types": reaction_types,
+            "closest_id_kingdom": (
+                ID_2_KINGDOM.get(closest_pdb_id) if closest_pdb_id else None
+            ),
+            "tm_score": tm_score,
+            "aligned_pdb_name": module_id,
+        }
+    return out or None
 
-        logger.info("Predicting domain types..")
-        domain_predictions_path = f"_temp/domain_id_2_predictions_{uuid4()}.pkl"
-        os.system(
-            "python -m enzymeexplorer.src.structure_processing.predict_domain_types "
-            "--tps-classifiers-path data/classifier_domain_and_plm_checkpoints.pkl "
-            "--domain-classifiers-path data/domain_type_predictors_foldseek.pkl "
-            f"--path-to-domain-comparisons {comparison_results_path} "
-            f'--id "{pdb_id}" '
-            f'--output-path "{domain_predictions_path}" ')
 
-        with open(domain_predictions_path, "rb") as file:
-            domain_id_2_predictions = pickle.load(file)
-        os.remove(comparison_results_path)
-        os.remove(domain_predictions_path)
+# ---------------------------------------------------------------------------
+# Endpoints
+# ---------------------------------------------------------------------------
+@app.post("/detect_domains/")
+async def detect_domains_endpoint(
+    file: UploadFile = File(...),
+    is_bfactor_confidence: bool = Form(...),
+):
+    contents = await file.read()
+    workdir, pdb_id = _save_pdb_upload(contents, file.filename or "")
+    pdb_path = workdir / "input" / f"{pdb_id}.pdb"
+    try:
+        result = detect_and_align_domains(
+            structures_dir=workdir / "input",
+            protein_ids=[pdb_id],
+            reference_domains_pickle=DEFAULT_REFERENCE_DOMAINS_PICKLE,
+            reference_domains_structures_dir=DEFAULT_REFERENCE_DOMAINS_STRUCTURES_DIR,
+            workdir=workdir / "_work",
+            keep_intermediate=True,  # we read SSR + per-domain PDBs back
+            is_bfactor_confidence=is_bfactor_confidence,
+        )
+        detected = result.detected_domains.get(pdb_id, [])
+        domains = {pdb_id: [_domain_to_dict(d) for d in detected]}
 
-        # detecting motifs
-        chain_2_seq = _extract_sequences_from_pdb(pdb_file_path)
-        input_seq = list(set(chain_2_seq.values()))
-        if len(input_seq) > 1:
-            logger.warning(f"Multiple chains in the file {pdb_file_path} are not supported")
-        input_seq = input_seq[0]
-        motif_detections = detect_known_motifs(input_seq)
+        # Sequence-derived motifs — same regexes as the legacy implementation.
+        sequence = _sequence_from_pdb(pdb_path)
+        motif_detections = _detect_motifs(sequence) if detected else None
 
-    if pdb_file_to_delete_afterwards:
-        os.remove(pdb_file_path)
-    if temp_filepath_name_to_delete:
-        os.remove(temp_filepath_name)
-    os.remove(id_filepath)
-    os.remove(domain_detections_path)
-    rmtree(detected_domain_structures_root)
+        return {
+            "domains": domains,
+            "secondary_structure_residues": _load_secondary_structure_residues(
+                workdir, pdb_id
+            ),
+            "motif_detections": motif_detections,
+            # The new pipeline does foldseek alignment internally but the
+            # per-detection comparison table the legacy field carried isn't
+            # directly consumed by the notebooks; left as None.
+            "comparison_to_known_domains": None,
+            # STUB until the new domain-type predictor lands. The notebooks
+            # gate ``show_domains`` on this field being truthy, so an empty
+            # dict cleanly skips that branch.
+            "domain_type_predictions": {},
+            "aligned_pdb_filepaths": _build_aligned_pdb_filepaths(
+                detected,
+                domain_structures_dir=result.domain_structures_dir,
+                alignment_df=result.alignment_df,
+                reference_domains_dir=Path(
+                    DEFAULT_REFERENCE_DOMAINS_STRUCTURES_DIR
+                ),
+            ),
+        }
+    finally:
+        rmtree(workdir, ignore_errors=True)
 
-    return {"domains": detected_domains, "secondary_structure_residues": secondary_structure_res,
-            "motif_detections": motif_detections if detected_domains else None,
-            "comparison_to_known_domains": comparison_results[pdb_id] if detected_domains else None,
-            "domain_type_predictions": domain_id_2_predictions if detected_domains else None,
-            "aligned_pdb_filepaths": domain_id_2_aligned_pdb if detected_domains else None}
 
-def delete_file(file_path: str):
-    os.remove(file_path)
-
-# endpoint to download the aligned PDB file
 @app.get("/download_pdb/{aligned_pdb_name}")
-async def download_aligned_pdb(aligned_pdb_name: str, background_tasks: BackgroundTasks):
-    aligned_pdb_path = Path("_temp") / aligned_pdb_name
-    if not os.path.exists(aligned_pdb_path):
+async def download_aligned_pdb(
+    aligned_pdb_name: str, background_tasks: BackgroundTasks
+):
+    aligned_pdb_path = TEMP_DIR / f"{aligned_pdb_name}.pdb"
+    if not aligned_pdb_path.exists():
+        # The legacy app returned this exact JSON shape on miss.
         return {"error": "File not found"}
-    # schedule file deletion after the response is sent
-    background_tasks.add_task(delete_file, aligned_pdb_path)
-    return FileResponse(aligned_pdb_path, media_type='application/octet-stream', filename=Path(aligned_pdb_path).name)
+    background_tasks.add_task(aligned_pdb_path.unlink)
+    return FileResponse(
+        aligned_pdb_path,
+        media_type="application/octet-stream",
+        filename=aligned_pdb_path.name,
+    )
 
 
 @app.post("/predict_tps/")
-async def upload_file(file: UploadFile = File(...),
-                      is_bfactor_confidence: bool = Form(...)):
-    # Read the contents of the uploaded file
-    file_contents = await file.read()
+async def predict_tps_endpoint(
+    file: UploadFile = File(...),
+    is_bfactor_confidence: bool = Form(...),
+):
+    contents = await file.read()
+    workdir, pdb_id = _save_pdb_upload(contents, file.filename or "")
+    pdb_path = workdir / "input" / f"{pdb_id}.pdb"
+    try:
+        sequence = _sequence_from_pdb(pdb_path)
+        sequences_df = pd.DataFrame({"id": [pdb_id], "sequence": [sequence]})
 
-    pdb_id, pdb_file_path, temp_filepath_name, id_filepath, domain_detections_path, detected_domain_structures_root, pdb_file_to_delete_afterwards, temp_filepath_name_to_delete = detect_domains(
-        file_contents, file.filename, is_bfactor_confidence)
-
-    with open(domain_detections_path, "rb") as file:
-        detected_domains = pickle.load(file)
-
-    logger.info("Detected %d domains. Starting comparison to the known domains..", len(detected_domains))
-    if detected_domains:
-        current_computation_id = uuid4()
-        comparison_results_path = f"_temp/filename_2_regions_vs_known_reg_dists_{current_computation_id}.pkl"
-        os.system("python -m enzymeexplorer.src.structure_processing.comparing_to_known_domains_foldseek "
-                  f'--known-domain-structures-root data/detected_domains/all '
-                  f'--detected-domain-structures-root "{detected_domain_structures_root}" '
-                  '--path-to-known-domains-subset data/domains_subset.pkl '
-                  f'--output-path "{comparison_results_path}" '
-                  f'--pdb-id "{pdb_id}"')
-
-        logger.info("Compared detected domains to the known ones!")
-
-        with open(comparison_results_path, "rb") as file:
-            comparison_results = pickle.load(file)
-        os.remove(comparison_results_path)
-    else:
-        comparison_results = None
-
-    logger.info("Computing embeddings..")
-    chain_2_seq = _extract_sequences_from_pdb(pdb_file_path)
-    input_seq = list(set(chain_2_seq.values()))
-    if len(input_seq) > 1:
-        logger.warning(f"Multiple chains in the file {pdb_file_path} are not supported")
-        input_seq = input_seq[:1]
-    (
-        enzyme_encodings_np_batch,
-        _,
-    ) = compute_embeddings_partial(input_seqs=input_seq)
-
-    logger.info("Predicting TPS substrates..")
-
-    predictions = []
-    n_samples = len(enzyme_encodings_np_batch)
-    assert n_samples == 1, "Currently, the backend supports only one sample at a time"
-    for classifier_i, classifier in enumerate(fold_classifiers):
-        logger.info(f"Predicting with classifier {classifier_i + 1}/{len(fold_classifiers)}..")
-        logger.info("Comparing domain detections to the selected known examples")
-        dom_features_count = sum(map(len, classifier.domain_type_2_order_of_domain_modules.values()))
-        dom_feat = np.zeros(dom_features_count)
-        if comparison_results is not None:
-            current_comparison_results = comparison_results[pdb_id]
-            was_alpha_observed = False
-            for domain_detection in detected_domains[pdb_id]:
-                domain_type = domain_detection.domain
-                detection_id = domain_detection.module_id
-                known_domain_id_2_tmscore = dict(current_comparison_results[detection_id])
-                if domain_type == 'alpha':
-                    if not was_alpha_observed:
-                        alpha_idx = 1
-                        was_alpha_observed = True
-                    else:
-                        alpha_idx = 2
-                    domain_type = f"alpha{alpha_idx}"
-                for known_module_id, dom_feat_idx in classifier.domain_type_2_order_of_domain_modules[domain_type]:
-                    # assert known_module_id in known_domain_id_2_tmscore, f"Known module {known_module_id} not found in comparison results"
-                    dom_feat[dom_feat_idx] = known_domain_id_2_tmscore.get(known_module_id, 0)
-        if np.max(dom_feat) < 0.4:
-            logger.warning("No meaningful domain comparisons. Skipping the model.. ")
-            continue
-        dom_feat = 1 - dom_feat.reshape(1, -1)
-        if classifier.plm_feat_indices_subset is not None:
-            emb_plm = np.apply_along_axis(lambda i: i[classifier.plm_feat_indices_subset], 1, enzyme_encodings_np_batch)
-        else:
-            emb_plm = enzyme_encodings_np_batch
-        emb = np.concatenate((emb_plm, dom_feat), axis=1)
-
-        y_pred_proba = classifier.predict_proba(emb)
-        for sample_i in range(n_samples):
-            predictions_raw = {}
-            for class_i, class_name in enumerate(classifier.classes_):
-                if class_name != "Unknown":
-                    predictions_raw[class_name] = y_pred_proba[class_i][sample_i, 1]
-            if len(predictions) == 0:
-                predictions.append(
-                    {
-                        class_name: [value]
-                        for class_name, value in predictions_raw.items()
-                    }
-                )
-            else:
-                for class_name, value in predictions_raw.items():
-                    predictions[sample_i][class_name].append(value)
-        print('predictions: ', predictions)
-    if len(predictions) == 0:
-        logger.warning("Falling back to generic PLM features due to severe data drift")
-        predictions = []
-        for classifier_i, classifier in enumerate(fold_plm_classifiers_fallback):
-            logger.info(f"Predicting with plm classifier {classifier_i + 1}/{len(fold_classifiers)}..")
-            (
-                enzyme_encodings_np_batch,
-                _,
-            ) = compute_embeddings_partial_fallback(input_seqs=input_seq)
-
-            y_pred_proba = classifier.predict_proba(enzyme_encodings_np_batch)
-            for sample_i in range(n_samples):
-                predictions_raw = {}
-                for class_i, class_name in enumerate(classifier.classes_):
-                    if class_name != "Unknown":
-                        predictions_raw[class_name] = y_pred_proba[class_i][sample_i, 1]
-                if classifier_i == 0:
-                    predictions.append(
-                        {
-                            class_name: [value]
-                            for class_name, value
-                            in predictions_raw.items()
-                        }
-                    )
-                else:
-                    for class_name, value in predictions_raw.items():
-                        predictions[sample_i][class_name].append(value)
-
-    logger.info("Averaging predictions over all models..")
-    predictions_avg = []
-    for prediction in predictions:
-        predictions_avg.append(
-            {
-                class_name: np.mean(values)
-                for class_name, values in prediction.items()
-            }
+        plm_domains_table, plm_only_table = predict_with_structures(
+            sequences_df,
+            structures_dir=workdir / "input",
+            reference_domains_pickle=DEFAULT_REFERENCE_DOMAINS_PICKLE,
+            reference_domains_structures_dir=(
+                DEFAULT_REFERENCE_DOMAINS_STRUCTURES_DIR
+            ),
+            plm_domains_bundle_path=DEFAULT_PLM_DOMAINS_BUNDLE,
+            plm_only_bundle_path=DEFAULT_PLM_ONLY_BUNDLE,
+            embedder=embedder,
+            plm_only_embedder=embedder,
+            plm_model=PLM_MODEL,
+            plm_only_model=PLM_MODEL,
+            workdir=workdir / "_work",
+            keep_intermediate=False,
         )
-    if pdb_file_to_delete_afterwards:
-        os.remove(pdb_file_path)
-    if temp_filepath_name_to_delete:
-        os.remove(temp_filepath_name)
-    os.remove(id_filepath)
-    os.remove(domain_detections_path)
-    rmtree(detected_domain_structures_root)
-    return {'predictions': predictions_avg}
-
-
-
+        if not plm_domains_table.empty:
+            preds = _legacy_predictions_from_table(plm_domains_table)
+        elif not plm_only_table.empty:
+            preds = _legacy_predictions_from_table(plm_only_table)
+        else:
+            raise HTTPException(
+                status_code=500, detail="Prediction returned no rows"
+            )
+        return {"predictions": [preds]}
+    finally:
+        rmtree(workdir, ignore_errors=True)

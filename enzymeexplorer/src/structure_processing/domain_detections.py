@@ -43,6 +43,72 @@ if not logger.hasHandlers():
     logger.addHandler(handler)
 
 
+# Canonical default domain templates — kept in sync with
+# enzymeexplorer/configs/enzyme_explorer_domain_detection_config.yaml so that
+# both the CLI (no --config) and the Python wrapper produce identical detections.
+DEFAULT_DOMAIN_TEMPLATES = [
+    {
+        "name": "alpha",
+        "path": "data/domain_templates/1ps1.pdb",
+        "residues": "resi 39-308 & chain A & ss H+S",
+        "thresholds": {"tmscore": 0.35, "min_align_len": 90},
+    },
+    {
+        "name": "beta",
+        "path": "data/domain_templates/5eat.pdb",
+        "residues": (
+            "resi 37-57+64-97+104-117+123-129+138-156+162-195+203-213+223-239"
+            " & chain A & ss H+S"
+        ),
+        "thresholds": {"tmscore": 0.45, "min_align_len": 60},
+    },
+    {
+        "name": "gamma",
+        "path": "data/domain_templates/3p5r.pdb",
+        "residues": (
+            "resi 138-151+157-171+185-222+233-248+258-275+281-304+313-339"
+            " & chain A & ss H+S"
+        ),
+        "thresholds": {"tmscore": 0.45, "min_align_len": 70},
+    },
+    {
+        "name": "ids",
+        "path": "data/domain_templates/1ubw.pdb",
+        "residues": (
+            "resi 73-85+93-121+139-161+167-191+204-231+236-263+324-346+352-361"
+            " & chain A & ss H+S"
+        ),
+        "thresholds": {"tmscore": 0.50, "min_align_len": 85},
+    },
+    {
+        "name": "delta",
+        "path": "data/domain_templates/1w6j.pdb",
+        "residues": (
+            "resi 73-87+385-399+401-403+405-421+454-470+480-493+531-547+553-570"
+            "+585-599+610-622+633-638+649-662+667-680+707-722+727-729"
+            " & chain A & ss H+S"
+        ),
+        "thresholds": {"tmscore": 0.54, "min_align_len": 100},
+    },
+    {
+        "name": "epsilon",
+        "path": "data/domain_templates/1w6j.pdb",
+        "residues": (
+            "resi 103-115+123-134+151-164+171-183+191-200+213-217+226-228+231-246"
+            "+254-263+268-270+273-277+291-306+309-330+337-351+356-371+376-378+510-515"
+            " & chain A & ss H+S"
+        ),
+        "thresholds": {"tmscore": 0.65, "min_align_len": 95},
+    },
+    {
+        "name": "alpha_cls2",
+        "path": "data/domain_templates/P37295.pdb",
+        "residues": "resi 3-248 & chain A & ss H+S",
+        "thresholds": {"tmscore": 0.70, "min_align_len": 85},
+    },
+]
+
+
 def parse_args() -> configargparse.Namespace:
     """
     This function parses arguments
@@ -75,12 +141,12 @@ def parse_args() -> configargparse.Namespace:
         type=str,
         default="data/structs/",
     )
-    parser.add_argument("--n-jobs", type=int, default=16)
+    parser.add_argument("--n-jobs", type=int, default=20)
     parser.add_argument("--n-iters", type=int, default=3)
     parser.add_argument(
         "--detect-multiple-domains-in-each-iteration",
         action="store_true",
-        default=False,
+        default=True,
     )
     parser.add_argument(
         "--detections-output-path",
@@ -91,6 +157,7 @@ def parse_args() -> configargparse.Namespace:
         "--store-domains",
         help="A flag to store detected domains",
         action="store_true",
+        default=True,
     )
     parser.add_argument("--detected-regions-root-path", type=str)
     parser.add_argument(
@@ -98,8 +165,10 @@ def parse_args() -> configargparse.Namespace:
         help="A root path for saving the detected domains to",
         type=str,
     )
-    parser.add_argument("--is-bfactor-confidence", action="store_true")
-    parser.add_argument("--do-not-store-intermediate-files", action="store_true")
+    parser.add_argument("--is-bfactor-confidence", action="store_true", default=True)
+    parser.add_argument(
+        "--do-not-store-intermediate-files", action="store_true", default=True
+    )
     parser.add_argument(
         "--secondary-structure-residues-path",
         type=str,
@@ -108,6 +177,7 @@ def parse_args() -> configargparse.Namespace:
     parser.add_argument(
         "--recompute-existing-secondary-structure-residues",
         action="store_true",
+        default=True,
     )
     parser.add_argument(
         "--prefilter-pdbs-by-foldseek",
@@ -130,32 +200,19 @@ def parse_args() -> configargparse.Namespace:
     parser.add_argument(
         "--domain-templates",
         nargs="+",
-        default=[
-            {
-                "name": "alpha",
-                "path": "data/domain_templates/1ps1.pdb",
-                "residues": "resi 39-308 & chain A & ss H+S",
-                "thresholds": {"tmscore": 0.22, "min_align_len": 90},
-            },
-            {
-                "name": "beta",
-                "path": "data/domain_templates/5eat.pdb",
-                "residues": "resi 37-57+64-97+104-117+123-129+138-156+162-195+203-213+223-239 & chain A & ss H+S",
-                "thresholds": {"tmscore": 0.30, "min_align_len": 60},
-            },
-            {
-                "name": "gamma",
-                "path": "data/domain_templates/3p5r.pdb",
-                "residues": "resi 138-151+157-171+185-222+233-248+258-275+281-304+313-339 & chain A & ss H+S",
-                "thresholds": {"tmscore": 0.42, "min_align_len": 70},
-            },
-        ],
+        default=DEFAULT_DOMAIN_TEMPLATES,
     )
     return parser.parse_args()
 
 
-def main():
-    args = parse_args()
+def detect_domains(args) -> dict:
+    """Run domain detection from a parsed args object.
+
+    Returns the ``filename_2_known_regions_completed_confident`` mapping
+    (``{pdb_filename_stem: list[MappedRegion]}``) in addition to writing it to
+    ``args.detections_output_path``. Use ``run_domain_detection(...)`` for a
+    keyword-friendly entry point.
+    """
     input_directory = Path(args.input_directory_with_structures).absolute()
 
     domain_templates = args.domain_templates
@@ -233,7 +290,7 @@ def main():
     domain_type_to_files_with_no_detections = defaultdict(set)
     for detection_iter in range(args.n_iters):
         logger.info(f"Starting detection iteration {detection_iter + 1}")
-
+        
         # Detecting TPS domains in protein structures
         filename_2_potential_regions = detect_domains_roughly(
             {
@@ -241,7 +298,7 @@ def main():
                     pdb_file
                     for pdb_file in pdb_files
                     if (len(filename_2_remaining_residues.get(pdb_file.stem, [])) >= 20)
-                    and (pdb_file not in domain_type_to_files_with_no_detections[domain_type])
+                    and (pdb_file.stem not in domain_type_to_files_with_no_detections[domain_type])
                 ]
                 for domain_type, pdb_files in domain_type_to_pdb_files.items()
             },  # only considering files for which there are remaining residues
@@ -250,12 +307,12 @@ def main():
             args=args,
             iteration=detection_iter + 1,
         )
-        for domain_type in supported_domains:
+        for domain_type, pdb_files in domain_type_to_pdb_files.items():
             domain_type_to_files_with_no_detections[domain_type].update(
             [
-                filename
-                for filename in filename_2_potential_regions
-                if domain_type not in [region.domain for region in filename_2_potential_regions[filename]]
+                pdb_file.stem
+                for pdb_file in pdb_files
+                if filename_2_potential_regions.get(pdb_file.stem, []) == []
             ]
         )
 
@@ -422,6 +479,76 @@ def main():
     logger.info(
         f"Finished domain detection. Detected domains saved to {args.detections_output_path}"
     )
+    return filename_2_known_regions_completed_confident
+
+
+def run_domain_detection(
+    *,
+    input_directory_with_structures,
+    needed_proteins_csv_path,
+    csv_id_column,
+    detections_output_path,
+    detected_regions_root_path=None,
+    domains_output_path=None,
+    n_jobs=10,
+    n_iters=3,
+    is_bfactor_confidence=True,
+    do_not_store_intermediate_files=True,
+    store_domains=True,
+    detect_multiple_domains_in_each_iteration=True,
+    secondary_structure_residues_path="data/secondary_structure_residues.pkl",
+    recompute_existing_secondary_structure_residues=True,
+    prefilter_pdbs_by_foldseek=False,
+    prefilter_e_value: float = 10.0,
+    postfilter_domains_by_foldseek=False,
+    postfilter_e_value: float = 5.0,
+    domain_templates=None,
+) -> dict:
+    """Python-callable wrapper around :func:`detect_domains`.
+
+    Defaults mirror enzymeexplorer/configs/enzyme_explorer_domain_detection_config.yaml.
+    Constructs an args namespace from kwargs and runs the same orchestration
+    used by the CLI. Returns the detected-domains mapping.
+    """
+    import argparse as _argparse
+
+    if domain_templates is None:
+        domain_templates = DEFAULT_DOMAIN_TEMPLATES
+    # Re-serialise as YAML strings so detect_domains() can yaml.safe_load them
+    # exactly like the CLI path does.
+    serialised_templates = [yaml.safe_dump(t) for t in domain_templates]
+
+    args = _argparse.Namespace(
+        input_directory_with_structures=str(input_directory_with_structures),
+        needed_proteins_csv_path=str(needed_proteins_csv_path),
+        csv_id_column=csv_id_column,
+        detections_output_path=str(detections_output_path),
+        detected_regions_root_path=(
+            str(detected_regions_root_path) if detected_regions_root_path else None
+        ),
+        domains_output_path=(
+            str(domains_output_path) if domains_output_path else None
+        ),
+        n_jobs=n_jobs,
+        n_iters=n_iters,
+        is_bfactor_confidence=is_bfactor_confidence,
+        do_not_store_intermediate_files=do_not_store_intermediate_files,
+        store_domains=store_domains,
+        detect_multiple_domains_in_each_iteration=detect_multiple_domains_in_each_iteration,
+        secondary_structure_residues_path=str(secondary_structure_residues_path),
+        recompute_existing_secondary_structure_residues=recompute_existing_secondary_structure_residues,
+        prefilter_pdbs_by_foldseek=prefilter_pdbs_by_foldseek,
+        prefilter_e_value=prefilter_e_value,
+        postfilter_domains_by_foldseek=postfilter_domains_by_foldseek,
+        postfilter_e_value=postfilter_e_value,
+        domain_templates=serialised_templates,
+    )
+    return detect_domains(args)
+
+
+def main():
+    args = parse_args()
+    detect_domains(args)
 
 
 if __name__ == "__main__":

@@ -5,4 +5,4 @@ per_class_optimization: false
 optimize_hyperparams: true
 n_calls_hyperparams_opt: 50
 domain_dist_path: "data/enzyme_explorer_structural_features/domain_dist_based_features.pkl"
-reuse_existing_partial_results: true
+# reuse_existing_partial_results: true

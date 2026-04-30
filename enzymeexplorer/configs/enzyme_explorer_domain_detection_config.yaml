@@ -1,7 +1,7 @@
 needed-proteins-csv-path: "data/EnzymeExplorer_Dataset.csv"
 csv-id-column: "ID"
 input-directory-with-structures: "data/enzyme_explorer_pdbs"
-n-jobs: 10
+n-jobs: 20
 n-iters: 3
 detect-multiple-domains-in-each-iteration: true
 detections-output-path: "data/detected_domains/enzyme_explorer_detected_domains/enzyme_explorer_detected_domains.pkl"
@@ -17,43 +17,43 @@ postfilter-domains-by-foldseek: False
 
 domain-templates:
   - name: "alpha"
-    path: "/home/akmese/EnzymeExplorer/data/domain_templates/1ps1.pdb"
+    path: "data/domain_templates/1ps1.pdb"
     residues: "resi 39-308 & chain A & ss H+S"
     thresholds:
-      tmscore: 0.40
+      tmscore: 0.35
       min_align_len: 90
   - name: "beta"
-    path: "/home/akmese/EnzymeExplorer/data/domain_templates/5eat.pdb"
+    path: "data/domain_templates/5eat.pdb"
     residues: "resi 37-57+64-97+104-117+123-129+138-156+162-195+203-213+223-239 & chain A & ss H+S"
     thresholds:
       tmscore: 0.45
       min_align_len: 60
   - name: "gamma"
-    path: "/home/akmese/EnzymeExplorer/data/domain_templates/3p5r.pdb"
+    path: "data/domain_templates/3p5r.pdb"
     residues: "resi 138-151+157-171+185-222+233-248+258-275+281-304+313-339 & chain A & ss H+S"
     thresholds:
       tmscore: 0.45
       min_align_len: 70
   - name: "ids"
-    path: "/home/akmese/EnzymeExplorer/data/domain_templates/1ubw.pdb"
+    path: "data/domain_templates/1ubw.pdb"
     residues: "resi 73-85+93-121+139-161+167-191+204-231+236-263+324-346+352-361 & chain A & ss H+S"
     thresholds:
       tmscore: 0.50
       min_align_len: 85
   - name: "delta"
-    path: "/home/akmese/EnzymeExplorer/data/domain_templates/1w6j.pdb"
+    path: "data/domain_templates/1w6j.pdb"
     residues: "resi 73-87+385-399+401-403+405-421+454-470+480-493+531-547+553-570+585-599+610-622+633-638+649-662+667-680+707-722+727-729 & chain A & ss H+S"
     thresholds:
       tmscore: 0.54
       min_align_len: 100
   - name: "epsilon"
-    path: "/home/akmese/EnzymeExplorer/data/domain_templates/1w6j.pdb"
+    path: "data/domain_templates/1w6j.pdb"
     residues: "resi 103-115+123-134+151-164+171-183+191-200+213-217+226-228+231-246+254-263+268-270+273-277+291-306+309-330+337-351+356-371+376-378+510-515 & chain A & ss H+S"
     thresholds:
       tmscore: 0.65
       min_align_len: 95
   - name: "alpha_cls2"
-    path: "/home/akmese/EnzymeExplorer/data/domain_templates/P37295.pdb"
+    path: "data/domain_templates/P37295.pdb"
     residues: "resi 3-248 & chain A & ss H+S"
     thresholds:
       tmscore: 0.70

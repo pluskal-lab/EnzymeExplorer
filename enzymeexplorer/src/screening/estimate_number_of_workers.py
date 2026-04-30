@@ -1,43 +1,44 @@
-"""This module estimates the number of workers for the screening pipeline"""
+"""Count sequences in a FASTA and report shard sizing for the screening launcher."""
+
+from __future__ import annotations
 
 import argparse
 import logging
-import esm  # type: ignore
-from tqdm.auto import tqdm  # type: ignore
+import math
+from pathlib import Path
 
-logger = logging.getLogger(__file__)
-logger.setLevel(logging.INFO)
+from Bio import SeqIO  # type: ignore
+
+logger = logging.getLogger(__name__)
 
 
 def parse_args() -> argparse.Namespace:
-    """
-    This function parses arguments
-    :return: current argparse.Namespace
-    """
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--delta", type=int, default=40000)
-    parser.add_argument("--n-gpus", type=int, default=8)
-    parser.add_argument("--fasta-path", type=str, default="data/uniprot_trembl.fasta")
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--fasta-path", required=True, type=Path)
+    parser.add_argument(
+        "--shard-size", type=int, default=40_000,
+        help="Sequences per shard; must match the launcher's --shard-size.",
+    )
+    parser.add_argument(
+        "--n-gpus", type=int, default=8,
+        help="GPUs (and parallel workers) per session; must match the launcher.",
+    )
     return parser.parse_args()
 
 
-def main(args: argparse.Namespace):
-    uniprot_generator = esm.data.read_fasta(args.fasta_path)
-    for i, _ in tqdm(enumerate(uniprot_generator), total=300_000_000):
-        pass
-    try:
-        TOTAL_NUMBER_OF_PROTEINS = i + 1  # pylint: disable=W0631
-    except NameError:
-        TOTAL_NUMBER_OF_PROTEINS = 0
+def main(args: argparse.Namespace) -> None:
+    total = sum(1 for _ in SeqIO.parse(str(args.fasta_path), "fasta"))
+    per_session = args.shard_size * args.n_gpus
+    n_sessions = math.ceil(total / per_session) if per_session else 0
+    logger.info("Total sequences: %d", total)
+    logger.info("Sequences per session (shard_size × n_gpus): %d", per_session)
     logger.info(
-        "Total number of proteins in the fasta file: %s", TOTAL_NUMBER_OF_PROTEINS
-    )
-    logger.info(
-        "Estimated number of workers: %s",
-        TOTAL_NUMBER_OF_PROTEINS // (args.delta * args.n_gpus) + 1,
+        "Sessions required (set SLURM --array=1-%d): %d",
+        n_sessions,
+        n_sessions,
     )
 
 
 if __name__ == "__main__":
-    args = parse_args()
-    main(args)
+    logging.basicConfig(level=logging.INFO, format="%(message)s")
+    main(parse_args())

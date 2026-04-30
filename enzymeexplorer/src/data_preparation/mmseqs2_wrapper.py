@@ -21,6 +21,7 @@ class MMSeqs2Wrapper:
         min_seq_id: float,
         coverage: float,
         coverage_mode: int = 0,
+        max_seqs: int = 15000,
     ) -> tuple[pd.DataFrame, pd.DataFrame]:
         cmd = [
             self.mmseqs_path,
@@ -32,6 +33,7 @@ class MMSeqs2Wrapper:
             "-c", str(coverage),
             "--cov-mode", str(coverage_mode),
             "--threads", str(self.threads),
+            "--max-seqs", str(max_seqs)
         ]
         
         result = subprocess.run(cmd, capture_output=True, text=True, check=False)
@@ -54,6 +56,7 @@ class MMSeqs2Wrapper:
         e_value: float | None = None,
         seq_id: float | None = None,
         num_iterations: int = 1,
+        get_best_hit: bool = True,
     ) -> pd.DataFrame:
         cmd = [
             self.mmseqs_path,
@@ -76,6 +79,7 @@ class MMSeqs2Wrapper:
             raise RuntimeError(f"mmseqs easy-search failed with return code {result.returncode}")
     
         search_results_df = pd.read_csv(output, sep="\t", header=None, names=["query", "target", "perc_identity", "alignment_length", "mismatches", "gap_opens", "q_start", "q_end", "s_start", "s_end", "evalue", "bit_score"])
-        search_results_df.sort_values("evalue", inplace=True)
-        search_results_df.drop_duplicates("query", inplace=True)
+        if get_best_hit:
+            search_results_df.sort_values("evalue", inplace=True)
+            search_results_df.drop_duplicates("query", inplace=True)
         return search_results_df

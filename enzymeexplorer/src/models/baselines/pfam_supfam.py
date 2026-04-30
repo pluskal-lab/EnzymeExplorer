@@ -27,7 +27,6 @@ class PFamSUPFAMConfig(BaseConfig):
     bitscore: float
     root_path_to_models: str
     working_directory: str
-    seq_col_name: str
     n_jobs: Optional[int] = 64
 
 

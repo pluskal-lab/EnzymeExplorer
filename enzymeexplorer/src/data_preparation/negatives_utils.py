@@ -153,7 +153,7 @@ def filter_by_pfam_supfam(
     return nontps_swiss[~nontps_swiss.Entry.isin(swiss_with_pfam_supfam_hits)]
 
 
-def proprocess_negatives(
+def preprocess_negatives(
     swissprot_df: pd.DataFrame,
     martsdb_seqs: list,
     pfam_models_dir: str,
@@ -161,6 +161,7 @@ def proprocess_negatives(
     go_dag: GODag,
     mmseqs: MMSeqs2Wrapper,
     hmmer: HMMerWrapper,
+    hard_neg_rhea_master_ids: set[int],
     filter_by_putative_tpss: bool = True,
 ) -> pd.DataFrame:
     swissprot_df = swissprot_df.drop_duplicates("Sequence")
@@ -210,12 +211,6 @@ def proprocess_negatives(
             f"Filtered by GO terms. Remaining non-TPS SwissProt size: {len(nontps_swissprot)}"
         )
 
-        nontps_swissprot = redundancy_reduce(nontps_swissprot, mmseqs=mmseqs)
-
-        logger.info(
-            f"95% Sequence Identity Redundancy reduced non-TPS SwissProt size: {len(nontps_swissprot)}"
-        )
-
         nontps_swissprot = filter_by_pfam_supfam(
             nontps_swissprot,
             pfam_models_dir=pfam_models_dir,
@@ -226,8 +221,26 @@ def proprocess_negatives(
         logger.info(
             f"Filtered out sequences with Pfam/Supfam hits. Remaining non-TPS SwissProt size: {len(nontps_swissprot)}"
         )
+        
+        add_tps_substrate_accepting_negatives_based_on_rhea(
+            swissprot_df, nontps_swissprot, hard_neg_rhea_master_ids
+        )
+
+        nontps_swissprot = redundancy_reduce(mmseqs=mmseqs, nontps_swissprot=nontps_swissprot)
+
+        logger.info(
+            f"95% Sequence Identity Redundancy reduced non-TPS SwissProt size: {len(nontps_swissprot)}"
+        )
 
     return nontps_swissprot
+
+def add_tps_substrate_accepting_negatives_based_on_rhea(
+    swissprot_df: pd.DataFrame, nontps_swissprot: pd.DataFrame, hard_neg_rhea_master_ids: set[int]
+):
+    swissprot_tmp = swissprot_df[swissprot_df["Rhea ID"].notna()].copy()
+    swissprot_tmp["Rhea ID"] = swissprot_tmp["Rhea ID"].apply(lambda x: set([int(r.strip()[5:]) for r in x.split(" ")]))
+    hard_neg_ids = set(swissprot_tmp[swissprot_tmp["Rhea ID"].apply(lambda rhea_ids: len(rhea_ids.intersection(hard_neg_rhea_master_ids)) > 0)]["Entry"].unique())
+    return pd.concat([nontps_swissprot, swissprot_df[swissprot_df["Entry"].isin(hard_neg_ids)]])
 
 
 def get_substrate_based_hard_negatives(
@@ -342,6 +355,7 @@ def _get_sequence_based_hard_negative_clusters(
             output=output_prefix,
             tmp=tmpdir,
             e_value=e_value,
+            get_best_hit=False,
         )
     return set(search_results_df["query"].unique().tolist())
 
@@ -377,6 +391,7 @@ def _get_sequence_based_hard_negative_clusters_sensitive(
             e_value=e_value,
             num_iterations=num_iterations,
             seq_id=seq_id,
+            get_best_hit=False,
         )
     return set(search_results_df["target"].unique().tolist())
 
@@ -538,13 +553,18 @@ def mmseqs_based_negative_sampling(
     logger.info("Generated stratified group K-Fold splits for negatives.")
 
     negative_ids = set(negative_clusters.Member.unique())
+    
+    for hard_neg_id in hard_negative_clusters["Member"].unique():
+        if hard_neg_id not in negatives_to_accepted_tps_substrates:
+            negatives_to_accepted_tps_substrates[hard_neg_id] = set(["Unknown"])
+
     return negative_ids, negatives_folds, negatives_to_accepted_tps_substrates
 
 
 def prepare_negatives_set(
     nontps_swissprot: pd.DataFrame,
-    negative_ids: set,
-    negatives_to_accepted_tps_substrates: dict,
+    negative_ids: set[str],
+    negatives_to_accepted_tps_substrates: dict[str, set[str]],
     negatives_folds: list[set[str]],
 ) -> pd.DataFrame:
     negatives_data = nontps_swissprot[nontps_swissprot.Entry.isin(negative_ids)][

@@ -1,2 +1,3 @@
-"""A module for performance evaluation"""
-from .evaluation import evaluate_selected_experiments
+"""Bootstrap-driven evaluation pipeline."""
+
+from .bootstrap import BootstrapResult, bootstrap_metric_cis, compute_cis

@@ -1,0 +1,294 @@
+"""High-level prediction entry points.
+
+Two orchestrators:
+
+* :func:`predict_with_structures` — domain-aware (PLM_Domains) for proteins
+  whose detected domains pass the foldseek-meaningfulness threshold; PLM-only
+  for the rest. Two output frames so each can carry its own
+  classifier-specific confidence tier.
+* :func:`predict_sequences_only` — PLM-only over all input proteins.
+
+Both return wide-form tables with one row per protein and ``<class>_score`` /
+``<class>_tier`` columns; both also accept a callable ``embedder`` so the
+FastAPI app can reuse a long-lived embedder across requests.
+"""
+
+from __future__ import annotations
+
+import logging
+from pathlib import Path
+from typing import TYPE_CHECKING, Sequence
+
+import pandas as pd  # type: ignore
+
+from enzymeexplorer.src.prediction import domains as _domains
+from enzymeexplorer.src.prediction import ensemble as _ens
+from enzymeexplorer.src.prediction import tiers as _tiers
+
+# NB: ``embeddings`` is imported lazily inside ``_ensure_embedder`` because
+# importing it eagerly pulls in PyTorch at module-load time. The structure
+# prediction path forks a multiprocessing.Pool of PyMOL workers; if PyTorch's
+# CPU thread pool has been initialised in the parent process before the fork
+# (which happens at *import* time, not just at first tensor op), the forked
+# children inherit corrupted thread state and deadlock indefinitely. Keeping
+# the embeddings import lazy lets the structure pipeline run with a clean,
+# torch-free parent process.
+if TYPE_CHECKING:
+    from enzymeexplorer.src.prediction.embeddings import PLMEmbedder
+
+logger = logging.getLogger(__name__)
+
+
+DEFAULT_TIERS_CSV = (
+    "outputs/evaluation_results/single_hierarchy_final/confidence_tiers.csv"
+)
+DEFAULT_PLM_DOMAINS_BUNDLE = "data/enzyme_explorer_checkpoints.pkl"
+DEFAULT_PLM_ONLY_BUNDLE = "data/enzyme_explorer_plm_checkpoints.pkl"
+DEFAULT_REFERENCE_DOMAINS_PICKLE = (
+    "data/detected_domains/martsDB_detected_domains/martsDB_detected_domains.pkl"
+)
+DEFAULT_REFERENCE_DOMAINS_STRUCTURES_DIR = (
+    "data/detected_domains/martsDB_detected_domains/domains/"
+)
+
+PLM_DOMAINS_CLASSIFIER_NAME = "PLM_Domains"
+PLM_ONLY_CLASSIFIER_NAME = "PLM"
+
+
+def _ensure_embedder(
+    embedder: "PLMEmbedder | None",
+    *,
+    model_name: str,
+) -> "PLMEmbedder":
+    if embedder is not None:
+        return embedder
+    # Deferred import — see module docstring on why.
+    from enzymeexplorer.src.prediction.embeddings import load_plm_embedder
+
+    return load_plm_embedder(model_name)
+
+
+def _score_and_tier(
+    *,
+    per_fold_df: pd.DataFrame,
+    sequences_df: pd.DataFrame,
+    tiers_csv_path: str | Path,
+    classifier_name: str,
+) -> pd.DataFrame:
+    averaged = _ens.average_over_folds(per_fold_df)
+    long_with_tiers = _tiers.assign_tiers_long(
+        averaged, tiers_csv_path, classifier_name
+    )
+    seq_lookup = dict(zip(sequences_df["id"], sequences_df["sequence"]))
+    return _tiers.assemble_output_table(
+        long_with_tiers, sequence_lookup=seq_lookup
+    )
+
+
+def predict_with_structures(
+    sequences_df: pd.DataFrame,
+    structures_dir: str | Path,
+    *,
+    reference_domains_pickle: str | Path = DEFAULT_REFERENCE_DOMAINS_PICKLE,
+    reference_domains_structures_dir: str | Path = (
+        DEFAULT_REFERENCE_DOMAINS_STRUCTURES_DIR
+    ),
+    plm_domains_bundle_path: str | Path = DEFAULT_PLM_DOMAINS_BUNDLE,
+    plm_only_bundle_path: str | Path = DEFAULT_PLM_ONLY_BUNDLE,
+    tiers_csv_path: str | Path = DEFAULT_TIERS_CSV,
+    plm_model: str = "esm-1v-finetuned-subseq",
+    plm_only_model: str = "esm-1v-finetuned-subseq",
+    embedder: PLMEmbedder | None = None,
+    plm_only_embedder: PLMEmbedder | None = None,
+    n_jobs: int = 10,
+    plm_batch_size: int = 4,
+    workdir: str | Path | None = None,
+    keep_intermediate: bool = False,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """End-to-end prediction with structures.
+
+    Returns ``(plm_domains_predictions, plm_only_fallback_predictions)`` —
+    two wide-form DataFrames with the per-class score + tier columns. The
+    second frame is empty when every protein produced a meaningful domain
+    comparison; otherwise it contains the proteins that fell back.
+
+    The split between the two output frames is intentional: confidence tiers
+    are tied to a specific classifier, so PLM_Domains scores and PLM-only
+    fallback scores are tiered against their own
+    ``confidence_tiers.csv`` rows.
+    """
+    sequences_df = sequences_df.reset_index(drop=True)
+    protein_ids: list[str] = sequences_df["id"].tolist()
+    sequences: list[str] = sequences_df["sequence"].tolist()
+    logger.info(
+        "predict_with_structures: %d input sequences from %s",
+        len(protein_ids),
+        structures_dir,
+    )
+
+    # NB: domain detection runs *before* PLM embeddings on purpose. The
+    # detector forks a multiprocessing.Pool of PyMOL workers; if PyTorch's
+    # CPU thread pool has already been initialised (which happens the first
+    # time we call the embedder), the forked children inherit corrupted
+    # thread state and deadlock. Doing the structure work on a torch-free
+    # parent process keeps the fork clean.
+    logger.info(
+        "[step 1/4] Domain detection + foldseek alignment "
+        "(structure-pipeline step; runs first to keep multiprocessing.Pool "
+        "fork clean of PyTorch state)"
+    )
+    domain_result = _domains.detect_and_align_domains(
+        structures_dir=structures_dir,
+        protein_ids=protein_ids,
+        reference_domains_pickle=reference_domains_pickle,
+        reference_domains_structures_dir=reference_domains_structures_dir,
+        workdir=workdir,
+        n_jobs=n_jobs,
+        keep_intermediate=keep_intermediate,
+    )
+    logger.info(
+        "[step 1/4] Domain detection done — %d proteins with detections, "
+        "structural-features matrix shape %s",
+        len(domain_result.query_seq_ids),
+        tuple(domain_result.structural_features.shape),
+    )
+
+    logger.info("[step 2/4] Loading PLM embedder (%s)", plm_model)
+    embedder = _ensure_embedder(embedder, model_name=plm_model)
+    logger.info("[step 2/4] Computing PLM embeddings for %d sequences", len(sequences))
+    embeddings = embedder.embed(
+        sequences, batch_size=plm_batch_size, progress_desc="PLM embeddings"
+    )
+    logger.info(
+        "[step 2/4] PLM embeddings done — shape %s", tuple(embeddings.shape)
+    )
+
+    logger.info(
+        "[step 3/4] Loading PLM_Domains fold bundle (%s)", plm_domains_bundle_path
+    )
+    fold_classifiers_dom = _ens.load_fold_bundle(plm_domains_bundle_path)
+    logger.info(
+        "[step 3/4] Scoring %d proteins through %d folds (PLM_Domains)",
+        len(protein_ids),
+        len(fold_classifiers_dom),
+    )
+    per_fold_dom_df, fallback_ids = _ens.predict_with_plm_and_domains(
+        embeddings=embeddings,
+        protein_ids=protein_ids,
+        structural_features=domain_result.structural_features,
+        structural_features_ids=domain_result.query_seq_ids,
+        fold_classifiers=fold_classifiers_dom,
+    )
+    logger.info(
+        "[step 3/4] PLM_Domains scored %d proteins; %d falling back to PLM-only",
+        per_fold_dom_df["id"].nunique() if not per_fold_dom_df.empty else 0,
+        len(fallback_ids),
+    )
+
+    plm_domains_table = _score_and_tier(
+        per_fold_df=per_fold_dom_df,
+        sequences_df=sequences_df,
+        tiers_csv_path=tiers_csv_path,
+        classifier_name=PLM_DOMAINS_CLASSIFIER_NAME,
+    )
+
+    plm_only_table = pd.DataFrame()
+    if fallback_ids:
+        logger.info(
+            "[step 4/4] Loading PLM-only fold bundle for %d fallback protein(s) (%s)",
+            len(fallback_ids),
+            plm_only_bundle_path,
+        )
+        fallback_df = sequences_df[sequences_df["id"].isin(fallback_ids)].reset_index(
+            drop=True
+        )
+        plm_only_embedder_inst = _ensure_embedder(
+            plm_only_embedder, model_name=plm_only_model
+        )
+        # If the fallback PLM is the same model, reuse the embeddings already
+        # computed; otherwise recompute on just the fallback set.
+        if plm_only_model == plm_model:
+            id_to_row = {pid: idx for idx, pid in enumerate(protein_ids)}
+            row_idx = [id_to_row[pid] for pid in fallback_df["id"]]
+            fallback_embeddings = embeddings[row_idx]
+            logger.info("[step 4/4] Reusing existing embeddings for fallback")
+        else:
+            logger.info(
+                "[step 4/4] Recomputing PLM embeddings for fallback (%s)",
+                plm_only_model,
+            )
+            fallback_embeddings = plm_only_embedder_inst.embed(
+                fallback_df["sequence"].tolist(),
+                batch_size=plm_batch_size,
+                progress_desc="PLM embeddings (fallback)",
+            )
+        fold_classifiers_plm = _ens.load_fold_bundle(plm_only_bundle_path)
+        logger.info(
+            "[step 4/4] Scoring %d fallback proteins through %d folds (PLM-only)",
+            len(fallback_df),
+            len(fold_classifiers_plm),
+        )
+        per_fold_plm_df = _ens.predict_with_plm_only(
+            embeddings=fallback_embeddings,
+            protein_ids=fallback_df["id"].tolist(),
+            fold_classifiers=fold_classifiers_plm,
+        )
+        plm_only_table = _score_and_tier(
+            per_fold_df=per_fold_plm_df,
+            sequences_df=fallback_df,
+            tiers_csv_path=tiers_csv_path,
+            classifier_name=PLM_ONLY_CLASSIFIER_NAME,
+        )
+    else:
+        logger.info("[step 4/4] No fallback proteins; PLM-only step skipped")
+    logger.info(
+        "predict_with_structures: done — PLM_Domains rows=%d, PLM-only rows=%d",
+        len(plm_domains_table),
+        len(plm_only_table),
+    )
+    return plm_domains_table, plm_only_table
+
+
+def predict_sequences_only(
+    sequences_df: pd.DataFrame,
+    *,
+    plm_only_bundle_path: str | Path = DEFAULT_PLM_ONLY_BUNDLE,
+    tiers_csv_path: str | Path = DEFAULT_TIERS_CSV,
+    plm_model: str = "esm-1v-finetuned-subseq",
+    embedder: PLMEmbedder | None = None,
+    plm_batch_size: int = 4,
+) -> pd.DataFrame:
+    """End-to-end PLM-only prediction. Returns one wide-form DataFrame."""
+    sequences_df = sequences_df.reset_index(drop=True)
+    logger.info("predict_sequences_only: %d input sequences", len(sequences_df))
+    logger.info("[step 1/3] Loading PLM embedder (%s)", plm_model)
+    embedder = _ensure_embedder(embedder, model_name=plm_model)
+    logger.info(
+        "[step 1/3] Computing PLM embeddings for %d sequences", len(sequences_df)
+    )
+    embeddings = embedder.embed(
+        sequences_df["sequence"].tolist(),
+        batch_size=plm_batch_size,
+        progress_desc="PLM embeddings",
+    )
+    logger.info("[step 2/3] Loading PLM-only fold bundle (%s)", plm_only_bundle_path)
+    fold_classifiers = _ens.load_fold_bundle(plm_only_bundle_path)
+    logger.info(
+        "[step 2/3] Scoring %d proteins through %d folds (PLM-only)",
+        len(sequences_df),
+        len(fold_classifiers),
+    )
+    per_fold_df = _ens.predict_with_plm_only(
+        embeddings=embeddings,
+        protein_ids=sequences_df["id"].tolist(),
+        fold_classifiers=fold_classifiers,
+    )
+    logger.info("[step 3/3] Averaging folds + assigning tiers")
+    table = _score_and_tier(
+        per_fold_df=per_fold_df,
+        sequences_df=sequences_df,
+        tiers_csv_path=tiers_csv_path,
+        classifier_name=PLM_ONLY_CLASSIFIER_NAME,
+    )
+    logger.info("predict_sequences_only: done — %d rows", len(table))
+    return table

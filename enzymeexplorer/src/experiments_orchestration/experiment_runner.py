@@ -138,9 +138,19 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
     )
 
     data_df = pd.read_csv(config.tps_cleaned_csv_path)
+    if config.enable_distractors:
+        distractor_ids = set(
+            data_df[
+                (data_df[config.type_col_name] == "Unknown") &
+                (data_df["SMILES_substrate_canonical_no_stereo"] != "Unknown")
+                ][config.id_col_name].to_list()
+            )
+    else:
+        distractor_ids = set()
     data_df.loc[data_df[config.type_col_name] == "Unknown", config.target_col_name] = (
         "Unknown"
     )
+        
     if not is_halo:
         data_df.loc[
             data_df[config.type_col_name].isin(
@@ -185,6 +195,7 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
                     trn_folds = ["train"]
                 trn_df = data_df[
                     data_df[config.split_col_name].isin(set(trn_folds))
+                    & ~data_df[config.id_col_name].isin(distractor_ids)
                 ].copy()
                 if not is_halo:
                     trn_df.loc[
