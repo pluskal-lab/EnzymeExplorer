@@ -4,6 +4,7 @@ and comparison of domains between each other"""
 
 import os
 import re
+import shutil
 import subprocess
 import tempfile
 from collections import defaultdict
@@ -33,10 +34,11 @@ if not logger.hasHandlers():
 # ---------------------------------------------------------------------------
 # Optimisation state (USalign batch + persistent pool + caches)
 # ---------------------------------------------------------------------------
-# Path to the USalign binary. Override via env var if needed.
-USALIGN_PATH = os.environ.get(
-    "ENZYMEEXPLORER_USALIGN", "/home/akmese/usalign_src/USalign"
-)
+# Path to the USalign binary. Resolved at import time:
+#   1. `ENZYMEEXPLORER_USALIGN` env var if set,
+#   2. otherwise the first `USalign` on PATH (e.g. the bioconda install
+#      provides `$CONDA_PREFIX/bin/USalign` when the env is active).
+USALIGN_PATH = os.environ.get("ENZYMEEXPLORER_USALIGN") or shutil.which("USalign")
 
 # Original SS-residues map captured at the SSR step. Workers inherit it
 # via fork; lets `_stage_one` skip the per-call SS-iteration on every

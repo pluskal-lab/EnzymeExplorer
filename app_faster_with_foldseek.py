@@ -13,13 +13,15 @@ modification:
 * ``GET /download_pdb/{aligned_pdb_name}`` — serves a per-domain PDB written
   during ``/detect_domains/`` and removes it after the response.
 
-Domain *type* prediction is currently stubbed (``domain_type_predictions: {}``)
-pending the new domain-type predictor; the notebooks gate their visualization
-on this field, so an empty dict cleanly skips that branch without errors.
+Domain-subtype prediction is wired up via top-K voting on the foldseek
+alignment table: for each detected module, the K=3 closest reference
+domains contribute alntmscore-weighted votes for their clustered
+subtype label (loaded once from ``data/domain_module_id_2_domain_type.pkl``,
+the output of ``notebooks/notebook_2_domain_clustering.ipynb``).
 Other metadata fields previously sourced from legacy auxiliary pickles
 (``closest_id_reaction_types``, ``closest_id_kingdom``,
-``whole_structure_domain_config``) are returned as ``None`` for the same
-reason — the gate also keeps them from being dereferenced.
+``whole_structure_domain_config``) are returned as ``None`` — the
+notebooks' gate keeps them from being dereferenced.
 """
 
 from __future__ import annotations
@@ -36,6 +38,7 @@ from pymol import cmd as _pymol_cmd  # type: ignore  # noqa: F401, E402
 import logging  # noqa: E402
 import pickle  # noqa: E402
 import re  # noqa: E402
+import subprocess  # noqa: E402
 import tempfile  # noqa: E402
 import uuid  # noqa: E402
 from dataclasses import dataclass  # noqa: E402
@@ -57,6 +60,9 @@ from fastapi.responses import FileResponse  # noqa: E402
 from enzymeexplorer.src.evaluation.classes import SHORT_TO_SMILES  # noqa: E402
 from enzymeexplorer.src.prediction.domains import (  # noqa: E402
     detect_and_align_domains,
+)
+from enzymeexplorer.src.structure_processing.structural_algorithms import (  # noqa: E402
+    USALIGN_PATH,
 )
 from enzymeexplorer.src.prediction.embeddings import load_plm_embedder  # noqa: E402
 from enzymeexplorer.src.prediction.ensemble import load_fold_bundle  # noqa: E402
@@ -88,6 +94,14 @@ TEMP_DIR.mkdir(exist_ok=True)
 # missing — clients see ``None`` for these fields.
 DATASET_CSV = Path("data/martsDB_reactions_2026_02_22_preprocessed.csv")
 _DATASET_ID_COL = "Enzyme_marts_ID"
+
+# Reference module-id → fine-grained domain-subtype label (e.g. ``alpha3B``,
+# ``beta``, ``alpha1C``). Produced by ``notebooks/notebook_2_domain_clustering.ipynb``
+# from clustering the reference domains. Loaded once at startup; used to vote
+# the predicted subtype for each detected domain across the top-3 closest
+# reference matches in the foldseek alignment table.
+DOMAIN_SUBTYPE_PICKLE = Path("data/domain_module_id_2_domain_type.pkl")
+DOMAIN_SUBTYPE_TOP_K = 5
 
 
 def _load_dataset_metadata(
@@ -128,6 +142,26 @@ logger.info(
     "Loaded metadata for %d proteins (kingdom) / %d proteins (reaction types)",
     len(ID_2_KINGDOM),
     len(ID_2_REACTION_TYPES),
+)
+
+
+def _load_domain_subtype_map(path: Path) -> dict[str, str]:
+    if not path.exists():
+        logger.warning(
+            "Domain-subtype pickle %s not found — domain_type_predictions "
+            "will be returned as an empty dict.",
+            path,
+        )
+        return {}
+    with path.open("rb") as f:
+        m = pickle.load(f)
+    return {str(k): str(v) for k, v in m.items()}
+
+
+REF_MODULE_ID_2_DOMAIN_SUBTYPE = _load_domain_subtype_map(DOMAIN_SUBTYPE_PICKLE)
+logger.info(
+    "Loaded domain-subtype labels for %d reference modules",
+    len(REF_MODULE_ID_2_DOMAIN_SUBTYPE),
 )
 
 logger.info("Loading PLM embedder (%s)…", PLM_MODEL)
@@ -277,42 +311,184 @@ def _closest_known_per_detection(
     return out
 
 
+def _predict_domain_subtypes(
+    alignment_df: pd.DataFrame,
+    detected_for_pdb: list,
+    top_k: int = DOMAIN_SUBTYPE_TOP_K,
+) -> dict[str, dict[str, float]]:
+    """Vote a domain-subtype label per detected module across its top-K
+    closest reference domains in the foldseek alignment table.
+
+    For each detected ``module_id`` we take the K rows of ``alignment_df``
+    with the highest ``alntmscore`` and look up each reference target's
+    fine-grained subtype label in ``REF_MODULE_ID_2_DOMAIN_SUBTYPE``. Votes
+    are weighted by ``alntmscore`` and normalised so the per-module values
+    sum to 1.0 — giving the notebooks a deterministic
+    ``max(items, key=...)`` and a meaningful confidence.
+
+    If the per-module subtype map is empty (no foldseek hits, or none of
+    the top-K targets have a clustered subtype), we fall back to the
+    detection's coarse domain label (``alpha`` / ``beta`` / …) with
+    confidence 1.0 so the notebook can still index the dict by module_id.
+    """
+    if not detected_for_pdb:
+        return {}
+    out: dict[str, dict[str, float]] = {}
+    have_alignments = alignment_df is not None and not alignment_df.empty
+    for det in detected_for_pdb:
+        module_id = getattr(det, "module_id", None)
+        if module_id is None:
+            continue
+        votes: dict[str, float] = {}
+        if have_alignments and REF_MODULE_ID_2_DOMAIN_SUBTYPE:
+            hits = (
+                alignment_df[alignment_df["query"] == module_id]
+                .sort_values("alntmscore", ascending=False)
+                .head(top_k)
+            )
+            for _, row in hits.iterrows():
+                target = str(row["target"])
+                label = REF_MODULE_ID_2_DOMAIN_SUBTYPE.get(target)
+                if label is None:
+                    continue
+                votes[label] = votes.get(label, 0.0) + float(row["alntmscore"])
+        if votes:
+            total = sum(votes.values())
+            out[module_id] = {lbl: w / total for lbl, w in votes.items()}
+        else:
+            coarse = getattr(det, "domain", None)
+            if coarse:
+                out[module_id] = {str(coarse): 1.0}
+    return out
+
+
+_USALIGN_TMSCORE_REF_RE = re.compile(
+    r"TM-score=\s*([0-9.]+)\s*\(normalized by length of Structure_2"
+)
+
+
+def _parse_usalign_matrix(matrix_path: Path) -> list[float] | None:
+    """Parse USalign's ``-m`` matrix file into a 16-float row-major 4x4
+    matrix suitable for ``cmd.transform_object``.
+
+    File format (per USalign source):
+
+        m   t[m]   u[m][0]   u[m][1]   u[m][2]
+        0   <t0>   <u00>     <u01>     <u02>
+        1   <t1>   <u10>     <u11>     <u12>
+        2   <t2>   <u20>     <u21>     <u22>
+
+    The transformation is ``X = u·x + t``; the equivalent 4x4 row-major
+    homogeneous matrix is ``[[u, t], [0, 0, 0, 1]]``.
+    """
+    rows: list[tuple[float, float, float, float]] = []
+    with matrix_path.open() as f:
+        for line in f:
+            parts = line.split()
+            if len(parts) != 5 or parts[0] not in ("0", "1", "2"):
+                continue
+            try:
+                _, t, u0, u1, u2 = parts
+                rows.append((float(t), float(u0), float(u1), float(u2)))
+            except ValueError:
+                return None
+    if len(rows) != 3:
+        return None
+    return [
+        rows[0][1], rows[0][2], rows[0][3], rows[0][0],
+        rows[1][1], rows[1][2], rows[1][3], rows[1][0],
+        rows[2][1], rows[2][2], rows[2][3], rows[2][0],
+        0.0, 0.0, 0.0, 1.0,
+    ]
+
+
 def _superpose_and_save(
     detected_pdb: Path,
     closest_pdb: Path,
     out_path: Path,
 ) -> float | None:
-    """TMalign-superpose ``detected_pdb`` onto ``closest_pdb`` inside PyMOL
-    (via psico) and write a combined ``ref + rotated mobile`` PDB to
-    ``out_path``. Returns the TMalign score, or ``None`` if alignment failed.
+    """USalign-superpose ``detected_pdb`` onto ``closest_pdb`` and write a
+    combined ``ref + rotated mobile`` PDB to ``out_path``. Returns the
+    TM-score normalised by the reference length, or ``None`` if alignment
+    failed.
+
+    USalign is invoked as a subprocess with ``-m`` to dump the rotation
+    matrix; the matrix is then applied to the mobile object inside PyMOL
+    via ``cmd.transform_object`` so the combine + save path is identical
+    to the legacy psico ``tmalign`` flow.
     """
-    from psico.fitting import tmalign  # type: ignore
+    if not USALIGN_PATH:
+        logger.warning(
+            "USalign binary not configured — skipping superposition for %s",
+            detected_pdb.name,
+        )
+        return None
 
     suffix = uuid.uuid4().hex[:8]
     ref_obj = f"ref_{suffix}"
     mobile_obj = f"mob_{suffix}"
-    aln_obj = f"aln_{suffix}"
     combined_obj = f"cmb_{suffix}"
+    matrix_path = TEMP_DIR / f"matrix_{suffix}.txt"
     try:
-        _pymol_cmd.load(str(closest_pdb), ref_obj)
-        _pymol_cmd.load(str(detected_pdb), mobile_obj)
         try:
-            tm_score = float(
-                tmalign(mobile_obj, ref_obj, object=aln_obj, quiet=1)
+            proc = subprocess.run(
+                [
+                    USALIGN_PATH,
+                    str(detected_pdb),
+                    str(closest_pdb),
+                    "-m", str(matrix_path),
+                    "-mol", "prot",
+                    "-ter", "1",
+                ],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                universal_newlines=True,
+                check=False,
+                timeout=120,
             )
-        except Exception as exc:  # pragma: no cover — best-effort logging
+        except (OSError, subprocess.TimeoutExpired) as exc:
             logger.warning(
-                "TMalign failed for %s vs %s: %s",
+                "USalign invocation failed for %s vs %s: %s",
                 detected_pdb.name,
                 closest_pdb.name,
                 exc,
             )
             return None
+        if proc.returncode != 0 or not matrix_path.exists():
+            logger.warning(
+                "USalign rc=%d for %s vs %s: %s",
+                proc.returncode,
+                detected_pdb.name,
+                closest_pdb.name,
+                proc.stderr[:200],
+            )
+            return None
+
+        m = _USALIGN_TMSCORE_REF_RE.search(proc.stdout)
+        tm_score = float(m.group(1)) if m else None
+
+        ttt = _parse_usalign_matrix(matrix_path)
+        if ttt is None:
+            logger.warning(
+                "Could not parse USalign matrix for %s vs %s",
+                detected_pdb.name,
+                closest_pdb.name,
+            )
+            return None
+
+        _pymol_cmd.load(str(closest_pdb), ref_obj)
+        _pymol_cmd.load(str(detected_pdb), mobile_obj)
+        _pymol_cmd.transform_object(mobile_obj, ttt)
         _pymol_cmd.create(combined_obj, f"({ref_obj}) or ({mobile_obj})")
         _pymol_cmd.save(str(out_path), combined_obj)
         return tm_score
     finally:
-        for obj in (ref_obj, mobile_obj, aln_obj, combined_obj):
+        if matrix_path.exists():
+            try:
+                matrix_path.unlink()
+            except OSError:
+                pass
+        for obj in (ref_obj, mobile_obj, combined_obj):
             try:
                 _pymol_cmd.delete(obj)
             except Exception:
@@ -325,15 +501,17 @@ def _build_aligned_pdb_filepaths(
     alignment_df: pd.DataFrame,
     reference_domains_dir: Path,
 ) -> dict | None:
-    """Build the legacy ``aligned_pdb_filepaths`` mapping with real TMalign
-    superpositions of each detected domain onto its closest known reference.
+    """Build the legacy ``aligned_pdb_filepaths`` mapping with real
+    USalign superpositions of each detected domain onto its closest
+    known reference.
 
     For every detection:
 
       1. Find the closest known reference module via the foldseek alignment
          table (highest ``alntmscore`` row keyed by ``query==module_id``).
-      2. Superpose the detected domain onto that reference using psico's
-         ``tmalign`` (PyMOL-internal — no external binary needed).
+      2. Superpose the detected domain onto that reference by running
+         USalign as a subprocess and applying the resulting rotation
+         matrix to the mobile object inside PyMOL.
       3. Save the combined ref + rotated-mobile PDB to ``TEMP_DIR/<module_id>.pdb``
          so ``/download_pdb/<module_id>`` can serve it.
 
@@ -449,10 +627,13 @@ async def detect_domains_endpoint(
             # per-detection comparison table the legacy field carried isn't
             # directly consumed by the notebooks; left as None.
             "comparison_to_known_domains": None,
-            # STUB until the new domain-type predictor lands. The notebooks
-            # gate ``show_domains`` on this field being truthy, so an empty
-            # dict cleanly skips that branch.
-            "domain_type_predictions": {},
+            # Per-module {subtype_label: confidence} predicted by an
+            # alntmscore-weighted vote across the top-K closest reference
+            # domains. ``REF_MODULE_ID_2_DOMAIN_SUBTYPE`` is loaded at
+            # startup from ``data/domain_module_id_2_domain_type.pkl``.
+            "domain_type_predictions": _predict_domain_subtypes(
+                result.alignment_df, detected
+            ),
             "aligned_pdb_filepaths": _build_aligned_pdb_filepaths(
                 detected,
                 domain_structures_dir=result.domain_structures_dir,
