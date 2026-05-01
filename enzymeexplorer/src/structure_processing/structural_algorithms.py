@@ -3,6 +3,9 @@
 and comparison of domains between each other"""
 
 import os
+import re
+import subprocess
+import tempfile
 from collections import defaultdict
 from dataclasses import dataclass
 from functools import partial
@@ -12,8 +15,7 @@ from uuid import uuid4
 import logging
 
 import numpy as np  # type: ignore
-from psico.fitting import tmalign  # type: ignore
-from pymol import CmdException, cmd, stored  # type: ignore
+from pymol import cmd, stored  # type: ignore
 from scipy.spatial import KDTree  # type: ignore
 from tqdm.auto import tqdm  # type: ignore
 
@@ -27,6 +29,29 @@ if not logger.hasHandlers():
     handler.setFormatter(formatter)
     logger.addHandler(handler)
 
+
+# ---------------------------------------------------------------------------
+# Optimisation state (USalign batch + persistent pool + caches)
+# ---------------------------------------------------------------------------
+# Path to the USalign binary. Override via env var if needed.
+USALIGN_PATH = os.environ.get(
+    "ENZYMEEXPLORER_USALIGN", "/home/akmese/usalign_src/USalign"
+)
+
+# Original SS-residues map captured at the SSR step. Workers inherit it
+# via fork; lets `_stage_one` skip the per-call SS-iteration on every
+# freshly-loaded query. Populated by `domain_detections.detect_domains`
+# right after `save_file_to_all_residues` writes the map.
+_SS_FULL_MAP_CACHE: dict[str, set[str]] = {}
+
+# Persistent worker pool, lazily created inside `get_alignments` on the
+# first call when an outer detect_domains run has set up the context.
+_PERSISTENT_POOL = None
+_PERSISTENT_POOL_N_JOBS: int = 0
+
+# USalign output regexes — module level so they're compiled once.
+_RE_TMSCORE = re.compile(r"TM-score\s*=\s*([0-9]*\.[0-9]+)")
+_RE_NAME2 = re.compile(r"Name of Structure_2:\s*([^:\s]+)")
 
 
 @dataclass(eq=True)
@@ -52,27 +77,6 @@ def exists_in_pymol(pymol_cmd, sele):
         if isinstance(i, list) and sele == i[0]:
             return True
     return False
-
-
-def prepare_domain(pymol_cmd, domain_template: dict) -> tuple:
-    """
-    Creates a domain object in a PyMOL session based on the provided domain name.
-
-    :param pymol_cmd: The PyMOL command object used to interact with the PyMOL session
-    :type pymol_cmd: pymol.Cmd
-
-    :param domain_name: The name of the domain to be created in the PyMOL session
-    :type domain_name: str
-
-    :return: A tuple containing the modified PyMOL command object and the new domain name string
-    :rtype: tuple
-    """
-    domain_name_new = f"{domain_template['name']}_domain_{str(uuid4()).replace('-', '_')}"
-    pymol_cmd.load(Path(domain_template['path']).absolute(), domain_name_new)
-
-    domain_name_selection = domain_name_new + "_selection"
-    pymol_cmd.select(domain_name_selection, f"{domain_name_new} & {domain_template['residues']}")
-    return pymol_cmd, domain_name_selection, domain_name_new
 
 
 def compress_selection_list(selected_residues: list[int]) -> str:
@@ -126,50 +130,56 @@ def compute_full_mapping(
     residues_mapping: dict[int, int],
     file_2_all_residues: dict[str, set[str]],
 ) -> dict:
-    """
-    Computes a full mapping of residues from a larger object to a domain object based on the closest aligned residue pairs.
+    """Compute full residue mapping from a larger object to a domain object.
 
-    :param domain_obj: The identifier of the domain object
-    :param larger_obj: The identifier of the larger object
-    :param residues_mapping: A dictionary mapping residues from the larger object to residues in the domain object
-    :param file_2_all_residues: A dictionary mapping object identifiers to sets of residues in those objects
-
-    :return: A dictionary representing the full mapping of residues from the larger object to the domain object
+    Cleaned-up version: V0's interval-string building (`domain_intervals`,
+    `mapped_intervals`, `_temp1`, `_temp2`) was used only as an
+    early-return gate equivalent to checking whether `residues_mapping_full`
+    ended up empty. Removing it does not change the output. Repeated
+    `sorted/min/max(map(int, ...))` calls are also collapsed to one pass.
     """
     if len(residues_mapping) == 0:
         return {}
+
+    # Resolve once.
     obj_res_2_mapped_shift = {
         domain_res: int(res) - int(domain_res)
         for res, domain_res in residues_mapping.items()
     }
-    kdtree = KDTree(
-        np.array(list(map(int, obj_res_2_mapped_shift.keys()))).reshape(-1, 1)
-    )
+    domain_keys_int = sorted(int(k) for k in obj_res_2_mapped_shift.keys())
+    kdtree = KDTree(np.asarray(domain_keys_int, dtype=np.int64).reshape(-1, 1))
     shift_values = list(obj_res_2_mapped_shift.values())
 
-    mapped_residues = set()
-    _temp1, _temp2 = [], []
-
-    start_mapped_res, prev_mapped_res = None, None
-    start_dom_res, prev_dom_res = None, None
-    domain_intervals = []
-    mapped_intervals = []
-    sorted_domain_residues = sorted(map(int, file_2_all_residues[domain_obj]))
-    sorted_mapped_domain_residues = sorted(map(int, residues_mapping.values()))
-    domain_map_first = max(map(int, residues_mapping.values()))
-    domain_map_last = min(map(int, residues_mapping.values()))
-    for i in range(len(residues_mapping.values())-3):
-        if [sorted_mapped_domain_residues[i+j] - sorted_mapped_domain_residues[i] for j in range(3)] == [0, 1, 2]:
+    sorted_mapped_domain_residues = sorted(
+        int(v) for v in residues_mapping.values()
+    )
+    n_mapped = len(sorted_mapped_domain_residues)
+    domain_map_first = sorted_mapped_domain_residues[-1]
+    domain_map_last = sorted_mapped_domain_residues[0]
+    for i in range(n_mapped - 3):
+        if [
+            sorted_mapped_domain_residues[i + j] - sorted_mapped_domain_residues[i]
+            for j in range(3)
+        ] == [0, 1, 2]:
             domain_map_first = sorted_mapped_domain_residues[i]
             break
-    for i in range(len(residues_mapping.values())-3, 0, -1):
-        if [sorted_mapped_domain_residues[i+j] - sorted_mapped_domain_residues[i] for j in range(3)] == [0, 1, 2]:
-             domain_map_last = sorted_mapped_domain_residues[i]
-             break
+    for i in range(n_mapped - 3, 0, -1):
+        if [
+            sorted_mapped_domain_residues[i + j] - sorted_mapped_domain_residues[i]
+            for j in range(3)
+        ] == [0, 1, 2]:
+            domain_map_last = sorted_mapped_domain_residues[i]
+            break
 
-    sorted_domain_residues = [res for res in sorted_domain_residues if res >= domain_map_first and res <= domain_map_last]
-    obj_residues_set = set(map(int, file_2_all_residues[larger_obj]))
-    residues_mapping_full = {}
+    sorted_domain_residues = [
+        r
+        for r in sorted(int(x) for x in file_2_all_residues[domain_obj])
+        if domain_map_first <= r <= domain_map_last
+    ]
+    obj_residues_set = set(int(x) for x in file_2_all_residues[larger_obj])
+
+    residues_mapping_full: dict[int, int] = {}
+    mapped_residues: set[int] = set()
     for domain_res in sorted_domain_residues:
         if domain_res in obj_res_2_mapped_shift:
             shift = obj_res_2_mapped_shift[domain_res]
@@ -178,210 +188,18 @@ def compute_full_mapping(
             shift = int(
                 round(
                     np.mean(
-                        [shift_values[closest_idx] for closest_idx in closest_indices]
+                        [shift_values[idx] for idx in closest_indices]
                     )
                 )
             )
         mapped_res = int(domain_res) + shift
         if mapped_res not in mapped_residues and mapped_res in obj_residues_set:
             residues_mapping_full[mapped_res] = domain_res
-            _temp1.append(domain_res)
-            _temp2.append(mapped_res)
             mapped_residues.add(mapped_res)
 
-            if start_mapped_res is None:
-                start_mapped_res = mapped_res
-                start_dom_res = domain_res
-            else:
-                if prev_mapped_res + 1 != mapped_res:
-                    if start_mapped_res == prev_mapped_res:
-                        mapped_intervals.append(f"{start_mapped_res}")
-                    else:
-                        mapped_intervals.append(f"{start_mapped_res}-{prev_mapped_res}")
-                    start_mapped_res = mapped_res
-                if prev_dom_res + 1 != domain_res:
-                    if start_dom_res == prev_dom_res:
-                        domain_intervals.append(f"{start_dom_res}")
-                    else:
-                        domain_intervals.append(f"{start_dom_res}-{prev_dom_res}")
-                    start_dom_res = domain_res
-            prev_mapped_res = mapped_res
-            prev_dom_res = domain_res
-    if start_mapped_res is not None:
-        if start_mapped_res == prev_mapped_res:
-            mapped_intervals.append(f"{start_mapped_res}")
-        else:
-            mapped_intervals.append(f"{start_mapped_res}-{prev_mapped_res}")
-    if start_dom_res is not None:
-        if start_dom_res == prev_dom_res:
-            domain_intervals.append(f"{start_dom_res}")
-        else:
-            domain_intervals.append(f"{start_dom_res}-{prev_dom_res}")
-
-    if len(domain_intervals) == 0 or len(mapped_intervals) == 0:
+    if not residues_mapping_full:
         return {}
     return residues_mapping_full
-
-
-def get_super_res_alignment(
-    larger_obj: str,
-    domain_template: dict,
-    file_2_all_residues: dict[str, set[str]],
-    min_domain_fraction: float = 0.1,
-    pymol_cmd=cmd,
-) -> tuple[float, dict]:
-    """
-    Performs sequence-independent alignment and assigns all residues of the domain object to the larger object.
-
-    :param larger_obj: The identifier of the larger object to align
-    :param domain_obj: The identifier of the domain object to align
-    :param file_2_all_residues: A dictionary mapping object identifiers to sets of residues in those objects
-    :param min_domain_fraction: The minimum fraction of domain residues that must be aligned for a valid mapping, defaults to 0.1
-    :param pymol_cmd: The PyMOL command object used to interact with the PyMOL session, defaults to cmd
-
-    :return: A tuple containing the TM-score of the alignment and a dictionary representing the full residues mapping
-             between the domain object and the larger object
-    """
-    if larger_obj in file_2_all_residues and len(file_2_all_residues[larger_obj]) == 0:
-        if exists_in_pymol(pymol_cmd, larger_obj):
-            pymol_cmd.delete(larger_obj)
-        if larger_obj in file_2_all_residues:
-            del file_2_all_residues[larger_obj]
-        return -float("inf"), {}
-
-    if not exists_in_pymol(pymol_cmd, larger_obj):
-        if not os.path.exists(f"{larger_obj}.pdb"):
-            raise FileNotFoundError(f"{larger_obj}.pdb while being in {os.getcwd()}")
-        pymol_cmd.load(f"{larger_obj}.pdb")
-        file_2_all_residues[larger_obj] = get_secondary_structure_residues_set(
-            larger_obj, pymol_cmd
-        ).intersection(file_2_all_residues[larger_obj])
-
-    allowed_residues = file_2_all_residues[larger_obj]
-
-    # limiting the residues in accordance with file_2_all_residues
-    current_residues = get_secondary_structure_residues_set(larger_obj, pymol_cmd)
-    orig_obj_to_remove = None
-    if current_residues != allowed_residues:
-        orig_obj_to_remove = larger_obj
-        # from now on larger_obj is a selection id
-        larger_obj = str(uuid4())
-        residues_permitted = current_residues.intersection(allowed_residues)
-        pymol_cmd.select(
-            larger_obj,
-            f"{orig_obj_to_remove} & resi {compress_selection_list(list(map(int, residues_permitted)))} & chain A",
-        )
-        file_2_all_residues[larger_obj] = residues_permitted
-
-    loaded_new_domain_obj = False
-    pymol_cmd, domain_obj, domain_name_new = prepare_domain(
-        pymol_cmd, domain_template
-    )
-    file_2_all_residues[domain_obj] = get_secondary_structure_residues_set(
-        domain_obj, pymol_cmd
-    )
-    loaded_new_domain_obj = True
-    aln_name, domain_obj_secondary_structure, larger_obj_secondary_structure = [
-        str(uuid4()) for _ in range(3)
-    ]
-    try:
-        needs_clone = (
-            pymol_cmd.get_object_list(domain_obj)[0]
-            == pymol_cmd.get_object_list(larger_obj)[0]
-        )
-    except IndexError as e:
-        print(f"IndexError for {domain_obj} and {larger_obj}")
-        print("domain_obj ", pymol_cmd.get_object_list(domain_obj))
-        print("larger_obj ", pymol_cmd.get_object_list(larger_obj))
-        print("orig_obj_to_remove ", orig_obj_to_remove)
-        print("orig_obj_to_remove ", pymol_cmd.get_object_list(orig_obj_to_remove))
-        raise e
-    if needs_clone:
-        object_name = pymol_cmd.get_object_list(domain_obj)[0]
-        new_object_name = f"{object_name}_new"
-        pymol_cmd.copy(new_object_name, object_name)
-        pymol_cmd.select(
-            domain_obj,
-            f"{new_object_name} & resi {compress_selection_list(list(map(int, file_2_all_residues[domain_obj])))} & chain A",
-        )
-
-    pymol_cmd.select(domain_obj_secondary_structure, f"{domain_obj} & ss H+S")
-    pymol_cmd.select(larger_obj_secondary_structure, f"{larger_obj} & ss H+S")
-    try:
-        tmscore: float = tmalign(
-            domain_obj_secondary_structure,
-            larger_obj_secondary_structure,
-            object=aln_name,
-            quiet=1,
-            args=f"-L {len(file_2_all_residues[domain_obj])}",
-        )
-    except (CmdException , AssertionError) as e:
-        logger.warning(
-            f"Alignment failed for {domain_obj} with error: {e}. Returning -inf TM-score. {file_2_all_residues[larger_obj]} residues were allowed for alignment."
-        )
-        logger.warning(f"domain_obj residues: {file_2_all_residues[domain_obj]}, larger_obj residues: {file_2_all_residues[larger_obj]}")
-        logger.warning(f"orig_obj_to_remove: {orig_obj_to_remove}, needs_clone: {needs_clone}, loaded_new_domain_obj: {loaded_new_domain_obj}")
-        pymol_cmd.delete(domain_obj_secondary_structure)
-        pymol_cmd.delete(larger_obj_secondary_structure)
-        pymol_cmd.delete(larger_obj)
-        del file_2_all_residues[larger_obj]
-        if orig_obj_to_remove is not None:
-            pymol_cmd.delete(orig_obj_to_remove)
-            del file_2_all_residues[orig_obj_to_remove]
-        if needs_clone:
-            pymol_cmd.select(
-                domain_obj,
-                f"{object_name} & resi {compress_selection_list(list(map(int, file_2_all_residues[domain_obj])))} & chain A",
-            )
-            pymol_cmd.delete(new_object_name)
-        if loaded_new_domain_obj:
-            pymol_cmd.delete(domain_obj)
-            pymol_cmd.delete(domain_name_new)
-            if domain_obj in file_2_all_residues:
-                del file_2_all_residues[domain_obj]
-        return -float("inf"), {}
-    raw_aln = pymol_cmd.get_raw_alignment(aln_name)
-    idx2resi: dict = {}
-    pymol_cmd.iterate(
-        aln_name, "idx2resi[model, index] = resi", space={"idx2resi": idx2resi}
-    )
-    residues_mapping = {}
-    for (protein_id_1, protein_idx_1), (protein_id_2, protein_idx_2) in raw_aln:
-        res_1 = idx2resi[(protein_id_1, protein_idx_1)]
-        res_2 = idx2resi[(protein_id_2, protein_idx_2)]
-        residues_mapping[res_1] = res_2
-    if len(residues_mapping) < min_domain_fraction * len(
-        file_2_all_residues[domain_obj]
-    ):
-        tmscore, residues_mapping_full = -float("inf"), {}
-    else:
-        residues_mapping_full = compute_full_mapping(
-            domain_obj,
-            larger_obj,
-            residues_mapping,
-            file_2_all_residues=file_2_all_residues,
-        )
-
-    pymol_cmd.delete(aln_name)
-    pymol_cmd.delete(domain_obj_secondary_structure)
-    pymol_cmd.delete(larger_obj_secondary_structure)
-    pymol_cmd.delete(larger_obj)
-    del file_2_all_residues[larger_obj]
-    if orig_obj_to_remove is not None:
-        pymol_cmd.delete(orig_obj_to_remove)
-        del file_2_all_residues[orig_obj_to_remove]
-    if needs_clone:
-        pymol_cmd.select(
-            domain_obj,
-            f"{object_name} & resi {compress_selection_list(list(map(int, file_2_all_residues[domain_obj])))} & chain A",
-        )
-        pymol_cmd.delete(new_object_name)
-    if loaded_new_domain_obj:
-        pymol_cmd.delete(domain_obj)
-        pymol_cmd.delete(domain_name_new)
-        if domain_obj in file_2_all_residues:
-            del file_2_all_residues[domain_obj]
-    return tmscore, residues_mapping_full
 
 
 def find_longest_continuous_segments(
@@ -432,40 +250,6 @@ def find_longest_continuous_segments(
     return residues_final
 
 
-def fill_short_gaps(residues_subset: set[int], max_allowed_gap: int = 5) -> list[int]:
-    """
-    A function including missing residues if they are inside short gaps of the residues_subset
-    """
-    residues_final = []
-    prev_res = None
-    for res in sorted(map(int, residues_subset)):
-        if prev_res is not None and prev_res + max_allowed_gap >= res:
-            for filled_res in range(prev_res + 1, res):
-                residues_final.append(filled_res)
-        residues_final.append(res)
-        prev_res = res
-    return residues_final
-
-
-def get_regions_of_interest(
-    domains: set[str], file_2_mapped_regions: dict[str, list[MappedRegion]]
-) -> list[tuple[str, MappedRegion]]:
-    """
-    Filters the dictionary of mapped regions to preserve only those regions belonging to specified domain types.
-
-    :param domains: A set of domain types to filter the mapped regions by
-    :param file_2_mapped_regions: A dictionary mapping filenames to lists of MappedRegion objects
-
-    :return: A list of tuples, each containing a filename and a MappedRegion object corresponding to the specified domain types
-    """
-    all_mapped_regions_of_interest = []
-    for filename, mapped_regions in file_2_mapped_regions.items():
-        for region in mapped_regions:
-            if region.domain in domains:
-                all_mapped_regions_of_interest.append((filename, region))
-    return all_mapped_regions_of_interest
-
-
 def get_all_residues_per_file(pdb_files: list[Path], pymol_cmd) -> dict[str, set[str]]:
     """
     Computes a set of all residues in each PDB file provided.
@@ -486,42 +270,384 @@ def get_all_residues_per_file(pdb_files: list[Path], pymol_cmd) -> dict[str, set
     return file_2_all_residues
 
 
+def _stage_target_pdb_pure_python(
+    pdb_path,
+    out_path,
+    residues_permitted: set[int],
+) -> list[str]:
+    """Write a CA-only chain-A PDB filtered to `residues_permitted`.
+
+    Pure-Python file scan — much faster than PyMOL load+select+save and
+    bit-equivalent for AlphaFold-style PDBs (CA atoms in standard
+    record order). Returns residue numbers (as strings) in PDB write
+    order.
+    """
+    out_lines: list[str] = []
+    target_resis: list[str] = []
+    with open(pdb_path) as fr:
+        for line in fr:
+            if not line.startswith("ATOM "):
+                continue
+            atom_name = line[12:16].strip()
+            if atom_name != "CA":
+                continue
+            alt = line[16]
+            if alt not in (" ", "A"):
+                continue
+            chain = line[21]
+            if chain != "A":
+                continue
+            resi_str = line[22:26].strip()
+            try:
+                resi_int = int(resi_str)
+            except ValueError:
+                continue
+            if resi_int not in residues_permitted:
+                continue
+            out_lines.append(line)
+            target_resis.append(resi_str)
+    with open(out_path, "w") as fw:
+        fw.writelines(out_lines)
+        fw.write("END\n")
+    return target_resis
+
+
+def _stage_one(args):
+    """Per-call query staging for the USalign batch flow.
+
+    Pure-Python PDB scan: writes a CA-only filtered PDB for the query.
+    No PyMOL involvement. Returns metadata used by the batch step.
+    """
+    (
+        filename,
+        domain_template,
+        file_2_all_residues_for_query,
+        staging_dir,
+        template_ss_residues,
+        ss_full_map,
+    ) = args
+
+    larger_obj = filename
+    file_2_all_residues = file_2_all_residues_for_query
+
+    min_align_len = int(
+        domain_template.get("thresholds", {}).get("min_align_len", 0)
+    )
+
+    if larger_obj in file_2_all_residues and len(
+        file_2_all_residues[larger_obj]
+    ) < max(1, min_align_len):
+        return None
+
+    ss_full = ss_full_map.get(larger_obj)
+    if ss_full is None:
+        ss_full = file_2_all_residues.get(larger_obj, set())
+
+    allowed_residues = file_2_all_residues.get(larger_obj, ss_full)
+    residues_permitted = ss_full.intersection(allowed_residues)
+    if len(residues_permitted) < max(1, min_align_len):
+        return None
+
+    pdb_path = f"{larger_obj}.pdb"
+    if not os.path.exists(pdb_path):
+        raise FileNotFoundError(
+            f"{pdb_path} while being in {os.getcwd()}"
+        )
+    target_pdb = staging_dir / f"q_{filename}.pdb"
+    residues_permitted_int = {
+        int(r) for r in residues_permitted if str(r).lstrip("-").isdigit()
+    }
+    target_resis = _stage_target_pdb_pure_python(
+        pdb_path=pdb_path,
+        out_path=target_pdb,
+        residues_permitted=residues_permitted_int,
+    )
+
+    if len(target_resis) < max(1, min_align_len):
+        try:
+            target_pdb.unlink()
+        except FileNotFoundError:
+            pass
+        return None
+
+    return {
+        "filename": filename,
+        "target_pdb": str(target_pdb),
+        "target_resis": target_resis,
+        "domain_residues": template_ss_residues,
+        "larger_residues": residues_permitted,
+        "domain_template_name": domain_template["name"],
+    }
+
+
+def _run_usalign_batch(
+    template_pdb: str,
+    staging_dir,
+    list_path,
+    L_value: int,
+    timeout: int = 3600,
+) -> str:
+    """Run one USalign batch invocation, return stdout."""
+    cmd_args = [
+        USALIGN_PATH,
+        template_pdb,
+        "-dir2", str(staging_dir) + "/",
+        str(list_path),
+        "-suffix", ".pdb",
+        "-L", str(L_value),
+    ]
+    proc = subprocess.run(
+        cmd_args,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        universal_newlines=True,
+        check=False,
+        timeout=timeout,
+    )
+    if proc.returncode != 0:
+        logger.error(
+            "USalign batch rc=%d stderr=%s", proc.returncode, proc.stderr[:400]
+        )
+        return ""
+    return proc.stdout
+
+
+def _parse_batch_output(stdout: str):
+    """Split USalign batch stdout into per-pair records.
+
+    Returns {target_filename_stem: (tmscore, qaln, match, taln)}.
+    """
+    out: dict = {}
+    if not stdout:
+        return out
+    chunks = re.split(r"\* US-align \(Version", stdout)
+    for chunk in chunks:
+        if "Name of Structure_2:" not in chunk:
+            continue
+        m = _RE_NAME2.search(chunk)
+        if m is None:
+            continue
+        target_path = m.group(1)
+        basename = os.path.basename(target_path)
+        if basename.endswith(".pdb"):
+            basename = basename[:-4]
+        if basename.startswith("q_"):
+            basename = basename[2:]
+
+        tmscore = None
+        for tm_match in _RE_TMSCORE.finditer(chunk):
+            try:
+                tmscore = float(tm_match.group(1))
+            except ValueError:
+                pass
+        if tmscore is None:
+            continue
+        idx = chunk.find('(":" denotes')
+        if idx < 0:
+            continue
+        rest = chunk[idx:].splitlines()
+        if len(rest) < 4:
+            continue
+        qaln = rest[1].rstrip("\n")
+        match = rest[2]
+        taln = rest[3].rstrip("\n")
+        out[basename] = (tmscore, qaln, match, taln)
+    return out
+
+
+def _finalize_one(args):
+    """Build residues_mapping from alignment, run compute_full_mapping."""
+    (staged_meta, parsed_pair, template_resis, min_domain_fraction) = args
+    if parsed_pair is None:
+        return staged_meta["filename"], -float("inf"), {}
+
+    tmscore, qaln, match, taln = parsed_pair
+    target_resis = staged_meta["target_resis"]
+    mobile_resis = template_resis
+    residues_mapping: dict = {}
+    i1 = 0
+    i2 = 0
+    for k in range(len(qaln)):
+        c1 = qaln[k] if k < len(qaln) else "-"
+        c2 = taln[k] if k < len(taln) else "-"
+        m_ind = match[k] if k < len(match) else " "
+        if c1 != "-" and c2 != "-" and m_ind in ":.":
+            if i1 < len(mobile_resis) and i2 < len(target_resis):
+                residues_mapping[target_resis[i2]] = mobile_resis[i1]
+        if c1 != "-":
+            i1 += 1
+        if c2 != "-":
+            i2 += 1
+
+    domain_residues = staged_meta["domain_residues"]
+    if len(residues_mapping) < min_domain_fraction * len(domain_residues):
+        return staged_meta["filename"], -float("inf"), {}
+
+    f2ar = {
+        "_dom": domain_residues,
+        "_lrg": staged_meta["larger_residues"],
+    }
+    residues_mapping_full = compute_full_mapping(
+        "_dom", "_lrg", residues_mapping, file_2_all_residues=f2ar
+    )
+    return staged_meta["filename"], tmscore, residues_mapping_full
+
+
+def _process_chunk(args):
+    """One worker stages its chunk + runs USalign batch + finalises."""
+    (chunk_filenames, domain_template, file_2_all_residues, template_pdb_path,
+     template_resis, L_value, shared_staging_root, worker_id,
+     template_ss_residues, ss_full_map) = args
+
+    staging_dir = Path(shared_staging_root) / f"w{worker_id}"
+    staging_dir.mkdir(parents=True, exist_ok=True)
+
+    staged_metas = []
+    for fn in chunk_filenames:
+        meta = _stage_one(
+            (
+                fn,
+                domain_template,
+                dict(file_2_all_residues),
+                staging_dir,
+                template_ss_residues,
+                ss_full_map,
+            )
+        )
+        if meta is not None:
+            staged_metas.append(meta)
+
+    if not staged_metas:
+        return []
+
+    list_path = staging_dir / "list.txt"
+    list_path.write_text(
+        "\n".join(f"q_{m['filename']}.pdb" for m in staged_metas) + "\n"
+    )
+    stdout = _run_usalign_batch(
+        template_pdb=template_pdb_path,
+        staging_dir=staging_dir,
+        list_path=list_path,
+        L_value=L_value,
+    )
+    parsed = _parse_batch_output(stdout)
+
+    out = []
+    for m in staged_metas:
+        out.append(_finalize_one((m, parsed.get(m["filename"]), template_resis, 0.1)))
+    return out
+
+
 def get_alignments(
     pdb_filepaths: list[Path],
     domain_template: dict,
     file_2_current_residues: dict[str, set[str]],
     n_jobs: int = 8,
 ) -> dict[str, list[tuple[float, dict]]]:
+    """Computes alignments of a template against all queries via batched USalign.
+
+    Per-worker batching: queries are split across `n_jobs` workers via
+    longest-processing-time-first bin packing. Each worker stages its
+    chunk (CA-only filtered PDB writes) and runs ONE USalign batch
+    subprocess on its chunk. This replaces V0's per-pair TMalign
+    subprocess fork (saving ~3-5 ms × N_pairs) and removes the per-call
+    PyMOL load/select/save overhead.
+
+    A persistent worker pool is reused when one is set up by the outer
+    `detect_domains` run; otherwise a per-call Pool is opened.
+
+    :return: {filename_stem: [(tmscore, residues_mapping_full)]} filtered by
+             the template's tmscore + min_align_len thresholds.
     """
-    Computes alignments of a specified domain object to all structures in the provided list of PDB file paths.
+    pdb_filenames = [
+        fp.stem for fp in pdb_filepaths if file_2_current_residues.get(fp.stem)
+    ]
+    if not pdb_filenames:
+        return defaultdict(list)
 
-    :param pdb_filepaths: A list of Path objects representing the PDB files to be aligned
-    :param domain_name: The name of the domain to align against the structures
-    :param file_2_current_residues: A dictionary mapping filenames to sets of current residues available in those files
-    :param tmscore_threshold: An optional TM-score threshold; alignments with scores below this threshold will be discarded
-    :param mapping_size_threshold: An optional minimum size for the residue mapping; alignments with fewer residues will be discarded
-    :param n_jobs: The number of parallel jobs to use for the alignment computation, defaults to 8
+    template_workdir = Path(tempfile.mkdtemp(prefix="usalign_batch_"))
+    template_pdb_path = template_workdir / f"tpl_{domain_template['name']}.pdb"
+    template_resis: list[str] = []
+    try:
+        from psico.exporting import save_pdb_without_ter  # type: ignore
 
-    :return: A dictionary mapping each PDB filename (without extension) to a list of tuples,
-             where each tuple contains a TM-score and a dictionary representing the residue mapping for that alignment
-    """
-    align_partial = partial(
-        get_super_res_alignment,
-        domain_template=domain_template,
-        file_2_all_residues=file_2_current_residues,
-    )
-    pdb_filenames = [filepath.stem for filepath in pdb_filepaths if file_2_current_residues.get(filepath.stem)]
-    with Pool(n_jobs) as pool:
-        list_of_alignment_results = pool.map(align_partial, pdb_filenames)
+        tpl_obj = f"tpl_obj_{uuid4().hex[:8]}"
+        cmd.load(str(Path(domain_template["path"]).absolute()), tpl_obj)
+        tpl_sel = f"{tpl_obj}_sel"
+        cmd.select(tpl_sel, f"{tpl_obj} & {domain_template['residues']}")
+        tpl_ss = f"{tpl_obj}_ss"
+        cmd.select(tpl_ss, f"{tpl_sel} & ss H+S")
+        tpl_ca = f"({tpl_ss}) and (not hetatm) and name CA and alt +A"
+        cmd.iterate_state(
+            1, tpl_ca, "out.append(resi)", space={"out": template_resis}
+        )
+        save_pdb_without_ter(str(template_pdb_path), tpl_ca, state=1)
+        template_residues_set = get_secondary_structure_residues_set(tpl_sel, cmd)
+        cmd.delete(tpl_obj)
+        cmd.delete(tpl_sel)
+        cmd.delete(tpl_ss)
 
-    file_2_tmscore_residues = defaultdict(list)
-    for pdb_filename, (tmscore, residues_mapping) in zip(
-        pdb_filenames, list_of_alignment_results
-    ):
-        if (tmscore >= domain_template["thresholds"]["tmscore"]
-                and len(residues_mapping) >= domain_template["thresholds"]["min_align_len"]):
-            file_2_tmscore_residues[pdb_filename].append((tmscore, residues_mapping))
-    return file_2_tmscore_residues
+        L_value = len(template_residues_set)
+
+        # Longest-processing-time-first chunking for load balance.
+        n_chunks = min(n_jobs, len(pdb_filenames))
+
+        def _query_cost(fn: str) -> int:
+            return len(file_2_current_residues.get(fn, ()))
+
+        sorted_filenames = sorted(pdb_filenames, key=_query_cost, reverse=True)
+        chunk_loads = [0] * n_chunks
+        chunks: list[list[str]] = [[] for _ in range(n_chunks)]
+        for fn in sorted_filenames:
+            wid = chunk_loads.index(min(chunk_loads))
+            chunks[wid].append(fn)
+            chunk_loads[wid] += _query_cost(fn) or 1
+        chunks = [c for c in chunks if c]
+
+        shared_staging_root = template_workdir / "wstg"
+        shared_staging_root.mkdir()
+
+        ss_full_map = _SS_FULL_MAP_CACHE or file_2_current_residues
+        worker_args = [
+            (
+                chunk,
+                domain_template,
+                dict(file_2_current_residues),
+                str(template_pdb_path),
+                template_resis,
+                L_value,
+                str(shared_staging_root),
+                wid,
+                template_residues_set,
+                ss_full_map,
+            )
+            for wid, chunk in enumerate(chunks)
+        ]
+
+        # Persistent pool reused when set up by outer detect_domains run.
+        if (
+            _PERSISTENT_POOL is not None
+            and _PERSISTENT_POOL_N_JOBS >= n_chunks
+        ):
+            chunk_results = _PERSISTENT_POOL.map(_process_chunk, worker_args)
+        else:
+            with Pool(n_chunks) as pool:
+                chunk_results = pool.map(_process_chunk, worker_args)
+
+        out = defaultdict(list)
+        tmscore_thr = domain_template["thresholds"]["tmscore"]
+        min_aln_len = domain_template["thresholds"]["min_align_len"]
+        for chunk_out in chunk_results:
+            for filename, tmscore, residues_mapping in chunk_out:
+                if (
+                    tmscore >= tmscore_thr
+                    and len(residues_mapping) >= min_aln_len
+                ):
+                    out[filename].append((tmscore, residues_mapping))
+        return out
+    finally:
+        import shutil
+        shutil.rmtree(template_workdir, ignore_errors=True)
 
 
 def get_remaining_residues_per_file(
@@ -551,36 +677,6 @@ def get_remaining_residues(
             all_residues, [region.residues_mapping for region in mapped_regions]
         )
     return file_2_remaining_residues
-
-def get_remaining_residues_from_residue_mapping(
-    file_2_mapped_regions: dict[str, list[dict[int, int]]],
-    file_2_previously_remaining_residues: dict[str, set[str]],
-) -> dict[str, set[str]]:
-    """
-    Function retrieving currently unassigned residues for each file from the `file_2_previously_remaining_residues` keys
-    """
-    file_2_remaining_residues = {}
-    for filename, all_residues in file_2_previously_remaining_residues.items():
-        mapped_regions = file_2_mapped_regions.get(filename, [])
-        file_2_remaining_residues[filename] = get_remaining_residues_per_file(
-            all_residues, mapped_regions
-        )
-    return file_2_remaining_residues
-
-def get_currently_longest_unmapped_regions(
-    file_2_remaining_residues: dict[str, set[str]],
-    file_2_all_residues: dict[str, set[str]],
-) -> dict[str, list[int]]:
-    """
-    Function computing the longest sequence of unmapped residues per file
-    """
-    file_2_longest_unmapped_region = {}
-    for filename, unmapped_residues in file_2_remaining_residues.items():
-        file_2_longest_unmapped_region[filename] = find_longest_continuous_segments(
-            unmapped_residues, file_2_all_residues[filename]
-        )
-    return file_2_longest_unmapped_region
-
 
 def return_short_enough_segments(segment: list[int], max_allowed_length: int):
     """
@@ -633,6 +729,31 @@ def find_continuous_segments_longer_than(
     return res_continuous_segments
 
 
+def _residue_atoms(filename: str) -> dict[int, np.ndarray]:
+    """Return {resi_int: (n_atoms, 3) coord array} for chain A of `filename`.
+
+    One `iterate_state` call pulls every atom — orders of magnitude
+    cheaper than per-segment `cmd.distance` invocations.
+    """
+    space: dict[int, list[tuple[float, float, float]]] = defaultdict(list)
+    cmd.iterate_state(
+        1,
+        f"{filename} & chain A",
+        "space[int(resi)].append((x, y, z))",
+        space={"space": space},
+    )
+    return {r: np.asarray(coords, dtype=np.float64) for r, coords in space.items()}
+
+
+def _segment_centroid(
+    residues: list[int], resi_atoms: dict[int, np.ndarray]
+) -> np.ndarray | None:
+    rows = [resi_atoms[r] for r in residues if r in resi_atoms]
+    if not rows:
+        return None
+    return np.concatenate(rows, axis=0).mean(axis=0)
+
+
 def get_mapped_regions_with_surroundings(
     filename: str,
     file_2_all_residues: dict[str, set[str]],
@@ -641,8 +762,14 @@ def get_mapped_regions_with_surroundings(
     helix_sheet_domain_dist_threshold: float = 30,
     max_allowed_segment_len: int = 7,
 ) -> list[MappedRegion]:
-    """
-    A function detecting unassigned parts of secondary structure which are close a particular domain in 3D space
+    """Detect unassigned SS parts close to a mapped region in 3D space.
+
+    Numpy-centroid implementation: pulls all chain-A CA-atom coords once
+    via a single `iterate_state` call, then computes per-segment
+    centroids in numpy. Replaces V0's per-pair `cmd.distance(mode=4)`
+    invocations (which created+deleted `dist` PyMOL objects per pair)
+    with `np.linalg.norm` between two 3-vectors. Same `mode=4` semantics
+    (centroid-to-centroid). Bit-equivalent within float precision.
     """
     already_mapped_residues: set[int] = set()
     for mapped_region in filename_2_known_regions[filename]:
@@ -655,90 +782,86 @@ def get_mapped_regions_with_surroundings(
 
     if not exists_in_pymol(cmd, filename):
         if not os.path.exists(f"{filename}.pdb"):
-            raise FileNotFoundError(f"{filename}.pdb while being in {os.getcwd()}")
+            raise FileNotFoundError(
+                f"{filename}.pdb while being in {os.getcwd()}"
+            )
         cmd.load(f"{filename}.pdb")
 
-    # for each mapped region, compute alpha helixes
-    region_i_2_segments = defaultdict(list)
-    for mapped_region_i, mapped_region in enumerate(filename_2_known_regions[filename]):
+    # Single coord pull replaces per-segment cmd.select / cmd.distance pairs.
+    resi_atoms = _residue_atoms(filename)
+
+    # Pre-compute centroids for every region segment.
+    region_i_2_centroids: dict[int, list[np.ndarray]] = defaultdict(list)
+    for mapped_region_i, mapped_region in enumerate(
+        filename_2_known_regions[filename]
+    ):
         region_continuous_segments = find_continuous_segments_longer_than(
             set(map(str, mapped_region.residues_mapping.keys())),
             min_secondary_struct_len=5,
             max_allowed_gap=2,
         )
-        segment_i = 0
         for region_segment_master in region_continuous_segments:
             for region_segment in return_short_enough_segments(
-                region_segment_master, max_allowed_length=max_allowed_segment_len
+                region_segment_master,
+                max_allowed_length=max_allowed_segment_len,
             ):
-                segment_name = f"bigger_selection_{mapped_region_i}_{segment_i}"
-                cmd.select(
-                    segment_name,
-                    f"{filename} & resi {compress_selection_list(region_segment)} & chain A",
-                )
-                segment_i += 1
-                region_i_2_segments[mapped_region_i].append(segment_name)
-    mapped_region_2_added_residues = defaultdict(list)
+                c = _segment_centroid(region_segment, resi_atoms)
+                if c is not None:
+                    region_i_2_centroids[mapped_region_i].append(c)
 
-    # detect secondary structure residue segments in the unmapped parts
+    mapped_region_2_added_residues: dict[int, list[int]] = defaultdict(list)
+
     remaining_residues_segments = find_continuous_segments_longer_than(
-        set(map(str, remaining_residues)), min_secondary_struct_len=0, max_allowed_gap=1
+        set(map(str, remaining_residues)),
+        min_secondary_struct_len=0,
+        max_allowed_gap=1,
     )
     for residue_segment_remaining_master in remaining_residues_segments:
         for residue_segment_remaining in return_short_enough_segments(
-            residue_segment_remaining_master, max_allowed_length=max_allowed_segment_len
+            residue_segment_remaining_master,
+            max_allowed_length=max_allowed_segment_len,
         ):
-            cmd.select(
-                "small_selection",
-                f"{filename} & resi {compress_selection_list(residue_segment_remaining)} & chain A",
-            )
+            small_centroid = _segment_centroid(residue_segment_remaining, resi_atoms)
+            if small_centroid is None:
+                continue
+
             min_dist = float("inf")
-            closest_region_i = None
-            all_dists_with_regions = []
-            region_to_dists = defaultdict(list[float])
-            for mapped_region_i, mapped_region in enumerate(
-                filename_2_known_regions[filename]
-            ):
+            closest_region_i: int | None = None
+            all_dists_with_regions: list[tuple[float, int]] = []
+            region_to_dists: dict[int, list[float]] = defaultdict(list)
+
+            for mapped_region_i in range(len(filename_2_known_regions[filename])):
+                centroids = region_i_2_centroids.get(mapped_region_i, [])
                 region_dist_min = float("inf")
-                for segment_selection in region_i_2_segments[mapped_region_i]:
-                    distance = cmd.distance(
-                        "dist",
-                        selection1="small_selection",
-                        selection2=segment_selection,
-                        mode=4,
-                    )
-                    region_to_dists[mapped_region_i].append(float(distance))
-                    region_dist_min = min(region_dist_min, distance)
-                    cmd.delete("dist")
+                for c in centroids:
+                    d = float(np.linalg.norm(small_centroid - c))
+                    region_to_dists[mapped_region_i].append(d)
+                    if d < region_dist_min:
+                        region_dist_min = d
                 all_dists_with_regions.append((region_dist_min, mapped_region_i))
                 if region_dist_min < min_dist:
                     min_dist = region_dist_min
                     closest_region_i = mapped_region_i
-            cmd.delete("small_selection")
 
             region_to_num_dists = {
-                region: len([dist for dist in dists if dist < helix_sheet_domain_dist_threshold])
+                region: sum(
+                    1 for d in dists if d < helix_sheet_domain_dist_threshold
+                )
                 for region, dists in region_to_dists.items()
             }
-            
             num_dists_to_regions = {
-                num_dists_val: [region for region, num_dists in region_to_num_dists.items() if num_dists == num_dists_val]
-                for num_dists_val in set(region_to_num_dists.values())
+                v: [r for r, n in region_to_num_dists.items() if n == v]
+                for v in set(region_to_num_dists.values())
             }
 
             if min_dist < helix_sheet_neighbor_dist_threshold:
                 if len(all_dists_with_regions) >= 2:
-                    # leave unassigned if it is similarly close to two different regions
-                    
-                    regions_apart_from_the_closest = [
-                        (dist, region)
-                        for (dist, region) in all_dists_with_regions
-                        if dist > min_dist
+                    regions_apart = [
+                        (d, r) for (d, r) in all_dists_with_regions if d > min_dist
                     ]
-                    if regions_apart_from_the_closest:
+                    if regions_apart:
                         second_closest_dist, second_closest_region_i = min(
-                            regions_apart_from_the_closest,
-                            key=lambda x: x[0],
+                            regions_apart, key=lambda x: x[0]
                         )
                         if (
                             second_closest_region_i == closest_region_i
@@ -752,18 +875,14 @@ def get_mapped_regions_with_surroundings(
                                 num_dists_to_regions.items(), key=lambda x: x[0]
                             )[1]
                             if len(overall_closest_regions) == 1:
-                                mapped_region_2_added_residues[overall_closest_regions[0]].extend(
-                                    residue_segment_remaining
-                                )
+                                mapped_region_2_added_residues[
+                                    overall_closest_regions[0]
+                                ].extend(residue_segment_remaining)
                 else:
                     mapped_region_2_added_residues[closest_region_i].extend(
                         residue_segment_remaining
                     )
 
-    # cleaning RAM to avoid pymol slow-down
-    for added_segments in region_i_2_segments.values():
-        for segment_name in added_segments:
-            cmd.delete(segment_name)
     new_mapped_regions = []
     for mapped_region_i, mapped_region_init in enumerate(
         filename_2_known_regions[filename]
@@ -779,7 +898,6 @@ def get_mapped_regions_with_surroundings(
                 residues_mapping=new_residues_mapping,
             )
         )
-    # if there's file, then we free RAM cause we can read the file back
     if os.path.exists(f"{filename}.pdb"):
         cmd.delete(filename)
     return new_mapped_regions

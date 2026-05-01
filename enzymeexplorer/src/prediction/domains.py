@@ -44,7 +44,7 @@ class DomainAlignmentResult:
         alignment_df: per-(query_module, ref_module) foldseek alignment table
             produced by ``get_structural_features`` — needed by the API to
             look up each detected domain's closest known reference for the
-            TMalign-based superposition.
+            USalign-based superposition.
         domain_structures_dir: directory holding ``<module_id>.pdb`` files for
             every detected domain, written during the detection step.
     """
@@ -72,7 +72,7 @@ def detect_and_align_domains(
     """Detect domains and align them to known reference domains.
 
     Defaults are tuned for prediction on small batches:
-    ``prefilter_pdbs_by_foldseek=True`` cuts the (query × template) TMalign
+    ``prefilter_pdbs_by_foldseek=True`` cuts the (query × template) USalign
     workload by ~5-10× by skipping pairs with no plausible foldseek
     alignment. The training pipeline keeps prefiltering off (its YAML config)
     because at training time we want exhaustive sensitivity, but at predict

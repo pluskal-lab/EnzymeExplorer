@@ -6,14 +6,10 @@ import yaml
 import configargparse
 from pathlib import Path
 from collections import defaultdict
+from multiprocessing import Pool
 import pickle
 import logging
 from pymol import cmd  # type: ignore
-import pandas as pd  # type: ignore
-import numpy as np  # type: ignore
-from Bio import PDB  # type: ignore
-from tqdm.auto import tqdm  # type: ignore
-import re
 from enzymeexplorer.src.structure_processing.structural_algorithms import (
     MappedRegion,
     get_remaining_residues,
@@ -281,9 +277,43 @@ def detect_domains(args) -> dict:
     with open(secondary_structure_residues_path, "rb") as file:
         file_2_all_residues = pickle.load(file)
 
+    # Capture the original SS-residues map so the per-call alignment-batch
+    # workers can skip the redundant `cmd.iterate (X & ss H+S)` on every
+    # freshly-loaded query (saves ~5 ms × N_calls).
+    import enzymeexplorer.src.structure_processing.structural_algorithms as _sa
+    _sa._SS_FULL_MAP_CACHE.clear()
+    _sa._SS_FULL_MAP_CACHE.update(file_2_all_residues)
+
     # getting the files
     cwd = os.getcwd()
     os.chdir(input_directory)
+
+    # Open ONE persistent worker pool for the whole detection. Reused
+    # across the 21 (template × iteration) get_alignments calls. Lazily
+    # created inside structural_algorithms.get_alignments on its first
+    # invocation — by which point os.chdir(input_directory) has already
+    # happened so workers fork with the right cwd.
+    n_jobs = int(getattr(args, "n_jobs", 20))
+    _sa._PERSISTENT_POOL_N_JOBS = n_jobs
+    _sa._PERSISTENT_POOL = None
+    pool_holder = {"pool": None}
+
+    _orig_get_alignments_sa = _sa.get_alignments
+
+    def _pool_aware_get_alignments(*pa, **pkw):
+        if _sa._PERSISTENT_POOL is None:
+            _sa._PERSISTENT_POOL = Pool(
+                processes=n_jobs, maxtasksperchild=500
+            )
+            pool_holder["pool"] = _sa._PERSISTENT_POOL
+        return _orig_get_alignments_sa(*pa, **pkw)
+
+    _sa.get_alignments = _pool_aware_get_alignments
+    # The utils module imports get_alignments at module-load time; patch
+    # there too so detect_domains_roughly's call resolves to our wrapper.
+    import enzymeexplorer.src.structure_processing.utils as _utils
+    _orig_get_alignments_utils = _utils.get_alignments
+    _utils.get_alignments = _pool_aware_get_alignments
 
     filename_2_known_regions: dict[str, list[MappedRegion]] = defaultdict(list)
     filename_2_remaining_residues: dict[str, set[str]] = file_2_all_residues.copy()
@@ -471,6 +501,16 @@ def detect_domains(args) -> dict:
         )
 
     os.chdir(cwd)
+    # Close persistent worker pool + restore the get_alignments wrapper.
+    if pool_holder["pool"] is not None:
+        pool_holder["pool"].close()
+        pool_holder["pool"].join()
+    _sa._PERSISTENT_POOL = None
+    _sa._PERSISTENT_POOL_N_JOBS = 0
+    _sa.get_alignments = _orig_get_alignments_sa
+    _utils.get_alignments = _orig_get_alignments_utils
+    _sa._SS_FULL_MAP_CACHE.clear()
+
     # save the confident regions
     Path(args.detections_output_path).parent.mkdir(parents=True, exist_ok=True)
     with open(args.detections_output_path, "wb") as f:

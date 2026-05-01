@@ -24,9 +24,9 @@ from __future__ import annotations
 # Force single-threaded BLAS / OpenMP. The structure pipeline forks a
 # multiprocessing.Pool of PyMOL workers; if NumPy/SciPy have already spawned
 # OpenMP threads in the parent, fork() leaves the children with a corrupt
-# OpenMP runtime (only the forking thread survives) and the first ``np.*``,
-# ``cmd.*`` or ``tmalign(...)`` call in a worker deadlocks. This must happen
-# before NumPy/SciPy/PyMOL are imported.
+# OpenMP runtime (only the forking thread survives) and the first ``np.*``
+# or ``cmd.*`` call in a worker deadlocks. This must happen before
+# NumPy/SciPy/PyMOL are imported.
 import os as _os  # noqa: E402
 
 for _omp_var in (

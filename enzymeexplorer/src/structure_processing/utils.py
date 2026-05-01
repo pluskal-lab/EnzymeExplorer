@@ -16,17 +16,14 @@ import tempfile
 from pathlib import Path
 import os
 import pickle
-from Bio import PDB
 from collections import defaultdict
 from enzymeexplorer.src.structure_processing.foldseek_wrapper import FoldseekWrapper
 from tqdm.auto import tqdm
 import re
 import time
-import subprocess
 from datetime import datetime
 import configargparse
 from functools import partial
-import pickle
 
 
 
@@ -65,6 +62,197 @@ def __get_domain_2_seq_id_and_domain_type_maps(
     return domain_2_seq_id, domain_2_domain_type
 
 
+def _stable_ref_hash(reference_domains: list[str], reference_domains_dir: str) -> str:
+    """Hash that changes when the reference set changes (size, members, or
+    on-disk PDB mtimes). Used to key the foldseek-DB cache directory."""
+    import hashlib
+
+    h = hashlib.blake2b(digest_size=16)
+    for d in sorted(reference_domains):
+        h.update(d.encode())
+        h.update(b"\0")
+        p = Path(reference_domains_dir) / f"{d}.pdb"
+        try:
+            mtime_ns = p.stat().st_mtime_ns
+        except FileNotFoundError:
+            mtime_ns = 0
+        h.update(str(mtime_ns).encode())
+        h.update(b"\n")
+    return h.hexdigest()
+
+
+def _resolve_foldseek_db_root() -> Path:
+    """Where to keep cached foldseek DBs. Configurable via env."""
+    env = os.environ.get("ENZYMEEXPLORER_FOLDSEEK_REF_DB")
+    if env:
+        return Path(env)
+    return Path("data/foldseek_cache").absolute()
+
+
+def _build_or_get_foldseek_ref_db(
+    reference_domains: list[str],
+    reference_domains_dir: str,
+    ref_preprocessed_name_map: dict[str, str],
+    threads: int = 8,
+) -> Path:
+    """Return cached foldseek reference-DB directory; build on first miss."""
+    import json
+    from datetime import datetime
+
+    db_root = _resolve_foldseek_db_root()
+    ref_hash = _stable_ref_hash(reference_domains, reference_domains_dir)
+    db_dir = db_root / ref_hash
+    db_path = db_dir / "db"
+    marker = db_dir / "READY"
+
+    if marker.exists():
+        logger.info("foldseek-DB cache hit at %s", db_dir)
+        return db_dir
+
+    logger.info(
+        "foldseek-DB cache miss; building DB at %s (%d entries)",
+        db_dir,
+        len(reference_domains),
+    )
+    db_dir.mkdir(parents=True, exist_ok=True)
+
+    with tempfile.TemporaryDirectory() as staging:
+        staging_p = Path(staging)
+        for d in reference_domains:
+            src = Path(reference_domains_dir) / (
+                f"{ref_preprocessed_name_map.get(d, d)}.pdb"
+            )
+            dst = staging_p / f"{d}.pdb"
+            try:
+                os.symlink(src.absolute(), dst)
+            except FileExistsError:
+                pass
+
+        proc = subprocess.run(
+            [
+                "foldseek",
+                "createdb",
+                str(staging_p),
+                str(db_path),
+                "--threads",
+                str(threads),
+            ],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if proc.returncode != 0:
+            raise RuntimeError(
+                f"foldseek createdb failed (rc={proc.returncode}): "
+                f"{proc.stderr[:400]}"
+            )
+
+    (db_dir / "manifest.json").write_text(
+        json.dumps(
+            {
+                "ref_hash": ref_hash,
+                "n_reference": len(reference_domains),
+                "reference_domains_dir": str(reference_domains_dir),
+                "created_at": datetime.now().isoformat(timespec="seconds"),
+            },
+            indent=2,
+        )
+    )
+    marker.touch()
+    return db_dir
+
+
+def _foldseek_search_against_cached_db(
+    query_dir: str,
+    db_dir: Path,
+    output_tsv: str,
+    max_seqs: int,
+    e_value: float = 100.0,
+    threads: int = 8,
+) -> pd.DataFrame:
+    """Run foldseek `search` against a pre-built reference DB."""
+    db_path = db_dir / "db"
+
+    with tempfile.TemporaryDirectory() as workdir:
+        wp = Path(workdir)
+        query_db = wp / "querydb"
+        result_db = wp / "resultdb"
+        tmp_dir = wp / "fs_tmp"
+        tmp_dir.mkdir()
+
+        proc = subprocess.run(
+            [
+                "foldseek",
+                "createdb",
+                query_dir,
+                str(query_db),
+                "--threads",
+                str(threads),
+            ],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if proc.returncode != 0:
+            raise RuntimeError(
+                f"foldseek createdb (query) failed: {proc.stderr[:400]}"
+            )
+        proc = subprocess.run(
+            [
+                "foldseek",
+                "search",
+                str(query_db),
+                str(db_path),
+                str(result_db),
+                str(tmp_dir),
+                "-e",
+                str(e_value),
+                "--max-seqs",
+                str(max_seqs),
+                "-s",
+                "9.5",
+                "-a",  # write CIGARs so convertalis can format alignments
+                "--threads",
+                str(threads),
+            ],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if proc.returncode != 0:
+            raise RuntimeError(
+                f"foldseek search failed: {proc.stderr[:400]}"
+            )
+        proc = subprocess.run(
+            [
+                "foldseek",
+                "convertalis",
+                str(query_db),
+                str(db_path),
+                str(result_db),
+                output_tsv,
+                "--format-output",
+                "query,target,alntmscore",
+                "--threads",
+                str(threads),
+            ],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if proc.returncode != 0:
+            raise RuntimeError(
+                f"foldseek convertalis failed: {proc.stderr[:400]}"
+            )
+
+    return pd.read_csv(
+        output_tsv,
+        sep="\t",
+        header=None,
+        names=["query", "target", "alntmscore"],
+    )
+
+
 def get_foldseek_alignment_df(
     query_seq_2_regions: dict[str, list[MappedRegion]],
     query_domains_dir: str,
@@ -75,16 +263,11 @@ def get_foldseek_alignment_df(
 ) -> pd.DataFrame:
     """Compute pairwise distance based features between domains.
 
-    Args:
-        query_seq_2_regions (dict[str, list[MappedRegion]]): A mapping from query sequence IDs to lists of MappedRegion objects.
-        query_domains_dir (str): Directory containing query domain structures.
-        ref_seq_2_regions (dict[str, list[MappedRegion]]): A mapping from reference sequence IDs to lists of MappedRegion objects.
-        reference_domains_dir (str): Directory containing reference domain structures.
-
-    Returns:
-        pd.DataFrame: DataFrame containing foldseek alignment results.
+    Uses a CACHED foldseek reference database keyed by content hash of
+    the reference set: subsequent calls with the same reference reuse
+    the on-disk DB (huge win for batch screening pipelines that rerun
+    against martsDB). Output is bit-equivalent to V0's `easy_search`.
     """
-
     query_domains = __get_domain_names(query_seq_2_regions)
     reference_domains = __get_domain_names(ref_seq_2_regions)
 
@@ -99,40 +282,43 @@ def get_foldseek_alignment_df(
     ), "Query domains directory does not contain all required domain structures."
 
     logger.info(
-        f"Running Foldseek alignment for {len(query_domains)} query domains against {len(reference_domains)} reference domains... (eg. {query_domains[0]} vs {reference_domains[0]})"
+        f"Running Foldseek alignment for {len(query_domains)} query domains "
+        f"against {len(reference_domains)} reference domains "
+        f"(eg. {query_domains[0]} vs {reference_domains[0]})"
+    )
+
+    db_dir = _build_or_get_foldseek_ref_db(
+        reference_domains, reference_domains_dir, ref_preprocessed_name_map
     )
 
     with tempfile.TemporaryDirectory() as tmpdir:
-        query_pdbs_dir = os.path.join(tmpdir, "query_pdbs")
-        reference_pdbs_dir = os.path.join(tmpdir, "reference_pdbs")
-        Path(query_pdbs_dir).mkdir(parents=True, exist_ok=True)
-        Path(reference_pdbs_dir).mkdir(parents=True, exist_ok=True)
-        # Copy relevant PDB files to temporary directories
-        for domain in reference_domains:
-            src_path = os.path.join(reference_domains_dir, f"{ref_preprocessed_name_map.get(domain, domain)}.pdb")
-            dst_path = os.path.join(reference_pdbs_dir, f"{domain}.pdb")
-            os.symlink(src_path, dst_path)
+        query_pdbs_dir = Path(tmpdir) / "query_pdbs"
+        query_pdbs_dir.mkdir(parents=True, exist_ok=True)
         for domain in query_domains:
-            src_path = os.path.join(query_domains_dir, f"{query_preprocessed_name_map.get(domain, domain)}.pdb")
-            dst_path = os.path.join(query_pdbs_dir, f"{domain}.pdb")
-            os.symlink(src_path, dst_path)
+            src_path = Path(query_domains_dir) / (
+                f"{query_preprocessed_name_map.get(domain, domain)}.pdb"
+            )
+            dst_path = query_pdbs_dir / f"{domain}.pdb"
+            os.symlink(src_path.absolute(), dst_path)
 
-        # E-value cutoff for predict-time sensitivity. Foldseek's default of 1.0
-        # was missing weakly-aligned divergent TPS domains (e.g. A0A2P0VN22)
-        # that TMalign could still align to the template at tmscore ≈ 0.37.
-        # Raising to 100 admits those weak hits — the downstream classifier
-        # uses the resulting (1 - tmscore) distance directly so noise is
-        # bounded, and false positives at this layer just produce small
-        # signal in the feature vector.
-        alignment_df = FoldseekWrapper().easy_search(
-            query_dir=query_pdbs_dir,
-            target_dir=reference_pdbs_dir,
-            tmp_dir=os.path.join(tmpdir, "tmp_foldseek"),
-            output=os.path.join(tmpdir, "foldseek_output.tsv"),
+        out_tsv = Path(tmpdir) / "foldseek_output.tsv"
+        alignment_df = _foldseek_search_against_cached_db(
+            query_dir=str(query_pdbs_dir),
+            db_dir=db_dir,
+            output_tsv=str(out_tsv),
             max_seqs=len(reference_domains) * 2,
             e_value=100.0,
         )
-        alignment_df["query"] = alignment_df["query"].map(lambda x: x if x in query_domains else ("_".join(x.split("_")[:-1]) if "_".join(x.split("_")[:-1]) in query_domains else x))
+        # Same query-name fixup easy_search did.
+        query_set = set(query_domains)
+
+        def _fix_query(x: str) -> str:
+            if x in query_set:
+                return x
+            stripped = "_".join(x.split("_")[:-1])
+            return stripped if stripped in query_set else x
+
+        alignment_df["query"] = alignment_df["query"].map(_fix_query)
 
     query_domain_2_seq_id, query_domain_2_domain_type = (
         __get_domain_2_seq_id_and_domain_type_maps(query_seq_2_regions)
@@ -141,21 +327,12 @@ def get_foldseek_alignment_df(
         __get_domain_2_seq_id_and_domain_type_maps(ref_seq_2_regions)
     )
 
-    alignment_df = alignment_df.sort_values(
-        by="alntmscore", ascending=False, inplace=False
-    )
-    alignment_df["query_domain_type"] = alignment_df["query"].apply(
-        lambda x: query_domain_2_domain_type[x]
-    )
-    alignment_df["query_seq_id"] = alignment_df["query"].apply(
-        lambda x: query_domain_2_seq_id[x]
-    )
-    alignment_df["target_domain_type"] = alignment_df["target"].apply(
-        lambda x: ref_domain_2_domain_type[x]
-    )
-    alignment_df["target_seq_id"] = alignment_df["target"].apply(
-        lambda x: ref_domain_2_seq_id[x]
-    )
+    alignment_df = alignment_df.sort_values(by="alntmscore", ascending=False)
+    # `.map(dict)` is ~10× faster than `.apply(lambda x: dict[x])` at scale.
+    alignment_df["query_domain_type"] = alignment_df["query"].map(query_domain_2_domain_type)
+    alignment_df["query_seq_id"] = alignment_df["query"].map(query_domain_2_seq_id)
+    alignment_df["target_domain_type"] = alignment_df["target"].map(ref_domain_2_domain_type)
+    alignment_df["target_seq_id"] = alignment_df["target"].map(ref_domain_2_seq_id)
 
     return alignment_df
 
@@ -321,48 +498,87 @@ def get_structural_features(
 ) -> np.ndarray:
     """Fill the structural features array based on foldseek alignment results.
 
-    Args:
-        structural_features (np.ndarray): The numpy array to fill with structural features.
-        alignment_df (pd.DataFrame): DataFrame containing foldseek alignment results.
-        query_sequence_ids (list[str]): List of query sequence IDs corresponding to the rows of the structural features array.
-        domain_type_2_ref_module_id_2_col_idx (dict[str, dict[str, int]]): A dictionary mapping domain types to dictionaries mapping reference module ids to column indices in the structural features array.
-
-    Returns:
-        np.ndarray: The structural features array.
+    Vectorised implementation: replaces V0's per-query boolean mask +
+    iterrows loop with a single numpy slot assignment. Semantics match
+    V0 (last-write-wins on duplicate (row, col); alignment_df is sorted
+    descending by alntmscore by the caller).
     """
-    number_of_features = sum(
-        len(module_id_2_col_idx)
-        for module_id_2_col_idx in domain_type_2_ref_module_id_2_col_idx.values()
+    n_features = sum(
+        len(m) for m in domain_type_2_ref_module_id_2_col_idx.values()
     )
-    structural_features = np.ones((len(query_sequence_ids), number_of_features))
+    structural_features = np.ones(
+        (len(query_sequence_ids), n_features), dtype=np.float64
+    )
+    if len(alignment_df) == 0 or len(query_sequence_ids) == 0:
+        return structural_features
 
-    for idx, query_seq_id in tqdm(
-        enumerate(query_sequence_ids), total=len(query_sequence_ids)
-    ):
-        query_alignments = alignment_df[
-            (alignment_df["query_seq_id"] == query_seq_id)
-            & (alignment_df.query_domain_type == alignment_df.target_domain_type)
-        ]
-        for _, query_alignment in query_alignments.iterrows():
-            domain_type = query_alignment["query_domain_type"]
-            if domain_type == "alpha":
-                domain_type = (
-                    domain_type + f"_{int(query_alignment['query'].split('_')[-1]) + 1}"
-                )
-            target_module_id = query_alignment["target"]
-            try:
-                feature_col_idx = domain_type_2_ref_module_id_2_col_idx[domain_type][
-                    target_module_id
-                ]
-            except KeyError:
-                raise KeyError(
-                    f"Domain {target_module_id} of type {domain_type} not found in reference domain {query_alignment['query']}."
-                )
-            structural_features[idx, feature_col_idx] = (
-                1 - query_alignment["alntmscore"]
+    qid_to_row = {q: i for i, q in enumerate(query_sequence_ids)}
+
+    df = alignment_df[
+        (alignment_df["query_domain_type"] == alignment_df["target_domain_type"])
+        & alignment_df["query_seq_id"].isin(qid_to_row)
+    ]
+    if len(df) == 0:
+        return structural_features
+
+    # Resolve final domain_type: for alpha → "alpha_{int(query.split('_')[-1])+1}".
+    final_dt = df["query_domain_type"].astype(object).copy()
+    is_alpha = (df["query_domain_type"] == "alpha").to_numpy()
+    if is_alpha.any():
+        alpha_suffix = (
+            df.loc[is_alpha, "query"].str.rsplit("_", n=1).str[-1].astype(int) + 1
+        )
+        final_dt.loc[is_alpha] = "alpha_" + alpha_suffix.astype(str)
+
+    flat_lookup: dict[tuple[str, str], int] = {}
+    for dt, mp in domain_type_2_ref_module_id_2_col_idx.items():
+        for mid, ci in mp.items():
+            flat_lookup[(dt, mid)] = ci
+
+    final_dt_arr = final_dt.to_numpy()
+    target_arr = df["target"].to_numpy()
+    cols = np.empty(len(df), dtype=np.int64)
+    for i in range(len(df)):
+        key = (final_dt_arr[i], target_arr[i])
+        try:
+            cols[i] = flat_lookup[key]
+        except KeyError:
+            raise KeyError(
+                f"Domain {key[1]} of type {key[0]} not found in reference layout."
             )
 
+    rows = df["query_seq_id"].map(qid_to_row).to_numpy(dtype=np.int64)
+    vals = (1.0 - df["alntmscore"].to_numpy(dtype=np.float64))
+
+    # Last-write-wins: same iteration order as V0.
+    flat = rows * n_features + cols
+    dedup = pd.DataFrame({"flat": flat, "val": vals}).drop_duplicates(
+        subset=["flat"], keep="last"
+    )
+    flat_final = dedup["flat"].to_numpy()
+    structural_features[
+        flat_final // n_features, flat_final % n_features
+    ] = dedup["val"].to_numpy()
     return structural_features
+
+
+SSR_PARALLEL_THRESHOLD = 500
+SSR_PARALLEL_N_JOBS = 20
+
+
+def _ssr_one_pdb(pdb_path_str: str) -> tuple[str, set[str]]:
+    """Compute the SS-residue set for ONE PDB. Run inside a spawn worker."""
+    from pymol import cmd, stored  # type: ignore
+
+    p = Path(pdb_path_str)
+    obj_name = p.stem
+    cmd.load(str(p.absolute()), obj_name)
+    stored.residues_set = set()
+    cmd.iterate(f"({obj_name} & ss H+S)", "stored.residues_set.add(resi)")
+    result = stored.residues_set.copy()
+    stored.residues_set = None
+    cmd.delete(obj_name)
+    return obj_name, result if result else set()
 
 
 def save_file_to_all_residues(
@@ -370,26 +586,69 @@ def save_file_to_all_residues(
     pdb_files: list[Path],
     domain_templates: list[dict[str, Path]],
 ):
-    logger.info(
-        f"Secondary structure residues file not found at {secondary_structure_residues_path}, computing secondary structure residues."
+    """Compute and persist the SS-residues map for every PDB.
+
+    Below `SSR_PARALLEL_THRESHOLD` PDBs: in-process serial path (skips
+    the python+PyMOL subprocess fork V0 used). Above the threshold:
+    multiprocessing.Pool (spawn context) for true parallel SSR — at
+    million-scale this turns ~8 hours of serial SS iteration into ~25
+    minutes.
+    """
+    import multiprocessing as mp
+    import pickle
+
+    inputs: list[Path] = []
+    for pdb_file in pdb_files:
+        if Path(pdb_file).exists():
+            inputs.append(Path(pdb_file))
+    for template in domain_templates:
+        tpath = Path(template["path"])
+        if tpath.exists() and tpath not in inputs:
+            inputs.append(tpath)
+
+    Path(secondary_structure_residues_path).parent.mkdir(
+        parents=True, exist_ok=True
     )
-    with tempfile.TemporaryDirectory() as tmpdir:
-        sec_str_input_dir = Path(tmpdir)
-        for pdb_file in pdb_files:
-            if not pdb_file.exists():
-                logger.warning(f"PDB file {pdb_file}, skipping this protein.")
-                continue
-            dst_path = sec_str_input_dir / f"{pdb_file.name}"
-            os.symlink(pdb_file, dst_path)
 
-        for domain_template in domain_templates:
-            template_dst_path = sec_str_input_dir / f"{domain_template['path'].name}"
-            if not template_dst_path.exists():
-                os.symlink(Path(domain_template["path"]), template_dst_path)
-
-        subprocess.check_output(
-            f"python -m enzymeexplorer.src.structure_processing.compute_secondary_structure_residues --input-directory {str(sec_str_input_dir)} --output-path {secondary_structure_residues_path}".split(),
+    if len(inputs) < SSR_PARALLEL_THRESHOLD:
+        # Serial in-process path.
+        from pymol import cmd  # type: ignore
+        from enzymeexplorer.src.structure_processing.structural_algorithms import (
+            get_all_residues_per_file,
         )
+
+        logger.info(
+            "SSR (serial in-proc, %d < threshold %d): %d files",
+            len(inputs),
+            SSR_PARALLEL_THRESHOLD,
+            len(inputs),
+        )
+        file_2_all_residues = get_all_residues_per_file(inputs, cmd)
+    else:
+        logger.info(
+            "SSR (parallel, n_jobs=%d): %d files",
+            SSR_PARALLEL_N_JOBS,
+            len(inputs),
+        )
+        ctx = mp.get_context("spawn")
+        chunksize = max(1, len(inputs) // (SSR_PARALLEL_N_JOBS * 20))
+        file_2_all_residues = {}
+        with ctx.Pool(processes=SSR_PARALLEL_N_JOBS) as pool:
+            for stem, residues in pool.imap_unordered(
+                _ssr_one_pdb,
+                [str(p) for p in inputs],
+                chunksize=chunksize,
+            ):
+                if residues:
+                    file_2_all_residues[stem] = residues
+
+    with open(secondary_structure_residues_path, "wb") as f:
+        pickle.dump(file_2_all_residues, f)
+    logger.info(
+        "SSR: wrote %s (%d entries)",
+        secondary_structure_residues_path,
+        len(file_2_all_residues),
+    )
 
 
 def get_pdb_files(
@@ -846,88 +1105,57 @@ def is_similar_to_known_region(
     )
 
 
-def can_there_be_unassigned_domain(
-    file_name: str,
-    filename_2_remaining_residues_mapping: dict[str, set[str]],
-    filename_2_known_regions_mapping: dict[str, list[MappedRegion]],
-    min_continuous_len: int = 15,
-    max_allowed_gap: int = 3,
-) -> bool:
-    """
-    Determines whether there could be an unassigned domain in the given file based on the remaining residues.
+def _first_atom_bfactors(sequence_id: str) -> dict[int, float]:
+    """Return {resi: b_factor_of_first_atom} via a single PyMOL `iterate`.
 
-    :param file_name: The name of the file to check for unassigned domains
-    :param filename_2_remaining_residues_mapping: A dictionary mapping filenames to sets of remaining residues not yet assigned to any domain
-    :param filename_2_known_regions_mapping: A dictionary mapping filenames to lists of known MappedRegion objects
-    :param min_continuous_len: The minimum length of residues required to consider the presence of an unassigned domain, defaults to 15
-    :param max_allowed_gap: The maximum gap allowed between residues in a continuous segment, defaults to 3
-
-    :return: True if there could be an unassigned domain in the file, otherwise False
+    Avoids BioPython's slow PDBParser. The first atom per residue in
+    standard PDB ordering is N (matches V0's `for atom in residue: break`
+    on AlphaFold structures). Filtering the iterate to `name N` visits
+    only ~one atom per residue.
     """
-    if file_name not in filename_2_known_regions_mapping:
-        return False
-    region_types = {reg.domain for reg in filename_2_known_regions_mapping[file_name]}
-    if "alpha" not in region_types:
-        return (
-            len(filename_2_remaining_residues_mapping[file_name]) > min_continuous_len
-        )
-    return (
-        len(
-            find_continuous_segments_longer_than(
-                filename_2_remaining_residues_mapping[file_name],
-                min_secondary_struct_len=min_continuous_len,
-                max_allowed_gap=max_allowed_gap,
-            )
-        )
-        > 0
+    from pymol import cmd  # type: ignore
+    from enzymeexplorer.src.structure_processing.structural_algorithms import (
+        exists_in_pymol,
     )
+
+    loaded = False
+    if not exists_in_pymol(cmd, sequence_id):
+        if not os.path.exists(f"{sequence_id}.pdb"):
+            raise FileNotFoundError(
+                f"{sequence_id}.pdb (cwd={os.getcwd()})"
+            )
+        cmd.load(f"{sequence_id}.pdb", sequence_id)
+        loaded = True
+
+    out: dict[int, float] = {}
+    cmd.iterate(
+        f"({sequence_id} & name N)",
+        "out[int(resi)] = float(b)",
+        space={"out": out},
+    )
+    if loaded:
+        cmd.delete(sequence_id)
+    return out
 
 
 def get_confident_af_residues(
     sequence_id: str, confidence_threshold: int = 70
 ) -> set[int]:
+    """Set of residues with CA B-factor (pLDDT) above `confidence_threshold`.
+
+    PyMOL-based replacement for V0's BioPython PDBParser re-read.
+    AlphaFold writes per-atom rounded b-factors that aren't perfectly
+    uniform per residue; matching V0's "first atom of each residue" via
+    `name N` filter keeps the threshold-cut bit-equivalent.
     """
-    Retrieves a set of residues from an AlphaFold PDB file that have a confidence score (B-factor) above the specified threshold.
-
-    :param sequence_id: The ID of the protein for which the PDB file is to be parsed
-    :param confidence_threshold: The minimum B-factor required for a residue to be considered confident, defaults to 70
-
-    :return: A set of residue numbers that have a confidence score above the specified threshold
-    """
-    parser = PDB.PDBParser()
-    structure = parser.get_structure(sequence_id, f"{sequence_id}.pdb")
-
-    confident_residues = set()
-    for model in structure:
-        for chain in model:
-            for residue in chain:
-                for atom in residue:
-                    if atom.get_bfactor() >= confidence_threshold:
-                        confident_residues.add(residue.get_id()[1])
-                    break
-    return confident_residues
+    bf = _first_atom_bfactors(sequence_id)
+    return {r for r, b in bf.items() if b >= confidence_threshold}
 
 
-def get_all_confidence_values(sequence_id: str) -> list[int]:
-    """
-    Retrieves a set of residues from an AlphaFold PDB file that have a confidence score (B-factor) above the specified threshold.
-
-    :param sequence_id: The ID of the protein for which the PDB file is to be parsed
-    :param confidence_threshold: The minimum B-factor required for a residue to be considered confident, defaults to 70
-
-    :return: A set of residue numbers that have a confidence score above the specified threshold
-    """
-    parser = PDB.PDBParser()
-    structure = parser.get_structure(sequence_id, f"{sequence_id}.pdb")
-
-    values = []
-    for model in structure:
-        for chain in model:
-            for residue in chain:
-                for atom in residue:
-                    values.append(atom.get_bfactor())
-                    break
-    return values
+def get_all_confidence_values(sequence_id: str) -> list[float]:
+    """All per-residue confidence values (first-atom B-factors)."""
+    bf = _first_atom_bfactors(sequence_id)
+    return list(bf.values())
 
 
 def get_confident_residue_mappings(
