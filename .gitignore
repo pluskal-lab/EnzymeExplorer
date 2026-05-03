@@ -12,6 +12,7 @@ build/
 /tmp
 
 outputs/
+logs/
 
 .vscode
 
@@ -29,6 +30,7 @@ data/rhea*
 data/enzyme_explorer_checkpoints.pkl
 data/enzyme_explorer_plm_checkpoints.pkl
 data/foldseek_cache
+data/domain_clustering
 
 .codex
 .claude/
