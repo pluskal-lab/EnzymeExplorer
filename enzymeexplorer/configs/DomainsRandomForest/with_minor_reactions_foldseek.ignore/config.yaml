@@ -1,3 +1,0 @@
-include: ../main_config.yaml
-tps_cleaned_csv_path: "data/EnzymeExplorer_Dataset.csv"
-foldseek_distances: true
