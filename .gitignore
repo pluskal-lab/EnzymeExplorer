@@ -27,10 +27,12 @@ data/clean_datasets
 data/gathered_*
 data/go-basic_2026_03_14.obo
 data/rhea*
-data/enzyme_explorer_checkpoints.pkl
-data/enzyme_explorer_plm_checkpoints.pkl
+data/enzyme_explorer_checkpoints*.pkl
+data/enzyme_explorer_plm_checkpoints*.pkl
 data/foldseek_cache
 data/domain_clustering
+data/hard_candidates/predictions*
+data/_seedsweep_bundles
 
 .codex
 .claude/

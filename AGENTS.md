@@ -12,7 +12,7 @@ It supports:
 
 ## Repository layout (high-level)
 - `enzymeexplorer/` — main Python package (core logic lives here).
-- `scripts/` — command-line / convenience scripts (e.g., `easy_predict*.py`).
+- `scripts/` — command-line / convenience scripts (e.g., `predict_*.py`, `bundle_fold_checkpoints.py`).
 - `data/` — small, versioned artifacts for reproducibility (some `.pkl`, curated CSVs, etc.).
 - `outputs/` — logs, intermediate artifacts, trained models/results (often large).
 - `notebooks/` — notebooks / colab-related material.
