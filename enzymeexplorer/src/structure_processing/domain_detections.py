@@ -6,10 +6,10 @@ import yaml
 import configargparse
 from pathlib import Path
 from collections import defaultdict
-from multiprocessing import Pool
 import pickle
 import logging
 from pymol import cmd  # type: ignore
+from enzymeexplorer.src.structure_processing._pool_service import pool_session
 from enzymeexplorer.src.structure_processing.structural_algorithms import (
     MappedRegion,
     get_remaining_residues,
@@ -263,225 +263,189 @@ def detect_domains(args) -> dict:
                 logger.info(f"\t{pdb_file}")
         pdb_files = pdb_files_filtered
 
-    secondary_structure_residues_path = Path(args.secondary_structure_residues_path)
-    if (
-        not secondary_structure_residues_path.exists()
-        or args.recompute_existing_secondary_structure_residues
-    ):
-        save_file_to_all_residues(
-            secondary_structure_residues_path=secondary_structure_residues_path,
-            pdb_files=pdb_files,
-            domain_templates=domain_templates,
-        )
-
-    with open(secondary_structure_residues_path, "rb") as file:
-        file_2_all_residues = pickle.load(file)
-
-    # Capture the original SS-residues map so the per-call alignment-batch
-    # workers can skip the redundant `cmd.iterate (X & ss H+S)` on every
-    # freshly-loaded query (saves ~5 ms × N_calls).
-    import enzymeexplorer.src.structure_processing.structural_algorithms as _sa
-    _sa._SS_FULL_MAP_CACHE.clear()
-    _sa._SS_FULL_MAP_CACHE.update(file_2_all_residues)
-
-    # getting the files
     cwd = os.getcwd()
-    os.chdir(input_directory)
-
-    # Open ONE persistent worker pool for the whole detection. Reused
-    # across the 21 (template × iteration) get_alignments calls. Lazily
-    # created inside structural_algorithms.get_alignments on its first
-    # invocation — by which point os.chdir(input_directory) has already
-    # happened so workers fork with the right cwd.
     n_jobs = int(getattr(args, "n_jobs", 20))
-    _sa._PERSISTENT_POOL_N_JOBS = n_jobs
-    _sa._PERSISTENT_POOL = None
-    pool_holder = {"pool": None}
-
-    _orig_get_alignments_sa = _sa.get_alignments
-
-    def _pool_aware_get_alignments(*pa, **pkw):
-        if _sa._PERSISTENT_POOL is None:
-            _sa._PERSISTENT_POOL = Pool(
-                processes=n_jobs, maxtasksperchild=500
+    # One pool service for the whole detection: serves SSR (parallel
+    # path), get_alignments, get_mapped_regions_with_surroundings_parallel,
+    # and store_domains. Spawn-based — PyMOL is not fork-safe once the
+    # parent has loaded any PDB.
+    with pool_session(n_jobs=n_jobs, working_dir=str(input_directory)):
+        secondary_structure_residues_path = Path(args.secondary_structure_residues_path)
+        if (
+            not secondary_structure_residues_path.exists()
+            or args.recompute_existing_secondary_structure_residues
+        ):
+            save_file_to_all_residues(
+                secondary_structure_residues_path=secondary_structure_residues_path,
+                pdb_files=pdb_files,
+                domain_templates=domain_templates,
             )
-            pool_holder["pool"] = _sa._PERSISTENT_POOL
-        return _orig_get_alignments_sa(*pa, **pkw)
+    
+        with open(secondary_structure_residues_path, "rb") as file:
+            file_2_all_residues = pickle.load(file)
+    
+        # Capture the original SS-residues map so the per-call alignment-batch
+        # workers can skip the redundant `cmd.iterate (X & ss H+S)` on every
+        # freshly-loaded query (saves ~5 ms × N_calls).
+        import enzymeexplorer.src.structure_processing.structural_algorithms as _sa
+        _sa._SS_FULL_MAP_CACHE.clear()
+        _sa._SS_FULL_MAP_CACHE.update(file_2_all_residues)
+    
+        # Parent-process cwd is also pinned to input_directory so that
+        # in-process callers using relative `f"{stem}.pdb"` paths continue
+        # to work alongside spawn-pool workers (which chdir via the
+        # service initializer).
+        os.chdir(input_directory)
 
-    _sa.get_alignments = _pool_aware_get_alignments
-    # The utils module imports get_alignments at module-load time; patch
-    # there too so detect_domains_roughly's call resolves to our wrapper.
-    import enzymeexplorer.src.structure_processing.utils as _utils
-    _orig_get_alignments_utils = _utils.get_alignments
-    _utils.get_alignments = _pool_aware_get_alignments
-
-    filename_2_known_regions: dict[str, list[MappedRegion]] = defaultdict(list)
-    filename_2_remaining_residues: dict[str, set[str]] = file_2_all_residues.copy()
-    domain_type_to_files_with_no_detections = defaultdict(set)
-    for detection_iter in range(args.n_iters):
-        logger.info(f"Starting detection iteration {detection_iter + 1}")
-        
-        # Detecting TPS domains in protein structures
-        filename_2_potential_regions = detect_domains_roughly(
-            {
-                domain_type: [
-                    pdb_file
+        filename_2_known_regions: dict[str, list[MappedRegion]] = defaultdict(list)
+        filename_2_remaining_residues: dict[str, set[str]] = file_2_all_residues.copy()
+        domain_type_to_files_with_no_detections = defaultdict(set)
+        for detection_iter in range(args.n_iters):
+            logger.info(f"Starting detection iteration {detection_iter + 1}")
+            
+            # Detecting TPS domains in protein structures
+            filename_2_potential_regions = detect_domains_roughly(
+                {
+                    domain_type: [
+                        pdb_file
+                        for pdb_file in pdb_files
+                        if (len(filename_2_remaining_residues.get(pdb_file.stem, [])) >= 20)
+                        and (pdb_file.stem not in domain_type_to_files_with_no_detections[domain_type])
+                    ]
+                    for domain_type, pdb_files in domain_type_to_pdb_files.items()
+                },  # only considering files for which there are remaining residues
+                filename_2_remaining_residues,
+                domain_templates=domain_templates,
+                args=args,
+                iteration=detection_iter + 1,
+            )
+            for domain_type, pdb_files in domain_type_to_pdb_files.items():
+                domain_type_to_files_with_no_detections[domain_type].update(
+                [
+                    pdb_file.stem
                     for pdb_file in pdb_files
-                    if (len(filename_2_remaining_residues.get(pdb_file.stem, [])) >= 20)
-                    and (pdb_file.stem not in domain_type_to_files_with_no_detections[domain_type])
+                    if filename_2_potential_regions.get(pdb_file.stem, []) == []
                 ]
-                for domain_type, pdb_files in domain_type_to_pdb_files.items()
-            },  # only considering files for which there are remaining residues
-            filename_2_remaining_residues,
-            domain_templates=domain_templates,
-            args=args,
-            iteration=detection_iter + 1,
-        )
-        for domain_type, pdb_files in domain_type_to_pdb_files.items():
-            domain_type_to_files_with_no_detections[domain_type].update(
-            [
-                pdb_file.stem
-                for pdb_file in pdb_files
-                if filename_2_potential_regions.get(pdb_file.stem, []) == []
-            ]
-        )
-
-        if args.detect_multiple_domains_in_each_iteration:
-            filename_2_detected_region = {
-                filename: (
-                    pick_disjoint_domains(
-                        sorted(
-                            filename_2_potential_regions[filename],
-                            key=lambda r: r.tmscore,
-                            reverse=True,
+            )
+    
+            if args.detect_multiple_domains_in_each_iteration:
+                filename_2_detected_region = {
+                    filename: (
+                        pick_disjoint_domains(
+                            sorted(
+                                filename_2_potential_regions[filename],
+                                key=lambda r: r.tmscore,
+                                reverse=True,
+                            )
                         )
                     )
-                )
-                for filename in filename_2_potential_regions
-                if len(filename_2_potential_regions[filename]) > 0
-            }
-        else:
-            filename_2_detected_region = {
-                filename: (
-                    pick_disjoint_domains(
-                        sorted(
-                            filename_2_potential_regions[filename],
-                            key=lambda r: r.tmscore,
-                            reverse=True,
-                        )
-                    )[:1]
-                )
-                for filename in filename_2_potential_regions
-                if len(filename_2_potential_regions[filename]) > 0
-            }
-
-        filename_2_detected_region_with_potential_expansion = (
-            get_mapped_regions_with_surroundings_parallel(
-                list(filename_2_detected_region.keys()),
-                file_2_all_residues,
-                filename_2_detected_region,
-                n_jobs=args.n_jobs,
-                helix_sheet_neighbor_dist_threshold=15,
-                helix_sheet_domain_dist_threshold=15,
-            )
-        )
-
-        # Get unsegmented parts
-        filename_2_remaining_residues = get_remaining_residues(
-            filename_2_detected_region_with_potential_expansion,
-            filename_2_remaining_residues,
-        )
-        for filename in filename_2_detected_region:
-            if len(filename_2_detected_region[filename]) == 0:
-                continue
-            for region in filename_2_detected_region[filename]:
-                num_regions_of_same_domain_type = len(
-                    [
-                        reg
-                        for reg in filename_2_known_regions[filename]
-                        if reg.domain == region.domain
-                    ]
-                )
-                region.module_id = (
-                    f"{filename}_{region.domain}_{num_regions_of_same_domain_type}"
-                )
-                filename_2_known_regions[filename].append(region)
-
-    if not args.do_not_store_intermediate_files:
-        (Path(cwd) / args.detected_regions_root_path).mkdir(parents=True, exist_ok=True)
-        store_domain_separately(
-            filename_2_known_regions,
-            supported_domains,
-            Path(cwd) / args.detected_regions_root_path,
-        )
-
-    filename_2_known_regions_completed_iter1 = (
-        get_mapped_regions_with_surroundings_parallel(
-            list(filename_2_known_regions.keys()),
-            file_2_all_residues,
-            filename_2_known_regions,
-            n_jobs=args.n_jobs,
-            helix_sheet_neighbor_dist_threshold=20,
-            helix_sheet_domain_dist_threshold=30,
-        )
-    )
-
-    filename_2_known_regions_completed_iter2 = (
-        get_mapped_regions_with_surroundings_parallel(
-            list(filename_2_known_regions_completed_iter1.keys()),
-            file_2_all_residues,
-            filename_2_known_regions_completed_iter1,
-            n_jobs=args.n_jobs,
-            helix_sheet_neighbor_dist_threshold=17,
-            helix_sheet_domain_dist_threshold=25,
-        )
-    )
-
-    # Getting confident residues
-    if args.is_bfactor_confidence:
-        filename_2_known_regions_completed_confident = get_confident_residue_mappings(
-            filename_2_known_regions_completed_iter2,
-            file_2_all_residues,
-            domain_2_threshold,
-        )
-    else:
-        filename_2_known_regions_completed_confident = (
-            filename_2_known_regions_completed_iter2
-        )
-
-    are_domains_stored = False
-    if args.store_domains:
-        store_domains(
-            filename_2_known_regions_completed_confident,
-            supported_domains,
-            Path(cwd) / args.domains_output_path,
-            n_jobs=args.n_jobs,
-        )
-        are_domains_stored = True
-    if args.postfilter_domains_by_foldseek:
-        logger.info(
-            f"Filtering detected domains by foldseek alignment to domain templates"
-        )
-        if are_domains_stored:
-            domain_pdbs_root = Path(cwd) / args.domains_output_path
-            filename_2_known_regions_completed_confident = (
-                filter_domains_by_foldseek_alignments(
-                    filename_2_known_regions_completed_confident,
-                    supported_domains,
-                    domain_templates,
-                    domain_pdbs_root,
-                    e_value=args.postfilter_e_value,
-                )
-            )
-        else:
-            with tempfile.TemporaryDirectory() as tmpdir:
-                domain_pdbs_root = Path(tmpdir) / "domains"
-                store_domains(
-                    filename_2_known_regions_completed_confident,
-                    supported_domains,
-                    domain_pdbs_root,
+                    for filename in filename_2_potential_regions
+                    if len(filename_2_potential_regions[filename]) > 0
+                }
+            else:
+                filename_2_detected_region = {
+                    filename: (
+                        pick_disjoint_domains(
+                            sorted(
+                                filename_2_potential_regions[filename],
+                                key=lambda r: r.tmscore,
+                                reverse=True,
+                            )
+                        )[:1]
+                    )
+                    for filename in filename_2_potential_regions
+                    if len(filename_2_potential_regions[filename]) > 0
+                }
+    
+            filename_2_detected_region_with_potential_expansion = (
+                get_mapped_regions_with_surroundings_parallel(
+                    list(filename_2_detected_region.keys()),
+                    file_2_all_residues,
+                    filename_2_detected_region,
                     n_jobs=args.n_jobs,
+                    helix_sheet_neighbor_dist_threshold=15,
+                    helix_sheet_domain_dist_threshold=15,
                 )
+            )
+    
+            # Get unsegmented parts
+            filename_2_remaining_residues = get_remaining_residues(
+                filename_2_detected_region_with_potential_expansion,
+                filename_2_remaining_residues,
+            )
+            for filename in filename_2_detected_region:
+                if len(filename_2_detected_region[filename]) == 0:
+                    continue
+                for region in filename_2_detected_region[filename]:
+                    num_regions_of_same_domain_type = len(
+                        [
+                            reg
+                            for reg in filename_2_known_regions[filename]
+                            if reg.domain == region.domain
+                        ]
+                    )
+                    region.module_id = (
+                        f"{filename}_{region.domain}_{num_regions_of_same_domain_type}"
+                    )
+                    filename_2_known_regions[filename].append(region)
+    
+        if not args.do_not_store_intermediate_files:
+            (Path(cwd) / args.detected_regions_root_path).mkdir(parents=True, exist_ok=True)
+            store_domain_separately(
+                filename_2_known_regions,
+                supported_domains,
+                Path(cwd) / args.detected_regions_root_path,
+            )
+    
+        filename_2_known_regions_completed_iter1 = (
+            get_mapped_regions_with_surroundings_parallel(
+                list(filename_2_known_regions.keys()),
+                file_2_all_residues,
+                filename_2_known_regions,
+                n_jobs=args.n_jobs,
+                helix_sheet_neighbor_dist_threshold=20,
+                helix_sheet_domain_dist_threshold=30,
+            )
+        )
+    
+        filename_2_known_regions_completed_iter2 = (
+            get_mapped_regions_with_surroundings_parallel(
+                list(filename_2_known_regions_completed_iter1.keys()),
+                file_2_all_residues,
+                filename_2_known_regions_completed_iter1,
+                n_jobs=args.n_jobs,
+                helix_sheet_neighbor_dist_threshold=17,
+                helix_sheet_domain_dist_threshold=25,
+            )
+        )
+    
+        # Getting confident residues
+        if args.is_bfactor_confidence:
+            filename_2_known_regions_completed_confident = get_confident_residue_mappings(
+                filename_2_known_regions_completed_iter2,
+                file_2_all_residues,
+                domain_2_threshold,
+            )
+        else:
+            filename_2_known_regions_completed_confident = (
+                filename_2_known_regions_completed_iter2
+            )
+    
+        are_domains_stored = False
+        if args.store_domains:
+            store_domains(
+                filename_2_known_regions_completed_confident,
+                supported_domains,
+                Path(cwd) / args.domains_output_path,
+                n_jobs=args.n_jobs,
+            )
+            are_domains_stored = True
+        if args.postfilter_domains_by_foldseek:
+            logger.info(
+                f"Filtering detected domains by foldseek alignment to domain templates"
+            )
+            if are_domains_stored:
+                domain_pdbs_root = Path(cwd) / args.domains_output_path
                 filename_2_known_regions_completed_confident = (
                     filter_domains_by_foldseek_alignments(
                         filename_2_known_regions_completed_confident,
@@ -491,24 +455,37 @@ def detect_domains(args) -> dict:
                         e_value=args.postfilter_e_value,
                     )
                 )
+            else:
+                with tempfile.TemporaryDirectory() as tmpdir:
+                    domain_pdbs_root = Path(tmpdir) / "domains"
+                    store_domains(
+                        filename_2_known_regions_completed_confident,
+                        supported_domains,
+                        domain_pdbs_root,
+                        n_jobs=args.n_jobs,
+                    )
+                    filename_2_known_regions_completed_confident = (
+                        filter_domains_by_foldseek_alignments(
+                            filename_2_known_regions_completed_confident,
+                            supported_domains,
+                            domain_templates,
+                            domain_pdbs_root,
+                            e_value=args.postfilter_e_value,
+                        )
+                    )
+    
+        if not args.do_not_store_intermediate_files:
+            (Path(cwd) / args.detected_regions_root_path).mkdir(parents=True, exist_ok=True)
+            plot_aligned_domains(
+                filename_2_known_regions_completed_confident,
+                supported_domains,
+                Path(cwd) / args.detected_regions_root_path,
+            )
 
-    if not args.do_not_store_intermediate_files:
-        (Path(cwd) / args.detected_regions_root_path).mkdir(parents=True, exist_ok=True)
-        plot_aligned_domains(
-            filename_2_known_regions_completed_confident,
-            supported_domains,
-            Path(cwd) / args.detected_regions_root_path,
-        )
-
+    # Pool service has shut down with the `with pool_session(...)` exit;
+    # restore the parent's cwd and clear the SS cache.
     os.chdir(cwd)
-    # Close persistent worker pool + restore the get_alignments wrapper.
-    if pool_holder["pool"] is not None:
-        pool_holder["pool"].close()
-        pool_holder["pool"].join()
-    _sa._PERSISTENT_POOL = None
-    _sa._PERSISTENT_POOL_N_JOBS = 0
-    _sa.get_alignments = _orig_get_alignments_sa
-    _utils.get_alignments = _orig_get_alignments_utils
+    import enzymeexplorer.src.structure_processing.structural_algorithms as _sa
     _sa._SS_FULL_MAP_CACHE.clear()
 
     # save the confident regions

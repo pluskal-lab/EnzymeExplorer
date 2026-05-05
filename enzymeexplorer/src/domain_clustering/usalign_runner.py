@@ -19,13 +19,17 @@ explicit goal: "do not miss alignments").
 from __future__ import annotations
 
 import logging
-import multiprocessing as mp
 import os
 import re
 import shutil
 import subprocess
 import time
 from pathlib import Path
+
+from enzymeexplorer.src.structure_processing._pool_service import (
+    get_active_service,
+    pool_session,
+)
 
 import numpy as np  # type: ignore
 import pandas as pd  # type: ignore
@@ -174,8 +178,17 @@ def run_all_vs_all(
         n, len(chunk_args), chunk_size, fast_mode, usalign,
     )
     t0 = time.perf_counter()
-    with mp.Pool(processes=min(n_jobs, len(chunk_args))) as pool:
-        chunk_outputs = pool.map(_run_chunk, chunk_args)
+    desired_jobs = min(n_jobs, len(chunk_args))
+    # Run on the active pool service if a session is open; otherwise open
+    # a one-shot session for the duration of this call. `_run_chunk`
+    # uses absolute paths and only invokes a USalign subprocess (no
+    # PyMOL), so cwd doesn't matter — we still pin it to the work_dir
+    # for diagnostics.
+    if get_active_service() is not None:
+        chunk_outputs = get_active_service().map(_run_chunk, chunk_args)
+    else:
+        with pool_session(n_jobs=desired_jobs, working_dir=str(work_dir)) as svc:
+            chunk_outputs = svc.map(_run_chunk, chunk_args)
     elapsed = time.perf_counter() - t0
     logger.info("All chunks done in %.1f min", elapsed / 60)
 

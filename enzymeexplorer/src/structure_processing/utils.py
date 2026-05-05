@@ -6,7 +6,9 @@ from enzymeexplorer.src.structure_processing.structural_algorithms import (
     get_alignments,
     find_continuous_segments_longer_than,
 )
-from multiprocessing import Pool
+from enzymeexplorer.src.structure_processing._pool_service import (
+    require_active_service,
+)
 from pymol import cmd
 import copy
 import pandas as pd
@@ -563,7 +565,6 @@ def get_structural_features(
 
 
 SSR_PARALLEL_THRESHOLD = 500
-SSR_PARALLEL_N_JOBS = 20
 
 
 def _ssr_one_pdb(pdb_path_str: str) -> tuple[str, set[str]]:
@@ -588,13 +589,12 @@ def save_file_to_all_residues(
 ):
     """Compute and persist the SS-residues map for every PDB.
 
-    Below `SSR_PARALLEL_THRESHOLD` PDBs: in-process serial path (skips
-    the python+PyMOL subprocess fork V0 used). Above the threshold:
-    multiprocessing.Pool (spawn context) for true parallel SSR — at
-    million-scale this turns ~8 hours of serial SS iteration into ~25
-    minutes.
+    Below `SSR_PARALLEL_THRESHOLD` PDBs: in-process serial path (PyMOL
+    in the parent — fast for small inputs because spawn-pool startup
+    dominates). Above the threshold: parallel SSR routed through the
+    centralized pool service. Requires an active `pool_session` for the
+    parallel path; the serial path runs unconditionally.
     """
-    import multiprocessing as mp
     import pickle
 
     inputs: list[Path] = []
@@ -625,22 +625,21 @@ def save_file_to_all_residues(
         )
         file_2_all_residues = get_all_residues_per_file(inputs, cmd)
     else:
+        svc = require_active_service()
         logger.info(
-            "SSR (parallel, n_jobs=%d): %d files",
-            SSR_PARALLEL_N_JOBS,
+            "SSR (parallel via pool service, n_jobs=%d): %d files",
+            svc.n_jobs,
             len(inputs),
         )
-        ctx = mp.get_context("spawn")
-        chunksize = max(1, len(inputs) // (SSR_PARALLEL_N_JOBS * 20))
+        chunksize = max(1, len(inputs) // (svc.n_jobs * 20))
         file_2_all_residues = {}
-        with ctx.Pool(processes=SSR_PARALLEL_N_JOBS) as pool:
-            for stem, residues in pool.imap_unordered(
-                _ssr_one_pdb,
-                [str(p) for p in inputs],
-                chunksize=chunksize,
-            ):
-                if residues:
-                    file_2_all_residues[stem] = residues
+        for stem, residues in svc.imap_unordered(
+            _ssr_one_pdb,
+            [str(p) for p in inputs],
+            chunksize=chunksize,
+        ):
+            if residues:
+                file_2_all_residues[stem] = residues
 
     with open(secondary_structure_residues_path, "wb") as f:
         pickle.dump(file_2_all_residues, f)
@@ -945,9 +944,16 @@ def store_domains(
     filename_2_known_regions_completed_confident: dict[str, list[MappedRegion]],
     supported_domains: list[str],
     domains_output_path: Path,
-    n_jobs: int = 1,
+    n_jobs: int = 1,  # kept for backwards compatibility; ignored
 ):
+    """Save detected-domain PDBs in parallel via the pool service.
 
+    `store_domain` is PyMOL-heavy (`cmd.load`/`cmd.select`/`cmd.save`),
+    so this MUST run on a spawn-based pool — fork-based workers
+    deadlock once the parent has loaded any PDB. The `n_jobs` argument
+    is retained only for backwards compatibility; the active pool
+    service determines actual parallelism.
+    """
     if not domains_output_path.exists():
         domains_output_path.mkdir(parents=True)
     for domain_name in supported_domains:
@@ -965,15 +971,9 @@ def store_domains(
         ) in filename_2_known_regions_completed_confident.items()
         for region in regions
     ]
-    with Pool(n_jobs) as pool:
-        tqdm(
-            pool.map(
-                store_domain_partial,
-                filename_domain_tuples,
-            ),
-            desc="Storing detected domains",
-            total=len(filename_domain_tuples),
-        )
+    if not filename_domain_tuples:
+        return
+    require_active_service().map(store_domain_partial, filename_domain_tuples)
 
 
 def plot_aligned_domains(

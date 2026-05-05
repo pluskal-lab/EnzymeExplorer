@@ -10,10 +10,13 @@ import tempfile
 from collections import defaultdict
 from dataclasses import dataclass
 from functools import partial
-from multiprocessing import Pool
 from pathlib import Path
 from uuid import uuid4
 import logging
+
+from enzymeexplorer.src.structure_processing._pool_service import (
+    require_active_service,
+)
 
 import numpy as np  # type: ignore
 from pymol import cmd, stored  # type: ignore
@@ -40,16 +43,16 @@ if not logger.hasHandlers():
 #      provides `$CONDA_PREFIX/bin/USalign` when the env is active).
 USALIGN_PATH = os.environ.get("ENZYMEEXPLORER_USALIGN") or shutil.which("USalign")
 
-# Original SS-residues map captured at the SSR step. Workers inherit it
-# via fork; lets `_stage_one` skip the per-call SS-iteration on every
-# freshly-loaded query. Populated by `domain_detections.detect_domains`
-# right after `save_file_to_all_residues` writes the map.
+# Original SS-residues map captured at the SSR step. With the spawn-based
+# pool service workers do NOT inherit module globals across the fork+exec
+# boundary, so this cache is effectively only useful for the in-process
+# (parent) usage of `_stage_one`. Worker invocations always receive the
+# SS-residues map via the explicit `ss_full_map` argument in
+# `worker_args`, so behaviour is unchanged regardless of whether this
+# cache is populated. Kept for backwards compatibility with any in-proc
+# callers; populated by `domain_detections.detect_domains` after
+# `save_file_to_all_residues`.
 _SS_FULL_MAP_CACHE: dict[str, set[str]] = {}
-
-# Persistent worker pool, lazily created inside `get_alignments` on the
-# first call when an outer detect_domains run has set up the context.
-_PERSISTENT_POOL = None
-_PERSISTENT_POOL_N_JOBS: int = 0
 
 # USalign output regexes — module level so they're compiled once.
 _RE_TMSCORE = re.compile(r"TM-score\s*=\s*([0-9]*\.[0-9]+)")
@@ -555,8 +558,8 @@ def get_alignments(
     subprocess fork (saving ~3-5 ms × N_pairs) and removes the per-call
     PyMOL load/select/save overhead.
 
-    A persistent worker pool is reused when one is set up by the outer
-    `detect_domains` run; otherwise a per-call Pool is opened.
+    All parallel work runs against the centralized pool service; an
+    active `pool_session` is required.
 
     :return: {filename_stem: [(tmscore, residues_mapping_full)]} filtered by
              the template's tmscore + min_align_len thresholds.
@@ -626,15 +629,8 @@ def get_alignments(
             for wid, chunk in enumerate(chunks)
         ]
 
-        # Persistent pool reused when set up by outer detect_domains run.
-        if (
-            _PERSISTENT_POOL is not None
-            and _PERSISTENT_POOL_N_JOBS >= n_chunks
-        ):
-            chunk_results = _PERSISTENT_POOL.map(_process_chunk, worker_args)
-        else:
-            with Pool(n_chunks) as pool:
-                chunk_results = pool.map(_process_chunk, worker_args)
+        # All parallel work routes through the centralized pool service.
+        chunk_results = require_active_service().map(_process_chunk, worker_args)
 
         out = defaultdict(list)
         tmscore_thr = domain_template["thresholds"]["tmscore"]
@@ -928,10 +924,12 @@ def get_mapped_regions_with_surroundings_parallel(
         filepath.stem if isinstance(filepath, Path) else filepath.replace(".pdb", "")
         for filepath in pdb_filepaths
     ]
-    with Pool(n_jobs) as pool:
-        list_of_new_mapped_regions = pool.map(
-            get_mapped_regions_with_surroundings_partial, pdb_filenames
-        )
+    # Routed through the spawn-based pool service: PyMOL is not fork-safe
+    # once the parent has loaded any PDB, and `cmd.load` inside the
+    # worker would otherwise deadlock.
+    list_of_new_mapped_regions = require_active_service().map(
+        get_mapped_regions_with_surroundings_partial, pdb_filenames
+    )
     filename_2_known_regions_completed = dict(
         zip(pdb_filenames, list_of_new_mapped_regions)
     )
