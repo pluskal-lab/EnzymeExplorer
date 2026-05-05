@@ -258,7 +258,7 @@ def compute_clade_labels(
         for cid in real:
             by_type.setdefault(dom[cid], []).append(cid)
         for t, cids in by_type.items():
-            cids.sort(key=lambda c: -sizes[c])
+            cids.sort(key=lambda c: (-sizes[c], c))
             for i, cid in enumerate(cids, start=1):
                 labels[cid] = f"{t}{i}"
     else:
@@ -286,7 +286,7 @@ def compute_clade_labels(
         for pid in parent_real:
             by_type_p.setdefault(parent_dom[pid], []).append(pid)
         for t, pids in by_type_p.items():
-            pids.sort(key=lambda p: -parent_sizes[p])
+            pids.sort(key=lambda p: (-parent_sizes[p], p))
             for i, pid in enumerate(pids, start=1):
                 parent_label[pid] = f"{t}{i}"
 
@@ -295,7 +295,7 @@ def compute_clade_labels(
         for cid, pid in child_parent.items():
             children_by_parent.setdefault(pid, []).append(cid)
         for pid, cids in children_by_parent.items():
-            cids.sort(key=lambda c: -sizes[c])
+            cids.sort(key=lambda c: (-sizes[c], c))
             base = parent_label.get(pid, f"orphan_{pid}")
             if len(cids) == 1:
                 labels[cids[0]] = base
