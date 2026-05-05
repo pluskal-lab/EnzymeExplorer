@@ -16,7 +16,7 @@ modification:
 Domain-subtype prediction is wired up via top-K voting on the foldseek
 alignment table: for each detected module, the K=3 closest reference
 domains contribute alntmscore-weighted votes for their clustered
-subtype label (loaded once from ``data/domain_module_id_2_domain_type.pkl``,
+subtype label (loaded once from ``data/domain_module_id_2_domain_subtype.pkl``,
 the output of ``notebooks/notebook_2_domain_clustering.ipynb``).
 Other metadata fields previously sourced from legacy auxiliary pickles
 (``closest_id_reaction_types``, ``closest_id_kingdom``,
@@ -100,7 +100,7 @@ _DATASET_ID_COL = "Enzyme_marts_ID"
 # from clustering the reference domains. Loaded once at startup; used to vote
 # the predicted subtype for each detected domain across the top-3 closest
 # reference matches in the foldseek alignment table.
-DOMAIN_SUBTYPE_PICKLE = Path("data/domain_module_id_2_domain_type.pkl")
+DOMAIN_SUBTYPE_PICKLE = Path("data/domain_module_id_2_domain_subtype.pkl")
 DOMAIN_SUBTYPE_TOP_K = 5
 
 
@@ -630,7 +630,7 @@ async def detect_domains_endpoint(
             # Per-module {subtype_label: confidence} predicted by an
             # alntmscore-weighted vote across the top-K closest reference
             # domains. ``REF_MODULE_ID_2_DOMAIN_SUBTYPE`` is loaded at
-            # startup from ``data/domain_module_id_2_domain_type.pkl``.
+            # startup from ``data/domain_module_id_2_domain_subtype.pkl``.
             "domain_type_predictions": _predict_domain_subtypes(
                 result.alignment_df, detected
             ),
