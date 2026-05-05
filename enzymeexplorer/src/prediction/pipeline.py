@@ -39,9 +39,8 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-DEFAULT_TIERS_CSV = (
-    "outputs/evaluation_results/single_hierarchy_final/confidence_tiers.csv"
-)
+DEFAULT_TIERS_CSV = "data/confidence_tiers.csv"
+DEFAULT_PLM_MODEL = "ankh_large"
 DEFAULT_PLM_DOMAINS_BUNDLE = "data/enzyme_explorer_checkpoints.pkl"
 DEFAULT_PLM_ONLY_BUNDLE = "data/enzyme_explorer_plm_checkpoints.pkl"
 DEFAULT_REFERENCE_DOMAINS_PICKLE = (
@@ -96,8 +95,8 @@ def predict_with_structures(
     plm_domains_bundle_path: str | Path = DEFAULT_PLM_DOMAINS_BUNDLE,
     plm_only_bundle_path: str | Path = DEFAULT_PLM_ONLY_BUNDLE,
     tiers_csv_path: str | Path = DEFAULT_TIERS_CSV,
-    plm_model: str = "esm-1v-finetuned-subseq",
-    plm_only_model: str = "esm-1v-finetuned-subseq",
+    plm_model: str = DEFAULT_PLM_MODEL,
+    plm_only_model: str = DEFAULT_PLM_MODEL,
     embedder: PLMEmbedder | None = None,
     plm_only_embedder: PLMEmbedder | None = None,
     n_jobs: int = 10,
@@ -254,7 +253,7 @@ def predict_sequences_only(
     *,
     plm_only_bundle_path: str | Path = DEFAULT_PLM_ONLY_BUNDLE,
     tiers_csv_path: str | Path = DEFAULT_TIERS_CSV,
-    plm_model: str = "esm-1v-finetuned-subseq",
+    plm_model: str = DEFAULT_PLM_MODEL,
     embedder: PLMEmbedder | None = None,
     plm_batch_size: int = 4,
 ) -> pd.DataFrame:

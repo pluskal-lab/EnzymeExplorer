@@ -62,6 +62,7 @@ from enzymeexplorer.src.prediction.logging_setup import (
 )
 from enzymeexplorer.src.prediction.pipeline import (
     DEFAULT_PLM_DOMAINS_BUNDLE,
+    DEFAULT_PLM_MODEL,
     DEFAULT_PLM_ONLY_BUNDLE,
     DEFAULT_REFERENCE_DOMAINS_PICKLE,
     DEFAULT_REFERENCE_DOMAINS_STRUCTURES_DIR,
@@ -140,13 +141,13 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--plm-model",
-        default="esm-1v-finetuned-subseq",
-        help="PLM model name for the structure pass.",
+        default=DEFAULT_PLM_MODEL,
+        help=f"PLM model name for the structure pass (default: {DEFAULT_PLM_MODEL}).",
     )
     parser.add_argument(
         "--plm-only-model",
-        default="esm-1v-finetuned-subseq",
-        help="PLM model name for the PLM-only fallback pass.",
+        default=DEFAULT_PLM_MODEL,
+        help=f"PLM model name for the PLM-only fallback pass (default: {DEFAULT_PLM_MODEL}).",
     )
     parser.add_argument("--n-jobs", type=int, default=10)
     parser.add_argument("--plm-batch-size", type=int, default=4)

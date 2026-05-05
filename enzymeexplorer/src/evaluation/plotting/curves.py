@@ -56,7 +56,7 @@ def plot_pr_curves(
     palette: dict[str, tuple[float, float, float]] | None = None,
     title: str | None = None,
     figsize: tuple[float, float] = (8, 6),
-    mark_f1_optimum: bool = True,
+    mark_f1_optimum: bool = False,
     ax: plt.Axes | None = None,
 ) -> plt.Figure:
     """One PR curve per classifier for ``target_class``."""
@@ -135,6 +135,113 @@ def plot_roc_curves(
     return fig
 
 
+def _pool_micro_arrays(
+    pooled_classifier: dict[str, FoldDfs],
+    classes: Iterable[str],
+) -> tuple[np.ndarray, np.ndarray]:
+    """Concatenate (labels, scores) across ``classes`` for one classifier."""
+    ys: list[np.ndarray] = []
+    ss: list[np.ndarray] = []
+    for cls in classes:
+        if cls not in pooled_classifier:
+            continue
+        labels, preds = pooled_classifier[cls]
+        ys.append(labels[cls].to_numpy())
+        ss.append(preds[cls].to_numpy())
+    if not ys:
+        return np.array([]), np.array([])
+    return np.concatenate(ys), np.concatenate(ss)
+
+
+def plot_micro_pr_curves(
+    pooled: PooledClassifierClass,
+    classes: list[str],
+    *,
+    classifier_order: Iterable[str] | None = None,
+    palette: dict[str, tuple[float, float, float]] | None = None,
+    title: str | None = None,
+    figsize: tuple[float, float] = (8, 6),
+    mark_f1_optimum: bool = False,
+    ax: plt.Axes | None = None,
+) -> plt.Figure:
+    """Micro-averaged PR: one curve per classifier, pooling positives and
+    scores across all ``classes`` (e.g. the eight substrate classes).
+    """
+    classifiers = (
+        list(classifier_order) if classifier_order is not None else list(pooled)
+    )
+    palette = palette if palette is not None else theme.model_family_palette(classifiers)
+    if ax is None:
+        fig, ax = plt.subplots(figsize=figsize)
+    else:
+        fig = ax.figure
+    for clf in classifiers:
+        if clf not in pooled:
+            continue
+        y, s = _pool_micro_arrays(pooled[clf], classes)
+        if y.size == 0 or y.sum() == 0:
+            continue
+        precision, recall, f1, best, _ = _pr_with_f1_optimum(y, s)
+        color = palette.get(clf, (0.4, 0.4, 0.4))
+        ax.plot(
+            recall, precision, label=theme.display_name(clf), color=color, linewidth=1.6
+        )
+        if mark_f1_optimum:
+            ax.scatter(
+                recall[best], precision[best], color=color, edgecolor="black",
+                zorder=5, s=40,
+            )
+    ax.set_xlabel("Recall")
+    ax.set_ylabel("Precision")
+    ax.set_xlim(-0.01, 1.01)
+    ax.set_ylim(-0.01, 1.05)
+    ax.set_title(title or "Substrate prediction — PR curve")
+    ax.legend(frameon=False)
+    fig.tight_layout()
+    return fig
+
+
+def plot_micro_roc_curves(
+    pooled: PooledClassifierClass,
+    classes: list[str],
+    *,
+    classifier_order: Iterable[str] | None = None,
+    palette: dict[str, tuple[float, float, float]] | None = None,
+    title: str | None = None,
+    figsize: tuple[float, float] = (8, 6),
+    ax: plt.Axes | None = None,
+) -> plt.Figure:
+    """Micro-averaged ROC: one curve per classifier across all ``classes``."""
+    classifiers = (
+        list(classifier_order) if classifier_order is not None else list(pooled)
+    )
+    palette = palette if palette is not None else theme.model_family_palette(classifiers)
+    if ax is None:
+        fig, ax = plt.subplots(figsize=figsize)
+    else:
+        fig = ax.figure
+    for clf in classifiers:
+        if clf not in pooled:
+            continue
+        y, s = _pool_micro_arrays(pooled[clf], classes)
+        if y.size == 0 or y.sum() == 0 or y.sum() == len(y):
+            continue
+        fpr, tpr, _ = roc_curve(y, s)
+        ax.plot(
+            fpr, tpr, label=theme.display_name(clf),
+            color=palette.get(clf, (0.4, 0.4, 0.4)), linewidth=1.6,
+        )
+    ax.plot([0, 1], [0, 1], color="grey", linestyle="--", linewidth=0.8)
+    ax.set_xlabel("False Positive Rate")
+    ax.set_ylabel("True Positive Rate")
+    ax.set_xlim(-0.01, 1.01)
+    ax.set_ylim(-0.01, 1.05)
+    ax.set_title(title or "Substrate prediction — ROC curve")
+    ax.legend(frameon=False, loc="lower right")
+    fig.tight_layout()
+    return fig
+
+
 def plot_per_class_pr_curves(
     pooled_classifier: dict[str, FoldDfs],
     classes: list[str],
@@ -142,7 +249,7 @@ def plot_per_class_pr_curves(
     palette: dict[str, tuple[float, float, float]] | None = None,
     title: str | None = None,
     figsize: tuple[float, float] = (10, 7),
-    mark_f1_optimum: bool = True,
+    mark_f1_optimum: bool = False,
     ax: plt.Axes | None = None,
 ) -> plt.Figure:
     """One PR curve per class for a single classifier (already pooled)."""

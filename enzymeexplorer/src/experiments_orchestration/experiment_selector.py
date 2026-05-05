@@ -29,7 +29,7 @@ def discover_experiments_from_configs(
         return [
             dir_name
             for dir_name in root_path.iterdir()
-            if dir_name.is_dir() and dir_name.suffix != ".ignore"
+            if dir_name.is_dir() and dir_name.suffix != ".ignore" and "evaluation" != dir_name.name
         ]
 
     if root_config_path is None:

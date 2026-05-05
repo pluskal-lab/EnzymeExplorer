@@ -34,18 +34,30 @@ FoldRaw = tuple[np.ndarray, list[str], pd.DataFrame]
 FoldDfs = tuple[pd.DataFrame, pd.DataFrame]
 
 
+def _has_complete_folds(experiment_dir: Path, n_folds: int) -> bool:
+    return all(
+        (experiment_dir / f"fold_{i}_results.pkl").exists() for i in range(n_folds)
+    )
+
+
 def latest_experiment_dir(
     model: str,
     version: str,
     *,
     output_root: Path | None = None,
     timestamp: str | None = None,
+    n_folds: int = 5,
 ) -> Path:
     """Return the timestamp directory for a (model, version) experiment.
 
     Looks under ``<output_root>/<model>/<version>/all_folds/all_classes/``.
     If ``timestamp`` is given, returns that subdirectory directly; otherwise
-    picks the lexicographically (and therefore chronologically) latest entry.
+    picks the most recent run with all ``n_folds`` ``fold_N_results.pkl``
+    pickles present. If only the latest run is incomplete (training in
+    progress) the previous complete run is used and a warning is logged;
+    if no run has all folds, the lexicographically latest is returned and
+    a warning is logged so downstream loaders raise the precise missing
+    fold error.
     """
     root = (
         (output_root or get_output_root())
@@ -66,6 +78,18 @@ def latest_experiment_dir(
     )
     if not candidates:
         raise FileNotFoundError(f"No timestamped experiment runs under {root}")
+    complete = [p for p in candidates if _has_complete_folds(p, n_folds)]
+    if complete:
+        if complete[-1] != candidates[-1]:
+            logger.warning(
+                "%s/%s: latest run %s is incomplete; falling back to %s",
+                model, version, candidates[-1].name, complete[-1].name,
+            )
+        return complete[-1]
+    logger.warning(
+        "%s/%s: no run has all %d folds; returning latest (%s) for diagnosis",
+        model, version, n_folds, candidates[-1].name,
+    )
     return candidates[-1]
 
 
@@ -136,11 +160,20 @@ def load_id_metadata(
     columns: list[str],
     *,
     id_col: str = "ID",
+    kingdom_cache: Path | str | None = None,
+    kingdom_col: str = "Kingdom",
 ) -> dict[str, dict[str, str]]:
     """Return ``{column: {ID: value}}`` for each requested metadata column.
 
     Reads the cleaned dataset CSV once. Duplicate IDs are collapsed to their
     first non-null value per column.
+
+    When ``kingdom_cache`` points to a JSON file produced by
+    ``scripts/fetch_kingdom_for_uniprot.py`` (``{accession: kingdom}``), its
+    entries override CSV ``Kingdom=Unknown`` rows so distractor sequences
+    contribute to the per-Kingdom evaluation. Distractor accessions absent
+    from the cache stay ``Unknown`` and are filtered out by the
+    in-category-only bootstrap mask.
     """
     df = pd.read_csv(csv_path, usecols=[id_col, *columns])
     df = df.drop_duplicates(subset=[id_col])
@@ -149,6 +182,30 @@ def load_id_metadata(
         out[col] = (
             df[[id_col, col]].dropna().set_index(id_col)[col].astype(str).to_dict()
         )
+    if kingdom_cache and kingdom_col in out:
+        cache_path = Path(kingdom_cache)
+        if cache_path.exists():
+            import json
+            with open(cache_path, "r", encoding="utf-8") as fh:
+                resolved: dict[str, str] = json.load(fh)
+            kingdom_map = out[kingdom_col]
+            n_added = 0
+            n_overridden = 0
+            for acc, k in resolved.items():
+                if k == "Unknown":
+                    continue
+                cur = kingdom_map.get(acc)
+                if cur is None:
+                    n_added += 1
+                elif cur == "Unknown":
+                    n_overridden += 1
+                else:
+                    continue
+                kingdom_map[acc] = k
+            logger.info(
+                "Kingdom cache merged: +%d new, %d overridden from Unknown",
+                n_added, n_overridden,
+            )
     return out
 
 
@@ -161,9 +218,11 @@ def load_classifier_class_fold_dfs(
     output_root: Path | None = None,
     n_folds: int = 5,
     timestamp: str | None = None,
-) -> dict[str, dict[int, FoldDfs]]:
+) -> tuple[dict[str, dict[int, FoldDfs]], dict[str, str]]:
     """Build the ``{class_short: {fold_idx: (labels_df, preds_df)}}`` mapping
-    for a single classifier.
+    for a single classifier, plus a ``{class_short: experiment_timestamp}``
+    map captured at load time. The timestamp goes into the bootstrap cache
+    key so a new training run on the same version label busts the cache.
 
     ``version_spec`` is either a single version string (one experiment, all
     classes share the same per-fold DFs) or a ``{class_short: version_str}``
@@ -172,6 +231,7 @@ def load_classifier_class_fold_dfs(
     """
     selected = list(classes) if classes is not None else ALL_CLASSES
     out: dict[str, dict[int, FoldDfs]] = {}
+    timestamps: dict[str, str] = {}
 
     if isinstance(version_spec, str):
         exp_dir = latest_experiment_dir(
@@ -181,7 +241,8 @@ def load_classifier_class_fold_dfs(
         per_fold = folds_to_dfs(raws, classes_subset=selected, seq_ids=seq_ids)
         for short in selected:
             out[short] = per_fold
-        return out
+            timestamps[short] = exp_dir.name
+        return out, timestamps
 
     missing_classes = set(selected) - set(version_spec)
     if missing_classes:
@@ -193,4 +254,5 @@ def load_classifier_class_fold_dfs(
         exp_dir = latest_experiment_dir(model, version, output_root=output_root)
         raws = load_pickle_folds(exp_dir, n_folds=n_folds)
         out[short] = folds_to_dfs(raws, classes_subset=[short], seq_ids=seq_ids)
-    return out
+        timestamps[short] = exp_dir.name
+    return out, timestamps

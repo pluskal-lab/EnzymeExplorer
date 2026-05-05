@@ -212,12 +212,14 @@ def bootstrap_categorical_metric_cis(
 ) -> BootstrapResult:
     """Per-category bootstrap.
 
-    Each draw resamples rows the same way as ``bootstrap_metric_cis``; for
-    each category ``C``, the metric is computed on the slice
-    ``(id_to_category[ID] == C) | (id_to_category[ID] == negative_label)``,
-    i.e. the category's positives plus the global negative pool. Returns a
-    ``BootstrapResult`` whose tables carry an extra ``category`` column;
-    ``compute_cis`` auto-includes it in the grouping.
+    For each category ``C``, the metric is computed on the slice where
+    ``id_to_category[ID] == C`` — i.e. only sequences that actually belong
+    to that category. Sequences mapped to ``negative_label`` (and any other
+    category) are excluded. ``negative_label`` is retained only as the
+    sentinel that filters the category list when ``categories`` is left
+    unspecified. When the category slice contains only positives or only
+    negatives for a class, ``_safe_metric`` returns NaN and the cell is
+    skipped at plotting time.
     """
     metrics = tuple(metrics)
     long_records: list[dict] = []
@@ -268,7 +270,7 @@ def bootstrap_categorical_metric_cis(
         full_s = np.concatenate([arrays[f][1] for f in fold_ids])
         full_c = np.concatenate([fold_to_cats[f] for f in fold_ids])
         for category in cats_to_eval:
-            mask = (full_c == category) | (full_c == negative_label)
+            mask = full_c == category
             for m in metrics:
                 point_records.append(
                     {
@@ -287,7 +289,7 @@ def bootstrap_categorical_metric_cis(
             jk_s = np.concatenate([arrays[f][1] for f in kept])
             jk_c = np.concatenate([fold_to_cats[f] for f in kept])
             for category in cats_to_eval:
-                mask = (jk_c == category) | (jk_c == negative_label)
+                mask = jk_c == category
                 for m in metrics:
                     jk_records.append(
                         {
@@ -318,7 +320,7 @@ def bootstrap_categorical_metric_cis(
                 sc = np.concatenate(ss)
                 cc = np.concatenate(cs)
                 for category in cats_to_eval:
-                    mask = (cc == category) | (cc == negative_label)
+                    mask = cc == category
                     for m in metrics:
                         long_records.append(
                             {
@@ -348,7 +350,7 @@ def bootstrap_categorical_metric_cis(
                     sb = s[idx]
                     cb = cats[idx]
                     for category in cats_to_eval:
-                        mask = (cb == category) | (cb == negative_label)
+                        mask = cb == category
                         for m in metrics:
                             per_fold_draws[f][category][m].append(
                                 _safe_metric(m, yb[mask], sb[mask])

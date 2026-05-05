@@ -44,15 +44,27 @@ class TierDefinition:
     ``{score >= T}`` still meets the target — useful for the loosest tier
     (e.g. ``recall_target=1.0`` gives the score at which every true
     positive is still captured).
+
+    ``classes`` restricts the tier to a subset of target classes; ``None``
+    (default) means the tier applies to every class. Used by the
+    "Ultra-High Confidence" (p≥0.9999) tier which is only meaningful for
+    the TPS detection task.
     """
 
     name: str
     precision_target: float | None = None
     recall_target: float | None = None
     color: str = ""
+    classes: tuple[str, ...] | None = None
 
 
 DEFAULT_TIER_DEFINITIONS: tuple[TierDefinition, ...] = (
+    # TPS-only "near-certain" band: only emitted when the precision target is
+    # actually reachable — otherwise it silently collapses into Very High.
+    TierDefinition(
+        "Ultra-High Confidence", precision_target=0.9999, color="#006837",
+        classes=("TPS",),
+    ),
     TierDefinition("Very High Confidence", precision_target=0.99, color="#1a9850"),
     TierDefinition("High Confidence", precision_target=0.95, color="#66bd63"),
     TierDefinition("Mid Confidence", precision_target=0.80, color="#fee08b"),
@@ -83,6 +95,7 @@ def tier_definitions_from_config(
         return DEFAULT_TIER_DEFINITIONS
     out: list[TierDefinition] = []
     for item in raw:
+        cls_list = item.get("classes")
         tier = TierDefinition(
             name=item["name"],
             precision_target=(
@@ -96,10 +109,21 @@ def tier_definitions_from_config(
                 else None
             ),
             color=item.get("color", ""),
+            classes=tuple(cls_list) if cls_list else None,
         )
         _validate(tier)
         out.append(tier)
     return tuple(out)
+
+
+def _tiers_for_class(
+    tier_definitions: Iterable[TierDefinition], target_class: str,
+) -> list[TierDefinition]:
+    """Filter tier_definitions down to those that apply to ``target_class``."""
+    return [
+        t for t in tier_definitions
+        if t.classes is None or target_class in t.classes
+    ]
 
 
 def compute_tier_table(
@@ -123,12 +147,6 @@ def compute_tier_table(
     tiers = list(tier_definitions)
     for tier in tiers:
         _validate(tier)
-    precisions = sorted(
-        {t.precision_target for t in tiers if t.precision_target is not None}
-    )
-    recall_targets = sorted(
-        {t.recall_target for t in tiers if t.recall_target is not None}
-    )
 
     rows: list[dict] = []
     for clf in classifiers:
@@ -137,6 +155,13 @@ def compute_tier_table(
         for cls in target_classes:
             if cls not in pooled[clf]:
                 continue
+            cls_tiers = _tiers_for_class(tiers, cls)
+            precisions = sorted(
+                {t.precision_target for t in cls_tiers if t.precision_target is not None}
+            )
+            recall_targets = sorted(
+                {t.recall_target for t in cls_tiers if t.recall_target is not None}
+            )
             lab, prd = pooled[clf][cls]
             prec_table = (
                 compute_precision_targeted_thresholds(lab, prd, cls, precisions)
@@ -149,7 +174,7 @@ def compute_tier_table(
                 for rt in recall_targets
             }
 
-            for tier in tiers:
+            for tier in cls_tiers:
                 if tier.precision_target is not None:
                     row = prec_table.loc[tier.precision_target]
                     lb = float(row["threshold"])

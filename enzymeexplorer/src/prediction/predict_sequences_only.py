@@ -21,6 +21,7 @@ from enzymeexplorer.src.prediction.logging_setup import (
     configure_logging,
 )
 from enzymeexplorer.src.prediction.pipeline import (
+    DEFAULT_PLM_MODEL,
     DEFAULT_PLM_ONLY_BUNDLE,
     DEFAULT_TIERS_CSV,
     predict_sequences_only,
@@ -70,8 +71,8 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--plm-model",
-        default="esm-1v-finetuned-subseq",
-        help="PLM model name.",
+        default=DEFAULT_PLM_MODEL,
+        help=f"PLM model name (default: {DEFAULT_PLM_MODEL}).",
     )
     parser.add_argument("--plm-batch-size", type=int, default=4)
     parser.add_argument(

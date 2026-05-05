@@ -25,6 +25,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+from enzymeexplorer.src.prediction.pipeline import DEFAULT_PLM_MODEL
+
 logger = logging.getLogger(__name__)
 
 
@@ -55,7 +57,7 @@ def parse_args() -> argparse.Namespace:
         ),
     )
     parser.add_argument(
-        "--plm-model", type=str, default="esm-1v-finetuned-subseq",
+        "--plm-model", type=str, default=DEFAULT_PLM_MODEL,
     )
     parser.add_argument("--plm-batch-size", type=int, default=32)
     parser.add_argument(

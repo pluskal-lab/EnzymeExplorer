@@ -59,6 +59,27 @@ DEFAULT_PLOT_ORDER: list[str] = [
 ]
 
 
+# Canonical substrate -> TPS-type mapping. Used for Type-grouped boxplots /
+# heatmaps that reuse the global per-substrate bootstrap (no per-category
+# masking). Substrates that map to the same type contribute their draws
+# jointly to one box; the heatmap cell averages over draws then over the
+# substrates within the type.
+SUBSTRATE_TO_TYPE: dict[str, str] = {
+    "GPP": "mono",
+    "FPP": "sesq",
+    "GGPP": "di",
+    "CPP": "di",
+    "EDSQ": "tri",
+    "GFPP": "sester",
+    "2xFPP": "squalene",
+    "2xGGPP": "phytoene",
+}
+
+DEFAULT_TYPE_ORDER: list[str] = [
+    "mono", "sesq", "di", "sester", "tri", "squalene", "phytoene",
+]
+
+
 def to_short(class_label: str) -> str:
     """Return the short form of a class label, accepting either form."""
     if class_label in SHORT_TO_SMILES:

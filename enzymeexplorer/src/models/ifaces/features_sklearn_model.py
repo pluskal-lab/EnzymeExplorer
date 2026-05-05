@@ -67,8 +67,8 @@ class FeaturesSklearnModel(BaseModel):
                     lambda classes: self.config.neg_val not in classes
                 )
             ]
-            train_df_neg = train_df_neg_all.sample(int(required_negs_count))
-            train_df = pd.concat((train_df_pos, train_df_neg)).sample(frac=1.0)
+            train_df_neg = train_df_neg_all.sample(int(required_negs_count), random_state=self.config.random_state)
+            train_df = pd.concat((train_df_pos, train_df_neg)).sample(frac=1.0, random_state=self.config.random_state)
 
         assert (
             self.features_df is not None

@@ -32,7 +32,10 @@ WONG_COLORS: list[str] = [
 DEFAULT_HBI_BASELINES: list[str] = [
     "HMM", "SUPFAM", "PFAM", "FoldSeek", "Foldseek", "BLAST", "Blastp"
 ]
-DEFAULT_EE_FAMILY: list[str] = ["Domains", "PLM", "PLM_Domains"]
+DEFAULT_EE_FAMILY: list[str] = [
+    "Domains", "PLM", "PLM_Domains",
+    "Domains_no_distractors", "PLM_no_distractors", "PLM_Domains_no_distractors",
+]
 
 DEFAULT_CLASSIFIER_DISPLAY: dict[str, str] = {
     "PLM_Domains": "EnzymeExplorer",
@@ -46,6 +49,37 @@ DEFAULT_CLASSIFIER_DISPLAY: dict[str, str] = {
     "PFAM": "Pfam",
     "SUPFAM": "SUPFAM",
     "CLEAN": "CLEAN",
+    # No-distractor variants render the same as their with-distractor parent;
+    # the universe is communicated by the output dir / plot title, not the
+    # axis labels.
+    "PLM_Domains_no_distractors": "EnzymeExplorer",
+    "PLM_no_distractors": "EnzymeExplorer\nPLM",
+    "Domains_no_distractors": "EnzymeExplorer\nDomains",
+    "BLAST_no_distractors": "BLASTp",
+    "HMM_no_distractors": "pHMM",
+    "Foldseek_no_distractors": "FoldSeek",
+    "PFAM_no_distractors": "Pfam",
+    "SUPFAM_no_distractors": "SUPFAM",
+    # Ablation-only siblings.
+    "PLM_Domains_LR": "Logistic Regression",
+    "PLM_Domains_MLP": "MLP",
+    "PLM_Domains_RF": "Random Forest",
+    "PLM_RF": "Random Forest",
+    "PLM_Xgb": "XGBoost",
+    "PLM_MLP": "MLP",
+    # PLM ablation entries — the YAML uses these labels.
+    "PLM_AnkhBase": "Ankh Base",
+    "PLM_AnkhLarge": "Ankh Large",
+    "PLM_Esm1v": "ESM-1v",
+    "PLM_Esm2": "ESM-2",
+    "PLM_TpsAnkhBase": "Ankh Base (TPS)",
+    "PLM_TpsEsm1vSubseq": "ESM-1v subseq (TPS)",
+    "PLM_Domains_AnkhBase": "Ankh Base",
+    "PLM_Domains_AnkhLarge": "Ankh Large",
+    "PLM_Domains_Esm1v": "ESM-1v",
+    "PLM_Domains_Esm2": "ESM-2",
+    "PLM_Domains_TpsAnkhBase": "Ankh Base (TPS)",
+    "PLM_Domains_TpsEsm1vSubseq": "ESM-1v subseq (TPS)",
 }
 
 

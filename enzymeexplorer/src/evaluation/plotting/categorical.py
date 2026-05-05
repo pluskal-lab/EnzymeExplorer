@@ -70,6 +70,7 @@ def plot_category_boxplot(
     categories: Iterable[str] | None = None,
     classifier_subset: Iterable[str] | None = None,
     classifier_order: list[str] | None = None,
+    pin_last: str | None = None,
     palette: dict[str, tuple[float, float, float]] | None = None,
     title: str = "",
     ylabel: str | None = None,
@@ -112,14 +113,19 @@ def plot_category_boxplot(
     else:
         cats = [c for c in categories if c in set(df["category"])]
 
+    # Macro-average mean AP across categories, then sort ascending.
     if classifier_order is None:
-        means = df.groupby("classifier")["value"].mean().sort_values()
-        classifier_order = means.index.tolist()
-    else:
-        classifier_order = [c for c in classifier_order if c in set(df["classifier"])]
-    ee_pin = "PLM_Domains"
-    if ee_pin in classifier_order and classifier_order[-1] != ee_pin:
-        classifier_order = [c for c in classifier_order if c != ee_pin] + [ee_pin]
+        classifier_order = list(df["classifier"].unique())
+    classifier_order = [c for c in classifier_order if c in set(df["classifier"])]
+    macro_means = (
+        df.groupby(["classifier", "category"])["value"].mean()
+        .groupby("classifier").mean()
+    )
+    classifier_order = sorted(
+        classifier_order, key=lambda c: macro_means.get(c, float("-inf"))
+    )
+    if pin_last and pin_last in classifier_order:
+        classifier_order = [c for c in classifier_order if c != pin_last] + [pin_last]
 
     if palette is None:
         all_cats = sorted(
@@ -196,6 +202,7 @@ def plot_category_heatmap(
     categories: Iterable[str] | None = None,
     classifier_subset: Iterable[str] | None = None,
     classifier_order: list[str] | None = None,
+    pin_last: str | None = None,
     cmap: str = "viridis",
     annotate: bool = True,
     annotation_fmt: str = "{:.1f}",
@@ -215,11 +222,20 @@ def plot_category_heatmap(
     if df.empty:
         raise ValueError("No rows match the requested filters")
 
+    # Macro-average and sort, dropping classifiers with no data for this target
+    # (e.g. PFAM/SUPFAM on substrate or TPS_IDS classes).
+    present = set(df["classifier"])
     if classifier_order is None:
-        means = df.groupby("classifier")["point"].mean().sort_values()
-        classifier_order = means.index.tolist()
+        classifier_order = list(present)
     else:
-        df = df[df["classifier"].isin(classifier_order)]
+        classifier_order = [c for c in classifier_order if c in present]
+    means = df.groupby("classifier")["point"].mean()
+    classifier_order = sorted(
+        classifier_order, key=lambda c: means.get(c, float("-inf"))
+    )
+    if pin_last and pin_last in classifier_order:
+        classifier_order = [c for c in classifier_order if c != pin_last] + [pin_last]
+    df = df[df["classifier"].isin(classifier_order)]
 
     matrix = (
         df.pivot(index="category", columns="classifier", values="point")

@@ -24,6 +24,7 @@ from Bio import SeqIO  # type: ignore
 
 from enzymeexplorer.src.prediction.embeddings import load_plm_embedder
 from enzymeexplorer.src.prediction.pipeline import (
+    DEFAULT_PLM_MODEL,
     DEFAULT_PLM_ONLY_BUNDLE,
     DEFAULT_TIERS_CSV,
     predict_sequences_only,
@@ -58,7 +59,7 @@ def parse_args() -> argparse.Namespace:
         "--tiers-csv", type=Path, default=Path(DEFAULT_TIERS_CSV),
     )
     parser.add_argument(
-        "--plm-model", type=str, default="esm-1v-finetuned-subseq",
+        "--plm-model", type=str, default=DEFAULT_PLM_MODEL,
     )
     parser.add_argument("--plm-batch-size", type=int, default=4)
     parser.add_argument(
