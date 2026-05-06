@@ -35,9 +35,7 @@ class FeaturesRandomForestConfig(SklearnBaseConfig):
     class_weight: str
     max_depth: int
     per_class_with_multilabel_regularization: int
-    max_features: str
     min_samples_leaf: int
-    min_samples_split: int
     
 
 

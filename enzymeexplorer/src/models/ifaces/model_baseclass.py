@@ -144,12 +144,32 @@ class BaseModel(ABC, BaseEstimator):
         raise NotImplementedError
 
     def set_params(self, **kwargs):
-        """
-        It's a generic function setting values of all parameters in the kwargs
+        """Set HP-search-proposed values on both ``self`` and ``self.config``.
+
+        Two read paths exist for a model parameter:
+
+        * sklearn-classifier kwargs (``n_estimators`` etc.) are resolved
+          through :meth:`get_model_specific_params`, which inspects
+          ``self.__dict__``;
+        * fit-time logic in ``fit_core`` reads several values directly
+          from ``self.config`` (``max_train_negs_proportion``,
+          ``random_state``, ``neg_val``, ...).
+
+        Writing to only ``self`` — as the original implementation did —
+        silently ignored the HP-search-proposed value for the second
+        group, so e.g. ``max_train_negs_proportion`` listed in
+        ``hyperparam_dimensions`` was a no-op during the search even
+        though the optimizer kept proposing values for it. Mirroring each
+        write to ``self.config`` (when the attribute exists there) keeps
+        both read paths in sync.
         """
         for attribute_name, value in kwargs.items():
-            if attribute_name not in {"class_name", "per_class"}:
-                setattr(self, attribute_name, value if value != "None" else None)
+            if attribute_name in {"class_name", "per_class"}:
+                continue
+            resolved = value if value != "None" else None
+            setattr(self, attribute_name, resolved)
+            if hasattr(self, "config") and hasattr(self.config, attribute_name):
+                setattr(self.config, attribute_name, resolved)
 
     def optimize_hyperparameters(
         self,
