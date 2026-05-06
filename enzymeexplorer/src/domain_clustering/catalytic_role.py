@@ -14,7 +14,7 @@ H2 (Class 2)
 
 Preprocessing applied to every analysis
 ---------------------------------------
-* Detected domains of type ``alpha_cls2`` are ignored entirely.
+* Detected domains of type ``zeta`` are ignored entirely.
 * ``alpha`` and ``ids`` detections are merged under a single canonical
   type ``"alpha"``.
 * MartsDB rows whose ``OriginalType`` is in ``{pt, psy, sqs}`` are
@@ -70,13 +70,13 @@ import pandas as pd  # type: ignore
 logger = logging.getLogger(__name__)
 
 
-# Analysis-specific canonicalisation. ``alpha_cls2`` is intentionally
+# Analysis-specific canonicalisation. ``zeta`` is intentionally
 # excluded (mapped to ``None``) so its detected domains are dropped from
 # this analysis. ``alpha`` and ``ids`` collapse to a single ``"alpha"``.
 ANALYSIS_CANONICAL_DOMAIN_TYPE = {
     "alpha": "alpha",
     "ids": "alpha",
-    "alpha_cls2": None,
+    "zeta": None,
     "beta": "beta",
     "gamma": "gamma",
     "delta": "delta",

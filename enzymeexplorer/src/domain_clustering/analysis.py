@@ -20,12 +20,12 @@ import pandas as pd  # type: ignore
 logger = logging.getLogger(__name__)
 
 
-# Domain-type consolidation: ``ids`` and ``alpha_cls2`` are alpha-fold variants
+# Domain-type consolidation: ``ids`` and ``zeta`` are alpha-fold variants
 # detected against alternate templates; for analysis they're all "alpha".
 DOMAIN_TYPE_CANONICAL = {
     "alpha": "alpha",
     "ids": "alpha",
-    "alpha_cls2": "alpha",
+    "zeta": "alpha",
     "beta": "beta",
     "gamma": "gamma",
     "delta": "delta",

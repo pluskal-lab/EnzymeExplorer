@@ -91,7 +91,7 @@ def parse_args() -> configargparse.Namespace:
             "delta": "delta",
             "epsilon": "epsilon",
             "ids": "alpha",
-            "alpha_cls2": "alpha",
+            "zeta": "alpha",
         },
     )
     return parser.parse_args()
@@ -185,15 +185,13 @@ def compute_structural_features(args) -> dict:
         r_dom.domain for r_r in ref_seq_2_regions.values() for r_dom in r_r
     ), "After preprocessing, there are still domain types in query regions that are not present in reference regions. Please check the domain type preprocessing configuration and the input data."
 
-    feature_domain_types = ["alpha_1", "alpha_2"] + list(
-        set(
-            [
-                region.domain
-                for q, rs in ref_seq_2_regions.items()
-                for region in rs
-                if not region.domain.startswith("alpha")
-            ]
-        )
+    feature_domain_types = ["alpha_1", "alpha_2"] + sorted(
+        {
+            region.domain
+            for q, rs in ref_seq_2_regions.items()
+            for region in rs
+            if not region.domain.startswith("alpha")
+        }
     )
 
     alignment_df = get_foldseek_alignment_df(
@@ -322,7 +320,7 @@ def run_structural_feature_computation(
             "delta": "delta",
             "epsilon": "epsilon",
             "ids": "alpha",
-            "alpha_cls2": "alpha",
+            "zeta": "alpha",
         }
     args = _argparse.Namespace(
         query_domains_file_path=str(query_domains_file_path),

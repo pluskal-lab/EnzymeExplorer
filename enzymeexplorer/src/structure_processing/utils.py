@@ -1,5 +1,4 @@
 import logging
-import subprocess
 from enzymeexplorer.src.structure_processing.structural_algorithms import (
     MappedRegion,
     compress_selection_list,
@@ -130,24 +129,7 @@ def _build_or_get_foldseek_ref_db(
             except FileExistsError:
                 pass
 
-        proc = subprocess.run(
-            [
-                "foldseek",
-                "createdb",
-                str(staging_p),
-                str(db_path),
-                "--threads",
-                str(threads),
-            ],
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        if proc.returncode != 0:
-            raise RuntimeError(
-                f"foldseek createdb failed (rc={proc.returncode}): "
-                f"{proc.stderr[:400]}"
-            )
+        FoldseekWrapper(threads=threads).createdb(str(staging_p), str(db_path))
 
     (db_dir / "manifest.json").write_text(
         json.dumps(
@@ -171,9 +153,11 @@ def _foldseek_search_against_cached_db(
     max_seqs: int,
     e_value: float = 100.0,
     threads: int = 8,
+    coverage: float = 0.5,
 ) -> pd.DataFrame:
     """Run foldseek `search` against a pre-built reference DB."""
     db_path = db_dir / "db"
+    fs = FoldseekWrapper(threads=threads)
 
     with tempfile.TemporaryDirectory() as workdir:
         wp = Path(workdir)
@@ -182,77 +166,25 @@ def _foldseek_search_against_cached_db(
         tmp_dir = wp / "fs_tmp"
         tmp_dir.mkdir()
 
-        proc = subprocess.run(
-            [
-                "foldseek",
-                "createdb",
-                query_dir,
-                str(query_db),
-                "--threads",
-                str(threads),
-            ],
-            capture_output=True,
-            text=True,
-            check=False,
+        fs.createdb(query_dir, str(query_db))
+        fs.search(
+            query_db=str(query_db),
+            target_db=str(db_path),
+            result_db=str(result_db),
+            tmp_dir=str(tmp_dir),
+            max_seqs=max_seqs,
+            e_value=e_value,
+            sensitivity=9.5,
+            write_alignments=True,  # -a flag, needed for convertalis
+            coverage=coverage,
+            cov_mode=0
         )
-        if proc.returncode != 0:
-            raise RuntimeError(
-                f"foldseek createdb (query) failed: {proc.stderr[:400]}"
-            )
-        proc = subprocess.run(
-            [
-                "foldseek",
-                "search",
-                str(query_db),
-                str(db_path),
-                str(result_db),
-                str(tmp_dir),
-                "-e",
-                str(e_value),
-                "--max-seqs",
-                str(max_seqs),
-                "-s",
-                "9.5",
-                "-a",  # write CIGARs so convertalis can format alignments
-                "--threads",
-                str(threads),
-            ],
-            capture_output=True,
-            text=True,
-            check=False,
+        return fs.convertalis(
+            query_db=str(query_db),
+            target_db=str(db_path),
+            result_db=str(result_db),
+            output_tsv=output_tsv,
         )
-        if proc.returncode != 0:
-            raise RuntimeError(
-                f"foldseek search failed: {proc.stderr[:400]}"
-            )
-        proc = subprocess.run(
-            [
-                "foldseek",
-                "convertalis",
-                str(query_db),
-                str(db_path),
-                str(result_db),
-                output_tsv,
-                "--format-output",
-                "query,target,alntmscore",
-                "--threads",
-                str(threads),
-            ],
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        if proc.returncode != 0:
-            raise RuntimeError(
-                f"foldseek convertalis failed: {proc.stderr[:400]}"
-            )
-
-    return pd.read_csv(
-        output_tsv,
-        sep="\t",
-        header=None,
-        names=["query", "target", "alntmscore"],
-    )
 
 
 def get_foldseek_alignment_df(
@@ -310,6 +242,7 @@ def get_foldseek_alignment_df(
             output_tsv=str(out_tsv),
             max_seqs=len(reference_domains) * 2,
             e_value=100.0,
+            coverage=0.5,
         )
         # Same query-name fixup easy_search did.
         query_set = set(query_domains)
@@ -330,7 +263,6 @@ def get_foldseek_alignment_df(
     )
 
     alignment_df = alignment_df.sort_values(by="alntmscore", ascending=False)
-    # `.map(dict)` is ~10× faster than `.apply(lambda x: dict[x])` at scale.
     alignment_df["query_domain_type"] = alignment_df["query"].map(query_domain_2_domain_type)
     alignment_df["query_seq_id"] = alignment_df["query"].map(query_domain_2_seq_id)
     alignment_df["target_domain_type"] = alignment_df["target"].map(ref_domain_2_domain_type)

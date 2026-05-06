@@ -97,10 +97,10 @@ DEFAULT_DOMAIN_TEMPLATES = [
         "thresholds": {"tmscore": 0.65, "min_align_len": 95},
     },
     {
-        "name": "alpha_cls2",
+        "name": "zeta",
         "path": "data/domain_templates/P37295.pdb",
         "residues": "resi 3-248 & chain A & ss H+S",
-        "thresholds": {"tmscore": 0.70, "min_align_len": 85},
+        "thresholds": {"tmscore": 0.65, "min_align_len": 85},
     },
 ]
 

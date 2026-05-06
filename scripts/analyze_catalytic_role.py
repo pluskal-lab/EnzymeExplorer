@@ -7,7 +7,7 @@ H2 (Class 2):  Class-2 reactions are determined by beta / gamma / delta /
                 epsilon equally; alpha contributes nothing.
 
 Preprocessing applied uniformly:
-  * alpha_cls2 detected domains are dropped.
+  * zeta detected domains are dropped.
   * alpha + ids merged under canonical "alpha".
   * MartsDB OriginalType ∈ {pt, psy, sqs} dropped.
   * Multi-substrate reactions (substrate SMILES contains ".") dropped.
