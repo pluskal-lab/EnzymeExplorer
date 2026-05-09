@@ -91,6 +91,7 @@ class FoldseekWrapper:
             "-e", str(e_value),
             "--max-seqs", str(max_seqs),
             "-s", str(sensitivity),
+            "--exhaustive-search",
             "--threads", str(self._resolved_threads(threads)),
         ]
         if write_alignments:

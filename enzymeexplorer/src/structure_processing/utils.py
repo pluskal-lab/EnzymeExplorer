@@ -153,7 +153,8 @@ def _foldseek_search_against_cached_db(
     max_seqs: int,
     e_value: float = 100.0,
     threads: int = 8,
-    coverage: float = 0.5,
+    coverage: float | None = None,
+    cov_mode: int | None = None,
 ) -> pd.DataFrame:
     """Run foldseek `search` against a pre-built reference DB."""
     db_path = db_dir / "db"
@@ -174,10 +175,10 @@ def _foldseek_search_against_cached_db(
             tmp_dir=str(tmp_dir),
             max_seqs=max_seqs,
             e_value=e_value,
-            sensitivity=9.5,
+            sensitivity=10,
             write_alignments=True,  # -a flag, needed for convertalis
             coverage=coverage,
-            cov_mode=0
+            cov_mode=cov_mode,
         )
         return fs.convertalis(
             query_db=str(query_db),
@@ -241,8 +242,9 @@ def get_foldseek_alignment_df(
             db_dir=db_dir,
             output_tsv=str(out_tsv),
             max_seqs=len(reference_domains) * 2,
-            e_value=100.0,
+            e_value=1000000,
             coverage=0.5,
+            cov_mode=0
         )
         # Same query-name fixup easy_search did.
         query_set = set(query_domains)
