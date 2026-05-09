@@ -1,8 +1,9 @@
 """Predict TPS class probabilities from sequences alone (no structures).
 
 Uses the PlmRandomForest fold ensemble. Output is a single CSV with
-``<class>_score`` and ``<class>_tier`` columns per protein, with tiers looked
-up from the ``PLM`` rows of ``confidence_tiers.csv``.
+``<class>_score`` and ``<class>_p_calibrated`` columns per protein, with
+calibrated probabilities produced from the ``PLM`` rows of
+``calibration_fit_summary.csv``.
 """
 
 from __future__ import annotations
@@ -21,9 +22,9 @@ from enzymeexplorer.src.prediction.logging_setup import (
     configure_logging,
 )
 from enzymeexplorer.src.prediction.pipeline import (
+    DEFAULT_CALIBRATION_CSV,
     DEFAULT_PLM_MODEL,
     DEFAULT_PLM_ONLY_BUNDLE,
-    DEFAULT_TIERS_CSV,
     predict_sequences_only,
 )
 
@@ -64,10 +65,10 @@ def parse_args() -> argparse.Namespace:
         help="Pickle bundle of PlmRandomForest fold classifiers.",
     )
     parser.add_argument(
-        "--tiers-csv",
-        default=DEFAULT_TIERS_CSV,
+        "--calibration-csv",
+        default=DEFAULT_CALIBRATION_CSV,
         type=Path,
-        help="confidence_tiers.csv to look up per-class score bands.",
+        help="Per-class beta-calibration fit_summary CSV.",
     )
     parser.add_argument(
         "--plm-model",
@@ -102,7 +103,7 @@ def main() -> None:
     table = predict_sequences_only(
         sequences_df,
         plm_only_bundle_path=args.plm_only_bundle,
-        tiers_csv_path=args.tiers_csv,
+        calibration_csv_path=args.calibration_csv,
         plm_model=args.plm_model,
         plm_batch_size=args.plm_batch_size,
     )

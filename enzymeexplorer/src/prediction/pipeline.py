@@ -5,12 +5,13 @@ Two orchestrators:
 * :func:`predict_with_structures` — domain-aware (PLM_Domains) for proteins
   whose detected domains pass the foldseek-meaningfulness threshold; PLM-only
   for the rest. Two output frames so each can carry its own
-  classifier-specific confidence tier.
+  classifier-specific calibrated probabilities.
 * :func:`predict_sequences_only` — PLM-only over all input proteins.
 
-Both return wide-form tables with one row per protein and ``<class>_score`` /
-``<class>_tier`` columns; both also accept a callable ``embedder`` so the
-FastAPI app can reuse a long-lived embedder across requests.
+Both return wide-form tables with one row per protein and
+``<class>_score`` / ``<class>_p_calibrated`` columns; both also accept a
+callable ``embedder`` so the FastAPI app can reuse a long-lived embedder
+across requests.
 """
 
 from __future__ import annotations
@@ -21,9 +22,9 @@ from typing import TYPE_CHECKING, Sequence
 
 import pandas as pd  # type: ignore
 
+from enzymeexplorer.src.prediction import calibration as _calibration
 from enzymeexplorer.src.prediction import domains as _domains
 from enzymeexplorer.src.prediction import ensemble as _ens
-from enzymeexplorer.src.prediction import tiers as _tiers
 
 # NB: ``embeddings`` is imported lazily inside ``_ensure_embedder`` because
 # importing it eagerly pulls in PyTorch at module-load time. The structure
@@ -39,7 +40,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-DEFAULT_TIERS_CSV = "data/confidence_tiers.csv"
+DEFAULT_CALIBRATION_CSV = "data/calibration_fit_summary.csv"
 DEFAULT_PLM_MODEL = "ankh_large"
 DEFAULT_PLM_DOMAINS_BUNDLE = "data/enzyme_explorer_checkpoints.pkl"
 DEFAULT_PLM_ONLY_BUNDLE = "data/enzyme_explorer_plm_checkpoints.pkl"
@@ -67,20 +68,20 @@ def _ensure_embedder(
     return load_plm_embedder(model_name)
 
 
-def _score_and_tier(
+def _score_and_calibrate(
     *,
     per_fold_df: pd.DataFrame,
     sequences_df: pd.DataFrame,
-    tiers_csv_path: str | Path,
+    calibration_csv_path: str | Path,
     classifier_name: str,
 ) -> pd.DataFrame:
     averaged = _ens.average_over_folds(per_fold_df)
-    long_with_tiers = _tiers.assign_tiers_long(
-        averaged, tiers_csv_path, classifier_name
+    long_with_p = _calibration.apply_calibration_long(
+        averaged, calibration_csv_path, classifier_name,
     )
     seq_lookup = dict(zip(sequences_df["id"], sequences_df["sequence"]))
-    return _tiers.assemble_output_table(
-        long_with_tiers, sequence_lookup=seq_lookup
+    return _calibration.assemble_output_table(
+        long_with_p, sequence_lookup=seq_lookup,
     )
 
 
@@ -94,7 +95,7 @@ def predict_with_structures(
     ),
     plm_domains_bundle_path: str | Path = DEFAULT_PLM_DOMAINS_BUNDLE,
     plm_only_bundle_path: str | Path = DEFAULT_PLM_ONLY_BUNDLE,
-    tiers_csv_path: str | Path = DEFAULT_TIERS_CSV,
+    calibration_csv_path: str | Path = DEFAULT_CALIBRATION_CSV,
     plm_model: str = DEFAULT_PLM_MODEL,
     plm_only_model: str = DEFAULT_PLM_MODEL,
     embedder: PLMEmbedder | None = None,
@@ -107,14 +108,14 @@ def predict_with_structures(
     """End-to-end prediction with structures.
 
     Returns ``(plm_domains_predictions, plm_only_fallback_predictions)`` —
-    two wide-form DataFrames with the per-class score + tier columns. The
-    second frame is empty when every protein produced a meaningful domain
-    comparison; otherwise it contains the proteins that fell back.
+    two wide-form DataFrames with per-class ``_score`` and
+    ``_p_calibrated`` columns. The second frame is empty when every
+    protein produced a meaningful domain comparison; otherwise it
+    contains the proteins that fell back.
 
-    The split between the two output frames is intentional: confidence tiers
-    are tied to a specific classifier, so PLM_Domains scores and PLM-only
-    fallback scores are tiered against their own
-    ``confidence_tiers.csv`` rows.
+    The split between the two output frames is intentional: calibrators
+    are classifier-specific, so PLM_Domains and PLM-only scores are
+    calibrated against their own ``fit_summary.csv`` rows.
     """
     sequences_df = sequences_df.reset_index(drop=True)
     protein_ids: list[str] = sequences_df["id"].tolist()
@@ -184,10 +185,10 @@ def predict_with_structures(
         len(fallback_ids),
     )
 
-    plm_domains_table = _score_and_tier(
+    plm_domains_table = _score_and_calibrate(
         per_fold_df=per_fold_dom_df,
         sequences_df=sequences_df,
-        tiers_csv_path=tiers_csv_path,
+        calibration_csv_path=calibration_csv_path,
         classifier_name=PLM_DOMAINS_CLASSIFIER_NAME,
     )
 
@@ -232,10 +233,10 @@ def predict_with_structures(
             protein_ids=fallback_df["id"].tolist(),
             fold_classifiers=fold_classifiers_plm,
         )
-        plm_only_table = _score_and_tier(
+        plm_only_table = _score_and_calibrate(
             per_fold_df=per_fold_plm_df,
             sequences_df=fallback_df,
-            tiers_csv_path=tiers_csv_path,
+            calibration_csv_path=calibration_csv_path,
             classifier_name=PLM_ONLY_CLASSIFIER_NAME,
         )
     else:
@@ -252,7 +253,7 @@ def predict_sequences_only(
     sequences_df: pd.DataFrame,
     *,
     plm_only_bundle_path: str | Path = DEFAULT_PLM_ONLY_BUNDLE,
-    tiers_csv_path: str | Path = DEFAULT_TIERS_CSV,
+    calibration_csv_path: str | Path = DEFAULT_CALIBRATION_CSV,
     plm_model: str = DEFAULT_PLM_MODEL,
     embedder: PLMEmbedder | None = None,
     plm_batch_size: int = 4,
@@ -282,11 +283,11 @@ def predict_sequences_only(
         protein_ids=sequences_df["id"].tolist(),
         fold_classifiers=fold_classifiers,
     )
-    logger.info("[step 3/3] Averaging folds + assigning tiers")
-    table = _score_and_tier(
+    logger.info("[step 3/3] Averaging folds + applying calibration")
+    table = _score_and_calibrate(
         per_fold_df=per_fold_df,
         sequences_df=sequences_df,
-        tiers_csv_path=tiers_csv_path,
+        calibration_csv_path=calibration_csv_path,
         classifier_name=PLM_ONLY_CLASSIFIER_NAME,
     )
     logger.info("predict_sequences_only: done — %d rows", len(table))

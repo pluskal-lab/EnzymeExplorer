@@ -140,16 +140,16 @@ def plot_category_boxplot(
     )
     df["category"] = pd.Categorical(df["category"], categories=cats, ordered=True)
 
-    target_box_inches = 0.11
-    cluster_width = 0.5
+    target_box_inches = 0.10
+    cluster_width = 0.66
     if figsize is None:
         figsize = (
             max(
-                9.0,
+                4.6,
                 target_box_inches * len(classifier_order) * len(cats) / cluster_width
-                + 2.5,
+                + 1.8,
             ),
-            5.5,
+            3.0,
         )
     fig, ax = plt.subplots(figsize=figsize)
     sns.boxplot(
@@ -162,16 +162,23 @@ def plot_category_boxplot(
         palette=palette,
         showfliers=showfliers,
         flierprops=dict(
-            marker="o", markersize=2.5, markerfacecolor="white",
-            markeredgecolor="0.4", linestyle="none",
+            marker="o", markersize=1.5,
+            markerfacecolor="0.7", markeredgecolor="none",
+            linestyle="none", alpha=0.6,
         ),
         whis=(2.5, 97.5),
-        linewidth=0.7,
+        linewidth=0.5,
         width=cluster_width,
         gap=0.0,
         ax=ax,
     )
-    ax.margins(x=0.04)
+    # Box edges should be subtle.
+    for patch in ax.patches:
+        patch.set_edgecolor("0.2")
+        patch.set_linewidth(0.45)
+    ax.margins(x=0.03)
+    ax.yaxis.grid(True, color="0.92", linewidth=0.4)
+    ax.set_axisbelow(True)
 
     ax.set_xticks(range(len(classifier_order)))
     ax.set_xticklabels(
@@ -180,15 +187,16 @@ def plot_category_boxplot(
     )
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel if ylabel is not None else f"{metric.upper()} (%)")
-    ax.set_title(title)
+    ax.set_title(title, loc="left")
     if ylim is not None:
         ax.set_ylim(*ylim)
     ax.legend(
         loc="lower center",
-        bbox_to_anchor=(0.5, -0.30),
-        ncols=len(cats),
+        bbox_to_anchor=(0.5, -0.32),
+        ncols=min(len(cats), 6),
         frameon=False,
         title=None,
+        handlelength=1.0, handletextpad=0.4, columnspacing=1.0,
     )
     fig.tight_layout()
     return fig
@@ -244,8 +252,8 @@ def plot_category_heatmap(
     )
     if figsize is None:
         figsize = (
-            max(6, 1.0 * len(classifier_order) + 2),
-            max(3, 0.55 * len(cats) + 1.5),
+            max(4.5, 0.55 * len(classifier_order) + 1.6),
+            max(2.4, 0.42 * len(cats) + 1.2),
         )
     fig, ax = plt.subplots(figsize=figsize)
     norm_vmin = float(np.nanmin(matrix.values)) if vmin is None else vmin
@@ -261,17 +269,25 @@ def plot_category_heatmap(
     )
     ax.set_xticks(np.arange(len(classifier_order)))
     ax.set_xticklabels(
-        [theme.display_name(c) for c in classifier_order],
-        rotation=20, ha="right",
+        [theme.display_name(c).replace("\n", " ") for c in classifier_order],
+        rotation=0, ha="center",
     )
     ax.set_yticks(np.arange(len(cats)))
     ax.set_yticklabels(cats)
-    ax.set_title(title)
-    cbar = fig.colorbar(im, ax=ax, fraction=0.046, pad=0.02)
+    ax.set_title(title, loc="left")
+    # Hairline spines + faint cell borders so adjacent cells read as a grid.
+    ax.tick_params(length=0)
+    for spine in ax.spines.values():
+        spine.set_visible(False)
+    cbar = fig.colorbar(im, ax=ax, fraction=0.04, pad=0.015)
     cbar.set_label(f"{metric.upper()} (%)")
+    cbar.outline.set_linewidth(0.4)
+    cbar.ax.tick_params(length=2.5, width=0.5)
 
     if annotate:
-        threshold = (norm_vmin + norm_vmax) / 2
+        # Switch annotation colour at ~55 % through viridis; the split
+        # avoids white-on-yellow at the top of the colormap.
+        threshold = norm_vmin + 0.55 * (norm_vmax - norm_vmin)
         for i in range(matrix.shape[0]):
             for j in range(matrix.shape[1]):
                 v = matrix.values[i, j]
@@ -280,7 +296,7 @@ def plot_category_heatmap(
                     color = "0.4"
                 else:
                     txt = annotation_fmt.format(v)
-                    color = "white" if v < threshold else "black"
-                ax.text(j, i, txt, ha="center", va="center", color=color, fontsize=9)
+                    color = "white" if v < threshold else "0.1"
+                ax.text(j, i, txt, ha="center", va="center", color=color, fontsize=7.5)
     fig.tight_layout()
     return fig

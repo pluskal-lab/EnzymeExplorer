@@ -83,25 +83,125 @@ DEFAULT_CLASSIFIER_DISPLAY: dict[str, str] = {
 }
 
 
-def apply_theme(context: str = "paper", base_font_size: float = 12.0) -> None:
-    """Set seaborn + matplotlib defaults used by every plot.
+# Master colour map shared across every config so the same method
+# always renders in the same colour. `_render_v4_scenarios` uses this
+# as the fallback palette; YAML ``palette:`` entries take precedence
+# only for keys explicitly listed there.
+UNIVERSAL_PALETTE: dict[str, str] = {
+    # Okabe-Ito (Wong 2011) colorblind-safe palette throughout. Each
+    # canonical method gets a uniquely identifiable hue so 5+ methods
+    # can be told apart in print, in greyscale, and by red-green
+    # colorblind viewers.
+    # Ablation triplet (Domains/PLM/PLM_Domains).
+    "Domains": "#0072B2",        # blue
+    "PLM": "#D55E00",            # vermillion
+    "PLM_Domains": "#009E73",    # green
+    "Domains_no_distractors": "#0072B2",
+    "PLM_no_distractors": "#D55E00",
+    "PLM_Domains_no_distractors": "#009E73",
+    # HBI baselines & comparators.
+    "BLAST": "#0072B2",          # blue (sequence search)
+    "Blastp": "#0072B2",
+    "Foldseek": "#56B4E9",       # sky blue (structure search)
+    "FoldSeek": "#56B4E9",
+    "HMM": "#E69F00",            # orange (HMM)
+    "PFAM": "#D55E00",           # vermillion (Pfam DB)
+    "SUPFAM": "#999999",         # neutral grey
+    "CLEAN": "#CC79A7",          # pink (ML)
+    "BLAST_no_distractors": "#0072B2",
+    "Foldseek_no_distractors": "#56B4E9",
+    "HMM_no_distractors": "#E69F00",
+    "PFAM_no_distractors": "#D55E00",
+    "SUPFAM_no_distractors": "#999999",
+    # ML-head ablation siblings.
+    "PLM_RF": "#0072B2",
+    "PLM_Xgb": "#D55E00",
+    "PLM_MLP": "#009E73",
+    "PLM_Domains_LR": "#0072B2",
+    "PLM_Domains_MLP": "#D55E00",
+    "PLM_Domains_RF": "#009E73",
+    # PLM-head encoder ablations (6 variants → full Okabe-Ito set).
+    "PLM_AnkhBase": "#0072B2",
+    "PLM_AnkhLarge": "#56B4E9",
+    "PLM_Esm1v": "#E69F00",
+    "PLM_Esm2": "#D55E00",
+    "PLM_TpsAnkhBase": "#009E73",
+    "PLM_TpsEsm1vSubseq": "#CC79A7",
+    # PLM_Domains-head encoder ablations.
+    "PLM_Domains_AnkhBase": "#0072B2",
+    "PLM_Domains_AnkhLarge": "#56B4E9",
+    "PLM_Domains_Esm1v": "#E69F00",
+    "PLM_Domains_Esm2": "#D55E00",
+    "PLM_Domains_TpsAnkhBase": "#009E73",
+    "PLM_Domains_TpsEsm1vSubseq": "#CC79A7",
+}
 
-    PDF/PS font types are forced to TrueType (``42``) so vectors embed text
-    rather than rasterising it for paper figures.
+
+def apply_theme(context: str = "paper", base_font_size: float = 8.0) -> None:
+    """Apply Nature Chemical Biology-style figure defaults.
+
+    Conventions enforced here:
+
+    * **Sans-serif**, falling back from Helvetica/Arial to whatever's
+      available — matches NCB body text.
+    * 8 pt base, 9 pt axis labels, 9 pt titles. Single-column figures
+      should sit comfortably at ~3.4″.
+    * Hairline (0.6 pt) axes, top/right spines off, ticks pointing
+      outward.
+    * No grid by default — turn it on per-axis when the data demands it.
+    * Vector-safe (TrueType) fonts so saved PDFs are searchable.
+    * 600 DPI for raster fallbacks.
     """
-    sns.set_theme(style="whitegrid", context=context)
+    sns.set_theme(style="ticks", context=context)
     mpl.rcParams.update(
         {
             "pdf.fonttype": 42,
             "ps.fonttype": 42,
+            "svg.fonttype": "none",
             "savefig.bbox": "tight",
-            "savefig.dpi": 200,
+            "savefig.dpi": 600,
+            "savefig.transparent": False,
+            "figure.dpi": 150,
+            "font.family": "sans-serif",
+            "font.sans-serif": [
+                "Helvetica", "Arial", "DejaVu Sans", "Liberation Sans",
+            ],
             "font.size": base_font_size,
-            "axes.titlesize": base_font_size + 4,
+            "axes.titlesize": base_font_size + 3,
+            "axes.titleweight": "regular",
             "axes.labelsize": base_font_size + 1,
+            "axes.labelweight": "regular",
+            "figure.titlesize": base_font_size + 3,
+            "figure.titleweight": "regular",
+            "axes.linewidth": 0.6,
+            "axes.spines.top": False,
+            "axes.spines.right": False,
+            "axes.edgecolor": "0.15",
+            "axes.titlepad": 6.0,
+            "axes.labelpad": 3.0,
+            "axes.grid": False,
+            "grid.linewidth": 0.4,
+            "grid.color": "0.85",
+            "grid.alpha": 1.0,
             "legend.fontsize": base_font_size - 1,
+            "legend.frameon": False,
+            "legend.handlelength": 1.2,
+            "legend.handletextpad": 0.5,
+            "legend.borderaxespad": 0.4,
             "xtick.labelsize": base_font_size - 1,
             "ytick.labelsize": base_font_size - 1,
+            "xtick.direction": "out",
+            "ytick.direction": "out",
+            "xtick.major.size": 3.0,
+            "ytick.major.size": 3.0,
+            "xtick.major.width": 0.6,
+            "ytick.major.width": 0.6,
+            "xtick.minor.visible": False,
+            "ytick.minor.visible": False,
+            "lines.linewidth": 1.2,
+            "lines.markersize": 4.0,
+            "patch.linewidth": 0.6,
+            "patch.edgecolor": "0.15",
         }
     )
 

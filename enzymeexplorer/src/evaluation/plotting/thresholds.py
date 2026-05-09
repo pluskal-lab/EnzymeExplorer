@@ -82,7 +82,7 @@ def plot_threshold_sweep(
     xlabel: str = "Threshold",
     ylabel: str | None = None,
     ylim: tuple[float, float] | None = None,
-    figsize: tuple[float, float] = (14, 5),
+    figsize: tuple[float, float] = (6.4, 3.2),
     mark_argmax: bool = True,
     ax: plt.Axes | None = None,
 ) -> plt.Figure:
@@ -116,25 +116,34 @@ def plot_threshold_sweep(
         ys = sub["value"].to_numpy() * 100
         xs = sub["x"].to_numpy()
         color = palette.get(cls, (0.4, 0.4, 0.4))
-        ax.plot(xs, ys, marker="o", markersize=4, label=cls, color=color, linewidth=1.4)
+        ax.plot(xs, ys, marker="o", markersize=2.5, label=cls, color=color, linewidth=1.0)
         if mark_argmax and len(ys):
             best = int(np.argmax(ys))
-            ax.scatter(xs[best], ys[best], color="black", s=80, zorder=5, alpha=0.7)
+            ax.scatter(
+                xs[best], ys[best], facecolor="white",
+                edgecolor=color, linewidth=1.1, s=28, zorder=5,
+            )
 
     if version_to_x:
         sorted_xs = sorted(set(version_to_x.values()))
         ax.set_xticks(sorted_xs)
         ax.set_xticklabels(
             [pos_to_label.get(x, str(x)) for x in sorted_xs],
-            rotation=45,
+            rotation=30,
             ha="right",
         )
+    ax.yaxis.grid(True, color="0.92", linewidth=0.4)
+    ax.set_axisbelow(True)
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel if ylabel is not None else "AP (%)")
-    ax.set_title(title)
+    ax.set_title(title, loc="left")
     if ylim is not None:
         ax.set_ylim(*ylim)
-    ax.legend(loc="upper left", bbox_to_anchor=(1.02, 1), frameon=False, ncols=1)
+    ax.legend(
+        loc="upper left", bbox_to_anchor=(1.02, 1.0),
+        frameon=False, title=None,
+        handlelength=1.2, handletextpad=0.4, labelspacing=0.25, fontsize=7,
+    )
     fig.tight_layout()
     return fig
 

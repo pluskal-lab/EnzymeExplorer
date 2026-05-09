@@ -100,9 +100,8 @@ from enzymeexplorer.src.evaluation import (
     aggregate as agg,
     bootstrap as bs,
     cache as boot_cache,
-    confidence_tiers as ct,
+    calibration as cal,
     io as eio,
-    prediction_thresholds as pt,
     selection as sel,
 )
 from enzymeexplorer.src.evaluation.classes import (
@@ -111,13 +110,14 @@ from enzymeexplorer.src.evaluation.classes import (
 )
 from enzymeexplorer.src.evaluation.plotting import (
     bars,
+    calibration as cal_plots,
     categorical,
-    confidence_tiers as ct_plots,
     curves,
-    prediction_thresholds as pt_plots,
+    deltas as delta_plots,
     theme,
     thresholds,
 )
+from enzymeexplorer.src.evaluation.significance import compute_pvalues
 from enzymeexplorer.src.utils.project_info import get_evaluations_output
 
 logger = logging.getLogger(__name__)
@@ -148,21 +148,45 @@ def _resolve_version_spec(label: str, spec: dict, classes: list[str]):
     raise ValueError(f"Unknown selection mode for {label}: {mode!r}")
 
 
-def _build_classifier_dfs(cfg: dict):
+def _build_classifier_dfs(
+    cfg: dict,
+    pinned_resolved: dict[str, dict] | None = None,
+):
+    """Resolve and load all classifiers in ``cfg``.
+
+    When ``pinned_resolved`` is provided (a previously-saved
+    ``resolved_versions.yaml`` payload), each classifier label found
+    there bypasses ``_resolve_version_spec`` and uses the recorded
+    ``resolved_versions`` and ``experiment_timestamps`` exactly. This
+    is the supported way to reproduce an evaluation while a new
+    training is mid-flight: the latest timestamped run might be
+    incomplete or worse than the previous one.
+    """
     classifier_to_dfs: dict[str, dict[str, dict[int, eio.FoldDfs]]] = {}
     classifier_to_timestamps: dict[str, dict[str, str]] = {}
     resolved: dict[str, dict] = {}
     for label, spec in cfg["classifiers"].items():
         classes = list(spec["classes"])
-        try:
-            version_spec = _resolve_version_spec(label, spec, classes)
-        except (FileNotFoundError, RuntimeError) as exc:
-            logger.warning("Skipping %s: cannot resolve version (%s)", label, exc)
-            continue
-        logger.info("Resolved %s -> %s", label, version_spec)
+        pinned = pinned_resolved.get(label) if pinned_resolved else None
+        if pinned is not None:
+            version_spec = pinned["resolved_versions"]
+            ts_per_class = dict(pinned.get("experiment_timestamps") or {})
+            logger.info(
+                "Pinned %s -> %s (timestamps from resolved_versions.yaml)",
+                label, version_spec,
+            )
+        else:
+            try:
+                version_spec = _resolve_version_spec(label, spec, classes)
+            except (FileNotFoundError, RuntimeError) as exc:
+                logger.warning("Skipping %s: cannot resolve version (%s)", label, exc)
+                continue
+            ts_per_class = None
+            logger.info("Resolved %s -> %s", label, version_spec)
         try:
             dfs, timestamps = eio.load_classifier_class_fold_dfs(
-                spec["model"], version_spec, classes=classes
+                spec["model"], version_spec, classes=classes,
+                timestamps_per_class=ts_per_class,
             )
         except (FileNotFoundError, KeyError) as exc:
             logger.warning(
@@ -181,6 +205,110 @@ def _build_classifier_dfs(cfg: dict):
     return classifier_to_dfs, classifier_to_timestamps, resolved
 
 
+def _run_calibration_evaluate(
+    cfg: dict,
+    out_dir: Path,
+    classifier_to_dfs: dict[str, dict[str, dict[int, eio.FoldDfs]]],
+) -> None:
+    """Compute calibration artefacts and persist them under ``<out_dir>/calibration/``.
+
+    Runs only when the eval YAML has a ``calibration:`` block. Plots are
+    NOT produced here — :func:`run_visualize` reads these CSVs/parquets
+    and renders the figures.
+    """
+    cal_cfg = cfg.get("calibration") or {}
+    if not cal_cfg:
+        return
+
+    target_classifiers = list(cal_cfg.get(
+        "classifiers", list(classifier_to_dfs.keys()),
+    ))
+    target_classes = list(cal_cfg.get("classes", DEFAULT_PLOT_ORDER))
+    min_n_pos = int(cal_cfg.get("min_n_pos", cal.DEFAULT_MIN_N_POS))
+    score_eps = float(cal_cfg.get("score_eps", cal.DEFAULT_SCORE_EPS))
+    n_bootstrap = int(cal_cfg.get("n_bootstrap", cal.DEFAULT_N_BOOTSTRAP))
+    bootstrap_seed = int(cal_cfg.get(
+        "bootstrap_seed", cal.DEFAULT_BOOTSTRAP_SEED,
+    ))
+    n_reliability_bins = int(cal_cfg.get(
+        "n_reliability_bins", cal.DEFAULT_N_RELIABILITY_BINS,
+    ))
+    top_k_fp = int(cal_cfg.get("top_k_fp", cal.DEFAULT_TOP_K_FP))
+    bottom_k_fn = int(cal_cfg.get("bottom_k_fn", cal.DEFAULT_BOTTOM_K_FN))
+    ci = float(cal_cfg.get("ci", cal.DEFAULT_CI))
+    fold_drift_threshold = float(cal_cfg.get(
+        "fold_drift_threshold", cal.DEFAULT_FOLD_DRIFT_THRESHOLD,
+    ))
+    families = tuple(cal_cfg.get("families", cal.DEFAULT_FAMILIES))
+    family_tolerance = float(cal_cfg.get(
+        "family_tolerance", cal.DEFAULT_FAMILY_TOLERANCE,
+    ))
+
+    cal_dir = out_dir / "calibration"
+    cal_dir.mkdir(parents=True, exist_ok=True)
+
+    oof_per_clf_class: dict[str, dict[str, cal.OofFrame]] = {}
+    for clf in target_classifiers:
+        cls_map = classifier_to_dfs.get(clf, {})
+        oof_per_clf_class[clf] = {}
+        for cls in target_classes:
+            if cls not in cls_map:
+                continue
+            oof_per_clf_class[clf][cls] = cal.build_oof_frame(
+                cls_map[cls], cls, clf,
+            )
+
+    artefacts = cal.fit_calibration_table(
+        oof_per_clf_class,
+        families=families,
+        family_tolerance=family_tolerance,
+        min_n_pos=min_n_pos,
+        eps=score_eps,
+        n_bootstrap=n_bootstrap,
+        bootstrap_seed=bootstrap_seed,
+        n_reliability_bins=n_reliability_bins,
+        top_k_fp=top_k_fp,
+        bottom_k_fn=bottom_k_fn,
+        ci=ci,
+        fold_drift_threshold=fold_drift_threshold,
+    )
+
+    artefacts.fit_summary.to_csv(cal_dir / "fit_summary.csv", index=False)
+    if not artefacts.selection_log_loss.empty:
+        artefacts.selection_log_loss.to_csv(
+            cal_dir / "selection_log_loss.csv", index=False,
+        )
+    if not artefacts.skipped.empty:
+        artefacts.skipped.to_csv(cal_dir / "skipped.csv", index=False)
+    if not artefacts.lofo_predictions.empty:
+        artefacts.lofo_predictions.to_parquet(
+            cal_dir / "lofo_predictions.parquet", index=False,
+        )
+    if not artefacts.reliability.empty:
+        artefacts.reliability.to_csv(cal_dir / "reliability.csv", index=False)
+    if not artefacts.metrics.empty:
+        artefacts.metrics.to_csv(cal_dir / "metrics.csv", index=False)
+    if not artefacts.ribbon.empty:
+        artefacts.ribbon.to_parquet(cal_dir / "ribbon.parquet", index=False)
+    if not artefacts.per_fold_params.empty:
+        artefacts.per_fold_params.to_csv(
+            cal_dir / "per_fold_params.csv", index=False,
+        )
+    if not artefacts.fold_drift_summary.empty:
+        artefacts.fold_drift_summary.to_csv(
+            cal_dir / "fold_drift_summary.csv", index=False,
+        )
+    if not artefacts.hard_errors.empty:
+        artefacts.hard_errors.to_csv(cal_dir / "hard_errors.csv", index=False)
+
+    n_fits = int((artefacts.fit_summary["family"].notna()).sum()) \
+        if not artefacts.fit_summary.empty else 0
+    logger.info(
+        "Saved calibration artefacts to %s (%d fitted (clf, class) pairs)",
+        cal_dir, n_fits,
+    )
+
+
 def _x_position(version: str, mode: str) -> float | None:
     if mode == "neglog10":
         return thresholds.parse_eval_neglog10(version)
@@ -197,97 +325,268 @@ def run_evaluate(args: argparse.Namespace) -> None:
     out_dir = get_evaluations_output() / args.output_name
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    classifier_to_dfs, classifier_to_timestamps, resolved = _build_classifier_dfs(cfg)
+    pinned_resolved: dict[str, dict] | None = None
+    if getattr(args, "use_existing_resolved_versions", False):
+        rv_path = out_dir / "resolved_versions.yaml"
+        if rv_path.exists():
+            loaded = yaml.safe_load(rv_path.read_text()) or {}
+            pinned_resolved = loaded
+            logger.info(
+                "Pinning to existing resolved_versions.yaml at %s "
+                "(skipping spec-based version resolution for %d labels)",
+                rv_path, len(loaded),
+            )
+        else:
+            logger.warning(
+                "--use-existing-resolved-versions set but %s does not exist; "
+                "falling back to spec-based resolution",
+                rv_path,
+            )
+
+    classifier_to_dfs, classifier_to_timestamps, resolved = _build_classifier_dfs(
+        cfg, pinned_resolved=pinned_resolved,
+    )
 
     with open(out_dir / "resolved_versions.yaml", "w", encoding="utf-8") as fh:
         yaml.safe_dump(resolved, fh, sort_keys=False)
     with open(out_dir / "eval_config.yaml", "w", encoding="utf-8") as fh:
         yaml.safe_dump(cfg, fh, sort_keys=False)
 
-    bcfg = cfg.get("bootstrap", {})
+    bcfg = cfg.get("bootstrap")
+    # Calibration-only configs (e.g. evaluation/calibration/*.yaml) have no
+    # ``bootstrap`` block. The calibration data work (family selection,
+    # cluster bootstrap, reliability, hard errors) runs at the bottom of
+    # this function via _run_calibration_evaluate; visualize then only
+    # renders plots from the saved artefacts. Skip the paired-bootstrap
+    # pipeline so calibration-only runs finish quickly.
+    if not bcfg:
+        logger.info(
+            "No 'bootstrap' block in config — skipping paired bootstrap, "
+            "summary CIs, p-values, aggregates, and categorical AP."
+        )
+        # Still emit the threshold_sweep artefacts if asked (they don't
+        # depend on bootstrap output either).
+        sweep_cfg = cfg.get("threshold_sweep")
+        if sweep_cfg:
+            sweep_dir = out_dir / "threshold_sweep"
+            sweep_dir.mkdir(parents=True, exist_ok=True)
+            for entry in sweep_cfg:
+                label = entry["label"]
+                sweep_classes = entry.get("classes", DEFAULT_PLOT_ORDER)
+                with_distractors = bool(entry.get("with_distractors", True))
+                candidates = sel.discover_versions(
+                    entry["model"], prefix=entry["prefix"],
+                    with_distractors=with_distractors,
+                )
+                sweep_df = thresholds.compute_threshold_sweep(
+                    entry["model"], candidates, sweep_classes,
+                    metric=entry.get("metric", "ap"),
+                )
+                sweep_df["x_axis"] = entry.get("x_axis", "neglog10")
+                sweep_df["x_label"] = entry.get("x_label", "")
+                sweep_df.to_csv(sweep_dir / f"{label}.csv", index=False)
+                logger.info("Saved threshold sweep '%s' (%d rows)", label, len(sweep_df))
+
+        _run_calibration_evaluate(cfg, out_dir, classifier_to_dfs)
+        return
+
     metrics = tuple(bcfg.get("metrics", ["ap", "roc_auc"]))
-    n_boot = int(bcfg.get("n_bootstraps", 2000))
+    n_boot = int(bcfg.get("n_bootstraps", 1000))
     seed = int(bcfg.get("seed", 42))
-    mode = bcfg.get("mode", "cluster")
+    ap_types = tuple(bcfg.get("ap_types", ["pooled_oof", "fold_mean"]))
     ci = float(bcfg.get("ci", 0.95))
-    ci_method = bcfg.get("ci_method", "percentile")
+    target_model = bcfg.get("target_model")
+    p_adjustment = bcfg.get("p_adjustment", "holm")
 
     force_all = bool(getattr(args, "force_bootstrap", False))
-    force_specific = set(getattr(args, "force_classifiers", None) or [])
 
-    parts: list[bs.BootstrapResult] = []
-    for label, fold_dfs in classifier_to_dfs.items():
-        spec = cfg["classifiers"][label]
-        ver = resolved[label]["resolved_versions"]
-        force = force_all or label in force_specific
-        result, hit = boot_cache.bootstrap_with_cache(
-            classifier=label,
-            model=spec["model"],
-            version_spec=ver,
-            class_to_fold_dfs=fold_dfs,
-            timestamps=classifier_to_timestamps[label],
-            metrics=metrics,
-            n_bootstraps=n_boot,
-            seed=seed,
-            mode=mode,
-            force=force,
-        )
-        parts.append(result)
-        logger.info(
-            "Classifier %s: %s (n_draws=%d)",
-            label, "cache hit" if hit else "fresh", n_boot,
-        )
-    result = boot_cache.merge_results(parts)
+    classifier_metadata = {
+        label: {
+            "model": cfg["classifiers"][label]["model"],
+            "version_spec": resolved[label]["resolved_versions"],
+            "timestamps": classifier_to_timestamps[label],
+        }
+        for label in classifier_to_dfs
+    }
+
+    result, cache_hit = boot_cache.paired_bootstrap_with_cache(
+        classifier_to_dfs,
+        classifier_metadata,
+        metrics=metrics,
+        ap_types=ap_types,
+        n_bootstraps=n_boot,
+        seed=seed,
+        target_model=target_model,
+        force=force_all,
+    )
+    logger.info(
+        "v4 paired bootstrap: %s (n_classifiers=%d, n_draws=%d, ap_types=%s)",
+        "cache hit" if cache_hit else "fresh",
+        len(classifier_to_dfs), n_boot, ap_types,
+    )
+
     aggregates = cfg.get("aggregates")
     if aggregates:
         result = agg.add_aggregates(result, aggregates)
     result.save(out_dir)
-    bs.compute_cis(result, method=ci_method, ci=ci).to_csv(
-        out_dir / "summary.csv", index=False
-    )
-    logger.info("Saved global evaluation artefacts to %s", out_dir)
 
-    categories_cfg = cfg.get("categories")
-    if categories_cfg:
-        meta_csv = cfg.get("id_metadata", {}).get("csv")
-        if not meta_csv:
-            raise ValueError("categories require id_metadata.csv to be set")
-        wanted_cols = sorted({c["column"] for c in categories_cfg.values()})
-        kingdom_cache = cfg.get("id_metadata", {}).get(
-            "kingdom_cache", "data/uniprot_kingdom_cache.json"
-        )
-        meta = eio.load_id_metadata(
-            meta_csv, wanted_cols, kingdom_cache=kingdom_cache,
-        )
-        for cat_label, cat_spec in categories_cfg.items():
-            if cat_spec.get("type_grouping"):
-                logger.info(
-                    "Skipping categorical bootstrap for %s (type_grouping=True; "
-                    "boxplot/heatmap rendered from global bootstrap at visualize time)",
-                    cat_label,
+    # AP summaries: one CSV per CI method, plus a unified summary with all 3.
+    ap_pieces: list[pd.DataFrame] = []
+    delta_pieces: list[pd.DataFrame] = []
+    for ci_method in ("normal", "percentile", "bca"):
+        try:
+            ap_summary = bs.compute_cis(
+                result.long_ap, result.point_ap, method=ci_method, ci=ci,
+                jackknife=result.jackknife_ap if ci_method == "bca" else None,
+            )
+        except ValueError as exc:
+            logger.warning("Skipping AP CI method %s: %s", ci_method, exc)
+            continue
+        ap_summary["ci_method"] = ci_method
+        ap_pieces.append(ap_summary)
+        if not result.long_delta.empty:
+            try:
+                d_summary = bs.compute_cis(
+                    result.long_delta, result.point_delta, method=ci_method, ci=ci,
+                    jackknife=result.jackknife_delta if ci_method == "bca" else None,
                 )
+            except ValueError as exc:
+                logger.warning("Skipping delta CI method %s: %s", ci_method, exc)
                 continue
-            id_to_cat = meta[cat_spec["column"]]
-            cat_dir = out_dir / "categories" / cat_label
-            cat_dir.mkdir(parents=True, exist_ok=True)
-            cat_result = bs.bootstrap_categorical_metric_cis(
+            d_summary["ci_method"] = ci_method
+            delta_pieces.append(d_summary)
+    summary_ap = pd.concat(ap_pieces, ignore_index=True) if ap_pieces else pd.DataFrame()
+    summary_delta = (
+        pd.concat(delta_pieces, ignore_index=True) if delta_pieces else pd.DataFrame()
+    )
+    summary_ap.to_csv(out_dir / "summary_ap.csv", index=False)
+    summary_delta.to_csv(out_dir / "summary_delta.csv", index=False)
+
+    # P-values per (class, metric, ap_type). Adjustment applied within
+    # each family.
+    pvalues = compute_pvalues(result.long_delta, adjustment=p_adjustment)
+    pvalues.to_csv(out_dir / "pvalues.csv", index=False)
+
+    logger.info("Saved v4 evaluation artefacts to %s", out_dir)
+
+    # ----------------------------------------------------------------------
+    # Categorical AP (Kingdom + TPS_Type) — reuses the same draws as the
+    # main bootstrap. Type-grouped categories are pure post-processing of
+    # ``result.long_ap`` (no replay); masked categories replay the v4 RNG
+    # with the same seed and re-evaluate AP under a row mask.
+    # ----------------------------------------------------------------------
+    categories_cfg = cfg.get("categories") or {}
+    if categories_cfg:
+        from enzymeexplorer.src.evaluation import categorical_bootstrap as cat_bs
+
+        type_groupings: dict[str, dict[str, str]] = {}
+        masked_categories: dict[str, dict[str, str]] = {}
+        negative_labels: dict[str, str] = {}
+        for cat_name, cat_spec in categories_cfg.items():
+            negative_labels[cat_name] = cat_spec.get("negative_label", "Unknown")
+            if cat_spec.get("type_grouping"):
+                from enzymeexplorer.src.evaluation.classes import SUBSTRATE_TO_TYPE
+
+                type_groupings[cat_name] = dict(
+                    cat_spec.get("class_to_type") or SUBSTRATE_TO_TYPE
+                )
+            else:
+                meta_csv = cfg.get("id_metadata", {}).get("csv")
+                if not meta_csv:
+                    raise ValueError(
+                        f"category {cat_name!r} requires id_metadata.csv"
+                    )
+                kingdom_cache = cfg.get("id_metadata", {}).get(
+                    "kingdom_cache", "data/uniprot_kingdom_cache.json"
+                )
+                meta = eio.load_id_metadata(
+                    meta_csv, [cat_spec["column"]],
+                    kingdom_cache=kingdom_cache,
+                )
+                masked_categories[cat_name] = meta[cat_spec["column"]]
+
+        long_pieces: list[pd.DataFrame] = []
+        point_pieces: list[pd.DataFrame] = []
+        if type_groupings:
+            l, p = cat_bs.compute_type_aggregated_ap(
+                result.long_ap, result.point_ap, type_groupings=type_groupings,
+            )
+            if not l.empty:
+                long_pieces.append(l)
+            if not p.empty:
+                point_pieces.append(p)
+        if masked_categories:
+            l, p = cat_bs.compute_masked_ap_from_seed(
                 classifier_to_dfs,
-                id_to_category=id_to_cat,
-                category_name=cat_label,
-                categories=list(cat_spec.get("order")) if cat_spec.get("order") else None,
-                negative_label=cat_spec.get("negative_label", "Unknown"),
+                masked_categories=masked_categories,
                 metrics=metrics,
+                ap_types=ap_types,
                 n_bootstraps=n_boot,
                 seed=seed,
-                mode=mode,
+                negative_labels=negative_labels,
             )
-            if aggregates:
-                cat_result = agg.add_aggregates(cat_result, aggregates)
-            cat_result.save(cat_dir)
-            bs.compute_cis(cat_result, method=ci_method, ci=ci).to_csv(
-                cat_dir / "summary.csv", index=False
+            if not l.empty:
+                long_pieces.append(l)
+            if not p.empty:
+                point_pieces.append(p)
+
+        if long_pieces or point_pieces:
+            cat_long = (
+                pd.concat(long_pieces, ignore_index=True)
+                if long_pieces else pd.DataFrame()
             )
-            logger.info("Saved categorical artefacts (%s) to %s", cat_label, cat_dir)
+            cat_point = (
+                pd.concat(point_pieces, ignore_index=True)
+                if point_pieces else pd.DataFrame()
+            )
+            cat_long.to_csv(out_dir / "bootstrap_long_categorical_ap.csv", index=False)
+            cat_point.to_csv(out_dir / "point_estimates_categorical_ap.csv", index=False)
+            # Per-category CIs across all (ap_type, ci_method) pairs.
+            cat_summary_pieces: list[pd.DataFrame] = []
+            if not cat_long.empty:
+                cat_keys = ["classifier", "class", "metric", "ap_type",
+                            "category_name", "category"]
+                for ci_method in ("normal", "percentile"):
+                    grouped = cat_long.groupby(cat_keys)["value"]
+                    rows = []
+                    if ci_method == "normal":
+                        from scipy.stats import norm  # type: ignore
+                        z = float(norm.ppf(1 - (1 - ci) / 2))
+                        for key, draws in grouped:
+                            arr = draws.dropna().to_numpy(dtype=float)
+                            if arr.size < 2:
+                                continue
+                            sd = float(np.std(arr, ddof=1))
+                            mean = float(np.mean(arr))
+                            rows.append({
+                                **dict(zip(cat_keys, key)),
+                                "point": mean,
+                                "ci_low": mean - z * sd,
+                                "ci_high": mean + z * sd,
+                                "ci_method": ci_method,
+                            })
+                    else:  # percentile
+                        for key, draws in grouped:
+                            arr = draws.dropna().to_numpy(dtype=float)
+                            if arr.size == 0:
+                                continue
+                            rows.append({
+                                **dict(zip(cat_keys, key)),
+                                "point": float(np.median(arr)),
+                                "ci_low": float(np.quantile(arr, (1 - ci) / 2)),
+                                "ci_high": float(np.quantile(arr, 1 - (1 - ci) / 2)),
+                                "ci_method": ci_method,
+                            })
+                    cat_summary_pieces.append(pd.DataFrame.from_records(rows))
+            cat_summary = (
+                pd.concat(cat_summary_pieces, ignore_index=True)
+                if cat_summary_pieces else pd.DataFrame()
+            )
+            cat_summary.to_csv(out_dir / "summary_categorical_ap.csv", index=False)
+            logger.info(
+                "Saved categorical AP artefacts (%d type-grouped + %d masked) to %s",
+                len(type_groupings), len(masked_categories), out_dir,
+            )
 
     sweep_cfg = cfg.get("threshold_sweep")
     if sweep_cfg:
@@ -309,6 +608,8 @@ def run_evaluate(args: argparse.Namespace) -> None:
             sweep_df["x_label"] = entry.get("x_label", "")
             sweep_df.to_csv(sweep_dir / f"{label}.csv", index=False)
             logger.info("Saved threshold sweep '%s' (%d rows)", label, len(sweep_df))
+
+    _run_calibration_evaluate(cfg, out_dir, classifier_to_dfs)
 
 
 def _load_classifier_dfs_for_visualize(eval_dir: Path):
@@ -335,11 +636,18 @@ def _resolve_classifier_order(
     args: argparse.Namespace,
     summary: pd.DataFrame,
     vcfg: dict,
+    cfg: dict | None = None,
 ) -> list[str]:
+    summary_order = (
+        sorted(summary["classifier"].unique())
+        if not summary.empty and "classifier" in summary.columns
+        else []
+    )
     order = (
         args.classifier_order
         or vcfg.get("classifier_order")
-        or sorted(summary["classifier"].unique())
+        or summary_order
+        or (list(cfg.get("classifiers", {}).keys()) if cfg else [])
     )
     return list(order)
 
@@ -348,6 +656,349 @@ def _apply_pin_last(order: list[str], pin: str | None) -> list[str]:
     if pin is None or pin not in order:
         return order
     return [c for c in order if c != pin] + [pin]
+
+
+def _delta_pair_order(
+    summary_delta: pd.DataFrame, *, classifier_rank: list[str],
+) -> list[tuple[str, str]]:
+    """Sort delta pairs (a, b) by performance.
+
+    Each pair is keyed by ``(rank(a), rank(b))`` where ``rank`` is the
+    index of the classifier in ``classifier_rank`` (worst→best). Lower
+    rank → earlier on the x-axis. Pair orientation (which side is
+    ``classifier_a``) is preserved from ``summary_delta``; ordering is
+    only over the existing pairs."""
+    rank = {c: i for i, c in enumerate(classifier_rank)}
+    pairs = (
+        summary_delta[["classifier_a", "classifier_b"]]
+        .drop_duplicates()
+        .itertuples(index=False, name=None)
+    )
+    big = len(classifier_rank) + 1
+    return sorted(
+        pairs,
+        key=lambda p: (
+            min(rank.get(p[0], big), rank.get(p[1], big)),
+            max(rank.get(p[0], big), rank.get(p[1], big)),
+        ),
+    )
+
+
+def _render_v4_scenarios(
+    *,
+    eval_dir: Path,
+    summary_ap: pd.DataFrame,
+    summary_delta: pd.DataFrame,
+    long_ap: pd.DataFrame,
+    long_delta: pd.DataFrame,
+    pvalues: pd.DataFrame,
+    cfg: dict,
+    plot_set: set[str] | None = None,
+) -> None:
+    """Write 14 plots per scenario into ``eval_dir/plots/<scenario>/``.
+
+    Scenarios:
+      * ``tps_detection``     — single class TPS
+      * ``substrate_map``     — Substrate_mAP aggregate
+      * ``substrate_per_class`` — every substrate class
+
+    Per scenario:
+      * ap/ ⟶ 6 bar plots (2 ap_types × 3 ci_methods)
+      * delta/ ⟶ 6 delta forest plots
+      * pvalues/ ⟶ 2 p-value heatmaps (one per ap_type)
+    """
+    plots_root = eval_dir / "plots"
+    plots_root.mkdir(parents=True, exist_ok=True)
+
+    vcfg = cfg.get("visualize", {}) or {}
+    metric = vcfg.get("metric", "ap")
+    explicit_order = list(vcfg.get("classifier_order") or [])
+    pin_last = vcfg.get("pin_last")
+    fixed_classifier_order = bool(vcfg.get("fixed_classifier_order"))
+    xtick_overrides = dict(vcfg.get("ablation_xtick_overrides") or {})
+    yaml_palette = dict(vcfg.get("palette") or {}) or None
+
+    ap_types_present = sorted(summary_ap["ap_type"].unique())
+    ci_methods_present = sorted(summary_ap["ci_method"].unique())
+
+    # Canonical sort key — picks a single (ap_type, ci_method) so the order
+    # is the same across all 6 panel variants of a given scenario.
+    sort_ap_type = "fold_mean" if "fold_mean" in ap_types_present else ap_types_present[0]
+    sort_ci_method = "normal" if "normal" in ci_methods_present else ci_methods_present[0]
+
+    # Effective palette: master + YAML overrides. YAML wins per-key.
+    palette = dict(theme.UNIVERSAL_PALETTE)
+    if yaml_palette:
+        palette.update(yaml_palette)
+
+    def _order_for(class_list: list[str]) -> list[str]:
+        """Resolve the per-scenario classifier order.
+
+        * Explicit ``classifier_order`` (with ``fixed_classifier_order``)
+          wins outright — used by ablation configs.
+        * Otherwise sort classifiers by mean point AP across the scenario's
+          classes (worst→best, left→right) using the canonical
+          (``fold_mean``, ``normal``) cell, then move ``pin_last`` to the
+          end if set — used by all_methods_comparison configs.
+        """
+        if explicit_order and fixed_classifier_order:
+            return list(explicit_order)
+        sub = summary_ap[
+            (summary_ap["metric"] == metric)
+            & (summary_ap["ap_type"] == sort_ap_type)
+            & (summary_ap["ci_method"] == sort_ci_method)
+            & (summary_ap["class"].isin(class_list))
+        ].dropna(subset=["point"])
+        if sub.empty:
+            order = sorted(summary_ap["classifier"].unique())
+        else:
+            order = (
+                sub.groupby("classifier")["point"].mean()
+                   .sort_values(ascending=True).index.tolist()
+            )
+        if pin_last and pin_last in order:
+            order = [c for c in order if c != pin_last] + [pin_last]
+        return order
+
+    scenarios = [
+        ("tps_detection", ["TPS"], False, "TPS detection AP"),
+        ("substrate_map", ["Substrate_mAP"], False, "Substrate prediction mAP"),
+        ("substrate_per_class",
+            [c for c in DEFAULT_PLOT_ORDER if c in SUBSTRATE_CLASSES],
+            True, "Substrate prediction AP per class"),
+    ]
+    if plot_set is not None:
+        scenarios = [s for s in scenarios if s[0] in plot_set]
+
+    for scenario_name, class_list, multi_class, scenario_title in scenarios:
+        scen_dir = plots_root / scenario_name
+        ap_dir = scen_dir / "ap"
+        dlt_dir = scen_dir / "delta"
+        pv_dir = scen_dir / "pvalues"
+        for d in (ap_dir, dlt_dir, pv_dir):
+            d.mkdir(parents=True, exist_ok=True)
+
+        scenario_order = _order_for(class_list)
+
+        for ap_type in ap_types_present:
+            for ci_method in ci_methods_present:
+                # AP bar plot — one per (ap_type, ci_method).
+                sub = summary_ap[
+                    (summary_ap["metric"] == metric)
+                    & (summary_ap["ap_type"] == ap_type)
+                    & (summary_ap["ci_method"] == ci_method)
+                    & (summary_ap["class"].isin(class_list))
+                ].copy()
+                if sub.empty:
+                    continue
+                # Map column name back to ``method`` so bars.py can read it.
+                sub = sub.rename(columns={"ci_method": "method"})
+
+                # CI-based zoom ylim covering every CI on the panel.
+                ci_lo_pct = (sub["ci_low"].to_numpy() * 100.0).tolist()
+                ci_hi_pct = (sub["ci_high"].to_numpy() * 100.0).tolist()
+                zoom_ylim = bars.compute_ci_zoom_ylim(ci_lo_pct, ci_hi_pct)
+
+                if multi_class:
+                    fig = bars.bar_per_class(
+                        sub,
+                        classes=class_list,
+                        classifier_order=scenario_order,
+                        metric=metric,
+                        palette=palette,
+                        xtick_overrides=xtick_overrides,
+                        title=scenario_title,
+                    )
+                else:
+                    fig = bars.bar_classifier(
+                        sub, target_class=class_list[0], metric=metric,
+                        classifier_order=scenario_order,
+                        palette=palette,
+                        xtick_overrides=xtick_overrides,
+                        title=scenario_title,
+                    )
+                theme.save_figure(fig, ap_dir / f"ap_{ap_type}_{ci_method}")
+
+                # Zoomed companion: same data, ylim snapped to bracket
+                # every CI in the panel (multiples of 5).
+                if multi_class:
+                    fig_z = bars.bar_per_class(
+                        sub,
+                        classes=class_list,
+                        classifier_order=scenario_order,
+                        metric=metric,
+                        palette=palette,
+                        xtick_overrides=xtick_overrides,
+                        title=scenario_title,
+                        ylim=zoom_ylim,
+                    )
+                else:
+                    fig_z = bars.bar_classifier(
+                        sub, target_class=class_list[0], metric=metric,
+                        classifier_order=scenario_order,
+                        palette=palette,
+                        xtick_overrides=xtick_overrides,
+                        title=scenario_title,
+                        ylim=zoom_ylim,
+                    )
+                theme.save_figure(
+                    fig_z, ap_dir / f"ap_{ap_type}_{ci_method}_zoomed"
+                )
+
+                # Delta forest plot — one per (ap_type, ci_method).
+                # No transitive reduction: every pair is shown. Pair
+                # ordering on the x-axis follows ``scenario_order``: pairs
+                # are sorted by the *worst* of the two methods so the
+                # weaker-vs-everyone bars sit on the left and the
+                # strongest-vs-everyone (i.e. ``pin_last``) bars sit on
+                # the right.
+                if not summary_delta.empty:
+                    summary_delta_view = (
+                        summary_delta.rename(columns={"ci_method": "method"})
+                        if "method" not in summary_delta.columns
+                        else summary_delta
+                    )
+                    delta_title = re.sub(
+                        r"\b(m?AP)\b", r"Δ \1", scenario_title, count=1
+                    )
+                    pair_order = _delta_pair_order(
+                        summary_delta_view, classifier_rank=scenario_order,
+                    )
+                    fig = delta_plots.plot_delta_forest(
+                        long_delta,
+                        summary_delta_view,
+                        classes=class_list,
+                        metric=metric,
+                        ap_type=ap_type,
+                        ci_method=ci_method,
+                        title=delta_title,
+                        xtick_overrides=xtick_overrides,
+                        grouped=multi_class,
+                        pair_order=pair_order,
+                    )
+                    theme.save_figure(fig, dlt_dir / f"delta_{ap_type}_{ci_method}")
+
+        # P-value heatmap — one per ap_type. Every pair is shown (no
+        # transitive-reduction pruning) per the reporting spec.
+        for ap_type in ap_types_present:
+            if pvalues.empty or summary_delta.empty:
+                continue
+            fig = delta_plots.plot_pvalue_heatmap(
+                pvalues,
+                classes=class_list,
+                classifiers=scenario_order,
+                metric=metric,
+                ap_type=ap_type,
+                title=f"p-values — {scenario_title}",
+                xtick_overrides=xtick_overrides,
+            )
+            theme.save_figure(fig, pv_dir / f"pvalues_{ap_type}")
+
+    # ------------------------------------------------------------------
+    # Headline-subset extras (all_methods_comparison only): bar plots
+    # restricted to ``EnzymeExplorer + Foldseek + BLAST`` so the headline
+    # comparison is legible even when the full plot has 8+ methods.
+    # ------------------------------------------------------------------
+    headline_candidates = [
+        ("PLM_Domains", "Foldseek", "BLAST"),
+        ("PLM_Domains_no_distractors", "Foldseek_no_distractors", "BLAST_no_distractors"),
+    ]
+    available = set(summary_ap["classifier"].unique())
+    headline_subset = next(
+        (list(t) for t in headline_candidates if all(c in available for c in t)),
+        None,
+    )
+    if headline_subset is not None:
+        for scenario_name, class_list, multi_class, scenario_title in scenarios:
+            if multi_class:
+                continue  # only single-class headline scenarios
+            extras_ap_dir = plots_root / scenario_name / "ap"
+            extras_dlt_dir = plots_root / scenario_name / "delta"
+            for ap_type in ap_types_present:
+                for ci_method in ci_methods_present:
+                    sub = summary_ap[
+                        (summary_ap["metric"] == metric)
+                        & (summary_ap["ap_type"] == ap_type)
+                        & (summary_ap["ci_method"] == ci_method)
+                        & (summary_ap["class"].isin(class_list))
+                        & (summary_ap["classifier"].isin(headline_subset))
+                    ].copy()
+                    if sub.empty:
+                        continue
+                    sub = sub.rename(columns={"ci_method": "method"})
+                    # Sort the three subset classifiers by performance,
+                    # pinning EnzymeExplorer (PLM_Domains*) to the right.
+                    perf = (
+                        sub.groupby("classifier")["point"].mean()
+                           .sort_values(ascending=True).index.tolist()
+                    )
+                    ee_method = headline_subset[0]
+                    if ee_method in perf:
+                        perf = [c for c in perf if c != ee_method] + [ee_method]
+                    ci_lo_pct = (sub["ci_low"].to_numpy() * 100.0).tolist()
+                    ci_hi_pct = (sub["ci_high"].to_numpy() * 100.0).tolist()
+                    zoom_ylim = bars.compute_ci_zoom_ylim(ci_lo_pct, ci_hi_pct)
+                    fig = bars.bar_classifier(
+                        sub, target_class=class_list[0], metric=metric,
+                        classifier_order=perf, palette=palette,
+                        xtick_overrides=xtick_overrides,
+                        title=scenario_title,
+                    )
+                    theme.save_figure(
+                        fig, extras_ap_dir / f"ap_{ap_type}_{ci_method}_headline",
+                    )
+                    fig_z = bars.bar_classifier(
+                        sub, target_class=class_list[0], metric=metric,
+                        classifier_order=perf, palette=palette,
+                        xtick_overrides=xtick_overrides,
+                        title=scenario_title,
+                        ylim=zoom_ylim,
+                    )
+                    theme.save_figure(
+                        fig_z,
+                        extras_ap_dir / f"ap_{ap_type}_{ci_method}_headline_zoomed",
+                    )
+
+                    # Headline-subset delta forest — pairs restricted to
+                    # the three subset methods, ordered by ``perf``.
+                    if not summary_delta.empty:
+                        sd = (
+                            summary_delta.rename(columns={"ci_method": "method"})
+                            if "method" not in summary_delta.columns
+                            else summary_delta
+                        )
+                        sd_sub = sd[
+                            sd["classifier_a"].isin(headline_subset)
+                            & sd["classifier_b"].isin(headline_subset)
+                        ].reset_index(drop=True)
+                        ld_sub = long_delta[
+                            long_delta["classifier_a"].isin(headline_subset)
+                            & long_delta["classifier_b"].isin(headline_subset)
+                        ].reset_index(drop=True)
+                        if not sd_sub.empty:
+                            pair_order = _delta_pair_order(
+                                sd_sub, classifier_rank=perf,
+                            )
+                            delta_title = re.sub(
+                                r"\b(m?AP)\b", r"Δ \1", scenario_title, count=1,
+                            )
+                            fig_d = delta_plots.plot_delta_forest(
+                                ld_sub, sd_sub,
+                                classes=class_list,
+                                metric=metric,
+                                ap_type=ap_type,
+                                ci_method=ci_method,
+                                title=delta_title,
+                                xtick_overrides=xtick_overrides,
+                                grouped=False,
+                                pair_order=pair_order,
+                            )
+                            theme.save_figure(
+                                fig_d,
+                                extras_dlt_dir / f"delta_{ap_type}_{ci_method}_headline",
+                            )
+
+    logger.info("Wrote v4 scenario plots to %s", plots_root)
 
 
 def _resolve_visualize_cfg(eval_dir: Path, args: argparse.Namespace) -> dict:
@@ -387,7 +1038,36 @@ def run_visualize(args: argparse.Namespace) -> None:
     eval_dir = get_evaluations_output() / args.eval_output_name
     if not eval_dir.exists():
         raise FileNotFoundError(f"Eval dir not found: {eval_dir}")
-    summary = pd.read_csv(eval_dir / "summary.csv")
+
+    # v4 artefact set.
+    summary_ap = pd.read_csv(eval_dir / "summary_ap.csv") if (eval_dir / "summary_ap.csv").exists() else pd.DataFrame()
+    summary_delta = pd.read_csv(eval_dir / "summary_delta.csv") if (eval_dir / "summary_delta.csv").exists() else pd.DataFrame()
+    pvalues = pd.read_csv(eval_dir / "pvalues.csv") if (eval_dir / "pvalues.csv").exists() else pd.DataFrame()
+    long_ap_path = eval_dir / "bootstrap_long_ap.csv"
+    long_delta_path = eval_dir / "bootstrap_long_delta.csv"
+    long_ap = pd.read_csv(long_ap_path) if long_ap_path.exists() else pd.DataFrame()
+    long_delta = pd.read_csv(long_delta_path) if long_delta_path.exists() else pd.DataFrame()
+
+    # Backwards-compatible view: legacy run_visualize body downstream
+    # expects a single ``summary`` DataFrame with columns
+    # ``classifier, class, metric, point, ci_low, ci_high``. Derive it
+    # from summary_ap by selecting one (ap_type, ci_method) — defaults
+    # to the canonical (fold_mean, normal) pairing the user reports as
+    # the headline statistic.
+    if not summary_ap.empty:
+        legacy_view = summary_ap[
+            (summary_ap["ap_type"] == "fold_mean")
+            & (summary_ap["ci_method"] == "normal")
+        ].copy()
+        # The legacy summary used ``method`` not ``ci_method``; the bar
+        # functions only read ``point/ci_low/ci_high`` so this rename is
+        # a no-op for them, but kept for callers that depend on it.
+        legacy_view = legacy_view.rename(columns={"ci_method": "method"})
+        summary = legacy_view
+    else:
+        # Fallback: if a stale eval dir still has summary.csv, use it.
+        summary = pd.read_csv(eval_dir / "summary.csv") if (eval_dir / "summary.csv").exists() else pd.DataFrame()
+
     bootstrap_long_path = eval_dir / "bootstrap_long.csv"
     bootstrap_long = (
         pd.read_csv(bootstrap_long_path) if bootstrap_long_path.exists() else None
@@ -398,202 +1078,45 @@ def run_visualize(args: argparse.Namespace) -> None:
 
     vcfg = _resolve_visualize_cfg(eval_dir, args)
     plot_set = set(vcfg.get("plots") or PLOTS_AVAILABLE)
+
+    # ====================================================================
+    # v4: 14 plots per scenario in subfolders
+    #   plots/<scenario>/ap/         — 6 (ap_type × ci_method) bar plots
+    #   plots/<scenario>/delta/      — 6 delta forest plots
+    #   plots/<scenario>/pvalues/    — 2 (ap_type) p-value heatmaps
+    # Only renders when the YAML ``plots:`` opt in to a v4 scenario; the
+    # calibration config, for example, asks only for ``calibration`` and
+    # must not be cluttered with the headline scenario subfolders.
+    # ====================================================================
+    v4_scenarios_in_plot_set = plot_set & {
+        "tps_detection", "substrate_map", "substrate_per_class",
+    }
+    if (
+        v4_scenarios_in_plot_set
+        and not summary_ap.empty
+        and not long_ap.empty
+    ):
+        _render_v4_scenarios(
+            eval_dir=eval_dir,
+            summary_ap=summary_ap,
+            summary_delta=summary_delta,
+            long_ap=long_ap,
+            long_delta=long_delta,
+            pvalues=pvalues,
+            cfg=yaml.safe_load((eval_dir / "eval_config.yaml").read_text()),
+            plot_set=v4_scenarios_in_plot_set,
+        )
     metric = vcfg.get("metric", "ap")
     pin_last = vcfg.get("pin_last")
-    auto_zoom_cfg = dict(vcfg.get("auto_zoom") or {})
-    auto_zoom_enabled = bool(auto_zoom_cfg.get("enabled", True))
-    zoom_delta_pct = float(auto_zoom_cfg.get("delta_pct", 2.0))
     xtick_overrides = dict(vcfg.get("ablation_xtick_overrides") or {})
-    zoom_classifiers = vcfg.get("zoom_classifiers")
     yaml_palette = dict(vcfg.get("palette") or {}) or None
     fixed_order = bool(vcfg.get("fixed_classifier_order")) or bool(vcfg.get("classifier_order"))
 
+    eval_cfg_for_order = yaml.safe_load((eval_dir / "eval_config.yaml").read_text())
     classifier_order = _apply_pin_last(
-        _resolve_classifier_order(args, summary, vcfg), pin_last
+        _resolve_classifier_order(args, summary, vcfg, cfg=eval_cfg_for_order),
+        pin_last,
     )
-
-    def _full_zoom_ylim(target_class: str, classifier_subset: list[str]) -> tuple[float, float] | None:
-        if bootstrap_long is None:
-            return None
-        sub = bootstrap_long[
-            (bootstrap_long["metric"] == metric)
-            & (bootstrap_long["class"] == target_class)
-            & (bootstrap_long["classifier"].isin(classifier_subset))
-        ].dropna(subset=["value"])
-        if sub.empty:
-            return None
-        means_pct = (sub.groupby("classifier")["value"].mean() * 100.0).tolist()
-        return bars.compute_full_zoom_ylim(means_pct)
-
-    def _full_zoom_ylim_per_class(classes: list[str], classifier_subset: list[str]) -> tuple[float, float] | None:
-        if bootstrap_long is None:
-            return None
-        sub = bootstrap_long[
-            (bootstrap_long["metric"] == metric)
-            & (bootstrap_long["class"].isin(classes))
-            & (bootstrap_long["classifier"].isin(classifier_subset))
-        ].dropna(subset=["value"])
-        if sub.empty:
-            return None
-        # Means per (class, classifier) cell.
-        cell_means = (
-            sub.groupby(["class", "classifier"])["value"].mean() * 100.0
-        ).tolist()
-        return bars.compute_full_zoom_ylim(cell_means)
-
-    def _maybe_zoom(fig_base_name: str, *, target_class, classifier_subset, base_title):
-        if not auto_zoom_enabled or bootstrap_long is None:
-            return
-        try:
-            zfig = bars.bar_classifier_zoom(
-                bootstrap_long,
-                target_class=target_class,
-                metric=metric,
-                classifier_subset=classifier_subset,
-                forced_subset=zoom_classifiers,
-                delta_pct=zoom_delta_pct,
-                pin_last=pin_last,
-                xtick_overrides=xtick_overrides,
-                base_title=base_title,
-                palette=yaml_palette,
-                fixed_order=classifier_order if fixed_order else None,
-            )
-        except bars.NoZoomNeeded:
-            return
-        if zfig is None:
-            return
-        theme.save_figure(zfig, plots_dir / f"{fig_base_name}_zoomed")
-
-    fixed_arg = classifier_order if fixed_order else None
-    if "tps_detection" in plot_set:
-        fig = bars.bar_classifier(
-            bootstrap_long, target_class="TPS", metric=metric,
-            classifier_subset=classifier_order,
-            classifier_order=fixed_arg,
-            pin_last=pin_last,
-            palette=yaml_palette,
-            xtick_overrides=xtick_overrides,
-            title="TPS detection AP",
-            ylim=tuple(vcfg["tps_ylim"]) if vcfg.get("tps_ylim") else None,
-        )
-        theme.save_figure(fig, plots_dir / "tps_detection")
-        _maybe_zoom(
-            "tps_detection", target_class="TPS",
-            classifier_subset=classifier_order, base_title="TPS detection AP",
-        )
-        ylim = _full_zoom_ylim("TPS", classifier_order)
-        if ylim is not None:
-            fig = bars.bar_classifier(
-                bootstrap_long, target_class="TPS", metric=metric,
-                classifier_subset=classifier_order,
-                classifier_order=fixed_arg,
-                pin_last=pin_last,
-                palette=yaml_palette,
-                xtick_overrides=xtick_overrides,
-                title="TPS detection AP (zoomed)",
-                ylim=ylim,
-            )
-            theme.save_figure(fig, plots_dir / "tps_detection_zoomed_full")
-
-    if "substrate_map" in plot_set:
-        fig = bars.bar_classifier(
-            bootstrap_long, target_class="Substrate_mAP", metric=metric,
-            classifier_subset=classifier_order,
-            classifier_order=fixed_arg,
-            pin_last=pin_last,
-            palette=yaml_palette,
-            xtick_overrides=xtick_overrides,
-            title="Substrate prediction mAP",
-            ylabel="mAP (%)",
-            ylim=tuple(vcfg["substrate_map_ylim"]) if vcfg.get("substrate_map_ylim") else None,
-        )
-        theme.save_figure(fig, plots_dir / "substrate_map")
-        _maybe_zoom(
-            "substrate_map", target_class="Substrate_mAP",
-            classifier_subset=classifier_order, base_title="Substrate prediction mAP",
-        )
-        ylim = _full_zoom_ylim("Substrate_mAP", classifier_order)
-        if ylim is not None:
-            fig = bars.bar_classifier(
-                bootstrap_long, target_class="Substrate_mAP", metric=metric,
-                classifier_subset=classifier_order,
-                classifier_order=fixed_arg,
-                pin_last=pin_last,
-                palette=yaml_palette,
-                xtick_overrides=xtick_overrides,
-                title="Substrate prediction mAP (zoomed)",
-                ylabel="mAP (%)",
-                ylim=ylim,
-            )
-            theme.save_figure(fig, plots_dir / "substrate_map_zoomed_full")
-
-    if "substrate_per_class" in plot_set:
-        if fixed_order:
-            ordered_for_sub = list(classifier_order)
-        else:
-            sub = bootstrap_long[
-                (bootstrap_long["metric"] == metric)
-                & (bootstrap_long["class"].isin(SUBSTRATE_CLASSES))
-                & (bootstrap_long["classifier"].isin(classifier_order))
-            ].dropna(subset=["value"])
-            if not sub.empty:
-                ordered_for_sub = (
-                    sub.groupby("classifier")["value"].mean().sort_values().index.tolist()
-                )
-                ordered_for_sub = _apply_pin_last(ordered_for_sub, pin_last)
-            else:
-                ordered_for_sub = classifier_order
-        fig = bars.bar_per_class(
-            bootstrap_long,
-            classes=[c for c in DEFAULT_PLOT_ORDER if c in SUBSTRATE_CLASSES],
-            classifier_order=ordered_for_sub,
-            metric=metric,
-            palette=yaml_palette,
-            xtick_overrides=xtick_overrides,
-            title="Substrate prediction AP per class",
-        )
-        theme.save_figure(fig, plots_dir / "substrate_per_class")
-        substrate_classes = [c for c in DEFAULT_PLOT_ORDER if c in SUBSTRATE_CLASSES]
-        ylim = _full_zoom_ylim_per_class(substrate_classes, ordered_for_sub)
-        if ylim is not None:
-            fig = bars.bar_per_class(
-                bootstrap_long,
-                classes=substrate_classes,
-                classifier_order=ordered_for_sub,
-                metric=metric,
-                palette=yaml_palette,
-                xtick_overrides=xtick_overrides,
-                title="Substrate prediction AP per class (zoomed)",
-                ylim=ylim,
-            )
-            theme.save_figure(fig, plots_dir / "substrate_per_class_zoomed_full")
-
-    if "tps_ids_map" in plot_set:
-        fig = bars.bar_classifier(
-            bootstrap_long, target_class="TPS_IDS_mAP", metric=metric,
-            classifier_subset=classifier_order,
-            classifier_order=fixed_arg,
-            pin_last=pin_last,
-            palette=yaml_palette,
-            xtick_overrides=xtick_overrides,
-            title="TPS / IDS detection mAP",
-            ylabel="mAP (%)",
-        )
-        theme.save_figure(fig, plots_dir / "tps_ids_map")
-        ylim = _full_zoom_ylim("TPS_IDS_mAP", classifier_order)
-        if ylim is not None:
-            fig = bars.bar_classifier(
-                bootstrap_long, target_class="TPS_IDS_mAP", metric=metric,
-                classifier_subset=classifier_order,
-                classifier_order=fixed_arg,
-                pin_last=pin_last,
-                palette=yaml_palette,
-                xtick_overrides=xtick_overrides,
-                title="TPS / IDS detection mAP (zoomed)",
-                ylabel="mAP (%)",
-                ylim=ylim,
-            )
-            theme.save_figure(fig, plots_dir / "tps_ids_map_zoomed_full")
 
     needs_pooled = bool(
         plot_set & {"pr_curves", "roc_curves", "pr_per_class",
@@ -603,6 +1126,8 @@ def run_visualize(args: argparse.Namespace) -> None:
     if needs_pooled:
         classifier_to_dfs, _ = _load_classifier_dfs_for_visualize(eval_dir)
         pooled = curves.pool_fold_dfs(classifier_to_dfs)
+        curves_dir = plots_dir / "curves"
+        curves_dir.mkdir(parents=True, exist_ok=True)
 
         if "pr_curves" in plot_set:
             for tgt in vcfg.get("curve_classes", ["TPS"]):
@@ -614,7 +1139,7 @@ def run_visualize(args: argparse.Namespace) -> None:
                     palette=yaml_palette,
                     title=f"{tgt} — Precision-Recall curve",
                 )
-                theme.save_figure(fig, plots_dir / f"pr_{tgt}")
+                theme.save_figure(fig, curves_dir / f"pr_{tgt}")
         if "roc_curves" in plot_set:
             for tgt in vcfg.get("curve_classes", ["TPS"]):
                 eligible = [c for c in classifier_order if tgt in pooled.get(c, {})]
@@ -625,7 +1150,7 @@ def run_visualize(args: argparse.Namespace) -> None:
                     palette=yaml_palette,
                     title=f"{tgt} — ROC curve",
                 )
-                theme.save_figure(fig, plots_dir / f"roc_{tgt}")
+                theme.save_figure(fig, curves_dir / f"roc_{tgt}")
         if "pr_per_class" in plot_set:
             tgt_clf = vcfg.get("pr_per_class_classifier", "PLM_Domains")
             if tgt_clf and tgt_clf in pooled:
@@ -634,7 +1159,7 @@ def run_visualize(args: argparse.Namespace) -> None:
                     classes=DEFAULT_PLOT_ORDER,
                     title=f"{theme.display_name(tgt_clf)} — PR curves per substrate",
                 )
-                theme.save_figure(fig, plots_dir / f"pr_per_class_{tgt_clf}")
+                theme.save_figure(fig, curves_dir / f"pr_per_class_{tgt_clf}")
         if "pr_substrate" in plot_set:
             eligible = [
                 c for c in classifier_order
@@ -647,7 +1172,7 @@ def run_visualize(args: argparse.Namespace) -> None:
                     palette=yaml_palette,
                     title="Substrate prediction — PR curve",
                 )
-                theme.save_figure(fig, plots_dir / "pr_substrate")
+                theme.save_figure(fig, curves_dir / "pr_substrate")
         if "roc_substrate" in plot_set:
             eligible = [
                 c for c in classifier_order
@@ -660,184 +1185,366 @@ def run_visualize(args: argparse.Namespace) -> None:
                     palette=yaml_palette,
                     title="Substrate prediction — ROC curve",
                 )
-                theme.save_figure(fig, plots_dir / "roc_substrate")
+                theme.save_figure(fig, curves_dir / "roc_substrate")
 
-    cat_root = eval_dir / "categories"
+    # ------------------------------------------------------------------
+    # v4 categorical plots (Kingdom + TPS_Type) → plots/categories/<name>/
+    # If the categorical artefacts are missing (older evaluate runs) we
+    # compute them on the fly here, persisting alongside the headline
+    # bootstrap artefacts so subsequent visualize calls are cache hits.
+    # ------------------------------------------------------------------
+    cat_long_path = eval_dir / "bootstrap_long_categorical_ap.csv"
+    cat_point_path = eval_dir / "point_estimates_categorical_ap.csv"
     eval_cfg_full = yaml.safe_load((eval_dir / "eval_config.yaml").read_text())
     categories_cfg = eval_cfg_full.get("categories", {}) or {}
-    if categories_cfg and (plot_set & {"category_boxplot", "category_heatmap"}):
+    if (
+        categories_cfg
+        and (plot_set & {"category_boxplot", "category_heatmap"})
+        and not cat_long_path.exists()
+    ):
+        from enzymeexplorer.src.evaluation import categorical_bootstrap as cat_bs
+        bcfg = eval_cfg_full.get("bootstrap", {}) or {}
+        n_boot_v = int(bcfg.get("n_bootstraps", 1000))
+        seed_v = int(bcfg.get("seed", 42))
+        ap_types_v = tuple(bcfg.get("ap_types", ["pooled_oof", "fold_mean"]))
+        metrics_v = tuple(bcfg.get("metrics", ["ap"]))
+
+        type_groupings: dict[str, dict[str, str]] = {}
+        masked_categories: dict[str, dict[str, str]] = {}
+        negative_labels: dict[str, str] = {}
+        for cat_name, cat_spec in categories_cfg.items():
+            negative_labels[cat_name] = cat_spec.get("negative_label", "Unknown")
+            if cat_spec.get("type_grouping"):
+                from enzymeexplorer.src.evaluation.classes import SUBSTRATE_TO_TYPE
+                type_groupings[cat_name] = dict(
+                    cat_spec.get("class_to_type") or SUBSTRATE_TO_TYPE
+                )
+            else:
+                meta_csv = eval_cfg_full.get("id_metadata", {}).get("csv")
+                if not meta_csv:
+                    logger.warning(
+                        "Skipping masked category %s: id_metadata.csv missing",
+                        cat_name,
+                    )
+                    continue
+                kingdom_cache = eval_cfg_full.get("id_metadata", {}).get(
+                    "kingdom_cache", "data/uniprot_kingdom_cache.json"
+                )
+                meta = eio.load_id_metadata(
+                    meta_csv, [cat_spec["column"]],
+                    kingdom_cache=kingdom_cache,
+                )
+                masked_categories[cat_name] = meta[cat_spec["column"]]
+
+        long_pieces: list[pd.DataFrame] = []
+        point_pieces: list[pd.DataFrame] = []
+        if type_groupings and not long_ap.empty:
+            point_ap_csv = eval_dir / "point_estimates_ap.csv"
+            point_ap_df = (
+                pd.read_csv(point_ap_csv) if point_ap_csv.exists() else pd.DataFrame()
+            )
+            l, p = cat_bs.compute_type_aggregated_ap(
+                long_ap, point_ap_df, type_groupings=type_groupings,
+            )
+            if not l.empty:
+                long_pieces.append(l)
+            if not p.empty:
+                point_pieces.append(p)
+        if masked_categories:
+            classifier_to_dfs, _ = _load_classifier_dfs_for_visualize(eval_dir)
+            l, p = cat_bs.compute_masked_ap_from_seed(
+                classifier_to_dfs,
+                masked_categories=masked_categories,
+                metrics=metrics_v,
+                ap_types=ap_types_v,
+                n_bootstraps=n_boot_v,
+                seed=seed_v,
+                negative_labels=negative_labels,
+            )
+            l, p = cat_bs.add_substrate_map_aggregate(
+                l, p, substrate_classes=list(SUBSTRATE_CLASSES),
+            )
+            if not l.empty:
+                long_pieces.append(l)
+            if not p.empty:
+                point_pieces.append(p)
+
+        if long_pieces:
+            pd.concat(long_pieces, ignore_index=True).to_csv(cat_long_path, index=False)
+        if point_pieces:
+            pd.concat(point_pieces, ignore_index=True).to_csv(cat_point_path, index=False)
+
+    if (
+        categories_cfg
+        and (plot_set & {"category_boxplot", "category_heatmap"})
+        and cat_long_path.exists()
+    ):
+        cat_pretty_map = {"TPS_Type": "TPS type", "Kingdom": "kingdom"}
         target_label_map = {
             "TPS": "TPS detection AP",
             "Substrate_mAP": "Substrate prediction mAP",
-            "TPS_IDS_mAP": "TPS / IDS mAP",
+            "_type_grouped": "Substrate prediction AP",
         }
-        cat_pretty_map = {"TPS_Type": "TPS type", "Kingdom": "kingdom"}
+        cat_long_full = pd.read_csv(cat_long_path)
+        cat_point_full = pd.read_csv(cat_point_path) if cat_point_path.exists() else pd.DataFrame()
+        masked_targets = vcfg.get(
+            "category_classes", ["TPS", "Substrate_mAP"],
+        )
         for cat_label, cat_spec in categories_cfg.items():
-            cat_pretty = cat_pretty_map.get(cat_label, cat_label.replace("_", " "))
-
+            # Type-grouped categories (TPS_Type) only emit one target class:
+            # the synthetic ``_type_grouped`` aggregate. Masked categories
+            # (Kingdom, ...) emit one plot per requested headline class.
             if cat_spec.get("type_grouping"):
-                # Render directly from the global per-substrate bootstrap.
-                from enzymeexplorer.src.evaluation.classes import (
-                    SUBSTRATE_TO_TYPE, DEFAULT_TYPE_ORDER,
-                )
-                type_map = dict(cat_spec.get("class_to_type") or SUBSTRATE_TO_TYPE)
-                type_order = list(
-                    cat_spec.get("type_order") or DEFAULT_TYPE_ORDER
-                )
-                if bootstrap_long is None:
-                    continue
-                sub = bootstrap_long[
-                    (bootstrap_long["metric"] == metric)
-                    & (bootstrap_long["class"].isin(type_map))
-                    & (bootstrap_long["classifier"].isin(classifier_order))
-                ].dropna(subset=["value"]).copy()
-                if sub.empty:
-                    continue
-                sub["category"] = sub["class"].map(type_map)
-                sub["class"] = "Substrate_grouped"
-                target_pretty = "Substrate prediction AP"
-                if "category_boxplot" in plot_set:
-                    fig = categorical.plot_category_boxplot(
-                        sub, target_class="Substrate_grouped", metric=metric,
-                        categories=[t for t in type_order if t in set(sub["category"])],
-                        classifier_subset=classifier_order,
-                        pin_last=pin_last,
-                        title=f"{target_pretty} grouped by {cat_pretty}",
-                        xlabel="",
-                    )
-                    theme.save_figure(
-                        fig, plots_dir / f"{cat_label}_boxplot_Substrate_mAP"
-                    )
-                if "category_heatmap" in plot_set:
-                    point_path = eval_dir / "point_estimates.csv"
-                    if point_path.exists():
-                        point = pd.read_csv(point_path)
-                        point = point[
-                            (point["metric"] == metric)
-                            & (point["class"].isin(type_map))
-                            & (point["classifier"].isin(classifier_order))
-                        ].copy()
-                        if not point.empty:
-                            point["category"] = point["class"].map(type_map)
-                            cell = (
-                                point.groupby(["classifier", "category", "metric"],
-                                              as_index=False)["value"].mean()
-                                .rename(columns={"value": "point"})
-                            )
-                            cell["class"] = "Substrate_grouped"
-                            fig = categorical.plot_category_heatmap(
-                                cell, target_class="Substrate_grouped", metric=metric,
-                                categories=[t for t in type_order if t in set(cell["category"])],
-                                classifier_subset=classifier_order,
-                                pin_last=pin_last,
-                                title=f"{target_pretty} grouped by {cat_pretty}",
-                            )
-                            theme.save_figure(
-                                fig, plots_dir / f"{cat_label}_heatmap_Substrate_mAP"
-                            )
+                cat_classes = ["_type_grouped"]
+            else:
+                cat_classes = list(masked_targets)
+            cat_pretty = cat_pretty_map.get(cat_label, cat_label.replace("_", " "))
+            cat_dir = plots_dir / "categories" / cat_label
+            cat_dir.mkdir(parents=True, exist_ok=True)
+            cat_long_view = cat_long_full[
+                cat_long_full["category_name"] == cat_label
+            ].dropna(subset=["value"])
+            cat_point_view = (
+                cat_point_full[cat_point_full["category_name"] == cat_label]
+                if not cat_point_full.empty else pd.DataFrame()
+            )
+            if cat_long_view.empty:
                 continue
+            order_cat = list(cat_spec.get("order") or [])
+            negative_label = cat_spec.get("negative_label", "Unknown")
+            available_cats = [
+                c for c in cat_long_view["category"].unique()
+                if c != negative_label
+            ]
+            if order_cat:
+                ordered_cats = [c for c in order_cat if c in available_cats]
+                ordered_cats.extend(c for c in available_cats if c not in order_cat)
+            else:
+                ordered_cats = sorted(available_cats)
 
-            # Masked categorical (Kingdom, etc.) — read from disk.
-            cat_dir = cat_root / cat_label
-            cat_summary_path = cat_dir / "summary.csv"
-            cat_long_path = cat_dir / "bootstrap_long.csv"
-            if not cat_summary_path.exists():
-                continue
-            cat_summary = pd.read_csv(cat_summary_path)
-            cat_long = pd.read_csv(cat_long_path) if cat_long_path.exists() else None
-            for tgt in vcfg.get("category_classes",
-                                ["TPS", "Substrate_mAP", "TPS_IDS_mAP"]):
-                if tgt not in set(cat_summary["class"]):
+            for tgt in cat_classes:
+                view = cat_long_view[cat_long_view["class"] == tgt]
+                if view.empty:
                     continue
                 target_pretty = target_label_map.get(tgt, tgt.replace("_", " "))
-                if "category_boxplot" in plot_set and cat_long is not None:
-                    fig = categorical.plot_category_boxplot(
-                        cat_long, target_class=tgt, metric=metric,
-                        classifier_subset=classifier_order,
-                        pin_last=pin_last,
-                        title=f"{target_pretty} per {cat_pretty}",
-                        xlabel="",
-                    )
-                    theme.save_figure(fig, plots_dir / f"{cat_label}_boxplot_{tgt}")
-                if "category_heatmap" in plot_set:
-                    fig = categorical.plot_category_heatmap(
-                        cat_summary, target_class=tgt, metric=metric,
-                        classifier_subset=classifier_order,
-                        pin_last=pin_last,
-                        title=f"{target_pretty} per {cat_pretty}",
-                    )
-                    theme.save_figure(fig, plots_dir / f"{cat_label}_heatmap_{tgt}")
+                if "category_boxplot" in plot_set:
+                    for ap_type in sorted(view["ap_type"].unique()):
+                        sub = view[view["ap_type"] == ap_type]
+                        if sub.empty:
+                            continue
+                        fig = categorical.plot_category_boxplot(
+                            sub, target_class=tgt, metric=metric,
+                            categories=ordered_cats,
+                            classifier_subset=classifier_order,
+                            pin_last=pin_last,
+                            title=f"{target_pretty} per {cat_pretty}",
+                            xlabel="",
+                        )
+                        theme.save_figure(
+                            fig,
+                            cat_dir / f"boxplot_{tgt.lstrip('_')}_{ap_type}",
+                        )
+                if "category_heatmap" in plot_set and not cat_point_view.empty:
+                    pt_view = cat_point_view[cat_point_view["class"] == tgt]
+                    for ap_type in sorted(pt_view["ap_type"].unique()):
+                        cell = (
+                            pt_view[pt_view["ap_type"] == ap_type]
+                            .rename(columns={"value": "point"})
+                            .copy()
+                        )
+                        if cell.empty:
+                            continue
+                        fig = categorical.plot_category_heatmap(
+                            cell, target_class=tgt, metric=metric,
+                            categories=ordered_cats,
+                            classifier_subset=classifier_order,
+                            pin_last=pin_last,
+                            title=f"{target_pretty} per {cat_pretty}",
+                        )
+                        theme.save_figure(
+                            fig,
+                            cat_dir / f"heatmap_{tgt.lstrip('_')}_{ap_type}",
+                        )
 
-    if "prediction_thresholds" in plot_set:
+    if "calibration" in plot_set:
         cfg = yaml.safe_load((eval_dir / "eval_config.yaml").read_text())
-        pt_cfg = cfg.get("prediction_thresholds", {}) or {}
-        precisions = list(pt_cfg.get("precisions",
-                                     [0.99, 0.95, 0.90, 0.80, 0.70, 0.60, 0.50]))
-        target_classifiers = list(pt_cfg.get("classifiers", classifier_order))
-        target_classes = list(pt_cfg.get("classes", DEFAULT_PLOT_ORDER))
-        if pooled is None:
-            classifier_to_dfs, _ = _load_classifier_dfs_for_visualize(eval_dir)
-            pooled = curves.pool_fold_dfs(classifier_to_dfs)
-        table = pt.compute_thresholds_table(
-            pooled, target_classifiers, target_classes, precisions
-        )
-        (eval_dir / "prediction_thresholds.csv").write_text(table.to_csv(index=False))
-        for clf in table["classifier"].unique():
-            try:
-                fig = pt_plots.plot_threshold_heatmap(
-                    table, clf, classes_order=target_classes,
-                )
-                theme.save_figure(fig, plots_dir / f"prediction_thresholds_{clf}_score")
-                fig = pt_plots.plot_recall_at_thresholds_heatmap(
-                    table, clf, classes_order=target_classes,
-                )
-                theme.save_figure(fig, plots_dir / f"prediction_thresholds_{clf}_recall")
-                fig = pt_plots.plot_n_above_threshold_heatmap(
-                    table, clf, classes_order=target_classes,
-                )
-                theme.save_figure(fig, plots_dir / f"prediction_thresholds_{clf}_count")
-            except ValueError as exc:
-                logger.warning("Skipping %s prediction-threshold plots: %s", clf, exc)
+        cal_cfg = cfg.get("calibration", {}) or {}
+        target_classes = list(cal_cfg.get("classes", DEFAULT_PLOT_ORDER))
 
-    if "confidence_tiers" in plot_set:
-        cfg = yaml.safe_load((eval_dir / "eval_config.yaml").read_text())
-        tiers_cfg = cfg.get("confidence_tiers", {}) or {}
-        tier_definitions = ct.tier_definitions_from_config(tiers_cfg.get("tiers"))
-        target_classifiers = list(tiers_cfg.get("classifiers", classifier_order))
-        target_classes = list(tiers_cfg.get("classes", DEFAULT_PLOT_ORDER))
-        if pooled is None:
-            classifier_to_dfs, _ = _load_classifier_dfs_for_visualize(eval_dir)
-            pooled = curves.pool_fold_dfs(classifier_to_dfs)
-        tier_table = ct.compute_tier_table(
-            pooled, target_classifiers, target_classes, tier_definitions,
-        )
-        (eval_dir / "confidence_tiers.csv").write_text(tier_table.to_csv(index=False))
-        for clf in tier_table["classifier"].unique():
-            try:
-                fig = ct_plots.plot_tier_ladder(
-                    tier_table,
-                    clf,
-                    classes_order=target_classes,
-                    tier_definitions=tier_definitions,
-                )
-                theme.save_figure(fig, plots_dir / f"confidence_tiers_{clf}")
-            except ValueError as exc:
-                logger.warning("Skipping %s confidence-tier plot: %s", clf, exc)
-        # Multi-panel grid version, one panel per classifier in the order
-        # configured (or alphabetical), useful as a publication overview.
-        try:
-            fig = ct_plots.plot_tier_ladder_grid(
-                tier_table,
-                classifier_order=[
-                    c for c in target_classifiers
-                    if c in set(tier_table["classifier"])
-                ],
-                classes_order=target_classes,
-                tier_definitions=tier_definitions,
+        cal_dir = eval_dir / "calibration"
+        fit_summary_path = cal_dir / "fit_summary.csv"
+        if not fit_summary_path.exists():
+            logger.warning(
+                "No calibration artefacts at %s — run `evaluate` first to "
+                "produce them. Skipping calibration plots.",
+                cal_dir,
             )
-            theme.save_figure(fig, plots_dir / "confidence_tiers_grid")
-        except ValueError as exc:
-            logger.warning("Skipping confidence-tier grid plot: %s", exc)
+        else:
+            fit_summary = pd.read_csv(fit_summary_path)
+
+            def _read_csv(name: str) -> pd.DataFrame:
+                path = cal_dir / name
+                return pd.read_csv(path) if path.exists() else pd.DataFrame()
+
+            def _read_parquet(name: str) -> pd.DataFrame:
+                path = cal_dir / name
+                return pd.read_parquet(path) if path.exists() else pd.DataFrame()
+
+            metrics_df = _read_csv("metrics.csv")
+            reliability_df = _read_csv("reliability.csv")
+            per_fold_df = _read_csv("per_fold_params.csv")
+            drift_df = _read_csv("fold_drift_summary.csv")
+            hard_df = _read_csv("hard_errors.csv")
+            ribbon_df = _read_parquet("ribbon.parquet")
+
+            # Iterate over what evaluate actually produced.
+            target_classifiers = list(fit_summary["classifier"].unique())
+
+            # OOF frames are still needed for score-distribution + curve rugs.
+            classifier_to_dfs, _ = _load_classifier_dfs_for_visualize(eval_dir)
+            oof_per_clf_class: dict[str, dict[str, cal.OofFrame]] = {}
+            for clf in target_classifiers:
+                cls_map = classifier_to_dfs.get(clf, {})
+                oof_per_clf_class[clf] = {}
+                sub = fit_summary[fit_summary["classifier"] == clf]
+                for cls in sub["target_class"].unique():
+                    if cls not in cls_map:
+                        continue
+                    oof_per_clf_class[clf][cls] = cal.build_oof_frame(
+                        cls_map[cls], cls, clf,
+                    )
+
+            cal_plot_dir = plots_dir / "calibration"
+            cal_plot_dir.mkdir(parents=True, exist_ok=True)
+
+            if not metrics_df.empty:
+                try:
+                    fig = cal_plots.plot_calibration_metrics_grid(
+                        metrics_df,
+                        class_order=target_classes,
+                        classifier_order=target_classifiers,
+                        title="Calibration improvement (raw − calibrated)",
+                    )
+                    theme.save_figure(fig, cal_plot_dir / "metrics_grid")
+                except (ValueError, KeyError) as exc:
+                    logger.warning("Skipping calibration metrics grid: %s", exc)
+
+            drift_lookup: dict[tuple[str, str], dict] = {}
+            if not drift_df.empty:
+                for _, r in drift_df.iterrows():
+                    drift_lookup[(r["classifier"], r["target_class"])] = r.to_dict()
+
+            for clf in target_classifiers:
+                cls_map = oof_per_clf_class.get(clf, {})
+                for cls, oof in cls_map.items():
+                    rib = ribbon_df[
+                        (ribbon_df["classifier"] == clf)
+                        & (ribbon_df["target_class"] == cls)
+                    ] if not ribbon_df.empty else pd.DataFrame()
+                    rel = reliability_df[
+                        (reliability_df["classifier"] == clf)
+                        & (reliability_df["target_class"] == cls)
+                    ] if not reliability_df.empty else pd.DataFrame()
+                    pfp = per_fold_df[
+                        (per_fold_df["classifier"] == clf)
+                        & (per_fold_df["target_class"] == cls)
+                    ] if not per_fold_df.empty else pd.DataFrame()
+                    hard = hard_df[
+                        (hard_df.get("classifier") == clf)
+                        & (hard_df.get("target_class") == cls)
+                    ] if not hard_df.empty else pd.DataFrame()
+
+                    stem = f"{clf}_{cls}"
+
+                    try:
+                        fig = cal_plots.plot_score_distribution(
+                            oof.df, classifier=clf, target_class=cls,
+                        )
+                        theme.save_figure(
+                            fig, cal_plot_dir / f"score_distribution_{stem}",
+                        )
+                    except (ValueError, KeyError) as exc:
+                        logger.warning(
+                            "Skipping score distribution for %s/%s: %s",
+                            clf, cls, exc,
+                        )
+
+                    if not rib.empty:
+                        try:
+                            fig = cal_plots.plot_calibration_curve_with_ribbon(
+                                rib, oof.df, classifier=clf, target_class=cls,
+                            )
+                            theme.save_figure(
+                                fig,
+                                cal_plot_dir / f"calibration_curve_{stem}",
+                            )
+                        except (ValueError, KeyError) as exc:
+                            logger.warning(
+                                "Skipping calibration curve for %s/%s: %s",
+                                clf, cls, exc,
+                            )
+
+                    if not rel.empty:
+                        try:
+                            n_pos = int(oof.n_pos)
+                            n_total = int(oof.n_total)
+                            fig = cal_plots.plot_reliability_diagram(
+                                rel, classifier=clf, target_class=cls,
+                                n_pos=n_pos, n_total=n_total,
+                            )
+                            theme.save_figure(
+                                fig, cal_plot_dir / f"reliability_{stem}",
+                            )
+                        except (ValueError, KeyError) as exc:
+                            logger.warning(
+                                "Skipping reliability for %s/%s: %s",
+                                clf, cls, exc,
+                            )
+
+                    if not pfp.empty:
+                        drift_row = drift_lookup.get((clf, cls), {})
+                        family_for_plot = (
+                            str(drift_row.get("family"))
+                            if drift_row and drift_row.get("family")
+                            else (str(pfp["family"].iloc[0])
+                                  if "family" in pfp.columns and len(pfp)
+                                  else cal.FAMILY_BETA)
+                        )
+                        spreads = {
+                            k: float(drift_row[f"spread_{k}"])
+                            for k in ("a", "b", "c", "T")
+                            if drift_row and pd.notna(drift_row.get(f"spread_{k}"))
+                        }
+                        try:
+                            fig = cal_plots.plot_per_fold_params(
+                                pfp, classifier=clf, target_class=cls,
+                                family=family_for_plot,
+                                drift_flagged=bool(drift_row.get("drift_flagged"))
+                                if drift_row else False,
+                                spreads=spreads,
+                            )
+                            theme.save_figure(
+                                fig, cal_plot_dir / f"per_fold_params_{stem}",
+                            )
+                        except (ValueError, KeyError) as exc:
+                            logger.warning(
+                                "Skipping per-fold params for %s/%s: %s",
+                                clf, cls, exc,
+                            )
+
+                    if not hard.empty:
+                        try:
+                            fig = cal_plots.plot_hard_errors(
+                                hard, classifier=clf, target_class=cls,
+                            )
+                            theme.save_figure(
+                                fig, cal_plot_dir / f"hard_errors_{stem}",
+                            )
+                        except (ValueError, KeyError) as exc:
+                            logger.warning(
+                                "Skipping hard errors for %s/%s: %s",
+                                clf, cls, exc,
+                            )
 
     if "threshold_sweep" in plot_set:
         sweep_dir = eval_dir / "threshold_sweep"
@@ -881,7 +1588,6 @@ PLOTS_AVAILABLE = (
     "tps_detection",
     "substrate_map",
     "substrate_per_class",
-    "tps_ids_map",
     "pr_curves",
     "roc_curves",
     "pr_per_class",
@@ -890,8 +1596,7 @@ PLOTS_AVAILABLE = (
     "category_boxplot",
     "category_heatmap",
     "threshold_sweep",
-    "prediction_thresholds",
-    "confidence_tiers",
+    "calibration",
 )
 
 
@@ -909,6 +1614,16 @@ def add_evaluate_subparser(subparsers: argparse._SubParsersAction) -> None:
     parser.add_argument(
         "--force-classifiers", nargs="+", default=None,
         help="Rebuild bootstrap cache only for the listed classifier labels."
+    )
+    parser.add_argument(
+        "--use-existing-resolved-versions", action="store_true",
+        help=(
+            "Reuse the per-classifier versions and experiment timestamps "
+            "recorded in <output_name>/resolved_versions.yaml, bypassing "
+            "version-spec re-resolution. Useful when a fresh training is "
+            "in progress and the latest timestamp would otherwise be "
+            "selected even though it is incomplete or experimental."
+        ),
     )
 
 

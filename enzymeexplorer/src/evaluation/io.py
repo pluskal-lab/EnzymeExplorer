@@ -218,24 +218,50 @@ def load_classifier_class_fold_dfs(
     output_root: Path | None = None,
     n_folds: int = 5,
     timestamp: str | None = None,
+    timestamps_per_class: Mapping[str, str] | None = None,
 ) -> tuple[dict[str, dict[int, FoldDfs]], dict[str, str]]:
     """Build the ``{class_short: {fold_idx: (labels_df, preds_df)}}`` mapping
     for a single classifier, plus a ``{class_short: experiment_timestamp}``
-    map captured at load time. The timestamp goes into the bootstrap cache
-    key so a new training run on the same version label busts the cache.
+    map captured at load time.
 
     ``version_spec`` is either a single version string (one experiment, all
     classes share the same per-fold DFs) or a ``{class_short: version_str}``
     mapping (HBI per-class optimal: each class loads from its own experiment).
     The single-version case shares DataFrame references across class keys.
+
+    Pinning to specific timestamps:
+
+    * ``timestamp``: only meaningful for the single-version case; selects
+      that exact timestamped run for every class.
+    * ``timestamps_per_class``: ``{class_short: timestamp_dir_name}`` —
+      used for both single- and per-class version specs to pin individual
+      timestamps. Required when the latest training run is incomplete and
+      a previous run's resolved_versions.yaml should be reproduced
+      exactly. If a class has no entry, falls back to the
+      newest-complete run.
     """
     selected = list(classes) if classes is not None else ALL_CLASSES
     out: dict[str, dict[int, FoldDfs]] = {}
     timestamps: dict[str, str] = {}
+    ts_map = dict(timestamps_per_class) if timestamps_per_class else {}
 
     if isinstance(version_spec, str):
+        # Single-version case. If timestamps_per_class is given and pins
+        # all selected classes to the same timestamp, honour it; otherwise
+        # use the explicit ``timestamp`` arg, otherwise let
+        # ``latest_experiment_dir`` pick the newest complete run.
+        pinned_ts = timestamp
+        per_class_pins = {ts_map[c] for c in selected if c in ts_map}
+        if pinned_ts is None and per_class_pins:
+            if len(per_class_pins) > 1:
+                raise ValueError(
+                    f"Single-version spec for {model}/{version_spec} but "
+                    f"timestamps_per_class disagrees across classes: "
+                    f"{sorted(per_class_pins)}"
+                )
+            pinned_ts = next(iter(per_class_pins))
         exp_dir = latest_experiment_dir(
-            model, version_spec, output_root=output_root, timestamp=timestamp
+            model, version_spec, output_root=output_root, timestamp=pinned_ts
         )
         raws = load_pickle_folds(exp_dir, n_folds=n_folds)
         per_fold = folds_to_dfs(raws, classes_subset=selected, seq_ids=seq_ids)
@@ -251,7 +277,10 @@ def load_classifier_class_fold_dfs(
         )
     for short in selected:
         version = version_spec[short]
-        exp_dir = latest_experiment_dir(model, version, output_root=output_root)
+        exp_dir = latest_experiment_dir(
+            model, version, output_root=output_root,
+            timestamp=ts_map.get(short),
+        )
         raws = load_pickle_folds(exp_dir, n_folds=n_folds)
         out[short] = folds_to_dfs(raws, classes_subset=[short], seq_ids=seq_ids)
         timestamps[short] = exp_dir.name

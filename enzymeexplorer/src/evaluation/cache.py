@@ -1,16 +1,26 @@
-"""Per-classifier bootstrap cache.
+"""v4 paired-bootstrap cache.
 
-Each classifier's bootstrap draws are cached to disk under
-``outputs/evaluation_results/_bootstrap_cache/<classifier_label>/<hash>/``
-so that repeated evaluations across the four "purpose" output dirs
-(all-methods comparison, ablation, confidence tiers, sweeps) reuse the
-same draws without re-running bootstrap. Hash key combines the resolved
-version spec, fold sizes, and bootstrap settings (n_bootstraps, seed,
-mode) — distractor universe falls out of the version spec automatically
-because ``_no_distractors`` is part of the version string.
+The v4 bootstrap runs *jointly* over all methods being compared so the
+draw indices can be shared (paired). That changes the cache key from
+"one entry per classifier" to "one entry per (classifier set, classes,
+metrics, n_bootstraps, seed, ap_types, target_model)". Two
+``evaluate`` invocations with the same set of methods + classes + RNG
+parameters reuse the exact same cache entry; one with a superset of
+methods is a fresh entry.
 
-Categorical bootstrap is not cached here (it depends on a category mask
-that varies per output dir and is cheap enough to re-run).
+Cache layout::
+
+    outputs/evaluation_results/_bootstrap_cache/<hash>/
+        bootstrap_long_ap.csv
+        point_estimates_ap.csv
+        bootstrap_long_delta.csv
+        point_estimates_delta.csv
+        meta.json
+
+The classifier identity in the hash is built from each classifier's
+``(model, version_spec, fold_sizes, per-class experiment_timestamps)``
+so retraining a classifier (new timestamp under the same version label)
+busts the cache automatically — we never silently reuse stale draws.
 """
 
 from __future__ import annotations
@@ -20,7 +30,7 @@ import json
 import logging
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Mapping
+from typing import Mapping, cast
 
 import pandas as pd  # type: ignore
 
@@ -32,184 +42,168 @@ logger = logging.getLogger(__name__)
 
 CACHE_DIRNAME = "_bootstrap_cache"
 
+# Bumped whenever the bootstrap algorithm semantically changes.
+# v4: paired bootstrap with shared draws across methods. Two AP types
+#     (pooled_oof, fold_mean) computed in one call. Per-draw deltas
+#     between method pairs.
+BOOTSTRAP_ALGO_VERSION = "v4-paired-shared-draws"
+
+
+def _classifier_signature(
+    label: str,
+    model: str,
+    version_spec: str | Mapping[str, str],
+    class_to_fold_dfs: dict[str, dict[int, FoldDfs]],
+    timestamps: Mapping[str, str],
+) -> dict:
+    """Stable JSON-friendly fingerprint of one classifier."""
+    if isinstance(version_spec, Mapping):
+        version_norm: object = {k: version_spec[k] for k in sorted(version_spec)}
+    else:
+        version_norm = version_spec
+    fold_sizes: list[list[int]] = []
+    for cls in sorted(class_to_fold_dfs):
+        fd = class_to_fold_dfs[cls]
+        for f in sorted(fd):
+            fold_sizes.append([cls.__hash__(), f, len(fd[f][0])])
+    return {
+        "label": label,
+        "model": model,
+        "version_spec": version_norm,
+        "classes": sorted(class_to_fold_dfs),
+        "fold_sizes": fold_sizes,
+        "timestamps": [[k, timestamps[k]] for k in sorted(timestamps)],
+    }
+
 
 @dataclass(frozen=True)
 class CacheKey:
-    """Inputs that uniquely identify a cached bootstrap result.
+    """Hashable identifier for a v4 paired-bootstrap call.
 
-    ``timestamps`` is the per-class experiment-timestamp map captured at load
-    time — including it ensures that a re-trained classifier (new timestamp
-    under the same version label) busts the cache instead of silently reusing
-    stale draws.
+    ``classifier_signatures`` is stored as a tuple of canonical
+    JSON-string fingerprints (one per classifier), which is the most
+    robust way to make the cache key both stable and inspectable.
     """
 
-    classifier: str
-    model: str
-    version_spec: str | dict[str, str]
-    classes: tuple[str, ...]
-    fold_sizes: tuple[tuple[int, int], ...]  # (fold_idx, n_rows) per class shared
-    timestamps: tuple[tuple[str, str], ...]  # (class, experiment_dir_name)
+    classifier_signatures: tuple[str, ...]
     n_bootstraps: int
     seed: int
-    mode: str
+    ap_types: tuple[str, ...]
     metrics: tuple[str, ...]
+    target_model: str | None
+    algo_version: str = BOOTSTRAP_ALGO_VERSION
 
     def to_dict(self) -> dict:
-        version: object = self.version_spec
-        if isinstance(version, Mapping):
-            version = {k: version[k] for k in sorted(version)}
         return {
-            "classifier": self.classifier,
-            "model": self.model,
-            "version_spec": version,
-            "classes": list(self.classes),
-            "fold_sizes": [list(t) for t in self.fold_sizes],
-            "timestamps": [list(t) for t in self.timestamps],
+            "classifier_signatures": [json.loads(s) for s in self.classifier_signatures],
             "n_bootstraps": self.n_bootstraps,
             "seed": self.seed,
-            "mode": self.mode,
+            "ap_types": list(self.ap_types),
             "metrics": list(self.metrics),
+            "target_model": self.target_model,
+            "algo_version": self.algo_version,
         }
 
     def hash(self) -> str:
-        payload = json.dumps(self.to_dict(), sort_keys=True).encode("utf-8")
+        payload = json.dumps(self.to_dict(), sort_keys=True, default=str).encode("utf-8")
         return hashlib.sha1(payload).hexdigest()[:16]
 
 
-def _fold_sizes(class_to_fold_dfs: dict[str, dict[int, FoldDfs]]) -> tuple[tuple[int, int], ...]:
-    """Per-fold row counts. Folds share row counts across classes when the
-    classifier was loaded from a single experiment dir; for HBI per-class
-    specs different classes can come from different experiments, so we hash
-    the union of fold sizes seen across (class, fold)."""
-    seen: set[tuple[str, int, int]] = set()
-    for cls, fold_dfs in class_to_fold_dfs.items():
-        for fold_idx, (lab, _) in fold_dfs.items():
-            seen.add((cls, fold_idx, len(lab)))
-    # Aggregate to (fold_idx, n_rows) deduped — preserves per-fold distinctions
-    # while keeping the key compact.
-    by_fold: dict[int, int] = {}
-    for _, fold_idx, n in seen:
-        # If two classes report the same fold but different row counts
-        # (HBI per-class spec), bake them both into the hash via a synthetic
-        # offset so different layouts don't collide.
-        prev = by_fold.get(fold_idx)
-        if prev is None or n == prev:
-            by_fold[fold_idx] = n
-        else:
-            by_fold[fold_idx] = max(prev, n)
-    return tuple(sorted(by_fold.items()))
-
-
 def cache_root(custom_root: Path | None = None) -> Path:
-    """Return the cache root directory."""
     base = custom_root or get_evaluations_output()
     return base / CACHE_DIRNAME
 
 
-def _safe_label(label: str) -> str:
-    return "".join(c if c.isalnum() or c in "-_" else "_" for c in label)
+def cache_dir_for(key_hash: str, *, custom_root: Path | None = None) -> Path:
+    return cache_root(custom_root) / key_hash
 
 
-def cache_dir_for(
-    classifier: str,
-    key_hash: str,
-    *,
-    custom_root: Path | None = None,
-) -> Path:
-    """Return ``<cache_root>/<safe(classifier)>/<hash>/``."""
-    return cache_root(custom_root) / _safe_label(classifier) / key_hash
-
-
-def load_cached(
-    cache_path: Path,
-) -> bs.BootstrapResult | None:
-    """Return a ``BootstrapResult`` from ``cache_path`` or ``None`` if absent
-    or incomplete."""
+def load_cached(cache_path: Path) -> bs.BootstrapResult | None:
     if not cache_path.exists():
         return None
-    needed = ["bootstrap_long.csv", "point_estimates.csv", "jackknife.csv", "meta.json"]
+    needed = [
+        "bootstrap_long_ap.csv",
+        "point_estimates_ap.csv",
+        "bootstrap_long_delta.csv",
+        "point_estimates_delta.csv",
+        "meta.json",
+    ]
     if not all((cache_path / fname).exists() for fname in needed):
         return None
     return bs.BootstrapResult(
-        long_df=pd.read_csv(cache_path / "bootstrap_long.csv"),
-        point_estimates=pd.read_csv(cache_path / "point_estimates.csv"),
-        jackknife=pd.read_csv(cache_path / "jackknife.csv"),
+        long_ap=pd.read_csv(cache_path / "bootstrap_long_ap.csv"),
+        point_ap=pd.read_csv(cache_path / "point_estimates_ap.csv"),
+        long_delta=pd.read_csv(cache_path / "bootstrap_long_delta.csv"),
+        point_delta=pd.read_csv(cache_path / "point_estimates_delta.csv"),
     )
 
 
 def save_cached(
-    cache_path: Path,
-    result: bs.BootstrapResult,
-    key: CacheKey,
+    cache_path: Path, result: bs.BootstrapResult, key: CacheKey
 ) -> None:
-    """Write a ``BootstrapResult`` and its meta.json into ``cache_path``."""
     cache_path.mkdir(parents=True, exist_ok=True)
     result.save(cache_path)
     with open(cache_path / "meta.json", "w", encoding="utf-8") as fh:
-        json.dump(key.to_dict() | {"hash": key.hash()}, fh, indent=2, sort_keys=True)
+        json.dump(
+            key.to_dict() | {"hash": key.hash()},
+            fh, indent=2, sort_keys=True, default=str,
+        )
 
 
-def bootstrap_with_cache(
-    classifier: str,
-    model: str,
-    version_spec: str | dict[str, str],
-    class_to_fold_dfs: dict[str, dict[int, FoldDfs]],
+def paired_bootstrap_with_cache(
+    classifier_to_class_to_fold_dfs: bs.ClassifierClassFoldDfs,
+    classifier_metadata: dict[str, dict],
     *,
-    timestamps: dict[str, str],
     metrics: tuple[str, ...],
+    ap_types: tuple[str, ...],
     n_bootstraps: int,
     seed: int,
-    mode: str,
+    target_model: str | None,
     force: bool = False,
     custom_root: Path | None = None,
 ) -> tuple[bs.BootstrapResult, bool]:
-    """Return a cached or freshly-computed ``BootstrapResult`` for one
-    classifier. The second item is ``True`` when the cache was reused.
+    """Run or reuse a v4 paired bootstrap.
 
-    ``timestamps`` is the ``{class_short: experiment_dir_name}`` map captured
-    by ``io.load_classifier_class_fold_dfs`` — included in the cache hash so
-    that a re-trained classifier doesn't silently reuse stale draws.
+    ``classifier_metadata`` is ``{label: {model, version_spec,
+    timestamps}}`` as produced by the CLI's classifier resolver — used
+    to build the cache key so retraining busts it.
     """
+    sigs = []
+    for label in sorted(classifier_to_class_to_fold_dfs):
+        meta = classifier_metadata[label]
+        sigs.append(
+            _classifier_signature(
+                label=label,
+                model=meta["model"],
+                version_spec=meta["version_spec"],
+                class_to_fold_dfs=classifier_to_class_to_fold_dfs[label],
+                timestamps=meta["timestamps"],
+            )
+        )
+    sigs_tuple = tuple(json.dumps(s, sort_keys=True, default=str) for s in sigs)
+
     key = CacheKey(
-        classifier=classifier,
-        model=model,
-        version_spec=version_spec,
-        classes=tuple(sorted(class_to_fold_dfs)),
-        fold_sizes=_fold_sizes(class_to_fold_dfs),
-        timestamps=tuple(sorted(timestamps.items())),
+        classifier_signatures=sigs_tuple,
         n_bootstraps=n_bootstraps,
         seed=seed,
-        mode=mode,
+        ap_types=tuple(ap_types),
         metrics=tuple(metrics),
+        target_model=target_model,
     )
-    cache_path = cache_dir_for(classifier, key.hash(), custom_root=custom_root)
+    cache_path = cache_dir_for(key.hash(), custom_root=custom_root)
     if not force:
         cached = load_cached(cache_path)
         if cached is not None:
-            logger.info("Bootstrap cache hit for %s @ %s", classifier, cache_path)
+            logger.info("Paired-bootstrap cache hit @ %s", cache_path)
             return cached, True
-    logger.info("Bootstrap cache miss for %s — running bootstrap", classifier)
-    result = bs.bootstrap_metric_cis(
-        {classifier: class_to_fold_dfs},
+    logger.info("Paired-bootstrap cache miss @ %s — running v4 bootstrap", cache_path)
+    result = bs.paired_bootstrap_metric_cis(
+        classifier_to_class_to_fold_dfs,
         metrics=metrics,
+        ap_types=cast(tuple[bs.ApType, ...], tuple(ap_types)),
         n_bootstraps=n_bootstraps,
         seed=seed,
-        mode=mode,
+        target_model=target_model,
     )
     save_cached(cache_path, result, key)
     return result, False
-
-
-def merge_results(parts: list[bs.BootstrapResult]) -> bs.BootstrapResult:
-    """Concatenate per-classifier ``BootstrapResult`` tables."""
-    if not parts:
-        return bs.BootstrapResult(
-            long_df=pd.DataFrame(),
-            point_estimates=pd.DataFrame(),
-            jackknife=pd.DataFrame(),
-        )
-    return bs.BootstrapResult(
-        long_df=pd.concat([p.long_df for p in parts], ignore_index=True),
-        point_estimates=pd.concat([p.point_estimates for p in parts], ignore_index=True),
-        jackknife=pd.concat([p.jackknife for p in parts], ignore_index=True),
-    )

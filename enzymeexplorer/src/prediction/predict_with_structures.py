@@ -9,13 +9,14 @@ Pipeline:
   3. Embed sequences with the PLM and run the PlmDomainsRandomForest fold
      ensemble; proteins whose domain features are not meaningful fall back to
      the PlmRandomForest (PLM-only) ensemble in a second pass.
-  4. Assign per-class confidence tiers from confidence_tiers.csv (rows for
-     the matching classifier — PLM_Domains for the structure pass, PLM for
-     the fallback pass) and write two CSVs.
+  4. Apply per-class beta calibration from
+     ``calibration_fit_summary.csv`` (rows for the matching classifier —
+     PLM_Domains for the structure pass, PLM for the fallback pass) and
+     write two CSVs.
 
-The two output CSVs are kept separate because the tier definitions differ
-between classifiers; merging them would mean comparing scores across models
-that don't share a calibration.
+The two output CSVs are kept separate because each classifier has its own
+calibrator; merging would mean comparing scores across models that don't
+share a calibration.
 """
 
 from __future__ import annotations
@@ -61,12 +62,12 @@ from enzymeexplorer.src.prediction.logging_setup import (
     configure_logging,
 )
 from enzymeexplorer.src.prediction.pipeline import (
+    DEFAULT_CALIBRATION_CSV,
     DEFAULT_PLM_DOMAINS_BUNDLE,
     DEFAULT_PLM_MODEL,
     DEFAULT_PLM_ONLY_BUNDLE,
     DEFAULT_REFERENCE_DOMAINS_PICKLE,
     DEFAULT_REFERENCE_DOMAINS_STRUCTURES_DIR,
-    DEFAULT_TIERS_CSV,
     predict_with_structures,
 )
 
@@ -134,10 +135,10 @@ def parse_args() -> argparse.Namespace:
         help="Directory of training reference-domain PDB structures.",
     )
     parser.add_argument(
-        "--tiers-csv",
-        default=DEFAULT_TIERS_CSV,
+        "--calibration-csv",
+        default=DEFAULT_CALIBRATION_CSV,
         type=Path,
-        help="confidence_tiers.csv to look up per-class score bands.",
+        help="Per-class beta-calibration fit_summary CSV.",
     )
     parser.add_argument(
         "--plm-model",
@@ -196,7 +197,7 @@ def main() -> None:
         reference_domains_structures_dir=args.reference_domains_structures_dir,
         plm_domains_bundle_path=args.plm_domains_bundle,
         plm_only_bundle_path=args.plm_only_bundle,
-        tiers_csv_path=args.tiers_csv,
+        calibration_csv_path=args.calibration_csv,
         plm_model=args.plm_model,
         plm_only_model=args.plm_only_model,
         n_jobs=args.n_jobs,

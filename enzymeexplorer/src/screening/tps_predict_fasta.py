@@ -6,10 +6,10 @@ each with a disjoint ``[start_i, end_i)`` slice of the input FASTA.
 
 Internals delegate to :func:`enzymeexplorer.src.prediction.pipeline.predict_sequences_only`
 so the screening output matches the rest of the prediction pipeline:
-``id``, ``sequence``, and a ``<class>_score`` + ``<class>_tier`` column per
-class. By default rows where every class lands in the ``Negative`` tier are
-dropped to keep the per-shard CSV manageable; pass ``--keep-negatives`` to
-disable.
+``id``, ``sequence``, and a ``<class>_score`` + ``<class>_p_calibrated``
+column per class. By default rows where every calibrated probability
+falls below ``--min-p-keep`` are dropped to keep per-shard CSVs small;
+pass ``--keep-all`` to retain everything.
 """
 
 from __future__ import annotations
@@ -19,17 +19,17 @@ import logging
 from itertools import islice
 from pathlib import Path
 
+import numpy as np  # type: ignore
 import pandas as pd  # type: ignore
 from Bio import SeqIO  # type: ignore
 
 from enzymeexplorer.src.prediction.embeddings import load_plm_embedder
 from enzymeexplorer.src.prediction.pipeline import (
+    DEFAULT_CALIBRATION_CSV,
     DEFAULT_PLM_MODEL,
     DEFAULT_PLM_ONLY_BUNDLE,
-    DEFAULT_TIERS_CSV,
     predict_sequences_only,
 )
-from enzymeexplorer.src.prediction.tiers import NEGATIVE_TIER
 
 logger = logging.getLogger(__name__)
 
@@ -56,18 +56,24 @@ def parse_args() -> argparse.Namespace:
         "--plm-only-bundle", type=Path, default=Path(DEFAULT_PLM_ONLY_BUNDLE),
     )
     parser.add_argument(
-        "--tiers-csv", type=Path, default=Path(DEFAULT_TIERS_CSV),
+        "--calibration-csv", type=Path, default=Path(DEFAULT_CALIBRATION_CSV),
     )
     parser.add_argument(
         "--plm-model", type=str, default=DEFAULT_PLM_MODEL,
     )
     parser.add_argument("--plm-batch-size", type=int, default=4)
     parser.add_argument(
-        "--keep-negatives", action="store_true",
+        "--min-p-keep", type=float, default=0.5,
         help=(
-            "Keep rows where every class is in the Negative tier. By default "
-            "such rows are dropped so per-shard CSVs stay small."
+            "Drop rows where every <class>_p_calibrated is below this value. "
+            "Default 0.5; use --keep-all to disable filtering. Rows whose "
+            "classes all have NaN p_calibrated (skipped calibrators) are "
+            "always kept."
         ),
+    )
+    parser.add_argument(
+        "--keep-all", action="store_true",
+        help="Retain every row regardless of calibrated probability.",
     )
     return parser.parse_args()
 
@@ -87,12 +93,22 @@ def _load_fasta_shard(
     return df.reset_index(drop=True)
 
 
-def _drop_all_negative_rows(table: pd.DataFrame) -> pd.DataFrame:
-    """Drop rows where every ``*_tier`` column equals ``Negative``."""
-    tier_cols = [c for c in table.columns if c.endswith("_tier")]
-    if not tier_cols:
+def _filter_by_calibrated_probability(
+    table: pd.DataFrame, min_p: float,
+) -> pd.DataFrame:
+    """Drop rows where every ``*_p_calibrated`` column is below ``min_p``.
+
+    NaN cells (classes without a calibrator) do not count against a row;
+    a row whose every calibrated cell is NaN is kept.
+    """
+    p_cols = [c for c in table.columns if c.endswith("_p_calibrated")]
+    if not p_cols:
         return table
-    keep = (table[tier_cols] != NEGATIVE_TIER).any(axis=1)
+    arr = table[p_cols].to_numpy(dtype=np.float64)
+    # A row passes if any cell is >= min_p, OR every cell is NaN (no claim).
+    has_above = np.nansum(arr >= min_p, axis=1) > 0
+    all_nan = np.all(np.isnan(arr), axis=1)
+    keep = has_above | all_nan
     return table[keep].reset_index(drop=True)
 
 
@@ -116,18 +132,19 @@ def main(args: argparse.Namespace) -> None:
     table = predict_sequences_only(
         sequences_df,
         plm_only_bundle_path=args.plm_only_bundle,
-        tiers_csv_path=args.tiers_csv,
+        calibration_csv_path=args.calibration_csv,
         plm_model=args.plm_model,
         embedder=embedder,
         plm_batch_size=args.plm_batch_size,
     )
-    if not args.keep_negatives:
+    if not args.keep_all:
         before = len(table)
-        table = _drop_all_negative_rows(table)
+        table = _filter_by_calibrated_probability(table, args.min_p_keep)
         logger.info(
-            "Dropped %d/%d all-Negative rows (use --keep-negatives to retain)",
+            "Dropped %d/%d rows below min_p_keep=%.3f (use --keep-all to retain)",
             before - len(table),
             before,
+            args.min_p_keep,
         )
 
     args.output_csv.parent.mkdir(parents=True, exist_ok=True)
