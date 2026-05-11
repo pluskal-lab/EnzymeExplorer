@@ -31,9 +31,10 @@ Eval YAML schema::
           version: <str>            # required when mode=fixed
           prefix: <str>             # required when mode=auto
           metric: ap | roc_auc
-          with_distractors: true    # optional; default true. When false the
-                                    # auto-pick stays inside *_no_distractors
-                                    # versions.
+          with_distractors: false   # optional; default false. When true the
+                                    # auto-pick stays inside *_with_distractors
+                                    # versions instead of the no-distractor
+                                    # default universe.
 
     bootstrap:
       n_bootstraps: 2000
@@ -67,7 +68,7 @@ Eval YAML schema::
         prefix: eval
         x_axis: neglog10
         x_label: "E-value (-log10)"
-        with_distractors: true      # optional; default true
+        with_distractors: false     # optional; default false
       - label: PFAM
         model: PfamSUPFAM
         prefix: pfam_bitscore
@@ -93,6 +94,7 @@ import logging
 import re
 from pathlib import Path
 
+import numpy as np  # type: ignore
 import pandas as pd  # type: ignore
 import yaml  # type: ignore
 
@@ -130,7 +132,7 @@ def _resolve_version_spec(label: str, spec: dict, classes: list[str]):
         return sel_cfg["version"]
     if mode == "auto":
         prefix = sel_cfg["prefix"]
-        with_distractors = bool(sel_cfg.get("with_distractors", True))
+        with_distractors = bool(sel_cfg.get("with_distractors", False))
         candidates = sel.discover_versions(
             spec["model"], prefix=prefix, with_distractors=with_distractors,
         )
@@ -373,7 +375,7 @@ def run_evaluate(args: argparse.Namespace) -> None:
             for entry in sweep_cfg:
                 label = entry["label"]
                 sweep_classes = entry.get("classes", DEFAULT_PLOT_ORDER)
-                with_distractors = bool(entry.get("with_distractors", True))
+                with_distractors = bool(entry.get("with_distractors", False))
                 candidates = sel.discover_versions(
                     entry["model"], prefix=entry["prefix"],
                     with_distractors=with_distractors,
@@ -595,7 +597,7 @@ def run_evaluate(args: argparse.Namespace) -> None:
         for entry in sweep_cfg:
             label = entry["label"]
             sweep_classes = entry.get("classes", DEFAULT_PLOT_ORDER)
-            with_distractors = bool(entry.get("with_distractors", True))
+            with_distractors = bool(entry.get("with_distractors", False))
             candidates = sel.discover_versions(
                 entry["model"], prefix=entry["prefix"],
                 with_distractors=with_distractors,
@@ -694,6 +696,7 @@ def _render_v4_scenarios(
     pvalues: pd.DataFrame,
     cfg: dict,
     plot_set: set[str] | None = None,
+    plots_subdir: str = "plots",
 ) -> None:
     """Write 14 plots per scenario into ``eval_dir/plots/<scenario>/``.
 
@@ -707,7 +710,7 @@ def _render_v4_scenarios(
       * delta/ ⟶ 6 delta forest plots
       * pvalues/ ⟶ 2 p-value heatmaps (one per ap_type)
     """
-    plots_root = eval_dir / "plots"
+    plots_root = eval_dir / plots_subdir
     plots_root.mkdir(parents=True, exist_ok=True)
 
     vcfg = cfg.get("visualize", {}) or {}
@@ -727,9 +730,17 @@ def _render_v4_scenarios(
     sort_ci_method = "normal" if "normal" in ci_methods_present else ci_methods_present[0]
 
     # Effective palette: master + YAML overrides. YAML wins per-key.
+    # Poster mode overrides both with a two-tone blue scheme: dark for
+    # the pinned classifier (typically the headline EnzymeExplorer
+    # method), light for every other bar. Only kicks in when
+    # ``pin_last`` is set so other scenarios (ablations) keep their
+    # multi-colour identification.
     palette = dict(theme.UNIVERSAL_PALETTE)
     if yaml_palette:
         palette.update(yaml_palette)
+    if theme.is_poster() and pin_last:
+        classifiers_present = list(summary_ap["classifier"].unique())
+        palette = theme.poster_two_tone_palette(classifiers_present, pin_last)
 
     def _order_for(class_list: list[str]) -> list[str]:
         """Resolve the per-scenario classifier order.
@@ -899,14 +910,10 @@ def _render_v4_scenarios(
     # restricted to ``EnzymeExplorer + Foldseek + BLAST`` so the headline
     # comparison is legible even when the full plot has 8+ methods.
     # ------------------------------------------------------------------
-    headline_candidates = [
-        ("PLM_Domains", "Foldseek", "BLAST"),
-        ("PLM_Domains_no_distractors", "Foldseek_no_distractors", "BLAST_no_distractors"),
-    ]
+    headline_tuple = ("PLM_Domains", "Foldseek", "BLAST")
     available = set(summary_ap["classifier"].unique())
-    headline_subset = next(
-        (list(t) for t in headline_candidates if all(c in available for c in t)),
-        None,
+    headline_subset = (
+        list(headline_tuple) if all(c in available for c in headline_tuple) else None
     )
     if headline_subset is not None:
         for scenario_name, class_list, multi_class, scenario_title in scenarios:
@@ -1031,6 +1038,8 @@ def _resolve_visualize_cfg(eval_dir: Path, args: argparse.Namespace) -> dict:
         vcfg["tps_ylim"] = list(args.tps_ylim)
     if args.substrate_map_ylim is not None:
         vcfg["substrate_map_ylim"] = list(args.substrate_map_ylim)
+    if getattr(args, "poster", False):
+        vcfg["poster"] = True
     return vcfg
 
 
@@ -1072,9 +1081,11 @@ def run_visualize(args: argparse.Namespace) -> None:
     bootstrap_long = (
         pd.read_csv(bootstrap_long_path) if bootstrap_long_path.exists() else None
     )
-    plots_dir = eval_dir / "plots"
+    poster = bool(getattr(args, "poster", False))
+    plots_subdir = "plots_poster" if poster else "plots"
+    plots_dir = eval_dir / plots_subdir
     plots_dir.mkdir(parents=True, exist_ok=True)
-    theme.apply_theme()
+    theme.apply_theme(poster=poster)
 
     vcfg = _resolve_visualize_cfg(eval_dir, args)
     plot_set = set(vcfg.get("plots") or PLOTS_AVAILABLE)
@@ -1105,6 +1116,7 @@ def run_visualize(args: argparse.Namespace) -> None:
             pvalues=pvalues,
             cfg=yaml.safe_load((eval_dir / "eval_config.yaml").read_text()),
             plot_set=v4_scenarios_in_plot_set,
+            plots_subdir=plots_subdir,
         )
     metric = vcfg.get("metric", "ap")
     pin_last = vcfg.get("pin_last")
@@ -1673,4 +1685,12 @@ def add_visualize_subparser(subparsers: argparse._SubParsersAction) -> None:
     parser.add_argument(
         "--zoom-classifiers", nargs="+", default=None,
         help="Force the auto-zoom subset to exactly these classifiers.",
+    )
+    parser.add_argument(
+        "--poster", action="store_true",
+        help="Render plots with a poster-friendly theme (larger fonts, "
+             "thicker axes/lines, bigger markers) and write them to "
+             "<eval_dir>/plots_poster/ instead of <eval_dir>/plots/. "
+             "Designed for ~1 m+ posters viewed from ~1–2 m. The paper-"
+             "quality plots in <eval_dir>/plots/ are left untouched.",
     )

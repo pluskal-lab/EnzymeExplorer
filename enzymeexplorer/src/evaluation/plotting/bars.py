@@ -124,7 +124,9 @@ def compute_ci_zoom_ylim(
 
 
 def _auto_figsize(n_bars: int) -> tuple[float, float]:
-    return (max(3.0, _PER_BAR_WIDTH_INCHES * n_bars + 1.2), _FIGSIZE_HEIGHT)
+    return theme.scale_figsize(
+        max(3.0, _PER_BAR_WIDTH_INCHES * n_bars + 1.2), _FIGSIZE_HEIGHT,
+    )
 
 
 def _resolve_xtick_label(clf: str, overrides: Mapping[str, str] | None) -> str:
@@ -254,9 +256,15 @@ def bar_classifier(
     ax.errorbar(
         x_positions, point_pct,
         yerr=yerr, fmt="none",
-        ecolor="0.15", elinewidth=0.7, capsize=2.0, capthick=0.7,
+        ecolor="0.15",
+        elinewidth=theme.scale_stroke(0.7),
+        capsize=theme.scale_stroke(2.0),
+        capthick=theme.scale_stroke(0.7),
     )
-    ax.yaxis.grid(True, color="0.88", linewidth=0.5, zorder=0)
+    ax.yaxis.grid(
+        True, color=theme.grid_color(),
+        linewidth=theme.scale_stroke(0.5), zorder=0,
+    )
     ax.set_axisbelow(True)
 
     y_min = ylim[0] if ylim is not None else None
@@ -281,14 +289,16 @@ def bar_classifier(
                     xi,
                     y_min + 0.02 * offset_base,
                     f"↓ {value_label_fmt.format(mean_val)}",
-                    ha="center", va="bottom", fontsize=8, color="0.3",
+                    ha="center", va="bottom",
+                    fontsize=theme.scale_fontsize(8), color="0.3",
                 )
                 continue
             label_y = max(mean_val, top_val) + offset
             max_label_y = max(max_label_y, label_y)
             ax.text(
                 xi, label_y, value_label_fmt.format(mean_val),
-                ha="center", va="bottom", fontsize=9, clip_on=False,
+                ha="center", va="bottom",
+                fontsize=theme.scale_fontsize(9), clip_on=False,
             )
         # Make room above the user-requested y_max if labels would
         # otherwise overshoot it (an extra ~3% header).
@@ -299,8 +309,11 @@ def bar_classifier(
     # Multi-line display names (e.g. "EnzymeExplorer\nDomains") render
     # vertically stacked and un-rotated, so the per-bar slot needs to
     # be wide enough to hold the longest single line — that's why
-    # _PER_BAR_WIDTH_INCHES was bumped.
-    ax.set_xticklabels(display_labels, rotation=0, ha="center")
+    # _PER_BAR_WIDTH_INCHES was bumped. Poster mode rotates instead so
+    # long single-line names ("EnzymeExplorer") still fit in the
+    # smaller 15 cm × 8 cm tile.
+    rot, ha = theme.xtick_rotation(len(display_labels))
+    ax.set_xticklabels(display_labels, rotation=rot, ha=ha)
     if ylim is None:
         # Default unzoomed range. ymax=102 leaves a 2-pp gap above the
         # CI clip at 100 so whiskers fit cleanly inside the axis frame.
@@ -460,7 +473,9 @@ def bar_per_class(
     if ax is None:
         if figsize is None:
             cluster_w = max(0.55, 0.18 * len(classifier_order) + 0.25)
-            figsize = (max(4.5, cluster_w * len(classes) + 1.4), _FIGSIZE_HEIGHT)
+            figsize = theme.scale_figsize(
+                max(4.5, cluster_w * len(classes) + 1.4), _FIGSIZE_HEIGHT,
+            )
         fig, ax = plt.subplots(figsize=figsize)
     else:
         fig = ax.figure
@@ -518,11 +533,14 @@ def bar_per_class(
             yerr=yerr[:, valid],
             fmt="none",
             ecolor="0.15",
-            elinewidth=0.6,
-            capsize=1.5,
-            capthick=0.6,
+            elinewidth=theme.scale_stroke(0.6),
+            capsize=theme.scale_stroke(1.5),
+            capthick=theme.scale_stroke(0.6),
         )
-    ax.yaxis.grid(True, color="0.88", linewidth=0.5, zorder=0)
+    ax.yaxis.grid(
+        True, color=theme.grid_color(),
+        linewidth=theme.scale_stroke(0.5), zorder=0,
+    )
     ax.set_axisbelow(True)
 
     ax.set_xticks(x_centers)

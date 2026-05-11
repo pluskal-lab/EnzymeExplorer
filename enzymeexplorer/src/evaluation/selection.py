@@ -27,13 +27,7 @@ logger = logging.getLogger(__name__)
 
 VersionSpec = str | dict[str, str]
 
-NO_DISTRACTORS_SUFFIX = "_no_distractors"
-
-
-def is_no_distractors_version(version: str) -> bool:
-    """Return ``True`` for version names that come from the without-distractor
-    training set (suffix ``_no_distractors``)."""
-    return version.endswith(NO_DISTRACTORS_SUFFIX)
+WITH_DISTRACTORS_SUFFIX = "_with_distractors"
 
 
 def discover_versions(
@@ -43,7 +37,7 @@ def discover_versions(
     config_root: Path | None = None,  # noqa: ARG001 — kept for API compat
     require_outputs: bool = True,  # noqa: ARG001 — kept for API compat
     output_root: Path | None = None,
-    with_distractors: bool = True,
+    with_distractors: bool = False,
 ) -> list[str]:
     """Return version directories for ``model`` whose names start with
     ``prefix`` (e.g. ``"eval"`` for HMM/BLAST/Foldseek, ``"pfam_bitscore"``
@@ -56,9 +50,10 @@ def discover_versions(
     suffixes for unrelated reasons.
 
     The ``with_distractors`` flag selects between the two training-set
-    universes: when ``True`` (default), versions ending in ``_no_distractors``
-    are excluded; when ``False`` only those versions are returned. The
-    auto-pick HBI selection therefore stays inside one universe.
+    universes: when ``False`` (default), versions ending in
+    ``_with_distractors`` are excluded — the auto-pick stays in the
+    no-distractor universe that matches the new training default. When
+    ``True``, only ``_with_distractors`` versions are returned.
     """
     out_root = output_root or get_output_root()
     model_outputs = out_root / model
@@ -70,7 +65,7 @@ def discover_versions(
         if p.is_dir()
         and p.name.startswith(prefix)
         and (p / "all_folds" / "all_classes").is_dir()
-        and is_no_distractors_version(p.name) != with_distractors
+        and p.name.endswith(WITH_DISTRACTORS_SUFFIX) == with_distractors
     )
 
 
@@ -160,7 +155,7 @@ def resolve_classifier_version_spec(
     selection_metric: str = "ap",
     output_root: Path | None = None,
     config_root: Path | None = None,
-    with_distractors: bool = True,
+    with_distractors: bool = False,
 ) -> VersionSpec:
     """Resolve the version spec a classifier should use for evaluation.
 

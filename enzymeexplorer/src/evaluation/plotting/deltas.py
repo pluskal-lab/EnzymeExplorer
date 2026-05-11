@@ -109,18 +109,23 @@ def _bxp_stat_from_distribution(
 
 
 def _style_box(bxp, colours: list, alpha: float = 0.75) -> None:
+    box_lw = theme.scale_stroke(0.5)
+    whisk_lw = theme.scale_stroke(0.7)
+    med_lw = theme.scale_stroke(1.2)
     for patch, c in zip(bxp["boxes"], colours):
         patch.set_facecolor(c)
         patch.set_edgecolor("black")
-        patch.set_linewidth(0.5)
+        patch.set_linewidth(box_lw)
         patch.set_alpha(alpha)
     for whisk in bxp["whiskers"]:
         whisk.set_color("black")
+        whisk.set_linewidth(whisk_lw)
     for cap in bxp["caps"]:
         cap.set_color("black")
+        cap.set_linewidth(whisk_lw)
     for med in bxp["medians"]:
         med.set_color("black")
-        med.set_linewidth(1.2)
+        med.set_linewidth(med_lw)
 
 
 def _delta_metric_label(metric: str, classes: list[str]) -> str:
@@ -256,7 +261,13 @@ def plot_delta_forest(
 
         if figsize is None:
             per_pair = max(0.9, 0.32 * n_classes)
-            figsize = (max(3.6, per_pair * n_pairs + 1.6), 3.2)
+            base_w = max(3.6, per_pair * n_pairs + 1.6)
+            # Poster: modest floor; the title's parenthetical wraps to
+            # a second line (see ax.set_title above) so we don't need
+            # to widen the figure to fit it on one row.
+            if theme.is_poster():
+                base_w = max(base_w, 4.0)
+            figsize = theme.scale_figsize(base_w, 3.2)
         fig, ax = plt.subplots(figsize=figsize)
         if bxp_stats:
             bxp = ax.bxp(
@@ -265,18 +276,24 @@ def plot_delta_forest(
                 patch_artist=True, showfliers=False,
             )
             _style_box(bxp, bxp_colours, alpha=0.85)
-        ax.axhline(0, color="0.4", linestyle="--", linewidth=0.6)
+        ax.axhline(0, color="0.4", linestyle="--",
+                   linewidth=theme.scale_stroke(0.6))
         ax.set_xticks(list(range(n_pairs)))
-        ax.set_xticklabels(pair_labels, rotation=0, ha="center")
+        rot, ha = theme.xtick_rotation(len(pair_labels))
+        ax.set_xticklabels(pair_labels, rotation=rot, ha=ha)
         ax.set_xlim(-0.5, n_pairs - 0.5)
         metric_label = _delta_metric_label(metric, classes)
         ax.set_ylabel(f"Δ {metric_label} (%)")
-        ax.yaxis.grid(True, color="0.88", linewidth=0.5)
+        ax.yaxis.grid(
+            True, color=theme.grid_color(),
+            linewidth=theme.scale_stroke(0.5),
+        )
         ax.set_axisbelow(True)
         full_title = title or f"Δ {metric_label}"
         if target_label:
+            sep = "\n" if theme.is_poster() else "   "
             ax.set_title(
-                f"{full_title}   ({target_label} − baseline)",
+                f"{full_title}{sep}({target_label} − baseline)",
                 fontsize=mpl.rcParams["axes.titlesize"], loc="left",
             )
         else:
@@ -308,13 +325,25 @@ def plot_delta_forest(
 
     if figsize is None:
         per_panel_w = max(2.6, 0.55 * n_pairs + 1.0)
-        figsize = (per_panel_w * ncols, 2.7 * nrows)
+        # Poster: modest floor so the axes have room for thick whiskers
+        # and rotated tick labels. The long parenthetical in the title
+        # is wrapped onto a second line (see fig.suptitle below) so we
+        # don't need to widen the figure to fit it on one row.
+        if theme.is_poster():
+            per_panel_w = max(per_panel_w, 4.0)
+        figsize = theme.scale_figsize(per_panel_w * ncols, 2.7 * nrows)
     fig, axes = plt.subplots(
         nrows, ncols, figsize=figsize, squeeze=False, sharey=True,
     )
     flat_axes = axes.ravel()
     fixed_positions = list(range(n_pairs))
-    palette = _pair_palette(all_pairs, shared_a=shared_a)
+    if theme.is_poster():
+        # Poster mode: single dark blue for every box so the plot
+        # reads as a uniform comparison strip rather than colour-coded
+        # pair identities. Pair labels on the x-axis carry the identity.
+        palette = {pair: theme.POSTER_PRIMARY_BLUE for pair in all_pairs}
+    else:
+        palette = _pair_palette(all_pairs, shared_a=shared_a)
 
     for cls_i, cls in enumerate(classes):
         ax = flat_axes[cls_i]
@@ -351,12 +380,17 @@ def plot_delta_forest(
             )
             _style_box(bxp, colours)
 
-        ax.axhline(0, color="0.4", linestyle="--", linewidth=0.6)
+        ax.axhline(0, color="0.4", linestyle="--",
+                   linewidth=theme.scale_stroke(0.6))
         ax.set_xticks(fixed_positions)
-        ax.set_xticklabels(pair_labels, rotation=0, ha="center")
+        rot, ha = theme.xtick_rotation(len(pair_labels))
+        ax.set_xticklabels(pair_labels, rotation=rot, ha=ha)
         ax.set_xlim(-0.6, n_pairs - 0.4)
         ax.set_title(cls if n_classes > 1 else "", loc="left")
-        ax.yaxis.grid(True, color="0.88", linewidth=0.5)
+        ax.yaxis.grid(
+            True, color=theme.grid_color(),
+            linewidth=theme.scale_stroke(0.5),
+        )
         ax.set_axisbelow(True)
 
     for k in range(n_classes, len(flat_axes)):
@@ -365,11 +399,25 @@ def plot_delta_forest(
     metric_label = _delta_metric_label(metric, classes)
     full_title = title or f"Δ {metric_label}"
     if target_label:
-        full_title = f"{full_title}   ({target_label} − baseline)"
-    fig.suptitle(full_title, x=0.02, ha="left",
-                 fontsize=mpl.rcParams["axes.titlesize"])
-    fig.supylabel(f"Δ {metric_label} (%)")
-    fig.tight_layout(rect=(0, 0, 1.0, 0.94))
+        # Poster: wrap the parenthetical onto a second line so the
+        # plot can stay narrow (~6" wide) instead of being stretched
+        # by tight_layout to fit the full one-line title.
+        sep = "\n" if theme.is_poster() else "   "
+        full_title = f"{full_title}{sep}({target_label} − baseline)"
+    y_label = f"Δ {metric_label} (%)"
+    if n_classes == 1:
+        # Single-panel: place title and y-label directly on the axes so
+        # they sit close to the plot (axes.titlepad/axes.labelpad are
+        # only a few points), instead of using fig.suptitle/supylabel
+        # which leave a large margin to the figure edges.
+        flat_axes[0].set_title(full_title, loc="left")
+        flat_axes[0].set_ylabel(y_label)
+        fig.tight_layout()
+    else:
+        fig.suptitle(full_title, x=0.02, ha="left",
+                     fontsize=mpl.rcParams["axes.titlesize"])
+        fig.supylabel(y_label)
+        fig.tight_layout(rect=(0, 0, 1.0, 0.94))
     return fig
 
 
@@ -395,7 +443,7 @@ def _plot_pvalue_lollipop(
     classes = [c for c in classes if c in set(pv["class"])]
     n_classes = len(classes)
     if n_classes == 0:
-        fig, ax = plt.subplots(figsize=(3.0, 1.5))
+        fig, ax = plt.subplots(figsize=theme.scale_figsize(3.0, 1.5))
         ax.axis("off")
         return fig
 
@@ -418,7 +466,9 @@ def _plot_pvalue_lollipop(
     if figsize is None:
         per_panel_w = max(2.4, 0.45 * len(baselines) + 1.0)
         per_panel_h = 1.2
-        figsize = (per_panel_w * ncols, 0.6 + per_panel_h * nrows)
+        figsize = theme.scale_figsize(
+            per_panel_w * ncols, 0.6 + per_panel_h * nrows,
+        )
 
     fig, axes = plt.subplots(
         nrows, ncols, figsize=figsize, sharex=True, sharey=True, squeeze=False,
@@ -544,7 +594,7 @@ def plot_pvalue_heatmap(
     n_clf = len(classifiers)
     if figsize is None:
         per_panel = max(4.0, 0.55 * n_clf + 1.5)
-        figsize = (per_panel * ncols, per_panel * nrows)
+        figsize = theme.scale_figsize(per_panel * ncols, per_panel * nrows)
 
     fig, axes = plt.subplots(nrows, ncols, figsize=figsize, squeeze=False)
     flat = axes.ravel()

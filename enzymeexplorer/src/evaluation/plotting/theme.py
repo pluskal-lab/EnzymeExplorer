@@ -34,7 +34,6 @@ DEFAULT_HBI_BASELINES: list[str] = [
 ]
 DEFAULT_EE_FAMILY: list[str] = [
     "Domains", "PLM", "PLM_Domains",
-    "Domains_no_distractors", "PLM_no_distractors", "PLM_Domains_no_distractors",
 ]
 
 DEFAULT_CLASSIFIER_DISPLAY: dict[str, str] = {
@@ -49,17 +48,6 @@ DEFAULT_CLASSIFIER_DISPLAY: dict[str, str] = {
     "PFAM": "Pfam",
     "SUPFAM": "SUPFAM",
     "CLEAN": "CLEAN",
-    # No-distractor variants render the same as their with-distractor parent;
-    # the universe is communicated by the output dir / plot title, not the
-    # axis labels.
-    "PLM_Domains_no_distractors": "EnzymeExplorer",
-    "PLM_no_distractors": "EnzymeExplorer\nPLM",
-    "Domains_no_distractors": "EnzymeExplorer\nDomains",
-    "BLAST_no_distractors": "BLASTp",
-    "HMM_no_distractors": "pHMM",
-    "Foldseek_no_distractors": "FoldSeek",
-    "PFAM_no_distractors": "Pfam",
-    "SUPFAM_no_distractors": "SUPFAM",
     # Ablation-only siblings.
     "PLM_Domains_LR": "Logistic Regression",
     "PLM_Domains_MLP": "MLP",
@@ -96,9 +84,6 @@ UNIVERSAL_PALETTE: dict[str, str] = {
     "Domains": "#0072B2",        # blue
     "PLM": "#D55E00",            # vermillion
     "PLM_Domains": "#009E73",    # green
-    "Domains_no_distractors": "#0072B2",
-    "PLM_no_distractors": "#D55E00",
-    "PLM_Domains_no_distractors": "#009E73",
     # HBI baselines & comparators.
     "BLAST": "#0072B2",          # blue (sequence search)
     "Blastp": "#0072B2",
@@ -108,11 +93,6 @@ UNIVERSAL_PALETTE: dict[str, str] = {
     "PFAM": "#D55E00",           # vermillion (Pfam DB)
     "SUPFAM": "#999999",         # neutral grey
     "CLEAN": "#CC79A7",          # pink (ML)
-    "BLAST_no_distractors": "#0072B2",
-    "Foldseek_no_distractors": "#56B4E9",
-    "HMM_no_distractors": "#E69F00",
-    "PFAM_no_distractors": "#D55E00",
-    "SUPFAM_no_distractors": "#999999",
     # ML-head ablation siblings.
     "PLM_RF": "#0072B2",
     "PLM_Xgb": "#D55E00",
@@ -137,7 +117,97 @@ UNIVERSAL_PALETTE: dict[str, str] = {
 }
 
 
-def apply_theme(context: str = "paper", base_font_size: float = 8.0) -> None:
+# Module-level poster flag. Set by ``apply_theme(poster=True)`` so plot
+# helpers in bars.py / deltas.py / curves.py can scale their figsize and
+# hardcoded stroke/font sizes coherently with the rc theme.
+POSTER_MODE: bool = False
+
+# Layout scale factors for poster mode. Targets a 15 cm × 8 cm
+# (~5.9 × 3.1") displayed tile on a 1.1 m poster viewed from ~1–1.5 m.
+# Figures are rendered only modestly larger than the target physical
+# size so the matplotlib font.size in points survives the shrink
+# without becoming unreadable — fonts hit the page at ~14 pt visible,
+# error bars at ~2 pt, axes at ~1.5 pt, grid clearly perceptible.
+#
+# Height gets a larger multiplier than width so rotated x-tick labels
+# (35°, long classifier names) do not steal vertical space from the
+# axes/bars themselves.
+POSTER_FIGSIZE_W_SCALE: float = 1.5
+POSTER_FIGSIZE_H_SCALE: float = 1.9
+POSTER_STROKE_SCALE: float = 4.0
+POSTER_FONTSIZE_SCALE: float = 2.75
+
+
+def is_poster() -> bool:
+    """Return ``True`` when the current theme was set up via
+    :func:`apply_theme(poster=True)`."""
+    return POSTER_MODE
+
+
+def scale_figsize(width: float, height: float) -> tuple[float, float]:
+    """Scale a paper-mode figsize for poster mode (no-op otherwise)."""
+    if POSTER_MODE:
+        return (
+            width * POSTER_FIGSIZE_W_SCALE,
+            height * POSTER_FIGSIZE_H_SCALE,
+        )
+    return width, height
+
+
+def scale_stroke(value: float) -> float:
+    """Scale a paper-mode line/edge width for poster mode."""
+    return value * POSTER_STROKE_SCALE if POSTER_MODE else value
+
+
+def scale_fontsize(value: float) -> float:
+    """Scale a paper-mode hardcoded fontsize for poster mode."""
+    return value * POSTER_FONTSIZE_SCALE if POSTER_MODE else value
+
+
+def grid_color() -> str:
+    """Grid colour for explicit ``ax.yaxis.grid(color=…)`` calls. Darker
+    in poster mode so the grid stays perceptible after the figure is
+    shrunk to its final 15 cm × 8 cm tile."""
+    return "0.70" if POSTER_MODE else "0.88"
+
+
+# Poster-mode two-tone blue palette: highlight one "target" classifier
+# (typically the headline method, e.g. ``PLM_Domains`` / EnzymeExplorer)
+# in dark blue and render every other classifier in light blue. Used by
+# the all-methods-comparison bar plots and the delta boxplots when the
+# user wants a single-method-vs-baselines visual story.
+POSTER_PRIMARY_BLUE: str = "#08519c"
+POSTER_SECONDARY_BLUE: str = "#9ecae1"
+
+
+def poster_two_tone_palette(
+    classifiers: list[str], target: str | None,
+) -> dict[str, str]:
+    """Build a ``{classifier: hex}`` palette where ``target`` gets the
+    dark "primary" blue and every other entry gets the light
+    "secondary" blue."""
+    return {
+        c: POSTER_PRIMARY_BLUE if c == target else POSTER_SECONDARY_BLUE
+        for c in classifiers
+    }
+
+
+def xtick_rotation(n_labels: int) -> tuple[float, str]:
+    """Return ``(rotation, ha)`` for x-tick labels in classifier-axis
+    bar/box plots. Poster mode rotates 45° so the long classifier names
+    ("EnzymeExplorer", "FoldSeek", …) stop colliding in the smaller
+    canvas. Paper mode keeps them horizontal."""
+    if POSTER_MODE and n_labels >= 4:
+        return 35.0, "right"
+    return 0.0, "center"
+
+
+def apply_theme(
+    context: str = "paper",
+    base_font_size: float = 8.0,
+    *,
+    poster: bool = False,
+) -> None:
     """Apply Nature Chemical Biology-style figure defaults.
 
     Conventions enforced here:
@@ -151,7 +221,38 @@ def apply_theme(context: str = "paper", base_font_size: float = 8.0) -> None:
     * No grid by default — turn it on per-axis when the data demands it.
     * Vector-safe (TrueType) fonts so saved PDFs are searchable.
     * 600 DPI for raster fallbacks.
+
+    When ``poster=True``, fonts, line widths, tick sizes and markers
+    are scaled up for legibility at ~1–2 m viewing distance on a
+    large poster (~1 m+). Plot helpers in ``bars.py`` / ``deltas.py``
+    / ``curves.py`` consult the module-level :data:`POSTER_MODE` via
+    :func:`scale_figsize`, :func:`scale_stroke`, and
+    :func:`scale_fontsize` to grow the canvas and stroke/label sizes
+    coherently, so xtick labels do not collide and CI whiskers stay
+    visible against the larger bars.
     """
+    global POSTER_MODE
+    POSTER_MODE = poster
+    if poster:
+        context = "poster"
+        base_font_size = 22.0
+        axes_lw = 2.0
+        line_lw = 3.0
+        markersize = 9.0
+        patch_lw = 2.0
+        tick_size = 8.0
+        tick_width = 2.0
+        grid_lw = 1.6
+        grid_color = "0.70"
+    else:
+        axes_lw = 0.6
+        line_lw = 1.2
+        markersize = 4.0
+        patch_lw = 0.6
+        tick_size = 3.0
+        tick_width = 0.6
+        grid_lw = 0.4
+        grid_color = "0.85"
     sns.set_theme(style="ticks", context=context)
     mpl.rcParams.update(
         {
@@ -173,15 +274,15 @@ def apply_theme(context: str = "paper", base_font_size: float = 8.0) -> None:
             "axes.labelweight": "regular",
             "figure.titlesize": base_font_size + 3,
             "figure.titleweight": "regular",
-            "axes.linewidth": 0.6,
+            "axes.linewidth": axes_lw,
             "axes.spines.top": False,
             "axes.spines.right": False,
             "axes.edgecolor": "0.15",
             "axes.titlepad": 6.0,
             "axes.labelpad": 3.0,
             "axes.grid": False,
-            "grid.linewidth": 0.4,
-            "grid.color": "0.85",
+            "grid.linewidth": grid_lw,
+            "grid.color": grid_color,
             "grid.alpha": 1.0,
             "legend.fontsize": base_font_size - 1,
             "legend.frameon": False,
@@ -192,15 +293,15 @@ def apply_theme(context: str = "paper", base_font_size: float = 8.0) -> None:
             "ytick.labelsize": base_font_size - 1,
             "xtick.direction": "out",
             "ytick.direction": "out",
-            "xtick.major.size": 3.0,
-            "ytick.major.size": 3.0,
-            "xtick.major.width": 0.6,
-            "ytick.major.width": 0.6,
+            "xtick.major.size": tick_size,
+            "ytick.major.size": tick_size,
+            "xtick.major.width": tick_width,
+            "ytick.major.width": tick_width,
             "xtick.minor.visible": False,
             "ytick.minor.visible": False,
-            "lines.linewidth": 1.2,
-            "lines.markersize": 4.0,
-            "patch.linewidth": 0.6,
+            "lines.linewidth": line_lw,
+            "lines.markersize": markersize,
+            "patch.linewidth": patch_lw,
             "patch.edgecolor": "0.15",
         }
     )
