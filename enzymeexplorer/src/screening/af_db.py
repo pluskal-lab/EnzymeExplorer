@@ -27,6 +27,7 @@ robustness properties matter:
 
 from __future__ import annotations
 
+import gzip
 import json
 import logging
 import random
@@ -75,10 +76,39 @@ def _backoff(attempt: int) -> None:
     time.sleep(sleep_s)
 
 
+_GZIP_MAGIC = b"\x1f\x8b"
+
+
+def _maybe_gunzip(body: bytes, content_encoding: str | None) -> bytes:
+    """Decompress ``body`` if it's gzipped.
+
+    AF-DB stores every monomer PDB gzipped in its object store
+    (``x-goog-stored-content-encoding: gzip``). For most entries the
+    CDN decompresses on the fly and the response is plaintext PDB; but
+    for some entries (e.g. the synthetic ``AF-0000000000001806`` family
+    that some UniProt IDs resolve to via the metadata API) the CDN
+    passes the gzip through and sets ``Content-Encoding: gzip``.
+
+    ``urllib`` does NOT auto-decompress on ``Content-Encoding: gzip``,
+    so we have to do it ourselves. We honour the header *and* sniff
+    the gzip magic bytes — bare-bytes detection is the only reliable
+    signal if any intermediate proxy strips the encoding header but
+    leaves the body as-is.
+    """
+    is_gzip = (
+        (content_encoding or "").lower() == "gzip"
+        or body[:2] == _GZIP_MAGIC
+    )
+    if not is_gzip:
+        return body
+    return gzip.decompress(body)
+
+
 def _http_get_bytes(url: str, timeout: float) -> tuple[bytes | None, bool]:
     """Fetch ``url`` and return ``(body, is_definitive_miss)``.
 
-    * ``(bytes, False)`` — 200 OK.
+    * ``(bytes, False)`` — 200 OK; body is decompressed if the server
+      flagged it as gzip-encoded (or if the bytes are gzip-magic).
     * ``(None, True)`` — 404 from the server. Definitive miss; caller
       should not retry the same URL.
     * raises — transient failure (5xx, network reset, timeout). Caller
@@ -86,11 +116,13 @@ def _http_get_bytes(url: str, timeout: float) -> tuple[bytes | None, bool]:
     """
     try:
         with urllib.request.urlopen(url, timeout=timeout) as resp:
-            return resp.read(), False
+            raw = resp.read()
+            encoding = resp.headers.get("Content-Encoding")
     except urllib.error.HTTPError as exc:
         if exc.code == 404:
             return None, True
         raise
+    return _maybe_gunzip(raw, encoding), False
 
 
 def _resolve_canonical_pdb_url(uid: str, timeout: float) -> str | None:
