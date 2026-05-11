@@ -49,7 +49,7 @@ set -euo pipefail
 
 # ---------------------------------------------------------------------------
 # Hardcoded Google Drive URLs — fill these in after uploading the zips from
-# dist/. `gdown --fuzzy` accepts either a sharing link
+# dist/. 
 # ("https://drive.google.com/file/d/<FILE_ID>/view?usp=sharing") or a bare
 # file id ("<FILE_ID>"); both work.
 # ---------------------------------------------------------------------------
@@ -177,7 +177,7 @@ if [[ "${SKIP_ENV_BUILD:-0}" -ne 1 ]]; then
     # bundled USalign binary. pymol-open-source is the FOSS PyMOL build.
     conda create -y -n "$ENV_NAME" \
         -c conda-forge -c bioconda -c speleo3 \
-        python=3.10 \
+        python=3.10.0 \
         libstdcxx-ng \
         pymol-open-source \
         pymol-psico
@@ -238,7 +238,7 @@ download_and_verify_zip() {
     local url="$1" cache_path="$2" label="$3"
     if [[ ! -f "$cache_path" ]]; then
         log "$label: downloading from $url"
-        conda run -n "$ENV_NAME" --no-capture-output gdown --fuzzy --output "$cache_path" "$url" \
+        conda run -n "$ENV_NAME" --no-capture-output gdown --output "$cache_path" "$url" \
             || die "$label: gdown failed; check the URL and your network"
     else
         log "$label: found cached $cache_path — re-verifying"
