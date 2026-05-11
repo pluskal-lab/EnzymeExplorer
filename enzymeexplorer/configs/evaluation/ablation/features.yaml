@@ -1,0 +1,49 @@
+# Features ablation (with distractors): PlmRandomForest vs DomainsRandomForest
+# vs PlmDomainsRandomForest. Bars + PR/ROC for TPS and substrate.
+
+classifiers:
+  Domains:
+    model: DomainsRandomForest
+    classes: [TPS, IDS, FPP, GPP, GGPP, EDSQ, CPP, GFPP, 2xFPP, 2xGGPP]
+    selection: {mode: fixed, version: with_minor_reactions_global_tuning}
+  PLM:
+    model: PlmRandomForest
+    classes: [TPS, IDS, FPP, GPP, GGPP, EDSQ, CPP, GFPP, 2xFPP, 2xGGPP]
+    selection: {mode: fixed, version: ankh_large}
+  PLM_Domains:
+    model: PlmDomainsRandomForest
+    classes: [TPS, IDS, FPP, GPP, GGPP, EDSQ, CPP, GFPP, 2xFPP, 2xGGPP]
+    selection: {mode: fixed, version: ankh_large}
+
+bootstrap:
+  n_bootstraps: 1000
+  seed: 42
+  mode: cluster
+  ci: 0.95
+  ci_method: normal
+  metrics: [ap, roc_auc]
+
+aggregates:
+  Substrate_mAP: [FPP, GPP, GGPP, EDSQ, CPP, GFPP, 2xFPP, 2xGGPP]
+  TPS_IDS_mAP: [TPS, IDS]
+
+visualize:
+  plots:
+    - tps_detection
+    - substrate_map
+    - substrate_per_class
+    - pr_curves
+    - roc_curves
+    - pr_substrate
+    - roc_substrate
+  metric: ap
+  curve_classes: [TPS]
+  classifier_order: [Domains, PLM, PLM_Domains]
+  fixed_classifier_order: true
+  ablation_xtick_overrides:
+    Domains: "Domains"
+    PLM: "PLM"
+    PLM_Domains: "PLM\nDomains"
+  auto_zoom:
+    enabled: true
+    delta_pct: 2.0

@@ -1,0 +1,70 @@
+# PLM ablation for PlmDomainsRandomForest. Same six PLMs (fixed order),
+# with the domain-feature head added.
+
+classifiers:
+  PLM_Domains_AnkhBase:
+    model: PlmDomainsRandomForest
+    classes: [TPS, IDS, FPP, GPP, GGPP, EDSQ, CPP, GFPP, 2xFPP, 2xGGPP]
+    selection: {mode: fixed, version: ankh_base}
+  PLM_Domains_AnkhLarge:
+    model: PlmDomainsRandomForest
+    classes: [TPS, IDS, FPP, GPP, GGPP, EDSQ, CPP, GFPP, 2xFPP, 2xGGPP]
+    selection: {mode: fixed, version: ankh_large}
+  PLM_Domains_Esm1v:
+    model: PlmDomainsRandomForest
+    classes: [TPS, IDS, FPP, GPP, GGPP, EDSQ, CPP, GFPP, 2xFPP, 2xGGPP]
+    selection: {mode: fixed, version: esm-1v}
+  PLM_Domains_Esm2:
+    model: PlmDomainsRandomForest
+    classes: [TPS, IDS, FPP, GPP, GGPP, EDSQ, CPP, GFPP, 2xFPP, 2xGGPP]
+    selection: {mode: fixed, version: esm-2}
+  PLM_Domains_TpsAnkhBase:
+    model: PlmDomainsRandomForest
+    classes: [TPS, IDS, FPP, GPP, GGPP, EDSQ, CPP, GFPP, 2xFPP, 2xGGPP]
+    selection: {mode: fixed, version: tps_ankh_base}
+  PLM_Domains_TpsEsm1vSubseq:
+    model: PlmDomainsRandomForest
+    classes: [TPS, IDS, FPP, GPP, GGPP, EDSQ, CPP, GFPP, 2xFPP, 2xGGPP]
+    selection: {mode: fixed, version: tps_esm-1v-subseq}
+
+bootstrap:
+  n_bootstraps: 1000
+  seed: 42
+  mode: cluster
+  ci: 0.95
+  ci_method: normal
+  metrics: [ap, roc_auc]
+
+aggregates:
+  Substrate_mAP: [FPP, GPP, GGPP, EDSQ, CPP, GFPP, 2xFPP, 2xGGPP]
+  TPS_IDS_mAP: [TPS, IDS]
+
+visualize:
+  plots:
+    - tps_detection
+    - substrate_map
+    - substrate_per_class
+    - pr_curves
+    - roc_curves
+    - pr_substrate
+    - roc_substrate
+  metric: ap
+  curve_classes: [TPS]
+  classifier_order:
+    - PLM_Domains_AnkhBase
+    - PLM_Domains_AnkhLarge
+    - PLM_Domains_Esm1v
+    - PLM_Domains_Esm2
+    - PLM_Domains_TpsAnkhBase
+    - PLM_Domains_TpsEsm1vSubseq
+  fixed_classifier_order: true
+  auto_zoom:
+    enabled: true
+    delta_pct: 2.0
+  ablation_xtick_overrides:
+    PLM_Domains_AnkhBase: "Ankh\nBase"
+    PLM_Domains_AnkhLarge: "Ankh\nLarge"
+    PLM_Domains_Esm1v: "ESM-1v"
+    PLM_Domains_Esm2: "ESM-2"
+    PLM_Domains_TpsAnkhBase: "Finetuned\nAnkh\nBase"
+    PLM_Domains_TpsEsm1vSubseq: "Finetuned\nESM-1v"

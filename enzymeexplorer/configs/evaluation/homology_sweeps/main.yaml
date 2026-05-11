@@ -1,0 +1,79 @@
+# Homology-based methods sweeps. One line plot per HBI method showing
+# per-class AP across candidate thresholds. No bootstrap bars — this YAML
+# drives the threshold_sweep diagnostic only.
+
+# The classifiers list is required by the pipeline but the bootstrap step
+# is irrelevant to the sweep; the entries below are auto-resolved cheaply
+# and their bootstrap cache is shared with the all-methods comparison.
+
+classifiers:
+  BLAST:
+    model: Blastp
+    classes: [TPS, IDS, FPP, GPP, GGPP, EDSQ, CPP, GFPP, 2xFPP, 2xGGPP]
+    selection: {mode: auto, prefix: eval, metric: ap}
+  HMM:
+    model: HMM
+    classes: [TPS, IDS, FPP, GPP, GGPP, EDSQ, CPP, GFPP, 2xFPP, 2xGGPP]
+    selection: {mode: auto, prefix: eval, metric: ap}
+  Foldseek:
+    model: Foldseek
+    classes: [TPS, IDS, FPP, GPP, GGPP, EDSQ, CPP, GFPP, 2xFPP, 2xGGPP]
+    selection: {mode: auto, prefix: eval, metric: ap}
+  PFAM:
+    model: PfamSUPFAM
+    classes: [TPS]
+    selection: {mode: auto, prefix: pfam_bitscore, metric: ap}
+  SUPFAM:
+    model: PfamSUPFAM
+    classes: [TPS]
+    selection: {mode: auto, prefix: supfam_bitscore, metric: ap}
+
+bootstrap:
+  n_bootstraps: 1000
+  seed: 42
+  mode: cluster
+  ci: 0.95
+  ci_method: normal
+  metrics: [ap, roc_auc]
+
+aggregates:
+  Substrate_mAP: [FPP, GPP, GGPP, EDSQ, CPP, GFPP, 2xFPP, 2xGGPP]
+  TPS_IDS_mAP: [TPS, IDS]
+
+threshold_sweep:
+  - label: BLAST
+    model: Blastp
+    prefix: eval
+    x_axis: neglog10
+    x_label: "E-value (-log10)"
+    metric: ap
+  - label: HMM
+    model: HMM
+    prefix: eval
+    x_axis: neglog10
+    x_label: "E-value (-log10)"
+    metric: ap
+  - label: Foldseek
+    model: Foldseek
+    prefix: eval
+    x_axis: neglog10
+    x_label: "E-value (-log10)"
+    metric: ap
+  - label: PFAM
+    model: PfamSUPFAM
+    prefix: pfam_bitscore
+    x_axis: tail_int
+    x_label: "Bitscore"
+    metric: ap
+    classes: [TPS]
+  - label: SUPFAM
+    model: PfamSUPFAM
+    prefix: supfam_bitscore
+    x_axis: tail_int
+    x_label: "Bitscore"
+    metric: ap
+    classes: [TPS]
+
+visualize:
+  plots: [threshold_sweep]
+  metric: ap

@@ -1,8 +1,0 @@
-include: ../main_config.yaml
-representations_path: "data/gathered_embs_esm-1v-finetuned-subseq_embs_avg.h5"
-per_class_optimization: false
-n_calls_hyperparams_opt: 50
-optimize_hyperparams: true
-# requires_multioutputwrapper_for_multilabel: true
-# reuse_existing_partial_results: true
-enable_distractors: false

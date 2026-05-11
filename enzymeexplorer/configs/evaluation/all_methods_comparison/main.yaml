@@ -1,0 +1,88 @@
+# All-methods comparison.
+# Plots: bars (TPS, Substrate mAP, per-class), zoomed companion bars
+# (auto-decided), Kingdom & TPS_Type box/heatmap, PR/ROC curves.
+# EnzymeExplorer (PLM_Domains) is pinned to the rightmost x position.
+
+classifiers:
+  BLAST:
+    model: Blastp
+    classes: [TPS, IDS, FPP, GPP, GGPP, EDSQ, CPP, GFPP, 2xFPP, 2xGGPP]
+    selection: {mode: auto, prefix: eval, metric: ap}
+  HMM:
+    model: HMM
+    classes: [TPS, IDS, FPP, GPP, GGPP, EDSQ, CPP, GFPP, 2xFPP, 2xGGPP]
+    selection: {mode: auto, prefix: eval, metric: ap}
+  Foldseek:
+    model: Foldseek
+    classes: [TPS, IDS, FPP, GPP, GGPP, EDSQ, CPP, GFPP, 2xFPP, 2xGGPP]
+    selection: {mode: auto, prefix: eval, metric: ap}
+  PFAM:
+    model: PfamSUPFAM
+    classes: [TPS]
+    selection: {mode: auto, prefix: pfam_bitscore, metric: ap}
+  SUPFAM:
+    model: PfamSUPFAM
+    classes: [TPS]
+    selection: {mode: auto, prefix: supfam_bitscore, metric: ap}
+  CLEAN:
+    model: CLEAN
+    classes: [TPS, IDS, FPP, GPP, GGPP, EDSQ, CPP, GFPP, 2xFPP, 2xGGPP]
+    selection: {mode: fixed, version: with_minor_reactions}
+  PLM_Domains:
+    model: PlmDomainsRandomForest
+    classes: [TPS, IDS, FPP, GPP, GGPP, EDSQ, CPP, GFPP, 2xFPP, 2xGGPP]
+    selection: {mode: fixed, version: ankh_large}
+
+bootstrap:
+  n_bootstraps: 1000
+  seed: 42
+  mode: cluster
+  ci: 0.95
+  ci_method: normal
+  metrics: [ap, roc_auc]
+  # All-methods comparison: every baseline is compared against
+  # EnzymeExplorer (PLM_Domains) only, not against each other. The
+  # v4 paired bootstrap honours `target_model` by recording deltas
+  # (target − other) only — keeps the delta forest plot to N-1 boxes
+  # per class instead of C(N, 2).
+  target_model: PLM_Domains
+
+aggregates:
+  Substrate_mAP: [FPP, GPP, GGPP, EDSQ, CPP, GFPP, 2xFPP, 2xGGPP]
+  TPS_IDS_mAP: [TPS, IDS]
+  Overall_mAP: [TPS, IDS, FPP, GPP, GGPP, EDSQ, CPP, GFPP, 2xFPP, 2xGGPP]
+
+id_metadata:
+  csv: data/EnzymeExplorer_Dataset.csv
+
+categories:
+  Kingdom:
+    column: Kingdom
+    order: [Bacteria, Fungi, Plants, Animals, Protists, Archaea, Viruses]
+    negative_label: Unknown
+  TPS_Type:
+    column: OriginalType
+    order: [mono, sesq, di, sester, tri, tetra, hemi, sqs, psy, pt]
+    negative_label: Unknown
+    type_grouping: true
+
+visualize:
+  plots:
+    - tps_detection
+    - substrate_map
+    - substrate_per_class
+    - pr_curves
+    - roc_curves
+    - pr_per_class
+    - pr_substrate
+    - roc_substrate
+    - category_boxplot
+    - category_heatmap
+  metric: ap
+  pin_last: PLM_Domains
+  curve_classes: [TPS, IDS]
+  pr_per_class_classifier: PLM_Domains
+  category_classes: [TPS, Substrate_mAP, TPS_IDS_mAP]
+  auto_zoom:
+    enabled: true
+    delta_pct: 2.0

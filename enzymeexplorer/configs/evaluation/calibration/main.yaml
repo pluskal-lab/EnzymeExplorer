@@ -1,0 +1,89 @@
+# Per-class beta calibration on pooled OOF.
+#
+# For each (classifier, target_class), fit a 3-parameter beta calibrator
+#   p̂(s) = sigmoid(a·log(s) − b·log(1−s) + c)
+# on the pooled out-of-fold predictions. Honest evaluation is via
+# leave-one-fold-out: the calibrator is refit on 4 folds and evaluated
+# on the held-out fold; concatenated LOFO probabilities feed the
+# reliability diagram and the before/after metrics. The cluster
+# bootstrap resamples folds to produce a CI ribbon around p̂(s).
+#
+# Outputs (all under outputs/evaluation_results/<output_name>/calibration/):
+#   fit_summary.csv          — (classifier, target_class, a, b, c, eps,
+#                                status, skip_reason, n_pos, n_neg)
+#   skipped.csv              — classes below min_n_pos with the reason
+#   lofo_predictions.parquet — LOFO id, fold, raw_score, p_lofo, label
+#   reliability.csv          — per-bin reliability with binomial Wilson CIs
+#   metrics.csv              — log_loss/Brier/ECE/MCE before vs. after
+#   ribbon.parquet           — cluster-bootstrap CI ribbon over p̂(s)
+#   per_fold_params.csv      — beta (a,b,c) on each LOFO holdout (drift)
+#   fold_drift_summary.csv   — drift flag + per-param normalised spread
+#   hard_errors.csv          — top-K FPs / bottom-K FNs on calibrated p̂
+#
+# Plots under plots/calibration/:
+#   metrics_grid                          — Δ heatmap across (clf, class)
+#   score_distribution_<clf>_<cls>        — OOF score histogram by label
+#   calibration_curve_<clf>_<cls>         — p̂(s) + bootstrap ribbon
+#   reliability_<clf>_<cls>               — reliability diagram with Wilson
+#   per_fold_params_<clf>_<cls>           — per-fold (a, b, c) bars
+#   hard_errors_<clf>_<cls>               — hardest FPs/FNs on p̂ axis
+#
+# Sample-size grading (recorded in fit_summary.status):
+#   n_pos < min_n_pos     → skipped_low_n_pos    (no calibrator emitted)
+#   n_pos < 50            → fit_borderline       (deploy on upper p̂ only)
+#   n_pos < 100           → fit_caveat
+#   otherwise             → fit
+#   plus fit_fold_drift   when LOFO params drift > threshold
+
+classifiers:
+  PLM_Domains:
+    model: PlmDomainsRandomForest
+    classes: [TPS, IDS, FPP, GPP, GGPP, EDSQ, CPP, GFPP]
+    selection: {mode: fixed, version: ankh_large}
+  PLM:
+    model: PlmRandomForest
+    classes: [TPS, IDS, FPP, GPP, GGPP, EDSQ, CPP, GFPP]
+    selection: {mode: fixed, version: ankh_large}
+
+# 2xFPP and 2xGGPP are intentionally excluded — n_pos is too small for an
+# honest beta fit; they would only inflate the diagnostics with NaNs.
+
+calibration:
+  classifiers: [PLM_Domains, PLM]
+  classes: [TPS, IDS, FPP, GPP, GGPP, EDSQ, CPP, GFPP]
+
+  # Calibrator families competing for the per-(clf,class) winner.
+  # Selection: lowest LOFO log-loss; ties broken by simpler family within
+  # `family_tolerance` (in log-loss units).
+  #   identity      — no transformation; raw scores already on-diagonal.
+  #   temperature   — 1 param: σ(logit(s)/T).
+  #   logit_platt   — 2 params: σ(a·logit(s) + b).
+  #   beta          — 3 params: σ(a·log(s) − b·log(1−s) + c).
+  families: [identity, temperature, logit_platt, beta]
+  family_tolerance: 1.0e-3
+
+  # Hard floor on n_pos: classes below this get no calibrator.
+  min_n_pos: 30
+
+  # Score clip used when forming logit / log features.
+  score_eps: 1.0e-6
+
+  # Cluster bootstrap (folds resampled with replacement, size n_folds).
+  n_bootstrap: 1000
+  bootstrap_seed: 0
+  ci: 0.95
+
+  # Reliability + ECE quantile bins (LOFO predictions).
+  n_reliability_bins: 10
+
+  # Hard-error inspection (on calibrated probability axis).
+  top_k_fp: 25
+  bottom_k_fn: 25
+
+  # Per-fold drift: flag drift when at least ⌈n_params/2⌉ of the
+  # winning family's parameters have normalised spread > threshold across
+  # the 5 LOFO holdout fits.
+  fold_drift_threshold: 0.5
+
+visualize:
+  plots: [calibration]
