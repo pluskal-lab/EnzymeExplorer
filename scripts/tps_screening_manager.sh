@@ -68,10 +68,15 @@
 #SBATCH --mem=2GB
 #SBATCH --time=01:00:00
 
-set -euo pipefail
-
+# ``set -u`` is incompatible with cluster bashrc files that read
+# unset variables (e.g. ``BASHRCSOURCED``). Sourcing happens with -u
+# off so a 3rd-party bashrc bug doesn't take the screening down
+# before it starts. We re-enable strict-unbound-var checking for our
+# own code right after.
+set -eo pipefail
 source ~/.bashrc
 conda activate enzyme_explorer
+set -u
 
 # ---- args ----------------------------------------------------------------
 

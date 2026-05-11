@@ -44,10 +44,13 @@
 #SBATCH --mem=32GB
 #SBATCH --time=24:00:00
 
-set -euo pipefail
-
+# Sourcing bashrc with -u disabled (some cluster /etc/bashrc files
+# reference unbound vars and would otherwise abort us before the
+# pipeline runs).
+set -eo pipefail
 source ~/.bashrc
 conda activate enzyme_explorer
+set -u
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$repo_root"
