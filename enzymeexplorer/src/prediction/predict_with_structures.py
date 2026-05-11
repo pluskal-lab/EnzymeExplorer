@@ -152,15 +152,18 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--n-jobs", type=int, default=10)
     parser.add_argument("--plm-batch-size", type=int, default=4)
+    from enzymeexplorer.src.utils.project_info import get_default_workdir_parent
+
     parser.add_argument(
         "--workdir",
         type=Path,
-        default=None,
+        default=get_default_workdir_parent(),
         help=(
             "Parent directory for the per-invocation scratch dir. All "
             "intermediates (domain detection scratch, USalign batches, "
-            "foldseek-DB cache, every tempfile.X call) live under it and "
-            "are removed on exit. Defaults to the system tmp directory."
+            "every tempfile.X call) live under it and are removed on "
+            "exit. Defaults to <repo>/tmp so the run leaves no state "
+            "outside the EnzymeExplorer tree."
         ),
     )
     parser.add_argument(
@@ -182,6 +185,7 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     from enzymeexplorer.src.utils.managed_workdir import managed_workdir
+    from enzymeexplorer.src.utils.signal_handling import graceful_shutdown
 
     args = parse_args()
     log_path = configure_logging(
@@ -189,7 +193,8 @@ def main() -> None:
     )
     logger.info("Logging this run to %s", log_path)
 
-    with managed_workdir(args.workdir, keep=args.keep_intermediate):
+    with graceful_shutdown(name="predict_with_structures"), \
+            managed_workdir(args.workdir, keep=args.keep_intermediate):
         sequences_df = load_sequences(
             args.sequences, id_col=args.id_column, seq_col=args.sequence_column
         )

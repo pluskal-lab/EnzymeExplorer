@@ -129,8 +129,21 @@ class PoolService:
         return self._pool.imap_unordered(fn, iterable, chunksize=chunksize)
 
     def shutdown(self) -> None:
+        """Graceful shutdown: refuse new tasks, then wait for in-flight
+        ones to drain. Use when the caller exited the context normally."""
         self._pool.close()
         self._pool.join()
+
+    def terminate(self) -> None:
+        """Hard shutdown: SIGTERM every worker immediately, then reap.
+        Use when the caller's context exited via an exception (Ctrl-C,
+        SIGTERM, unhandled error) — in-flight tasks would otherwise
+        keep the parent process alive long after the user expected it
+        to die."""
+        try:
+            self._pool.terminate()
+        finally:
+            self._pool.join()
 
 
 @contextmanager
@@ -161,7 +174,16 @@ def pool_session(
     _ACTIVE = svc
     try:
         yield svc
-    finally:
+    except BaseException:
+        # Error / KeyboardInterrupt / SIGTERM path: terminate workers
+        # immediately instead of waiting for in-flight tasks to drain.
+        # Without this, ``svc.shutdown()`` would block the unwind for
+        # the duration of the slowest worker (e.g. a multi-minute
+        # USalign batch), defeating graceful cancellation.
+        _ACTIVE = None
+        svc.terminate()
+        raise
+    else:
         _ACTIVE = None
         svc.shutdown()
 

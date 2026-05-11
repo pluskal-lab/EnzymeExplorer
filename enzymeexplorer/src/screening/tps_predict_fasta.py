@@ -157,12 +157,15 @@ def parse_args() -> argparse.Namespace:
             "is written). Applies to both plm and plm_domains outputs."
         ),
     )
+    from enzymeexplorer.src.utils.project_info import get_default_workdir_parent
+
     parser.add_argument(
-        "--workdir", type=Path, default=None,
+        "--workdir", type=Path, default=get_default_workdir_parent(),
         help=(
             "Parent directory for the per-invocation scratch dir. "
             "Inline AF-DB downloads also stage under it. Defaults to "
-            "the system tmp directory."
+            "<repo>/tmp so per-batch scratch never escapes the "
+            "EnzymeExplorer tree."
         ),
     )
     parser.add_argument(
@@ -293,8 +296,10 @@ def _run_plm_domains(
 
 def main(args: argparse.Namespace) -> None:
     from enzymeexplorer.src.utils.managed_workdir import managed_workdir
+    from enzymeexplorer.src.utils.signal_handling import graceful_shutdown
 
-    with managed_workdir(args.workdir, keep=args.keep_intermediate) as wd:
+    with graceful_shutdown(name=f"tps_predict_fasta[{args.shard_name}]"), \
+            managed_workdir(args.workdir, keep=args.keep_intermediate) as wd:
         sequences_df = _load_fasta_shard(
             args.fasta_path, args.start_i, args.end_i
         )

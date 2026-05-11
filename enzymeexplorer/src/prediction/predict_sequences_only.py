@@ -85,15 +85,17 @@ def parse_args() -> argparse.Namespace:
             f"(default: {DEFAULT_LOG_DIR})."
         ),
     )
+    from enzymeexplorer.src.utils.project_info import get_default_workdir_parent
+
     parser.add_argument(
         "--workdir",
         type=Path,
-        default=None,
+        default=get_default_workdir_parent(),
         help=(
             "Parent directory for the per-invocation scratch dir. "
-            "Anything written under it (incl. tempfile.X calls and the "
-            "foldseek-DB cache) is removed on exit. Defaults to the "
-            "system tmp directory."
+            "Anything written under it (incl. every tempfile.X call) "
+            "is removed on exit. Defaults to <repo>/tmp so the run "
+            "leaves no state outside the EnzymeExplorer tree."
         ),
     )
     parser.add_argument(
@@ -106,6 +108,7 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     from enzymeexplorer.src.utils.managed_workdir import managed_workdir
+    from enzymeexplorer.src.utils.signal_handling import graceful_shutdown
 
     args = parse_args()
     log_path = configure_logging(
@@ -113,7 +116,8 @@ def main() -> None:
     )
     logger.info("Logging this run to %s", log_path)
 
-    with managed_workdir(args.workdir, keep=args.keep_intermediate):
+    with graceful_shutdown(name="predict_sequences_only"), \
+            managed_workdir(args.workdir, keep=args.keep_intermediate):
         sequences_df = load_sequences(
             args.sequences, id_col=args.id_column, seq_col=args.sequence_column
         )

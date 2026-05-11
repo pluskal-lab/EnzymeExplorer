@@ -79,6 +79,13 @@ def _shard_ids(path: Path, start_i: int, end_i: int | None) -> list[str]:
 
 
 def main(args: argparse.Namespace) -> None:
+    from enzymeexplorer.src.utils.signal_handling import graceful_shutdown
+
+    with graceful_shutdown(name="tps_download_af_structures"):
+        _run(args)
+
+
+def _run(args: argparse.Namespace) -> None:
     uids = _shard_ids(args.fasta_path, args.start_i, args.end_i)
     logger.info(
         "AF-DB shard [%d, %s) from %s — %d unique UniProt IDs",

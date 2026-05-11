@@ -105,6 +105,20 @@ def get_output_root() -> Path:
     return get_repo_root() / "outputs"
 
 
+def get_default_workdir_parent() -> Path:
+    """Default parent for per-run scratch directories.
+
+    Anchored under ``<repo>/tmp`` rather than ``$TMPDIR`` / ``/tmp`` so
+    that *every* transient file the prediction & screening pipelines
+    write lives inside the EnzymeExplorer tree — no surprise writes
+    under the system tmp partition, the user's home, or the conda
+    env. ``managed_workdir`` creates a per-call subdir under this
+    parent and removes it on exit, so the parent itself accumulates
+    nothing across runs.
+    """
+    return get_repo_root() / "tmp"
+
+
 def get_experiments_output() -> Path:
     """
     Returns: absolute path to the experiments directory

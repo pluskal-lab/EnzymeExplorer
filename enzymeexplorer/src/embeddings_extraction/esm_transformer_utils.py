@@ -58,7 +58,14 @@ def get_model_and_tokenizer(
         checkpoint_names = CHECKPOINT_NAMES
     if model_name in checkpoint_names:
         checkpoint_name = checkpoint_names[model_name]
-        file_lock = FileLock(f"{checkpoint_name}.lock")
+        # Lock file lives next to the checkpoint, not in CWD — running
+        # the CLI from outside the repo would otherwise drop a .lock
+        # file in the user's current directory.
+        ckpt_dir_path = Path(
+            checkpoint_dir if checkpoint_dir is not None else "data/plm_checkpoints"
+        )
+        ckpt_dir_path.mkdir(parents=True, exist_ok=True)
+        file_lock = FileLock(str(ckpt_dir_path / f"{checkpoint_name}.lock"))
         with file_lock:
             download_plm_checkpoint(checkpoint_name, checkpoint_dir)
         ckpt = torch.load(
