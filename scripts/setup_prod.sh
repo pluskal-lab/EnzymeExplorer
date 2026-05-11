@@ -10,12 +10,14 @@
 #
 # Usage:
 #   scripts/setup_prod.sh \
-#       --checkpoints-url <gdrive_url> \
-#       --reference-domains-url <gdrive_url> \
-#       --binaries-url <gdrive_url> \
 #       [--env-name enzyme_explorer_prod] \
 #       [--cuda cu124 | --cpu] \
 #       [--force]
+#
+# The three Google Drive URLs for the model-checkpoints, reference-domains,
+# and binaries zips are HARDCODED below — see CHECKPOINTS_URL,
+# REF_DOMAINS_URL, BINARIES_URL near the top of the script. Update those
+# strings whenever the Drive uploads change.
 #
 # What it installs
 #   * conda env <ENV_NAME> with python=3.10 + libstdcxx-ng (conda-forge,
@@ -35,13 +37,25 @@
 #   * `$CONDA_PREFIX/bin/{foldseek,USalign}` from the binaries zip.
 #
 # Idempotency
-#   Each zip is re-downloaded only when the local copy's sha256 doesn't match
-#   the zip's MANIFEST.txt. If <ENV_NAME> already exists, the script verifies
-#   the env (correct python, key deps importable, foldseek/USalign on PATH)
-#   and warns + lists what to fix — it does NOT silently skip. Pass --force to
+#   Each zip is re-downloaded only when the local copy's sha256 doesn't
+#   match the zip's MANIFEST.txt. Downloaded zips are kept under
+#   .setup_prod_cache/ so re-runs (or future repairs) reuse them.
+#   If <ENV_NAME> already exists, the script verifies the env (correct
+#   python, key deps importable, foldseek/USalign on PATH) and warns +
+#   lists what to fix — it does NOT silently skip. Pass --force to
 #   recreate the env from scratch.
 
 set -euo pipefail
+
+# ---------------------------------------------------------------------------
+# Hardcoded Google Drive URLs — fill these in after uploading the zips from
+# dist/. `gdown --fuzzy` accepts either a sharing link
+# ("https://drive.google.com/file/d/<FILE_ID>/view?usp=sharing") or a bare
+# file id ("<FILE_ID>"); both work.
+# ---------------------------------------------------------------------------
+CHECKPOINTS_URL="https://drive.google.com/uc?id=1qJJU_pA5D6RIWKES-66c0708f2EFEyU1"
+REF_DOMAINS_URL="https://drive.google.com/uc?id=1a4YD9wyqKmMRKoHwTMEflAGtVJrCHz_y"
+BINARIES_URL="https://drive.google.com/uc?id=1T86gt8GFS0LJI6do2o-zWB6fbVwNZwcc"
 
 # ---------------------------------------------------------------------------
 # Args
@@ -49,9 +63,6 @@ set -euo pipefail
 
 ENV_NAME="enzyme_explorer_prod"
 CUDA_VER="cu124"           # set to empty by --cpu
-CHECKPOINTS_URL=""
-REF_DOMAINS_URL=""
-BINARIES_URL=""
 FORCE=0
 
 usage() {
@@ -61,22 +72,26 @@ usage() {
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        --env-name)              ENV_NAME="$2"; shift 2 ;;
-        --checkpoints-url)       CHECKPOINTS_URL="$2"; shift 2 ;;
-        --reference-domains-url) REF_DOMAINS_URL="$2"; shift 2 ;;
-        --binaries-url)          BINARIES_URL="$2"; shift 2 ;;
-        --cuda)                  CUDA_VER="$2"; shift 2 ;;
-        --cpu)                   CUDA_VER=""; shift ;;
-        --force)                 FORCE=1; shift ;;
-        -h|--help)               usage ;;
+        --env-name) ENV_NAME="$2"; shift 2 ;;
+        --cuda)     CUDA_VER="$2"; shift 2 ;;
+        --cpu)      CUDA_VER=""; shift ;;
+        --force)    FORCE=1; shift ;;
+        -h|--help)  usage ;;
         *) echo "unknown arg: $1" >&2; usage ;;
     esac
 done
 
-if [[ -z "$CHECKPOINTS_URL" || -z "$REF_DOMAINS_URL" || -z "$BINARIES_URL" ]]; then
-    echo "ERROR: --checkpoints-url, --reference-domains-url, --binaries-url are all required." >&2
-    exit 2
-fi
+# Refuse to run with placeholder URLs — better to fail fast than to try to
+# gdown a literal "PLACEHOLDER_…" string and confuse the user.
+for var in CHECKPOINTS_URL REF_DOMAINS_URL BINARIES_URL; do
+    val="${!var}"
+    case "$val" in
+        PLACEHOLDER_*|"")
+            echo "ERROR: $var is unset/placeholder. Edit $0 and paste the Drive URL." >&2
+            exit 2
+            ;;
+    esac
+done
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -89,6 +104,9 @@ die()  { printf '[setup_prod] ERROR: %s\n' "$*" >&2; exit 1; }
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
 
+# Persistent cache for the three downloaded zips. Kept across runs so a
+# re-invoke (e.g. to repair a broken env) reuses the bytes already on disk
+# instead of re-pulling ~3.4 GB from Drive.
 CACHE_DIR="$REPO_ROOT/.setup_prod_cache"
 mkdir -p "$CACHE_DIR"
 
@@ -308,7 +326,7 @@ cat <<EOF
 [setup_prod] DONE.
   env:           $ENV_NAME
   cuda:          ${CUDA_VER:-cpu}
-  cache_dir:     $CACHE_DIR
+  cache dir:     $CACHE_DIR   (downloaded zips kept here for re-runs)
   data dir:      $REPO_ROOT/data
 
 Activate with:
