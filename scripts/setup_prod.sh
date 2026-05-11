@@ -212,6 +212,7 @@ if [[ "${SKIP_ENV_BUILD:-0}" -ne 1 ]]; then
         "biopython==1.83" \
         "tqdm" \
         "pyyaml" \
+        "dataclasses-json" \
         "configargparse" \
         "matplotlib" \
         "filelock" \
