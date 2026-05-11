@@ -40,15 +40,25 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-DEFAULT_CALIBRATION_CSV = "data/calibration_fit_summary.csv"
+# Default data-file paths are resolved against the repo's ``data/``
+# directory (see :func:`enzymeexplorer.src.utils.project_info.get_data_root`),
+# *not* the current working directory. This is what lets the
+# ``predict_sequences_only`` / ``predict_with_structures`` console
+# scripts (installed via ``pip install -e .``) run from any directory
+# without hitting FileNotFoundError on the bundled checkpoints.
+from enzymeexplorer.src.utils.project_info import get_data_root as _get_data_root
+
+_DATA = _get_data_root()
+DEFAULT_CALIBRATION_CSV = str(_DATA / "calibration_fit_summary.csv")
 DEFAULT_PLM_MODEL = "ankh_large"
-DEFAULT_PLM_DOMAINS_BUNDLE = "data/enzyme_explorer_checkpoints.pkl"
-DEFAULT_PLM_ONLY_BUNDLE = "data/enzyme_explorer_plm_checkpoints.pkl"
-DEFAULT_REFERENCE_DOMAINS_PICKLE = (
-    "data/detected_domains/martsDB_detected_domains/martsDB_detected_domains.pkl"
+DEFAULT_PLM_DOMAINS_BUNDLE = str(_DATA / "enzyme_explorer_checkpoints.pkl")
+DEFAULT_PLM_ONLY_BUNDLE = str(_DATA / "enzyme_explorer_plm_checkpoints.pkl")
+DEFAULT_REFERENCE_DOMAINS_PICKLE = str(
+    _DATA / "detected_domains" / "martsDB_detected_domains"
+    / "martsDB_detected_domains.pkl"
 )
-DEFAULT_REFERENCE_DOMAINS_STRUCTURES_DIR = (
-    "data/detected_domains/martsDB_detected_domains/domains/"
+DEFAULT_REFERENCE_DOMAINS_STRUCTURES_DIR = str(
+    _DATA / "detected_domains" / "martsDB_detected_domains" / "domains"
 )
 
 PLM_DOMAINS_CLASSIFIER_NAME = "PLM_Domains"

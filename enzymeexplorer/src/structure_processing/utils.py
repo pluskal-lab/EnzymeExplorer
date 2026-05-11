@@ -133,11 +133,17 @@ def _stable_ref_hash(
 
 
 def _resolve_foldseek_db_root() -> Path:
-    """Where to keep cached foldseek DBs. Configurable via env."""
+    """Where to keep cached foldseek DBs. Configurable via env.
+
+    Defaults to ``<repo>/data/foldseek_cache`` (the location the
+    production bundle ships the prebuilt cache into) regardless of
+    the caller's current working directory.
+    """
     env = os.environ.get("ENZYMEEXPLORER_FOLDSEEK_REF_DB")
     if env:
         return Path(env)
-    return Path("data/foldseek_cache").absolute()
+    from enzymeexplorer.src.utils.project_info import get_data_root
+    return get_data_root() / "foldseek_cache"
 
 
 def _build_or_get_foldseek_ref_db(

@@ -27,6 +27,7 @@ from enzymeexplorer.src.structure_processing.utils import (
     get_confident_residue_mappings,
     pick_disjoint_domains,
 )
+from enzymeexplorer.src.utils.project_info import get_data_root
 
 logger = logging.getLogger(__file__)
 logger.setLevel(logging.INFO)
@@ -42,16 +43,21 @@ if not logger.hasHandlers():
 # Canonical default domain templates — kept in sync with
 # enzymeexplorer/configs/enzyme_explorer_domain_detection_config.yaml so that
 # both the CLI (no --config) and the Python wrapper produce identical detections.
+#
+# Template PDB paths are anchored to the repo's ``data/domain_templates``
+# directory so the prediction pipeline can locate them regardless of
+# the caller's current working directory.
+_DOMAIN_TEMPLATES_DIR = get_data_root() / "domain_templates"
 DEFAULT_DOMAIN_TEMPLATES = [
     {
         "name": "alpha",
-        "path": "data/domain_templates/1ps1.pdb",
+        "path": str(_DOMAIN_TEMPLATES_DIR / "1ps1.pdb"),
         "residues": "resi 39-308 & chain A & ss H+S",
         "thresholds": {"tmscore": 0.35, "min_align_len": 90},
     },
     {
         "name": "beta",
-        "path": "data/domain_templates/5eat.pdb",
+        "path": str(_DOMAIN_TEMPLATES_DIR / "5eat.pdb"),
         "residues": (
             "resi 37-57+64-97+104-117+123-129+138-156+162-195+203-213+223-239"
             " & chain A & ss H+S"
@@ -60,7 +66,7 @@ DEFAULT_DOMAIN_TEMPLATES = [
     },
     {
         "name": "gamma",
-        "path": "data/domain_templates/3p5r.pdb",
+        "path": str(_DOMAIN_TEMPLATES_DIR / "3p5r.pdb"),
         "residues": (
             "resi 138-151+157-171+185-222+233-248+258-275+281-304+313-339"
             " & chain A & ss H+S"
@@ -69,7 +75,7 @@ DEFAULT_DOMAIN_TEMPLATES = [
     },
     {
         "name": "ids",
-        "path": "data/domain_templates/1ubw.pdb",
+        "path": str(_DOMAIN_TEMPLATES_DIR / "1ubw.pdb"),
         "residues": (
             "resi 73-85+93-121+139-161+167-191+204-231+236-263+324-346+352-361"
             " & chain A & ss H+S"
@@ -78,7 +84,7 @@ DEFAULT_DOMAIN_TEMPLATES = [
     },
     {
         "name": "delta",
-        "path": "data/domain_templates/1w6j.pdb",
+        "path": str(_DOMAIN_TEMPLATES_DIR / "1w6j.pdb"),
         "residues": (
             "resi 73-87+385-399+401-403+405-421+454-470+480-493+531-547+553-570"
             "+585-599+610-622+633-638+649-662+667-680+707-722+727-729"
@@ -88,7 +94,7 @@ DEFAULT_DOMAIN_TEMPLATES = [
     },
     {
         "name": "epsilon",
-        "path": "data/domain_templates/1w6j.pdb",
+        "path": str(_DOMAIN_TEMPLATES_DIR / "1w6j.pdb"),
         "residues": (
             "resi 103-115+123-134+151-164+171-183+191-200+213-217+226-228+231-246"
             "+254-263+268-270+273-277+291-306+309-330+337-351+356-371+376-378+510-515"
@@ -98,7 +104,7 @@ DEFAULT_DOMAIN_TEMPLATES = [
     },
     {
         "name": "zeta",
-        "path": "data/domain_templates/P37295.pdb",
+        "path": str(_DOMAIN_TEMPLATES_DIR / "P37295.pdb"),
         "residues": "resi 3-248 & chain A & ss H+S",
         "thresholds": {"tmscore": 0.65, "min_align_len": 85},
     },
@@ -513,7 +519,9 @@ def run_domain_detection(
     do_not_store_intermediate_files=True,
     store_domains=True,
     detect_multiple_domains_in_each_iteration=True,
-    secondary_structure_residues_path="data/secondary_structure_residues.pkl",
+    secondary_structure_residues_path=str(
+        get_data_root() / "secondary_structure_residues.pkl"
+    ),
     recompute_existing_secondary_structure_residues=True,
     prefilter_pdbs_by_foldseek=False,
     prefilter_e_value: float = 10.0,

@@ -13,8 +13,13 @@ import logging
 from datetime import datetime
 from pathlib import Path
 
+from enzymeexplorer.src.utils.project_info import get_output_root
 
-DEFAULT_LOG_DIR = Path("outputs/logs")
+
+# Anchored to the repo's ``outputs/`` so the console scripts can run
+# from any cwd. Override via ``--log-dir`` if the prod host's outputs
+# directory should live elsewhere (e.g. /scratch).
+DEFAULT_LOG_DIR = get_output_root() / "logs"
 
 
 def configure_logging(

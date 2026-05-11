@@ -76,11 +76,33 @@ def get_project_root() -> Path:
     return Path(__file__).parent.parent.parent
 
 
+def get_repo_root() -> Path:
+    """Absolute path to the repository root (parent of the
+    ``enzymeexplorer/`` package).
+
+    All ``data/``, ``outputs/`` and ``configs/`` directories live
+    under this root regardless of the caller's current working
+    directory — this is what lets the ``predict_*`` and ``screen``
+    console scripts run from anywhere after ``pip install -e .``.
+    """
+    return Path(__file__).resolve().parent.parent.parent.parent
+
+
+def get_data_root() -> Path:
+    """Absolute path to the project ``data/`` directory.
+
+    The production setup script (:file:`scripts/setup_prod.sh`)
+    extracts model bundles, the calibration CSV, the reference-domain
+    PDBs and the foldseek-DB cache here.
+    """
+    return get_repo_root() / "data"
+
+
 def get_output_root() -> Path:
     """
     Returns: absolute path to the output directory
     """
-    return get_project_root() / "../outputs"
+    return get_repo_root() / "outputs"
 
 
 def get_experiments_output() -> Path:
