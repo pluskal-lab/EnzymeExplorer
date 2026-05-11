@@ -157,14 +157,16 @@ def parse_args() -> argparse.Namespace:
         type=Path,
         default=None,
         help=(
-            "Scratch directory for intermediate files (domain detection, "
-            "foldseek alignments). Defaults to a temp dir cleaned on exit."
+            "Parent directory for the per-invocation scratch dir. All "
+            "intermediates (domain detection scratch, USalign batches, "
+            "foldseek-DB cache, every tempfile.X call) live under it and "
+            "are removed on exit. Defaults to the system tmp directory."
         ),
     )
     parser.add_argument(
         "--keep-intermediate",
         action="store_true",
-        help="Don't delete the scratch directory on exit.",
+        help="Don't delete the per-invocation scratch dir on exit.",
     )
     parser.add_argument(
         "--log-dir",
@@ -179,50 +181,61 @@ def parse_args() -> argparse.Namespace:
 
 
 def main() -> None:
+    from enzymeexplorer.src.utils.managed_workdir import managed_workdir
+
     args = parse_args()
     log_path = configure_logging(
         name="predict_with_structures", log_dir=args.log_dir
     )
     logger.info("Logging this run to %s", log_path)
 
-    sequences_df = load_sequences(
-        args.sequences, id_col=args.id_column, seq_col=args.sequence_column
-    )
-    logger.info("Loaded %d sequences from %s", len(sequences_df), args.sequences)
+    with managed_workdir(args.workdir, keep=args.keep_intermediate):
+        sequences_df = load_sequences(
+            args.sequences, id_col=args.id_column, seq_col=args.sequence_column
+        )
+        logger.info(
+            "Loaded %d sequences from %s", len(sequences_df), args.sequences
+        )
 
-    plm_domains_table, plm_only_fallback = predict_with_structures(
-        sequences_df,
-        structures_dir=args.structures_dir,
-        reference_domains_pickle=args.reference_domains_pickle,
-        reference_domains_structures_dir=args.reference_domains_structures_dir,
-        plm_domains_bundle_path=args.plm_domains_bundle,
-        plm_only_bundle_path=args.plm_only_bundle,
-        calibration_csv_path=args.calibration_csv,
-        plm_model=args.plm_model,
-        plm_only_model=args.plm_only_model,
-        n_jobs=args.n_jobs,
-        plm_batch_size=args.plm_batch_size,
-        workdir=args.workdir,
-        keep_intermediate=args.keep_intermediate,
-    )
+        # `workdir=None` here pushes the domain pipeline onto
+        # ``tempfile.mkdtemp`` — which is exactly what we want because
+        # managed_workdir has already set ``tempfile.tempdir`` to the
+        # per-invocation scratch dir. The structure-pipeline scratch
+        # therefore lands inside the managed root and is cleaned with
+        # it on context exit.
+        plm_domains_table, plm_only_fallback = predict_with_structures(
+            sequences_df,
+            structures_dir=args.structures_dir,
+            reference_domains_pickle=args.reference_domains_pickle,
+            reference_domains_structures_dir=args.reference_domains_structures_dir,
+            plm_domains_bundle_path=args.plm_domains_bundle,
+            plm_only_bundle_path=args.plm_only_bundle,
+            calibration_csv_path=args.calibration_csv,
+            plm_model=args.plm_model,
+            plm_only_model=args.plm_only_model,
+            n_jobs=args.n_jobs,
+            plm_batch_size=args.plm_batch_size,
+            workdir=None,
+            keep_intermediate=False,
+        )
 
-    args.output_dir.mkdir(parents=True, exist_ok=True)
-    plm_domains_path = args.output_dir / "predictions_plm_domains.csv"
-    fallback_path = args.output_dir / "predictions_plm_only_fallback.csv"
+        args.output_dir.mkdir(parents=True, exist_ok=True)
+        plm_domains_path = args.output_dir / "predictions_plm_domains.csv"
+        fallback_path = args.output_dir / "predictions_plm_only_fallback.csv"
 
-    plm_domains_table.to_csv(plm_domains_path, index=False)
-    logger.info(
-        "Wrote %d PLM_Domains predictions to %s",
-        len(plm_domains_table),
-        plm_domains_path,
-    )
+        plm_domains_table.to_csv(plm_domains_path, index=False)
+        logger.info(
+            "Wrote %d PLM_Domains predictions to %s",
+            len(plm_domains_table),
+            plm_domains_path,
+        )
 
-    plm_only_fallback.to_csv(fallback_path, index=False)
-    logger.info(
-        "Wrote %d PLM-only fallback predictions to %s",
-        len(plm_only_fallback),
-        fallback_path,
-    )
+        plm_only_fallback.to_csv(fallback_path, index=False)
+        logger.info(
+            "Wrote %d PLM-only fallback predictions to %s",
+            len(plm_only_fallback),
+            fallback_path,
+        )
 
 
 if __name__ == "__main__":

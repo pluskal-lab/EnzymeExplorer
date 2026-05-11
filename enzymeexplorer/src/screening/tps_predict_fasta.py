@@ -75,6 +75,19 @@ def parse_args() -> argparse.Namespace:
         "--keep-all", action="store_true",
         help="Retain every row regardless of calibrated probability.",
     )
+    parser.add_argument(
+        "--workdir", type=Path, default=None,
+        help=(
+            "Parent directory for the per-invocation scratch dir. All "
+            "intermediates (tempfile.X calls and the foldseek-DB cache) "
+            "live under it and are removed on exit. Defaults to the "
+            "system tmp directory."
+        ),
+    )
+    parser.add_argument(
+        "--keep-intermediate", action="store_true",
+        help="Don't delete the per-invocation scratch dir on exit.",
+    )
     return parser.parse_args()
 
 
@@ -113,43 +126,50 @@ def _filter_by_calibrated_probability(
 
 
 def main(args: argparse.Namespace) -> None:
-    sequences_df = _load_fasta_shard(args.fasta_path, args.start_i, args.end_i)
-    logger.info(
-        "Loaded shard [%d, %s) from %s — %d sequences",
-        args.start_i,
-        args.end_i if args.end_i is not None else "end",
-        args.fasta_path,
-        len(sequences_df),
-    )
-    if sequences_df.empty:
-        # Still write an empty CSV with the expected schema so the gather step
-        # doesn't have to handle missing files.
-        args.output_csv.parent.mkdir(parents=True, exist_ok=True)
-        pd.DataFrame(columns=["id", "sequence"]).to_csv(args.output_csv, index=False)
-        return
+    from enzymeexplorer.src.utils.managed_workdir import managed_workdir
 
-    embedder = load_plm_embedder(args.plm_model)
-    table = predict_sequences_only(
-        sequences_df,
-        plm_only_bundle_path=args.plm_only_bundle,
-        calibration_csv_path=args.calibration_csv,
-        plm_model=args.plm_model,
-        embedder=embedder,
-        plm_batch_size=args.plm_batch_size,
-    )
-    if not args.keep_all:
-        before = len(table)
-        table = _filter_by_calibrated_probability(table, args.min_p_keep)
-        logger.info(
-            "Dropped %d/%d rows below min_p_keep=%.3f (use --keep-all to retain)",
-            before - len(table),
-            before,
-            args.min_p_keep,
+    with managed_workdir(args.workdir, keep=args.keep_intermediate):
+        sequences_df = _load_fasta_shard(
+            args.fasta_path, args.start_i, args.end_i
         )
+        logger.info(
+            "Loaded shard [%d, %s) from %s — %d sequences",
+            args.start_i,
+            args.end_i if args.end_i is not None else "end",
+            args.fasta_path,
+            len(sequences_df),
+        )
+        if sequences_df.empty:
+            # Still write an empty CSV with the expected schema so the
+            # gather step doesn't have to handle missing files.
+            args.output_csv.parent.mkdir(parents=True, exist_ok=True)
+            pd.DataFrame(columns=["id", "sequence"]).to_csv(
+                args.output_csv, index=False,
+            )
+            return
 
-    args.output_csv.parent.mkdir(parents=True, exist_ok=True)
-    table.to_csv(args.output_csv, index=False)
-    logger.info("Wrote %d predictions to %s", len(table), args.output_csv)
+        embedder = load_plm_embedder(args.plm_model)
+        table = predict_sequences_only(
+            sequences_df,
+            plm_only_bundle_path=args.plm_only_bundle,
+            calibration_csv_path=args.calibration_csv,
+            plm_model=args.plm_model,
+            embedder=embedder,
+            plm_batch_size=args.plm_batch_size,
+        )
+        if not args.keep_all:
+            before = len(table)
+            table = _filter_by_calibrated_probability(table, args.min_p_keep)
+            logger.info(
+                "Dropped %d/%d rows below min_p_keep=%.3f (use --keep-all to retain)",
+                before - len(table),
+                before,
+                args.min_p_keep,
+            )
+
+        args.output_csv.parent.mkdir(parents=True, exist_ok=True)
+        table.to_csv(args.output_csv, index=False)
+        logger.info("Wrote %d predictions to %s", len(table), args.output_csv)
 
 
 if __name__ == "__main__":

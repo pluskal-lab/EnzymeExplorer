@@ -63,23 +63,73 @@ def __get_domain_2_seq_id_and_domain_type_maps(
     return domain_2_seq_id, domain_2_domain_type
 
 
-def _stable_ref_hash(reference_domains: list[str], reference_domains_dir: str) -> str:
-    """Hash that changes when the reference set changes (size, members, or
-    on-disk PDB mtimes). Used to key the foldseek-DB cache directory."""
+_REF_HASH_SIDECAR_NAME = "_ref_set_hash.txt"
+
+
+def _stable_ref_hash(
+    reference_domains: list[str],
+    reference_domains_dir: str,
+    ref_preprocessed_name_map: dict[str, str] | None = None,
+) -> str:
+    """Content-based hash of the reference PDB set.
+
+    Hashes ``(sorted_logical_name, on_disk_filename, pdb_bytes)`` for
+    every domain so the cache key is portable across hosts: a prebuilt
+    foldseek DB shipped in the production bundle keys identically on
+    any machine that extracts the same PDBs.
+
+    ``ref_preprocessed_name_map`` maps the *logical* domain name (the
+    post-preprocessing id used inside the pipeline) to the *on-disk*
+    PDB stem. If the caller doesn't pass it, the logical name is
+    assumed to also be the on-disk name.
+
+    The digest is memoized to a sidecar at
+    ``<reference_domains_dir>/../<sidecar>`` so repeated calls only
+    read the PDBs once. The sidecar can ALSO be precomputed and
+    shipped inside the bundle; if present and well-formed it
+    short-circuits the entire content hash — that's what makes the
+    cache key match the prebuilt foldseek DB on the very first
+    prediction.
+    """
     import hashlib
 
+    sidecar = Path(reference_domains_dir).parent / _REF_HASH_SIDECAR_NAME
+    if sidecar.is_file():
+        try:
+            cached = sidecar.read_text().strip()
+        except OSError:
+            cached = ""
+        # Accept any 32-hex-char digest; ignore stale/garbage files.
+        if len(cached) == 32 and all(c in "0123456789abcdef" for c in cached):
+            return cached
+
+    name_map = ref_preprocessed_name_map or {}
     h = hashlib.blake2b(digest_size=16)
     for d in sorted(reference_domains):
         h.update(d.encode())
         h.update(b"\0")
-        p = Path(reference_domains_dir) / f"{d}.pdb"
+        on_disk = name_map.get(d, d)
+        h.update(on_disk.encode())
+        h.update(b"\0")
+        p = Path(reference_domains_dir) / f"{on_disk}.pdb"
         try:
-            mtime_ns = p.stat().st_mtime_ns
+            with p.open("rb") as fh:
+                while True:
+                    chunk = fh.read(1 << 20)  # 1 MiB
+                    if not chunk:
+                        break
+                    h.update(chunk)
         except FileNotFoundError:
-            mtime_ns = 0
-        h.update(str(mtime_ns).encode())
+            h.update(b"<missing>")
         h.update(b"\n")
-    return h.hexdigest()
+    digest = h.hexdigest()
+
+    # Best-effort sidecar write so subsequent calls skip the rehash.
+    try:
+        sidecar.write_text(digest + "\n")
+    except OSError:
+        pass
+    return digest
 
 
 def _resolve_foldseek_db_root() -> Path:
@@ -101,7 +151,9 @@ def _build_or_get_foldseek_ref_db(
     from datetime import datetime
 
     db_root = _resolve_foldseek_db_root()
-    ref_hash = _stable_ref_hash(reference_domains, reference_domains_dir)
+    ref_hash = _stable_ref_hash(
+        reference_domains, reference_domains_dir, ref_preprocessed_name_map,
+    )
     db_dir = db_root / ref_hash
     db_path = db_dir / "db"
     marker = db_dir / "READY"

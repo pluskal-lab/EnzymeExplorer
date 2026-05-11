@@ -85,32 +85,53 @@ def parse_args() -> argparse.Namespace:
             f"(default: {DEFAULT_LOG_DIR})."
         ),
     )
+    parser.add_argument(
+        "--workdir",
+        type=Path,
+        default=None,
+        help=(
+            "Parent directory for the per-invocation scratch dir. "
+            "Anything written under it (incl. tempfile.X calls and the "
+            "foldseek-DB cache) is removed on exit. Defaults to the "
+            "system tmp directory."
+        ),
+    )
+    parser.add_argument(
+        "--keep-intermediate",
+        action="store_true",
+        help="Don't delete the per-invocation scratch dir on exit.",
+    )
     return parser.parse_args()
 
 
 def main() -> None:
+    from enzymeexplorer.src.utils.managed_workdir import managed_workdir
+
     args = parse_args()
     log_path = configure_logging(
         name="predict_sequences_only", log_dir=args.log_dir
     )
     logger.info("Logging this run to %s", log_path)
 
-    sequences_df = load_sequences(
-        args.sequences, id_col=args.id_column, seq_col=args.sequence_column
-    )
-    logger.info("Loaded %d sequences from %s", len(sequences_df), args.sequences)
+    with managed_workdir(args.workdir, keep=args.keep_intermediate):
+        sequences_df = load_sequences(
+            args.sequences, id_col=args.id_column, seq_col=args.sequence_column
+        )
+        logger.info(
+            "Loaded %d sequences from %s", len(sequences_df), args.sequences
+        )
 
-    table = predict_sequences_only(
-        sequences_df,
-        plm_only_bundle_path=args.plm_only_bundle,
-        calibration_csv_path=args.calibration_csv,
-        plm_model=args.plm_model,
-        plm_batch_size=args.plm_batch_size,
-    )
+        table = predict_sequences_only(
+            sequences_df,
+            plm_only_bundle_path=args.plm_only_bundle,
+            calibration_csv_path=args.calibration_csv,
+            plm_model=args.plm_model,
+            plm_batch_size=args.plm_batch_size,
+        )
 
-    args.output_csv.parent.mkdir(parents=True, exist_ok=True)
-    table.to_csv(args.output_csv, index=False)
-    logger.info("Wrote %d predictions to %s", len(table), args.output_csv)
+        args.output_csv.parent.mkdir(parents=True, exist_ok=True)
+        table.to_csv(args.output_csv, index=False)
+        logger.info("Wrote %d predictions to %s", len(table), args.output_csv)
 
 
 if __name__ == "__main__":

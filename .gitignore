@@ -15,6 +15,7 @@ outputs/
 logs/
 
 .vscode
+.setup_prod_cache/
 
 data/enzyme_explorer_pdbs
 data/martsDB_pdbs

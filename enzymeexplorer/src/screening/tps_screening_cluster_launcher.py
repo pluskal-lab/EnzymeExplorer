@@ -64,6 +64,18 @@ def parse_args() -> argparse.Namespace:
         "--keep-negatives", action="store_true",
         help="Forwarded to each worker; see tps_predict_fasta --help.",
     )
+    parser.add_argument(
+        "--workdir", type=Path, default=None,
+        help=(
+            "Parent directory for per-worker scratch. Each spawned shard "
+            "creates its own subdir under this parent and removes it on "
+            "exit. Defaults to the system tmp directory."
+        ),
+    )
+    parser.add_argument(
+        "--keep-intermediate", action="store_true",
+        help="Forwarded to each worker; don't delete their scratch dirs.",
+    )
     return parser.parse_args()
 
 
@@ -77,6 +89,8 @@ def _spawn_worker(
     plm_model: str,
     plm_batch_size: int,
     keep_negatives: bool,
+    workdir: Path | None,
+    keep_intermediate: bool,
 ) -> subprocess.Popen:
     """Spawn one screening worker pinned to the given GPU."""
     env = os.environ.copy()
@@ -96,6 +110,10 @@ def _spawn_worker(
     ]
     if keep_negatives:
         cmd.append("--keep-negatives")
+    if workdir is not None:
+        cmd += ["--workdir", str(workdir)]
+    if keep_intermediate:
+        cmd.append("--keep-intermediate")
     logger.info("Launching worker on GPU %d → %s", gpu_id, output_csv)
     return subprocess.Popen(cmd, env=env)
 
@@ -124,6 +142,8 @@ def main(args: argparse.Namespace) -> None:
                 plm_model=args.plm_model,
                 plm_batch_size=args.plm_batch_size,
                 keep_negatives=args.keep_negatives,
+                workdir=args.workdir,
+                keep_intermediate=args.keep_intermediate,
             )
         )
 

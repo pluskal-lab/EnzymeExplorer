@@ -54,9 +54,8 @@ set -euo pipefail
 # file id ("<FILE_ID>"); both work.
 # ---------------------------------------------------------------------------
 CHECKPOINTS_URL="https://drive.google.com/uc?id=1qJJU_pA5D6RIWKES-66c0708f2EFEyU1"
-REF_DOMAINS_URL="https://drive.google.com/uc?id=1a4YD9wyqKmMRKoHwTMEflAGtVJrCHz_y"
+REF_DOMAINS_URL="https://drive.google.com/uc?id=1S1dNj1QDPY8ix7Tb3-zLJ45maWpHruf2"
 BINARIES_URL="https://drive.google.com/uc?id=1T86gt8GFS0LJI6do2o-zWB6fbVwNZwcc"
-
 # ---------------------------------------------------------------------------
 # Args
 # ---------------------------------------------------------------------------
@@ -285,10 +284,16 @@ unzip -q -o "$CHECKPOINTS_ZIP" \
     enzyme_explorer_plm_checkpoints.pkl \
     -d "$REPO_ROOT/data"
 
-log "extracting reference-domains.zip -> data/detected_domains/"
+log "extracting reference-domains.zip -> data/{detected_domains,foldseek_cache}/"
 mkdir -p "$REPO_ROOT/data/detected_domains"
 unzip -q -o "$REF_DOMAINS_ZIP" "martsDB_detected_domains/*" \
     -d "$REPO_ROOT/data/detected_domains"
+# The zip also ships a prebuilt foldseek reference DB keyed by the
+# content sha of the reference PDB set (see _ref_set_hash.txt sidecar).
+# Drop it at data/foldseek_cache/<hash>/ so the very first prediction
+# is a cache HIT instead of a multi-minute foldseek-createdb rebuild.
+unzip -q -o "$REF_DOMAINS_ZIP" "foldseek_cache/*" \
+    -d "$REPO_ROOT/data"
 
 # Binaries: install into the conda env's bin/. CONDA_PREFIX is set by `conda activate`.
 log "installing foldseek + USalign into env '$ENV_NAME'"
@@ -315,10 +320,15 @@ conda run -n "$ENV_NAME" --no-capture-output bash -c '
     test -f data/calibration_fit_summary.csv
     test -f data/detected_domains/martsDB_detected_domains/martsDB_detected_domains.pkl
     test -f data/detected_domains/martsDB_detected_domains/secondary_structure_residues.pkl
+    test -f data/detected_domains/martsDB_detected_domains/_ref_set_hash.txt
     test -d data/detected_domains/martsDB_detected_domains/domains
     n=$(find data/detected_domains/martsDB_detected_domains/domains -maxdepth 1 -name "*.pdb" | wc -l)
     [[ $n -gt 0 ]] || { echo "no domain PDBs extracted"; exit 1; }
-    echo "all data files present (n_domain_pdbs=$n)"
+    # Foldseek cache: a single subdir keyed by the content sha; READY marker.
+    cache_hash=$(cat data/detected_domains/martsDB_detected_domains/_ref_set_hash.txt | tr -d "[:space:]")
+    test -f "data/foldseek_cache/${cache_hash}/READY" \
+        || { echo "foldseek-DB cache marker missing for ${cache_hash}"; exit 1; }
+    echo "all data files present (n_domain_pdbs=$n, foldseek_cache=${cache_hash})"
 '
 
 cat <<EOF
