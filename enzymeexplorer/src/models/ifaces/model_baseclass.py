@@ -16,11 +16,9 @@ import pandas as pd  # type: ignore
 import sklearn.base  # type: ignore
 from sklearn.base import BaseEstimator  # type: ignore
 from sklearn.metrics import average_precision_score  # type: ignore
-from sklearn.model_selection import StratifiedGroupKFold  # type: ignore
 
 from enzymeexplorer.src.models.ifaces.config_baseclasses import BaseConfig
 from enzymeexplorer.src.utils.project_info import get_output_root
-from enzymeexplorer.src.utils.data import compute_mmseqs2_clusters
 
 logger = logging.getLogger(__file__)
 logger.setLevel(logging.INFO)
@@ -181,6 +179,8 @@ class BaseModel(ABC, BaseEstimator):
         from skopt import gp_minimize  # type: ignore
         from skopt.space import Categorical, Integer, Real  # type: ignore
         from skopt.utils import use_named_args  # type: ignore
+        from enzymeexplorer.src.utils.data import compute_mmseqs2_clusters
+        from sklearn.model_selection import StratifiedGroupKFold  # type: ignore
         """
         This function performed hyperparameter tuning using algorithms based on gaussian process regression
         """
