@@ -25,11 +25,11 @@
 # keep -u off while sourcing, re-enable for our own code.
 set -eo pipefail
 source ~/.bashrc
-conda activate enzyme_explorer
+conda activate enzyme_explorer_prod
 set -u
 
-repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-cd "$repo_root"
+# No ``cd`` needed: every path is absolute (the manager resolved them)
+# and ``python -m`` finds the package via sys.path.
 
 fasta="$1"
 batch_size="$2"

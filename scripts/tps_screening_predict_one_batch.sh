@@ -49,11 +49,14 @@
 # pipeline runs).
 set -eo pipefail
 source ~/.bashrc
-conda activate enzyme_explorer
+conda activate enzyme_explorer_prod
 set -u
 
-repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-cd "$repo_root"
+# No ``cd`` needed: every path the manager passes is absolute, and
+# ``python -m enzymeexplorer.src.screening.tps_predict_fasta`` finds
+# the package via sys.path (installed by ``pip install -e .``).
+# ``${BASH_SOURCE[0]}`` here resolves to a SLURM spool path, so any
+# cwd derived from it would be wrong anyway.
 
 # ---- positional args -----------------------------------------------------
 

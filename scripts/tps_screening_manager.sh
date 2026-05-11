@@ -75,8 +75,18 @@
 # own code right after.
 set -eo pipefail
 source ~/.bashrc
-conda activate enzyme_explorer
+conda activate enzyme_explorer_prod
 set -u
+
+# SLURM copies the submitted batch script to its spool directory before
+# running it — ``${BASH_SOURCE[0]}`` therefore resolves to a spool path
+# (e.g. /var/spool/slurmd/...) and cannot be used to find sibling
+# scripts. Anchor to ``$SLURM_SUBMIT_DIR`` (the directory the user ran
+# ``sbatch`` from) instead so relative paths the user typed
+# (``--fasta data/foo.fasta --output-root screening_results``) resolve
+# the way they expect. Falls back to the current cwd for ad-hoc runs
+# outside SLURM.
+cd "${SLURM_SUBMIT_DIR:-$(pwd)}"
 
 # ---- args ----------------------------------------------------------------
 
@@ -104,7 +114,8 @@ done
 
 [[ -n "$fasta"        ]] || { echo "[mgr] --fasta is required" >&2; exit 1; }
 [[ -n "$output_root"  ]] || { echo "[mgr] --output-root is required" >&2; exit 1; }
-[[ -f "$fasta"        ]] || { echo "[mgr] fasta not found: $fasta" >&2; exit 1; }
+# The existence-check on $fasta runs AFTER realpath below, so the
+# error message reports the absolute path the script actually tried.
 case "$classifier" in
     plm|plm_domains|both) ;;
     *) echo "[mgr] --classifier must be plm|plm_domains|both, got '$classifier'" >&2; exit 1 ;;
@@ -114,16 +125,28 @@ esac
 [[ "$n_jobs"     =~ ^[0-9]+$ && "$n_jobs"     -ge 1 ]] \
     || { echo "[mgr] --n-jobs must be positive int (got '$n_jobs')" >&2; exit 1; }
 
-repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-scripts_dir="$repo_root/scripts"
-cd "$repo_root"
+# Locate the sibling SLURM scripts via the installed ``enzymeexplorer``
+# package — robust to wherever SLURM copied this script (spool) and
+# wherever the user submitted from. ``pip install -e .`` makes
+# ``enzymeexplorer.__file__`` point inside the repo's package dir;
+# its grandparent is the repo root.
+scripts_dir="$(python - <<'PY'
+import enzymeexplorer, pathlib
+print(pathlib.Path(enzymeexplorer.__file__).resolve().parent.parent / "scripts")
+PY
+)"
+[[ -d "$scripts_dir" ]] \
+    || { echo "[mgr] ERROR: could not locate scripts/ via the installed enzymeexplorer package (got '$scripts_dir')" >&2; exit 1; }
+[[ -f "$scripts_dir/tps_screening_predict_one_batch.sh" ]] \
+    || { echo "[mgr] ERROR: missing sibling script under $scripts_dir" >&2; exit 1; }
 
-# Resolve output_root to an absolute path. ``sbatch --output=`` paths
-# are interpreted relative to the job's working dir at submission time,
-# which is fine here (we ``cd "$repo_root"``) — but we still go through
-# ``realpath -m`` so a relative ``--output-root my_run`` gets recorded
-# as ``/path/to/repo/my_run`` in every log file's name.
+# Resolve user-supplied paths to absolute, against the cwd we just
+# anchored ($SLURM_SUBMIT_DIR). All sbatch'd children receive absolute
+# paths so they don't depend on whatever cwd SLURM gives them.
+fasta="$(realpath -m "$fasta")"
 output_root="$(realpath -m "$output_root")"
+[[ -f "$fasta" ]] \
+    || { echo "[mgr] ERROR: fasta not found at $fasta" >&2; exit 1; }
 
 mkdir -p "$output_root/shards" "$output_root/logs"
 logs_dir="$output_root/logs"
