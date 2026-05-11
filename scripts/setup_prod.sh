@@ -204,7 +204,7 @@ if [[ "${SKIP_ENV_BUILD:-0}" -ne 1 ]]; then
     # pickled the fold bundles; deviating risks unpickling errors or silent
     # behavioural drift on edge cases (tree traversal at exact-tied splits).
     PIP install \
-        "scikit-learn==1.5.1" \
+        "scikit-learn==1.7.2" \
         "numpy==1.26.4" \
         "pandas==2.2.2" \
         "scipy==1.13.0" \
