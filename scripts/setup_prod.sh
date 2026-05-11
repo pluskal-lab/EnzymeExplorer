@@ -211,7 +211,6 @@ if [[ "${SKIP_ENV_BUILD:-0}" -ne 1 ]]; then
         "ankh==1.10.0" \
         "biopython==1.83" \
         "tqdm" \
-        "scikit-optimize" \
         "pyyaml" \
         "dataclasses-json" \
         "configargparse" \
