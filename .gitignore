@@ -17,6 +17,11 @@ logs/
 .vscode
 .setup_prod_cache/
 
+# ML library caches (HF_HOME / TORCH_HOME / MPLCONFIGDIR / XDG_CACHE_HOME)
+# routed under <repo>/.cache by enzymeexplorer/__init__.py so model
+# downloads stay inside the EnzymeExplorer tree.
+/.cache/
+
 data/enzyme_explorer_pdbs
 data/martsDB_pdbs
 data/detected_domains

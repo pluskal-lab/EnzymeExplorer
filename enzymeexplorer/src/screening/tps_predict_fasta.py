@@ -43,6 +43,7 @@ Pass ``--min-p-keep <float>`` to enable the screening compression
 """
 
 from __future__ import annotations
+from pymol import cmd
 
 import argparse
 import logging
