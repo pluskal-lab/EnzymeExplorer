@@ -354,9 +354,17 @@ def main(args: argparse.Namespace) -> None:
         if args.classifier in ("plm_domains", "both"):
             try:
                 # Resolve structures dir (provided or downloaded).
+                # Inline downloads stage under the managed workdir so
+                # they vanish with the rest of the scratch on exit.
+                # ``wd is None`` would mean the operator passed
+                # ``--workdir=""`` which we don't support here; fall
+                # back to a managed-tmp tempdir so we never spill PDBs
+                # into the cwd.
+                import tempfile
                 inline_dl_dir = (
-                    Path(wd) / "af_db_pdbs" if wd is not None
-                    else Path("./.af_db_pdbs")
+                    Path(wd) / "af_db_pdbs"
+                    if wd is not None
+                    else Path(tempfile.mkdtemp(prefix="af_db_pdbs_"))
                 )
                 eff_dir, ids_present, ids_missing = _resolve_structures(
                     sequences_df,
