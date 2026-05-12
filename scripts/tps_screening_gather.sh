@@ -94,11 +94,24 @@ if (( ${#expected_subdirs[@]} == 0 )); then
 fi
 
 # ---- merge per-classifier shards into final CSVs --------------------------
+# ``--delete-shards`` is gated on completeness. If we deleted shards on a
+# partial run, the rerun's worker-side skip-done check (which looks for
+# ``shards/<classifier>/batch_<i>.csv``) would see every shard missing
+# and redo *every* batch — including the ones that already succeeded.
+# Keeping the shards on partial runs lets the rerun skip the
+# already-finished batches; the merged CSV is still produced as a
+# snapshot of progress-so-far, just kept in sync with the next merge.
+
+gather_args=(
+    --shards-root "$output_root/shards"
+    --output-root "$output_root"
+)
+if (( all_complete )); then
+    gather_args+=(--delete-shards)
+fi
 
 python -m enzymeexplorer.src.screening.gather_detections_to_csv \
-    --shards-root "$output_root/shards" \
-    --output-root "$output_root" \
-    --delete-shards
+    "${gather_args[@]}"
 
 # ---- cache cleanup (only when fully complete) -----------------------------
 
@@ -112,7 +125,16 @@ if (( all_complete )); then
     done
     echo "[gather] final outputs at $output_root/{plm,plm_domains,plm_domains_fallback,no_structure}.csv"
 else
-    echo "[gather] run is INCOMPLETE — keeping caches for retry"
+    echo "[gather] run is INCOMPLETE — keeping shards + caches for retry"
+    # Each merged CSV at <output_root>/<classifier>.csv is a snapshot of
+    # progress so far; the next rerun's gather will overwrite it once
+    # the missing batches finish. The per-batch shard CSVs under
+    # shards/<classifier>/ are intentionally kept so the rerun's
+    # skip-done logic recognises them and re-runs only what failed.
+    if [[ -d "$output_root/shards" ]]; then
+        n_shards=$(find "$output_root/shards" -mindepth 2 -name '*.csv' | wc -l)
+        echo "[gather]   $n_shards per-batch shard CSV(s) preserved under $output_root/shards/"
+    fi
     if [[ -d "$output_root/structures" ]]; then
         n_left=$(find "$output_root/structures" -mindepth 1 -maxdepth 1 -type d | wc -l)
         echo "[gather]   $n_left batch struct dir(s) preserved under $output_root/structures/"
