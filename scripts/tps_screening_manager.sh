@@ -30,7 +30,13 @@
 #       [--classifier {plm,plm_domains,both}]  (default: both)
 #       [--batch-size <int>]                   (default: 40000)
 #       [--n-jobs <int>]                       (default: 10)
+#       [--plm-batch-size <int>]               (default: 32)
 #       [--structures-dir <dir>]               (default: download per-batch)
+#
+# ``--batch-size`` is the number of FASTA records per SLURM array task.
+# ``--plm-batch-size`` is the mini-batch size used inside one task for
+# the ankh_large forward pass — bump it to saturate the GPU (typical
+# 32 for ankh_large; higher if memory allows).
 #
 # When ``--structures-dir`` is OMITTED (the default behaviour), the
 # manager submits a CPU-only download array that fetches PDBs from
@@ -95,6 +101,7 @@ output_root=""
 classifier="both"
 batch_size=40000
 n_jobs=10
+plm_batch_size=32
 structures_dir=""
 
 usage() { sed -n '2,46p' "$0" >&2; exit 1; }
@@ -106,6 +113,7 @@ while (( $# > 0 )); do
         --classifier)       classifier="$2";     shift 2 ;;
         --batch-size)       batch_size="$2";     shift 2 ;;
         --n-jobs)           n_jobs="$2";         shift 2 ;;
+        --plm-batch-size)   plm_batch_size="$2"; shift 2 ;;
         --structures-dir)   structures_dir="$2"; shift 2 ;;
         -h|--help)          usage ;;
         *) echo "[mgr] unknown arg: $1" >&2; usage ;;
@@ -120,10 +128,12 @@ case "$classifier" in
     plm|plm_domains|both) ;;
     *) echo "[mgr] --classifier must be plm|plm_domains|both, got '$classifier'" >&2; exit 1 ;;
 esac
-[[ "$batch_size" =~ ^[0-9]+$ && "$batch_size" -ge 1 ]] \
+[[ "$batch_size"     =~ ^[0-9]+$ && "$batch_size"     -ge 1 ]] \
     || { echo "[mgr] --batch-size must be positive int (got '$batch_size')" >&2; exit 1; }
-[[ "$n_jobs"     =~ ^[0-9]+$ && "$n_jobs"     -ge 1 ]] \
+[[ "$n_jobs"         =~ ^[0-9]+$ && "$n_jobs"         -ge 1 ]] \
     || { echo "[mgr] --n-jobs must be positive int (got '$n_jobs')" >&2; exit 1; }
+[[ "$plm_batch_size" =~ ^[0-9]+$ && "$plm_batch_size" -ge 1 ]] \
+    || { echo "[mgr] --plm-batch-size must be positive int (got '$plm_batch_size')" >&2; exit 1; }
 
 # Locate the sibling SLURM scripts via the installed ``enzymeexplorer``
 # package — robust to wherever SLURM copied this script (spool) and
@@ -160,7 +170,7 @@ logs_dir="$output_root/logs"
 exec >>"$logs_dir/manager_${SLURM_JOB_ID:-local}.log" 2>&1
 echo "[mgr] manager log opened at $(date -u +%Y-%m-%dT%H:%M:%SZ)"
 echo "[mgr] fasta=$fasta  output_root=$output_root"
-echo "[mgr] classifier=$classifier  batch_size=$batch_size  n_jobs=$n_jobs"
+echo "[mgr] classifier=$classifier  batch_size=$batch_size  n_jobs=$n_jobs  plm_batch_size=$plm_batch_size"
 echo "[mgr] structures_dir=${structures_dir:-<none, will download>}"
 
 # ---- count records → number of batches -----------------------------------
@@ -221,6 +231,7 @@ pred_array_id=$(sbatch --parsable \
         "$output_root/shards" \
         "$classifier" \
         "$n_jobs" \
+        "$plm_batch_size" \
         "${predict_extra[@]}")
 echo "[mgr] submitted predict array job: $pred_array_id (logs: $logs_dir/predict_${pred_array_id}_batch_*.log)"
 
@@ -233,7 +244,7 @@ echo "[mgr] submitted predict array job: $pred_array_id (logs: $logs_dir/predict
 gather_id=$(sbatch --parsable \
     --dependency=afterany:"$pred_array_id" \
     --output="$logs_dir/gather_%j.log" \
-    "$scripts_dir/tps_screening_gather.sh" "$output_root")
+    "$scripts_dir/tps_screening_gather.sh" "$output_root" "$n_batches" "$classifier")
 echo "[mgr] submitted gather job: $gather_id (log: $logs_dir/gather_${gather_id}.log)"
 
 echo "[mgr] all jobs submitted."

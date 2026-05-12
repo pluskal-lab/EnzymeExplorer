@@ -6,6 +6,7 @@
 # Usage (positional, set by the manager):
 #   tps_screening_predict_one_batch.sh \
 #       <fasta> <batch_size> <shards_root> <classifier> <n_jobs> \
+#       <plm_batch_size> \
 #       [--structures-root <root> | --structures-dir <dir>]
 #
 # Slice covered by this task: [batch * batch_size, (batch+1) * batch_size).
@@ -16,18 +17,18 @@
 #   --structures-root <root>  → look at <root>/batch_<idx>/ (per-batch
 #                                downloads from the manager's AF-DB step).
 #                                The worker takes OWNERSHIP of that
-#                                directory and removes it via an EXIT
-#                                trap so accumulating PDBs don't pile
-#                                up across batches. Works on success,
-#                                Python exception, SLURM cancel
-#                                (SIGTERM → graceful_shutdown → trap),
-#                                or set-e shell failure — not on
-#                                SIGKILL (the gather job's final sweep
-#                                cleans those leftovers).
+#                                directory and removes it AFTER the
+#                                Python entry point exits with status 0.
+#                                Any non-success exit (Python exception,
+#                                SLURM ``scancel`` SIGTERM, SIGKILL,
+#                                ``set -e`` shell failure) leaves the
+#                                directory intact so a re-run can skip
+#                                already-downloaded PDBs and pick up
+#                                where the previous attempt died.
 #   --structures-dir <dir>    → use the same flat directory of <uid>.pdb
 #                                files for every batch (manager was given
-#                                a pre-populated structures_dir). NOT
-#                                deleted by the trap — external state.
+#                                a pre-populated structures_dir). Never
+#                                touched — external state.
 #   neither                   → worker falls back to inline AF-DB
 #                                downloads under its managed_workdir.
 #
@@ -65,7 +66,8 @@ batch_size="$2"
 shards_root="$3"
 classifier="$4"
 n_jobs="$5"
-shift 5
+plm_batch_size="$6"
+shift 6
 
 # ---- optional structure flags --------------------------------------------
 
@@ -86,17 +88,9 @@ start_i=$(( batch_idx * batch_size ))
 end_i=$(( start_i + batch_size ))
 batch_name=$(printf "batch_%06d" "$batch_idx")
 
-echo "[predict] batch $batch_idx range [$start_i, $end_i)  classifier=$classifier  n_jobs=$n_jobs"
+echo "[predict] batch $batch_idx range [$start_i, $end_i)  classifier=$classifier  n_jobs=$n_jobs  plm_batch_size=$plm_batch_size"
 
-# ---- ownership-aware cleanup -----------------------------------------------
-# If we got --structures-root, the manager downloaded into a batch_<idx>/
-# sub-directory that this task OWNS. Register an EXIT trap that removes
-# it regardless of whether prediction succeeded — this is what keeps the
-# disk footprint of a screen of millions bounded by one batch's worth
-# of PDBs at a time. ``set -e`` ensures the trap fires on shell failure
-# too; ``graceful_shutdown`` in the Python entry point converts SIGTERM
-# into a clean exception that unwinds back to here so the trap fires
-# on SLURM ``scancel`` as well.
+# ---- structure-dir resolution + ownership tracking -----------------------
 
 owned_batch_struct_dir=""
 predict_struct_args=()
@@ -111,17 +105,13 @@ elif [[ -n "$structures_dir" ]]; then
     predict_struct_args+=(--structures-dir "$structures_dir")
 fi
 
-cleanup_owned() {
-    local rc=$?
-    if [[ -n "$owned_batch_struct_dir" && -d "$owned_batch_struct_dir" ]]; then
-        echo "[predict] removing per-batch structures: $owned_batch_struct_dir"
-        rm -rf "$owned_batch_struct_dir"
-    fi
-    return $rc
-}
-trap cleanup_owned EXIT
-
 # ---- run -----------------------------------------------------------------
+# The embeddings cache lives one level up from the shards root so it
+# survives the gather job's ``--delete-shards`` sweep. Persisted PLM
+# embeddings let a rerun of this batch skip the expensive
+# ankh_large/embedding step and go straight to classifier inference.
+
+embeddings_cache_dir="$(dirname "$shards_root")/embeddings_cache"
 
 python -m enzymeexplorer.src.screening.tps_predict_fasta \
     --fasta-path "$fasta" \
@@ -131,4 +121,16 @@ python -m enzymeexplorer.src.screening.tps_predict_fasta \
     --end-i   "$end_i" \
     --classifier "$classifier" \
     --n-jobs "$n_jobs" \
+    --plm-batch-size "$plm_batch_size" \
+    --embeddings-cache-dir "$embeddings_cache_dir" \
     "${predict_struct_args[@]}"
+
+# Cleanup runs ONLY when Python exited 0. Any other exit (Python crash,
+# SLURM ``scancel`` SIGTERM, SIGKILL, ``set -e`` shell failure) bails
+# out of the script before reaching this line, leaving the per-batch
+# structures dir intact so a rerun can pick up where this attempt died
+# (af_db.download_one skips PDBs that already exist on disk).
+if [[ -n "$owned_batch_struct_dir" && -d "$owned_batch_struct_dir" ]]; then
+    echo "[predict] prediction succeeded; removing per-batch structures: $owned_batch_struct_dir"
+    rm -rf "$owned_batch_struct_dir"
+fi

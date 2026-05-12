@@ -110,6 +110,7 @@ def predict_with_structures(
     plm_only_model: str = DEFAULT_PLM_MODEL,
     embedder: PLMEmbedder | None = None,
     plm_only_embedder: PLMEmbedder | None = None,
+    precomputed_embeddings=None,  # np.ndarray | None — aligned with sequences_df rows
     n_jobs: int = 10,
     plm_batch_size: int = 4,
     workdir: str | Path | None = None,
@@ -163,15 +164,34 @@ def predict_with_structures(
         tuple(domain_result.structural_features.shape),
     )
 
-    logger.info("[step 2/4] Loading PLM embedder (%s)", plm_model)
-    embedder = _ensure_embedder(embedder, model_name=plm_model)
-    logger.info("[step 2/4] Computing PLM embeddings for %d sequences", len(sequences))
-    embeddings = embedder.embed(
-        sequences, batch_size=plm_batch_size, progress_desc="PLM embeddings"
-    )
-    logger.info(
-        "[step 2/4] PLM embeddings done — shape %s", tuple(embeddings.shape)
-    )
+    if precomputed_embeddings is not None:
+        # Resumability hook: the screening worker computes embeddings
+        # for the FULL FASTA batch once, caches them to disk, and
+        # passes them here (sliced to ``sequences_df`` rows) on every
+        # subsequent rerun. Skipping the embedder save on the order
+        # of an ankh_large forward pass per 40 000 sequences.
+        if len(precomputed_embeddings) != len(sequences):
+            raise ValueError(
+                f"precomputed_embeddings has {len(precomputed_embeddings)} rows "
+                f"but sequences_df has {len(sequences)}; they must align 1-to-1."
+            )
+        embeddings = precomputed_embeddings
+        logger.info(
+            "[step 2/4] Reusing precomputed PLM embeddings — shape %s",
+            tuple(embeddings.shape),
+        )
+    else:
+        logger.info("[step 2/4] Loading PLM embedder (%s)", plm_model)
+        embedder = _ensure_embedder(embedder, model_name=plm_model)
+        logger.info(
+            "[step 2/4] Computing PLM embeddings for %d sequences", len(sequences)
+        )
+        embeddings = embedder.embed(
+            sequences, batch_size=plm_batch_size, progress_desc="PLM embeddings"
+        )
+        logger.info(
+            "[step 2/4] PLM embeddings done — shape %s", tuple(embeddings.shape)
+        )
 
     logger.info(
         "[step 3/4] Loading PLM_Domains fold bundle (%s)", plm_domains_bundle_path
@@ -212,20 +232,27 @@ def predict_with_structures(
         fallback_df = sequences_df[sequences_df["id"].isin(fallback_ids)].reset_index(
             drop=True
         )
-        plm_only_embedder_inst = _ensure_embedder(
-            plm_only_embedder, model_name=plm_only_model
-        )
-        # If the fallback PLM is the same model, reuse the embeddings already
-        # computed; otherwise recompute on just the fallback set.
+        # If the fallback PLM is the same model, reuse the embeddings
+        # already computed for the main pass — sliced down to the
+        # fallback subset. Crucially we do NOT load a second copy of
+        # the embedder model in this branch (production uses
+        # ``plm_only_model == plm_model == ankh_large`` and previously
+        # this branch paid for an unnecessary multi-GB load).
         if plm_only_model == plm_model:
             id_to_row = {pid: idx for idx, pid in enumerate(protein_ids)}
             row_idx = [id_to_row[pid] for pid in fallback_df["id"]]
             fallback_embeddings = embeddings[row_idx]
-            logger.info("[step 4/4] Reusing existing embeddings for fallback")
+            logger.info(
+                "[step 4/4] Reusing existing embeddings for fallback "
+                "(no embedder reload)"
+            )
         else:
             logger.info(
                 "[step 4/4] Recomputing PLM embeddings for fallback (%s)",
                 plm_only_model,
+            )
+            plm_only_embedder_inst = _ensure_embedder(
+                plm_only_embedder, model_name=plm_only_model
             )
             fallback_embeddings = plm_only_embedder_inst.embed(
                 fallback_df["sequence"].tolist(),
@@ -266,21 +293,40 @@ def predict_sequences_only(
     calibration_csv_path: str | Path = DEFAULT_CALIBRATION_CSV,
     plm_model: str = DEFAULT_PLM_MODEL,
     embedder: PLMEmbedder | None = None,
+    precomputed_embeddings=None,  # np.ndarray | None — aligned with sequences_df rows
     plm_batch_size: int = 4,
 ) -> pd.DataFrame:
-    """End-to-end PLM-only prediction. Returns one wide-form DataFrame."""
+    """End-to-end PLM-only prediction. Returns one wide-form DataFrame.
+
+    ``precomputed_embeddings`` (when given) skips the embedder pass —
+    used by the screening worker so a rerun can reuse cached
+    embeddings instead of paying the ankh_large forward pass twice.
+    """
     sequences_df = sequences_df.reset_index(drop=True)
     logger.info("predict_sequences_only: %d input sequences", len(sequences_df))
-    logger.info("[step 1/3] Loading PLM embedder (%s)", plm_model)
-    embedder = _ensure_embedder(embedder, model_name=plm_model)
-    logger.info(
-        "[step 1/3] Computing PLM embeddings for %d sequences", len(sequences_df)
-    )
-    embeddings = embedder.embed(
-        sequences_df["sequence"].tolist(),
-        batch_size=plm_batch_size,
-        progress_desc="PLM embeddings",
-    )
+    if precomputed_embeddings is not None:
+        if len(precomputed_embeddings) != len(sequences_df):
+            raise ValueError(
+                f"precomputed_embeddings has {len(precomputed_embeddings)} rows "
+                f"but sequences_df has {len(sequences_df)}; they must align 1-to-1."
+            )
+        embeddings = precomputed_embeddings
+        logger.info(
+            "[step 1/3] Reusing precomputed PLM embeddings — shape %s",
+            tuple(embeddings.shape),
+        )
+    else:
+        logger.info("[step 1/3] Loading PLM embedder (%s)", plm_model)
+        embedder = _ensure_embedder(embedder, model_name=plm_model)
+        logger.info(
+            "[step 1/3] Computing PLM embeddings for %d sequences",
+            len(sequences_df),
+        )
+        embeddings = embedder.embed(
+            sequences_df["sequence"].tolist(),
+            batch_size=plm_batch_size,
+            progress_desc="PLM embeddings",
+        )
     logger.info("[step 2/3] Loading PLM-only fold bundle (%s)", plm_only_bundle_path)
     fold_classifiers = _ens.load_fold_bundle(plm_only_bundle_path)
     logger.info(

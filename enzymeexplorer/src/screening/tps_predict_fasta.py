@@ -173,6 +173,20 @@ def parse_args() -> argparse.Namespace:
         "--keep-intermediate", action="store_true",
         help="Don't delete the per-invocation scratch dir on exit.",
     )
+    parser.add_argument(
+        "--embeddings-cache-dir", type=Path, default=None,
+        help=(
+            "Directory for the persistent PLM-embedding cache. When "
+            "set, the worker writes a ``<shard-name>.npy`` (+ sidecar "
+            "``.ids.txt``) here after computing embeddings, and on "
+            "subsequent runs with the same shard + model + ID list "
+            "the embedder forward pass is skipped entirely. The "
+            "screening manager points this at "
+            "``<output_root>/embeddings_cache/`` so the cache "
+            "survives the gather job and accelerates retries of "
+            "failed batches."
+        ),
+    )
     return parser.parse_args()
 
 
@@ -210,10 +224,111 @@ def _filter_by_calibrated_probability(
 
 
 def _write_csv(table: pd.DataFrame, subdir: Path, shard_name: str) -> Path:
+    """Atomic CSV write: write to ``<name>.csv.tmp`` then ``rename`` to
+    ``<name>.csv``. POSIX rename is atomic on the same filesystem, so
+    a SIGKILLed worker can never leave a partial CSV behind — a rerun
+    sees either the previous file or no file, never a half-written
+    one (which the skip-done logic would otherwise mistake for done)."""
     subdir.mkdir(parents=True, exist_ok=True)
     out = subdir / f"{shard_name}.csv"
-    table.to_csv(out, index=False)
+    tmp = out.with_suffix(".csv.tmp")
+    table.to_csv(tmp, index=False)
+    tmp.replace(out)
     return out
+
+
+def _load_embeddings_cache(
+    cache_dir: Path,
+    shard_name: str,
+    expected_ids: list[str],
+    model_name: str,
+) -> np.ndarray | None:
+    """Return cached embeddings for this shard, or ``None`` if the
+    cache is missing, stale (different model / IDs), or malformed.
+
+    Cache layout::
+
+        <cache_dir>/<shard_name>.npy          row-aligned embedding matrix
+        <cache_dir>/<shard_name>.ids.txt      first line = model name;
+                                              remaining lines = IDs in
+                                              row order
+
+    Cache invalidates when:
+      * the .npy or .ids.txt is missing,
+      * the recorded model name differs from the current ``plm_model``
+        (different ankh / esm version → different embeddings),
+      * the recorded IDs differ from the current FASTA shard rows
+        (user re-sliced the FASTA, or shard_size changed),
+      * the embedding matrix's first dim doesn't match the ID list.
+    """
+    npy = cache_dir / f"{shard_name}.npy"
+    ids_path = cache_dir / f"{shard_name}.ids.txt"
+    if not (npy.is_file() and ids_path.is_file()):
+        return None
+    try:
+        lines = ids_path.read_text().strip().split("\n")
+    except OSError:
+        return None
+    if not lines:
+        return None
+    cached_model, cached_ids = lines[0], lines[1:]
+    if cached_model != model_name:
+        logger.warning(
+            "embeddings cache: %s was computed with %r, now %r — recomputing",
+            shard_name, cached_model, model_name,
+        )
+        return None
+    if cached_ids != expected_ids:
+        logger.warning(
+            "embeddings cache: %s ID list differs from current shard — recomputing",
+            shard_name,
+        )
+        return None
+    try:
+        embeddings = np.load(npy)
+    except (OSError, ValueError):
+        return None
+    if len(embeddings) != len(expected_ids):
+        logger.warning(
+            "embeddings cache: %s shape mismatch (rows %d vs IDs %d) — recomputing",
+            shard_name, len(embeddings), len(expected_ids),
+        )
+        return None
+    logger.info(
+        "embeddings cache HIT for %s — loaded %s",
+        shard_name, tuple(embeddings.shape),
+    )
+    return embeddings
+
+
+def _save_embeddings_cache(
+    cache_dir: Path,
+    shard_name: str,
+    ids: list[str],
+    embeddings: np.ndarray,
+    model_name: str,
+) -> None:
+    """Atomic save of ``embeddings`` and its ID list. Both files use
+    ``.tmp`` + ``rename`` so a SIGKILL in the middle can never leave a
+    corrupt half-file that a rerun would silently load."""
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    npy = cache_dir / f"{shard_name}.npy"
+    ids_path = cache_dir / f"{shard_name}.ids.txt"
+    npy_tmp = cache_dir / f"{shard_name}.npy.tmp"
+    ids_tmp = cache_dir / f"{shard_name}.ids.txt.tmp"
+    # ``np.save`` would auto-append ``.npy`` if the path doesn't end in
+    # ``.npy``, which would land the data at ``<name>.npy.tmp.npy`` and
+    # the subsequent rename would fail. Write through an explicit
+    # file handle so we control the exact destination.
+    with npy_tmp.open("wb") as fh:
+        np.save(fh, embeddings, allow_pickle=False)
+    ids_tmp.write_text(model_name + "\n" + "\n".join(ids))
+    npy_tmp.replace(npy)
+    ids_tmp.replace(ids_path)
+    logger.info(
+        "embeddings cache SAVE for %s — %s",
+        shard_name, tuple(embeddings.shape),
+    )
 
 
 def _resolve_structures(
@@ -252,15 +367,17 @@ def _run_plm(
     sequences_df: pd.DataFrame,
     *,
     args: argparse.Namespace,
-    embedder,
+    precomputed_embeddings: np.ndarray,
 ) -> pd.DataFrame:
-    """Run the PLM-only classifier on every sequence in the shard."""
+    """Run the PLM-only classifier on every sequence in the shard,
+    skipping the embedder forward pass since we already have the
+    embeddings (computed once at the top of ``main``)."""
     return predict_sequences_only(
         sequences_df,
         plm_only_bundle_path=args.plm_only_bundle,
         calibration_csv_path=args.calibration_csv,
         plm_model=args.plm_model,
-        embedder=embedder,
+        precomputed_embeddings=precomputed_embeddings,
         plm_batch_size=args.plm_batch_size,
     )
 
@@ -270,11 +387,11 @@ def _run_plm_domains(
     *,
     args: argparse.Namespace,
     structures_dir: Path,
-    embedder,
+    precomputed_embeddings: np.ndarray,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     """Run the structure-aware classifier on the sequences whose PDBs
-    are present in ``structures_dir``. Returns ``(plm_domains_table,
-    plm_only_fallback)`` exactly as ``predict_with_structures`` does."""
+    are present in ``structures_dir``. Embeddings for the SUBSET (passed
+    by the caller, sliced to match ``sequences_df``) skip the embedder."""
     return predict_with_structures(
         sequences_df,
         structures_dir=structures_dir,
@@ -287,7 +404,7 @@ def _run_plm_domains(
         plm_only_model=args.plm_model,
         n_jobs=args.n_jobs,
         plm_batch_size=args.plm_batch_size,
-        embedder=embedder,
+        precomputed_embeddings=precomputed_embeddings,
         # workdir stays None so the inner tempfile.X calls inherit the
         # managed_workdir-swapped tempfile.tempdir.
         workdir=None,
@@ -324,14 +441,75 @@ def main(args: argparse.Namespace) -> None:
             ) if args.classifier in ("plm_domains", "both") else None
             return
 
-        # Shared PLM embedder so both classifiers reuse the same loaded
-        # checkpoint instead of paying the load cost twice.
-        embedder = load_plm_embedder(args.plm_model)
+        # ---------------- Skip-done detection ----------------------
+        # Use the persistent output dir as a cache: if a previous run
+        # already wrote a particular shard CSV, skip the matching
+        # classifier path on this run. Combined with the embeddings
+        # cache below, this lets a partial-failure rerun resume only
+        # the parts that actually failed.
+        plm_csv          = args.output_dir / SUBDIR_PLM / f"{args.shard_name}.csv"
+        plm_dom_csv      = args.output_dir / SUBDIR_PLM_DOMAINS / f"{args.shard_name}.csv"
+        plm_dom_fb_csv   = args.output_dir / SUBDIR_PLM_DOMAINS_FALLBACK / f"{args.shard_name}.csv"
+        no_structure_csv = args.output_dir / SUBDIR_NO_STRUCTURE / f"{args.shard_name}.csv"
+
+        need_plm = (
+            args.classifier in ("plm", "both") and not plm_csv.is_file()
+        )
+        # plm_domains is "done" only when *all three* of its companion
+        # CSVs exist (predictions, plm-only fallback, no_structure list).
+        need_pdm = (
+            args.classifier in ("plm_domains", "both")
+            and not (
+                plm_dom_csv.is_file()
+                and plm_dom_fb_csv.is_file()
+                and no_structure_csv.is_file()
+            )
+        )
+
+        if not (need_plm or need_pdm):
+            logger.info(
+                "shard %s: all requested classifier outputs already exist; "
+                "nothing to do", args.shard_name,
+            )
+            return
+
+        # ---------------- Embeddings (cache or compute) ------------
+        # Compute embeddings ONCE for the full shard; both classifiers
+        # consume slices of this matrix. The matrix is persisted under
+        # ``--embeddings-cache-dir`` so a rerun of this shard skips
+        # the ankh_large forward pass entirely.
+        ids = sequences_df["id"].tolist()
+        embeddings: np.ndarray | None = None
+
+        if args.embeddings_cache_dir is not None:
+            embeddings = _load_embeddings_cache(
+                args.embeddings_cache_dir, args.shard_name,
+                expected_ids=ids, model_name=args.plm_model,
+            )
+
+        if embeddings is None:
+            logger.info(
+                "shard %s: computing PLM embeddings (%s) for %d sequences",
+                args.shard_name, args.plm_model, len(ids),
+            )
+            embedder = load_plm_embedder(args.plm_model)
+            embeddings = embedder.embed(
+                sequences_df["sequence"].tolist(),
+                batch_size=args.plm_batch_size,
+                progress_desc=f"PLM embeddings [{args.shard_name}]",
+            )
+            if args.embeddings_cache_dir is not None:
+                _save_embeddings_cache(
+                    args.embeddings_cache_dir, args.shard_name,
+                    ids=ids, embeddings=embeddings, model_name=args.plm_model,
+                )
 
         # ---------------- PLM (sequences only) ----------------------
-        if args.classifier in ("plm", "both"):
+        if need_plm:
             try:
-                table = _run_plm(sequences_df, args=args, embedder=embedder)
+                table = _run_plm(
+                    sequences_df, args=args, precomputed_embeddings=embeddings,
+                )
                 if args.min_p_keep is not None:
                     before = len(table)
                     table = _filter_by_calibrated_probability(
@@ -350,9 +528,13 @@ def main(args: argparse.Namespace) -> None:
                     "PLM classifier failed for shard %s — continuing with "
                     "other classifiers", args.shard_name,
                 )
+        elif args.classifier in ("plm", "both"):
+            logger.info(
+                "PLM: %s exists, skipping", plm_csv,
+            )
 
         # ---------------- PlmDomains (structure-aware) -------------
-        if args.classifier in ("plm_domains", "both"):
+        if need_pdm:
             try:
                 # Resolve structures dir (provided or downloaded).
                 # Inline downloads stage under the managed workdir so
@@ -400,14 +582,19 @@ def main(args: argparse.Namespace) -> None:
                         args.shard_name,
                     )
                 else:
-                    subset = sequences_df[
-                        sequences_df["id"].isin(set(ids_present))
-                    ].reset_index(drop=True)
+                    # Slice the precomputed embedding matrix down to
+                    # only the rows whose proteins have a usable PDB.
+                    present_set = set(ids_present)
+                    subset_idx = [
+                        i for i, uid in enumerate(ids) if uid in present_set
+                    ]
+                    subset = sequences_df.iloc[subset_idx].reset_index(drop=True)
+                    subset_embeddings = embeddings[subset_idx]
                     plm_domains_table, fallback_table = _run_plm_domains(
                         subset,
                         args=args,
                         structures_dir=eff_dir,
-                        embedder=embedder,
+                        precomputed_embeddings=subset_embeddings,
                     )
                     for tab, subdir, label in (
                         (plm_domains_table, SUBDIR_PLM_DOMAINS, "plm_domains"),
@@ -437,6 +624,11 @@ def main(args: argparse.Namespace) -> None:
                     "plm_domains classifier failed for shard %s — "
                     "continuing", args.shard_name,
                 )
+        elif args.classifier in ("plm_domains", "both"):
+            logger.info(
+                "plm_domains: %s and companions exist, skipping",
+                plm_dom_csv,
+            )
 
 
 if __name__ == "__main__":

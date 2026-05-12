@@ -31,12 +31,15 @@ import gzip
 import json
 import logging
 import random
+import sys
 import time
 import urllib.error
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Iterable
+
+from tqdm.auto import tqdm  # type: ignore
 
 logger = logging.getLogger(__name__)
 
@@ -77,6 +80,21 @@ def _backoff(attempt: int) -> None:
 
 
 _GZIP_MAGIC = b"\x1f\x8b"
+
+
+def _atomic_write_bytes(target: Path, data: bytes) -> None:
+    """Write ``data`` to ``target`` via a temp-then-rename hop.
+
+    POSIX ``rename`` is atomic on the same filesystem, so concurrent
+    readers either see the previous file or the new one — never a
+    half-written file. This matters for resumability: a worker
+    SIGKILLed mid-write would otherwise leave a truncated PDB on
+    disk, which a rerun would mistake for a successful download
+    (``download_one`` only checks ``stat().st_size > 0``).
+    """
+    tmp = target.with_suffix(target.suffix + ".tmp")
+    tmp.write_bytes(data)
+    tmp.replace(target)
 
 
 def _maybe_gunzip(body: bytes, content_encoding: str | None) -> bytes:
@@ -189,7 +207,7 @@ def download_one(
             continue
 
         if data is not None:
-            target.write_bytes(data)
+            _atomic_write_bytes(target, data)
             return True
 
         # Fast path returned a clean 404 — fall through to metadata API.
@@ -218,7 +236,7 @@ def download_one(
             continue
 
         if data is not None:
-            target.write_bytes(data)
+            _atomic_write_bytes(target, data)
             return True
 
         if definitive_miss:
@@ -244,6 +262,8 @@ def download_many(
     n_workers: int = 16,
     timeout: float = 30.0,
     overwrite: bool = False,
+    progress: bool = True,
+    progress_desc: str = "AF-DB download",
 ) -> tuple[set[str], set[str]]:
     """Concurrent batch download.
 
@@ -265,6 +285,24 @@ def download_many(
             ex.submit(download_one, uid, out_dir, timeout=timeout, overwrite=overwrite): uid
             for uid in uids
         }
+
+        # tqdm.auto picks the right backend automatically:
+        #   * attached to a terminal → live ``\r``-overwriting bar
+        #   * piped to a SLURM log file → simpler line-mode output
+        # ``mininterval=5s`` throttles the line-mode updates to one
+        # progress line every 5 seconds so the per-batch SLURM log
+        # doesn't fill up with thousands of redundant lines on big
+        # batches. Stats include downloaded/missing counts so a
+        # human reading the log can spot a stuck batch immediately.
+        pbar = tqdm(
+            total=len(futures),
+            desc=progress_desc,
+            disable=not progress,
+            mininterval=5.0,
+            unit="pdb",
+            file=sys.stderr,
+        )
+
         for fut in as_completed(futures):
             uid = futures[fut]
             # ``download_one`` already swallows network errors and
@@ -276,8 +314,17 @@ def download_many(
             except Exception as exc:
                 logger.warning("AF-DB download failed for %s: %s", uid, exc)
                 missing.add(uid)
+                pbar.set_postfix_str(
+                    f"{len(downloaded)} ok / {len(missing)} miss", refresh=False,
+                )
+                pbar.update(1)
                 continue
             (downloaded if ok else missing).add(uid)
+            pbar.set_postfix_str(
+                f"{len(downloaded)} ok / {len(missing)} miss", refresh=False,
+            )
+            pbar.update(1)
+        pbar.close()
 
     logger.info(
         "AF-DB batch: %d downloaded, %d missing (of %d requested)",
