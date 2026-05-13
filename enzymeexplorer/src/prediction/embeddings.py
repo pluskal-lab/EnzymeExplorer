@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
+from enzymeexplorer.src.embeddings_extraction.esm_transformer_utils import MODEL_LAYERS
 from typing import Iterable
 
 import numpy as np  # type: ignore
@@ -54,7 +55,7 @@ class PLMEmbedder:
             # Default truncation cap for ESM-1v/1b. ESM-2 also accepts this
             # cap; callers wanting ESM-2's nominal infinite context can pass
             # ``max_seq_len=None`` explicitly via a custom value at load.
-            self.max_seq_len = 1022
+            self.max_seq_len = 2000
 
     def load(self) -> "PLMEmbedder":
         if self.family == "esm":
@@ -141,10 +142,13 @@ class PLMEmbedder:
 def load_plm_embedder(
     model_name: str = "ankh_large",
     *,
-    repr_layer: int = 33,
     max_seq_len: int | None = None,
 ) -> PLMEmbedder:
     """Build and load a :class:`PLMEmbedder`."""
+    if "esm" in model_name:
+        repr_layer = MODEL_LAYERS[model_name]
+    else:        
+        repr_layer = -1  # ignored for Ankh
     return PLMEmbedder(
         model_name=model_name, repr_layer=repr_layer, max_seq_len=max_seq_len,
     ).load()

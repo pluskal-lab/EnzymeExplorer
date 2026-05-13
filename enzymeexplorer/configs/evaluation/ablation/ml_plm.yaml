@@ -22,6 +22,9 @@ bootstrap:
   ci: 0.95
   ci_method: normal
   metrics: [ap, roc_auc]
+  # No PlmDomainsRF in this config, so target falls back to the main
+  # PLM-only classifier (PLM_RF on ankh_large). Recorded deltas: (PLM_RF - other).
+  target_model: PLM_RF
 
 aggregates:
   Substrate_mAP: [FPP, GPP, GGPP, EDSQ, CPP, GFPP, 2xFPP, 2xGGPP]

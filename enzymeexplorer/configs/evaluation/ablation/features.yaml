@@ -22,6 +22,10 @@ bootstrap:
   ci: 0.95
   ci_method: normal
   metrics: [ap, roc_auc]
+  # Delta plots reference the main classifier (PlmDomainsRF, ankh_large). The
+  # v4 paired bootstrap records deltas as (target - other) only, so the
+  # delta forest plot reduces to N-1 boxes per class instead of C(N,2).
+  target_model: PLM_Domains
 
 aggregates:
   Substrate_mAP: [FPP, GPP, GGPP, EDSQ, CPP, GFPP, 2xFPP, 2xGGPP]

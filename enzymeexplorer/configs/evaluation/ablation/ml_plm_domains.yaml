@@ -22,6 +22,9 @@ bootstrap:
   ci: 0.95
   ci_method: normal
   metrics: [ap, roc_auc]
+  # Delta plots reference the main PlmDomainsRF classifier (Ankh Large).
+  # Recorded deltas: (PLM_Domains_RF - other).
+  target_model: PLM_Domains_RF
 
 aggregates:
   Substrate_mAP: [FPP, GPP, GGPP, EDSQ, CPP, GFPP, 2xFPP, 2xGGPP]
