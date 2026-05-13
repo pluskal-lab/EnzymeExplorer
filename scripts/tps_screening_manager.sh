@@ -32,6 +32,7 @@
 #       [--n-jobs <int>]                       (default: 10)
 #       [--plm-batch-size <int>]               (default: 32)
 #       [--structures-dir <dir>]               (default: download per-batch)
+#       [--workdir <dir>]                      (default: tps_predict_fasta's own default — <repo>/tmp)
 #
 # ``--batch-size`` is the number of FASTA records per SLURM array task.
 # ``--plm-batch-size`` is the mini-batch size used inside one task for
@@ -103,6 +104,7 @@ batch_size=40000
 n_jobs=10
 plm_batch_size=32
 structures_dir=""
+workdir=""
 
 usage() { sed -n '2,46p' "$0" >&2; exit 1; }
 
@@ -115,6 +117,7 @@ while (( $# > 0 )); do
         --n-jobs)           n_jobs="$2";         shift 2 ;;
         --plm-batch-size)   plm_batch_size="$2"; shift 2 ;;
         --structures-dir)   structures_dir="$2"; shift 2 ;;
+        --workdir)          workdir="$2";        shift 2 ;;
         -h|--help)          usage ;;
         *) echo "[mgr] unknown arg: $1" >&2; usage ;;
     esac
@@ -172,6 +175,10 @@ echo "[mgr] manager log opened at $(date -u +%Y-%m-%dT%H:%M:%SZ)"
 echo "[mgr] fasta=$fasta  output_root=$output_root"
 echo "[mgr] classifier=$classifier  batch_size=$batch_size  n_jobs=$n_jobs  plm_batch_size=$plm_batch_size"
 echo "[mgr] structures_dir=${structures_dir:-<none, will download>}"
+if [[ -n "$workdir" ]]; then
+    workdir="$(realpath -m "$workdir")"
+fi
+echo "[mgr] workdir=${workdir:-<unset, predict will use its default>}"
 
 # ---- count records → number of batches -----------------------------------
 
@@ -208,6 +215,12 @@ elif (( needs_structures )); then
     # Shared, pre-populated structures dir; predict tasks never touch it.
     predict_extra+=(--structures-dir "$structures_dir")
     echo "[mgr] structures supplied externally: $structures_dir (no download)"
+fi
+
+# Only forward --workdir when the user explicitly set one; otherwise the
+# Python entry point falls back to its own default (<repo>/tmp).
+if [[ -n "$workdir" ]]; then
+    predict_extra+=(--workdir "$workdir")
 fi
 
 # ---- predict array (1 GPU per task) --------------------------------------

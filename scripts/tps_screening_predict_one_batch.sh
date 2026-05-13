@@ -7,7 +7,8 @@
 #   tps_screening_predict_one_batch.sh \
 #       <fasta> <batch_size> <shards_root> <classifier> <n_jobs> \
 #       <plm_batch_size> \
-#       [--structures-root <root> | --structures-dir <dir>]
+#       [--structures-root <root> | --structures-dir <dir>] \
+#       [--workdir <dir>]
 #
 # Slice covered by this task: [batch * batch_size, (batch+1) * batch_size).
 # Output: <shards_root>/<classifier>/batch_<idx>.csv (+ companion
@@ -73,10 +74,12 @@ shift 6
 
 structures_root=""
 structures_dir=""
+workdir_args=()
 while (( $# > 0 )); do
     case "$1" in
         --structures-root) structures_root="$2"; shift 2 ;;
         --structures-dir)  structures_dir="$2";  shift 2 ;;
+        --workdir)         workdir_args=(--workdir "$2"); shift 2 ;;
         *) echo "[predict] unknown arg: $1" >&2; exit 1 ;;
     esac
 done
@@ -123,7 +126,8 @@ python -m enzymeexplorer.src.screening.tps_predict_fasta \
     --n-jobs "$n_jobs" \
     --plm-batch-size "$plm_batch_size" \
     --embeddings-cache-dir "$embeddings_cache_dir" \
-    "${predict_struct_args[@]}"
+    "${predict_struct_args[@]}" \
+    "${workdir_args[@]}"
 
 # Cleanup runs ONLY when Python exited 0. Any other exit (Python crash,
 # SLURM ``scancel`` SIGTERM, SIGKILL, ``set -e`` shell failure) bails
