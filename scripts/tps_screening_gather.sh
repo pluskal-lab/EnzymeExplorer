@@ -29,7 +29,12 @@
 # already-downloaded PDB + already-computed embedding.
 #
 # Usage (positional, set by the manager):
-#   tps_screening_gather.sh <output_root> <n_batches> <classifier>
+#   tps_screening_gather.sh <output_root> <n_batches> <classifier> [<results_dir>]
+#
+# When <results_dir> is non-empty, every final CSV produced under
+# <output_root>/ is also copied into <results_dir>/ (created if absent).
+# An empty string (the manager's default when --results-dir was not
+# given) skips the copy entirely.
 #
 # Reads:   <output_root>/shards/<classifier>/batch_*.csv
 # Writes:  <output_root>/{plm,plm_domains,plm_domains_fallback,no_structure}.csv
@@ -58,6 +63,7 @@ set -u
 output_root="$1"
 n_batches="$2"
 classifier="$3"
+results_dir="${4:-}"
 
 echo "[gather] aggregating shards under $output_root (n_batches=$n_batches, classifier=$classifier)"
 
@@ -112,6 +118,26 @@ fi
 
 python -m enzymeexplorer.src.screening.gather_detections_to_csv \
     "${gather_args[@]}"
+
+# ---- mirror final CSVs into an extra results dir (optional) ---------------
+# When the user passed --results-dir to the manager, mirror every
+# merged CSV produced above into that directory in addition to keeping
+# the canonical copies under <output_root>/. The directory is created
+# if it doesn't exist. Partial runs are mirrored too — the merged CSVs
+# at this point are snapshots of progress so far either way.
+
+if [[ -n "$results_dir" ]]; then
+    mkdir -p "$results_dir"
+    copied=0
+    for name in plm plm_domains plm_domains_fallback no_structure; do
+        src="$output_root/$name.csv"
+        if [[ -f "$src" ]]; then
+            cp -f "$src" "$results_dir/$name.csv"
+            copied=$(( copied + 1 ))
+        fi
+    done
+    echo "[gather] mirrored $copied final CSV(s) to $results_dir/"
+fi
 
 # ---- cache cleanup (only when fully complete) -----------------------------
 

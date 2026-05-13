@@ -33,6 +33,7 @@
 #       [--plm-batch-size <int>]               (default: 32)
 #       [--structures-dir <dir>]               (default: download per-batch)
 #       [--workdir <dir>]                      (default: tps_predict_fasta's own default — <repo>/tmp)
+#       [--results-dir <dir>]                  (default: none — final CSVs live only under <output_root>)
 #
 # ``--batch-size`` is the number of FASTA records per SLURM array task.
 # ``--plm-batch-size`` is the mini-batch size used inside one task for
@@ -105,6 +106,7 @@ n_jobs=10
 plm_batch_size=32
 structures_dir=""
 workdir=""
+results_dir=""
 
 usage() { sed -n '2,46p' "$0" >&2; exit 1; }
 
@@ -118,6 +120,7 @@ while (( $# > 0 )); do
         --plm-batch-size)   plm_batch_size="$2"; shift 2 ;;
         --structures-dir)   structures_dir="$2"; shift 2 ;;
         --workdir)          workdir="$2";        shift 2 ;;
+        --results-dir)      results_dir="$2";    shift 2 ;;
         -h|--help)          usage ;;
         *) echo "[mgr] unknown arg: $1" >&2; usage ;;
     esac
@@ -179,6 +182,10 @@ if [[ -n "$workdir" ]]; then
     workdir="$(realpath -m "$workdir")"
 fi
 echo "[mgr] workdir=${workdir:-<unset, predict will use its default>}"
+if [[ -n "$results_dir" ]]; then
+    results_dir="$(realpath -m "$results_dir")"
+fi
+echo "[mgr] results_dir=${results_dir:-<unset, final CSVs only under output_root>}"
 
 # ---- count records → number of batches -----------------------------------
 
@@ -257,7 +264,7 @@ echo "[mgr] submitted predict array job: $pred_array_id (logs: $logs_dir/predict
 gather_id=$(sbatch --parsable \
     --dependency=afterany:"$pred_array_id" \
     --output="$logs_dir/gather_%j.log" \
-    "$scripts_dir/tps_screening_gather.sh" "$output_root" "$n_batches" "$classifier")
+    "$scripts_dir/tps_screening_gather.sh" "$output_root" "$n_batches" "$classifier" "$results_dir")
 echo "[mgr] submitted gather job: $gather_id (log: $logs_dir/gather_${gather_id}.log)"
 
 echo "[mgr] all jobs submitted."
