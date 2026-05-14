@@ -8,6 +8,7 @@ from pathlib import Path
 
 from enzymeexplorer.src.structure_processing.structural_algorithms import MappedRegion
 from enzymeexplorer.src.structure_processing.utils import (
+    cap_regions_to_reference_layout,
     get_foldseek_alignment_df,
     get_reference_domain_type_2_module_ids,
     get_reference_sequence_col_indices,
@@ -184,6 +185,18 @@ def compute_structural_features(args) -> dict:
     ) <= set(
         r_dom.domain for r_r in ref_seq_2_regions.values() for r_dom in r_r
     ), "After preprocessing, there are still domain types in query regions that are not present in reference regions. Please check the domain type preprocessing configuration and the input data."
+
+    # Cap per-sequence query regions to the reference layout (2 alpha + 1
+    # each of beta/gamma/delta/epsilon). Without this, an over-detected
+    # query (e.g. 3 alpha domains) overflows into ``alpha_3`` and trips
+    # the KeyError inside ``get_structural_features``. The cap composes
+    # the rename map produced by the preprocessing step above so PDB
+    # symlink lookups still resolve to the original on-disk stem.
+    query_seq_2_regions, query_renamed_modules_name_map = (
+        cap_regions_to_reference_layout(
+            query_seq_2_regions, query_renamed_modules_name_map,
+        )
+    )
 
     feature_domain_types = ["alpha_1", "alpha_2"] + sorted(
         {

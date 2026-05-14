@@ -145,6 +145,15 @@ def parse_args() -> argparse.Namespace:
         "--plm-model", type=str, default=DEFAULT_PLM_MODEL,
     )
     parser.add_argument("--plm-batch-size", type=int, default=4)
+    parser.add_argument(
+        "--max-seq-len", type=int, default=2000,
+        help=(
+            "Drop sequences longer than this many residues before running "
+            "predictions. Sharding/indexing is unaffected — the oversized "
+            "rows are simply skipped at predict time. Pass 0 (or any "
+            "non-positive value) to disable the cap."
+        ),
+    )
     parser.add_argument("--n-jobs", type=int, default=10)
     parser.add_argument(
         "--af-db-workers", type=int, default=16,
@@ -428,6 +437,24 @@ def main(args: argparse.Namespace) -> None:
             args.fasta_path,
             len(sequences_df),
         )
+
+        # Drop oversized sequences before any embedding / prediction so
+        # they can't OOM the GPU or the domain-detection pool. Sharding
+        # is upstream of this filter — the per-shard ID space is
+        # unchanged, the oversized rows are just absent from the
+        # written CSVs.
+        if not sequences_df.empty and args.max_seq_len > 0:
+            seq_lens = sequences_df["sequence"].str.len()
+            keep_mask = seq_lens <= args.max_seq_len
+            n_dropped = int((~keep_mask).sum())
+            if n_dropped:
+                logger.info(
+                    "shard %s: dropping %d/%d sequences longer than %d residues "
+                    "(max observed: %d)",
+                    args.shard_name, n_dropped, len(sequences_df),
+                    args.max_seq_len, int(seq_lens.max()),
+                )
+                sequences_df = sequences_df[keep_mask].reset_index(drop=True)
 
         # Empty schemas the gather step can rely on for missing files.
         if sequences_df.empty:

@@ -355,6 +355,83 @@ def get_reference_domain_type_2_module_ids(
         )
     return ref_domain_type_2_module_id
 
+# Reference layout caps used by ``cap_regions_to_reference_layout``.
+# These must match the slot counts baked into
+# ``get_reference_domain_type_2_module_ids`` (2 alpha slots → alpha_1/alpha_2,
+# 1 each for beta/gamma/delta/epsilon).
+REFERENCE_LAYOUT_CAPS = {
+    "alpha": 2, "beta": 1, "gamma": 1, "delta": 1, "epsilon": 1,
+}
+
+
+def cap_regions_to_reference_layout(
+    seq_2_regions: dict[str, "list[MappedRegion]"],
+    existing_name_map: dict[str, str] | None = None,
+    caps: dict[str, int] = REFERENCE_LAYOUT_CAPS,
+) -> "tuple[dict[str, list[MappedRegion]], dict[str, str]]":
+    """Trim each sequence's regions to the reference layout (top-N by tmscore
+    per domain type) and re-issue contiguous per-type module-id suffixes.
+
+    The fixed reference layout has 2 alpha + 1 each of {beta, gamma, delta,
+    epsilon}; a query with more detected domains overflows into slots that
+    don't exist (e.g. ``alpha_3``), which raises ``KeyError`` in
+    :func:`get_structural_features`. This pre-trim keeps only the
+    highest-tmscore region per overflow type and renames the survivors so
+    their numeric suffixes stay in ``{0..caps[dt]-1}``, which is what
+    ``get_structural_features`` adds 1 to when resolving ``alpha`` slots.
+
+    Args:
+        seq_2_regions: post-preprocessing query regions (domain types are
+            already canonicalised to ``{alpha, beta, gamma, delta, epsilon}``).
+        existing_name_map: the ``{preprocessed_module_id: original_module_id}``
+            mapping returned by :func:`preprocess_domains_by_renaming_domain_types`,
+            or ``None`` when no preprocessing happened. The returned name
+            map composes through this so PDB-file lookups continue to
+            resolve to the on-disk stem.
+        caps: per-domain-type retention cap. Defaults to the reference
+            layout.
+
+    Returns:
+        ``(capped_seq_2_regions, new_name_map)`` where ``new_name_map``
+        maps every relabelled ``module_id`` to the *original* on-disk
+        stem (i.e. the file name the foldseek symlink step expects).
+    """
+    from dataclasses import replace
+
+    existing_name_map = existing_name_map or {}
+    capped: dict[str, list[MappedRegion]] = {}
+    new_name_map: dict[str, str] = {}
+    n_dropped = 0
+    for seq_id, regions in seq_2_regions.items():
+        by_type: dict[str, list[MappedRegion]] = defaultdict(list)
+        for r in regions:
+            by_type[r.domain].append(r)
+        kept: list[MappedRegion] = []
+        for dt, rs in by_type.items():
+            cap = caps.get(dt)
+            rs_sorted = sorted(rs, key=lambda r: r.tmscore, reverse=True)
+            if cap is None:
+                kept.extend(rs_sorted)
+                continue
+            kept.extend(rs_sorted[:cap])
+            n_dropped += max(0, len(rs_sorted) - cap)
+        ctrs: dict[str, int] = defaultdict(int)
+        relabelled: list[MappedRegion] = []
+        for r in kept:
+            new_mid = f"{seq_id}_{r.domain}_{ctrs[r.domain]}"
+            ctrs[r.domain] += 1
+            original = existing_name_map.get(r.module_id, r.module_id)
+            new_name_map[new_mid] = original
+            relabelled.append(replace(r, module_id=new_mid))
+        capped[seq_id] = relabelled
+    if n_dropped:
+        logger.info(
+            "cap_regions_to_reference_layout: dropped %d region(s) exceeding "
+            "the reference layout caps %s", n_dropped, dict(caps),
+        )
+    return capped, new_name_map
+
+
 def preprocess_domains_by_renaming_domain_types(
     seq_2_regions: dict[str, list[MappedRegion]], domain_type_preprocessing_config: dict[str, str]
 ) -> tuple[dict[str, list[MappedRegion]], dict[str, str]]:
