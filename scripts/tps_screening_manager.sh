@@ -72,10 +72,11 @@
 # on any batch is one ``less`` away.
 
 #SBATCH --job-name=tps_screening_mgr
-#SBATCH --partition=standard
-#SBATCH --cpus-per-task=1
-#SBATCH --mem=2GB
-#SBATCH --time=01:00:00
+#SBATCH --account project_465000660
+#SBATCH --partition qcpu
+#SBATCH --cpus-per-task 4
+#SBATCH --mem 16GB
+#SBATCH --time 04:00:00
 
 # ``set -u`` is incompatible with cluster bashrc files that read
 # unset variables (e.g. ``BASHRCSOURCED``). Sourcing happens with -u
@@ -103,8 +104,8 @@ fasta=""
 output_root=""
 classifier="both"
 batch_size=40000
-n_jobs=10
-plm_batch_size=32
+n_jobs=32
+plm_batch_size=16
 structures_dir=""
 workdir=""
 results_dir=""

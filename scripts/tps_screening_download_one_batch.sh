@@ -15,11 +15,11 @@
 # CPU-only. No GPU requested — AF-DB ingress is the bottleneck.
 
 #SBATCH --job-name=tps_screen_dl
-#SBATCH --partition=standard
+#SBATCH --partition=qcpu
 #SBATCH --account=project_465000660
-#SBATCH --cpus-per-task=4
-#SBATCH --mem=4GB
-#SBATCH --time=12:00:00
+#SBATCH --cpus-per-task 32
+#SBATCH --mem 16GB
+#SBATCH --time 12:00:00
 
 # See manager note: cluster bashrc files may reference unbound vars;
 # keep -u off while sourcing, re-enable for our own code.
@@ -54,4 +54,4 @@ python -m enzymeexplorer.src.screening.tps_download_af_structures \
     --missing-csv "$missing_csv" \
     --start-i "$start_i" \
     --end-i   "$end_i" \
-    --n-workers 16
+    --n-workers 32

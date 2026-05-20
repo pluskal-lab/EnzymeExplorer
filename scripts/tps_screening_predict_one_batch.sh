@@ -39,12 +39,12 @@
 # allocation matches.
 
 #SBATCH --job-name=tps_screen_predict
-#SBATCH --partition=standard-g
 #SBATCH --account=project_465000660
+#SBATCH --partition qgpu
 #SBATCH --gpus=1
-#SBATCH --cpus-per-task=10
-#SBATCH --mem=32GB
-#SBATCH --time=24:00:00
+#SBATCH --cpus-per-task 8
+#SBATCH --mem 16GB
+#SBATCH --time 4:00:00
 
 # Sourcing bashrc with -u disabled (some cluster /etc/bashrc files
 # reference unbound vars and would otherwise abort us before the

@@ -44,11 +44,11 @@
 #   <output_root>/structures/, embeddings_cache/, missing_csvs/
 
 #SBATCH --job-name=tps_screen_gather
-#SBATCH --partition=standard
 #SBATCH --account=project_465000660
-#SBATCH --cpus-per-task=4
-#SBATCH --mem=32GB
-#SBATCH --time=04:00:00
+#SBATCH --partition qcpu
+#SBATCH --cpus-per-task 8
+#SBATCH --mem 16GB
+#SBATCH --time 04:00:00
 
 # See manager note: cluster bashrc files may reference unbound vars;
 # keep -u off while sourcing, re-enable for our own code.
