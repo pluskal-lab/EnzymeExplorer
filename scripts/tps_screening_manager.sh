@@ -34,6 +34,7 @@
 #       [--structures-dir <dir>]               (default: download per-batch)
 #       [--workdir <dir>]                      (default: tps_predict_fasta's own default — <repo>/tmp)
 #       [--results-dir <dir>]                  (default: none — final CSVs live only under <output_root>)
+#       [--min-tps-p <float>]                  (default: none — keep every scored row regardless of TPS_p_calibrated)
 #
 # ``--batch-size`` is the number of FASTA records per SLURM array task.
 # ``--plm-batch-size`` is the mini-batch size used inside one task for
@@ -107,6 +108,7 @@ plm_batch_size=32
 structures_dir=""
 workdir=""
 results_dir=""
+min_tps_p=""
 
 usage() { sed -n '2,46p' "$0" >&2; exit 1; }
 
@@ -121,6 +123,7 @@ while (( $# > 0 )); do
         --structures-dir)   structures_dir="$2"; shift 2 ;;
         --workdir)          workdir="$2";        shift 2 ;;
         --results-dir)      results_dir="$2";    shift 2 ;;
+        --min-tps-p)        min_tps_p="$2";      shift 2 ;;
         -h|--help)          usage ;;
         *) echo "[mgr] unknown arg: $1" >&2; usage ;;
     esac
@@ -186,6 +189,7 @@ if [[ -n "$results_dir" ]]; then
     results_dir="$(realpath -m "$results_dir")"
 fi
 echo "[mgr] results_dir=${results_dir:-<unset, final CSVs only under output_root>}"
+echo "[mgr] min_tps_p=${min_tps_p:-<unset, no TPS_p_calibrated filter applied>}"
 
 # ---- count records → number of batches -----------------------------------
 
@@ -228,6 +232,12 @@ fi
 # Python entry point falls back to its own default (<repo>/tmp).
 if [[ -n "$workdir" ]]; then
     predict_extra+=(--workdir "$workdir")
+fi
+
+# Same rule for --min-tps-p: only forward when the user actually set a
+# threshold so the prediction module falls back to "keep everything".
+if [[ -n "$min_tps_p" ]]; then
+    predict_extra+=(--min-tps-p "$min_tps_p")
 fi
 
 # ---- predict array (1 GPU per task) --------------------------------------

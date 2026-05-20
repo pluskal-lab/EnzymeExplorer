@@ -167,6 +167,17 @@ def parse_args() -> argparse.Namespace:
             "is written). Applies to both plm and plm_domains outputs."
         ),
     )
+    parser.add_argument(
+        "--min-tps-p", type=float, default=None,
+        help=(
+            "Optional TPS-specific filter: drop rows whose "
+            "TPS_p_calibrated is below this value. Independent from "
+            "--min-p-keep (the per-row 'any class' filter). When both "
+            "are set the TPS threshold is applied first at the "
+            "pipeline level, then --min-p-keep runs on whatever rows "
+            "remain. Disabled by default."
+        ),
+    )
     from enzymeexplorer.src.utils.project_info import get_default_workdir_parent
 
     parser.add_argument(
@@ -388,6 +399,7 @@ def _run_plm(
         plm_model=args.plm_model,
         precomputed_embeddings=precomputed_embeddings,
         plm_batch_size=args.plm_batch_size,
+        min_tps_p=args.min_tps_p,
     )
 
 
@@ -418,6 +430,7 @@ def _run_plm_domains(
         # managed_workdir-swapped tempfile.tempdir.
         workdir=None,
         keep_intermediate=False,
+        min_tps_p=args.min_tps_p,
     )
 
 

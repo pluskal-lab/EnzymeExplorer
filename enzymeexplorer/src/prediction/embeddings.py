@@ -17,7 +17,6 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from enzymeexplorer.src.embeddings_extraction.esm_transformer_utils import MODEL_LAYERS
 from typing import Iterable
 
 import numpy as np  # type: ignore
@@ -146,6 +145,7 @@ def load_plm_embedder(
 ) -> PLMEmbedder:
     """Build and load a :class:`PLMEmbedder`."""
     if "esm" in model_name:
+        from enzymeexplorer.src.embeddings_extraction.esm_transformer_utils import MODEL_LAYERS
         repr_layer = MODEL_LAYERS[model_name]
     else:        
         repr_layer = -1  # ignored for Ankh

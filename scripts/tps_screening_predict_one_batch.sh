@@ -75,11 +75,13 @@ shift 6
 structures_root=""
 structures_dir=""
 workdir_args=()
+min_tps_p_args=()
 while (( $# > 0 )); do
     case "$1" in
         --structures-root) structures_root="$2"; shift 2 ;;
         --structures-dir)  structures_dir="$2";  shift 2 ;;
         --workdir)         workdir_args=(--workdir "$2"); shift 2 ;;
+        --min-tps-p)       min_tps_p_args=(--min-tps-p "$2"); shift 2 ;;
         *) echo "[predict] unknown arg: $1" >&2; exit 1 ;;
     esac
 done
@@ -127,7 +129,8 @@ python -m enzymeexplorer.src.screening.tps_predict_fasta \
     --plm-batch-size "$plm_batch_size" \
     --embeddings-cache-dir "$embeddings_cache_dir" \
     "${predict_struct_args[@]}" \
-    "${workdir_args[@]}"
+    "${workdir_args[@]}" \
+    "${min_tps_p_args[@]}"
 
 # Cleanup runs ONLY when Python exited 0. Any other exit (Python crash,
 # SLURM ``scancel`` SIGTERM, SIGKILL, ``set -e`` shell failure) bails

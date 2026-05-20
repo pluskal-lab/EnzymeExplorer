@@ -65,6 +65,24 @@ PLM_DOMAINS_CLASSIFIER_NAME = "PLM_Domains"
 PLM_ONLY_CLASSIFIER_NAME = "PLM"
 
 
+def _filter_by_min_tps_p(table: pd.DataFrame, min_tps_p: float) -> pd.DataFrame:
+    """Drop rows whose ``TPS_p_calibrated`` is below ``min_tps_p``.
+
+    A missing column or an all-NaN column short-circuits to the input
+    table (e.g. fallback frames produced by ``predict_with_structures``
+    that didn't run TPS calibration). NaN cells are treated as failing
+    the threshold so an unscored row is dropped — calling code can opt
+    out by passing ``min_tps_p=None``.
+    """
+    col = "TPS_p_calibrated"
+    if col not in table.columns:
+        return table.reset_index(drop=True)
+    # NaN >= x is False, so rows without a TPS calibration drop out.
+    vals = pd.to_numeric(table[col], errors="coerce").to_numpy(dtype=float)
+    keep = vals >= min_tps_p
+    return table.loc[keep].reset_index(drop=True)
+
+
 def _ensure_embedder(
     embedder: "PLMEmbedder | None",
     *,
@@ -115,6 +133,7 @@ def predict_with_structures(
     plm_batch_size: int = 4,
     workdir: str | Path | None = None,
     keep_intermediate: bool = False,
+    min_tps_p: float | None = None,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     """End-to-end prediction with structures.
 
@@ -278,6 +297,14 @@ def predict_with_structures(
         )
     else:
         logger.info("[step 4/4] No fallback proteins; PLM-only step skipped")
+    if min_tps_p is not None:
+        plm_domains_table = _filter_by_min_tps_p(plm_domains_table, min_tps_p)
+        plm_only_table = _filter_by_min_tps_p(plm_only_table, min_tps_p)
+        logger.info(
+            "predict_with_structures: kept rows with TPS_p_calibrated >= %.4f — "
+            "PLM_Domains=%d, PLM-only=%d",
+            min_tps_p, len(plm_domains_table), len(plm_only_table),
+        )
     logger.info(
         "predict_with_structures: done — PLM_Domains rows=%d, PLM-only rows=%d",
         len(plm_domains_table),
@@ -295,6 +322,7 @@ def predict_sequences_only(
     embedder: PLMEmbedder | None = None,
     precomputed_embeddings=None,  # np.ndarray | None — aligned with sequences_df rows
     plm_batch_size: int = 4,
+    min_tps_p: float | None = None,
 ) -> pd.DataFrame:
     """End-to-end PLM-only prediction. Returns one wide-form DataFrame.
 
@@ -346,5 +374,12 @@ def predict_sequences_only(
         calibration_csv_path=calibration_csv_path,
         classifier_name=PLM_ONLY_CLASSIFIER_NAME,
     )
+    if min_tps_p is not None:
+        before = len(table)
+        table = _filter_by_min_tps_p(table, min_tps_p)
+        logger.info(
+            "predict_sequences_only: kept %d/%d rows with TPS_p_calibrated >= %.4f",
+            len(table), before, min_tps_p,
+        )
     logger.info("predict_sequences_only: done — %d rows", len(table))
     return table
