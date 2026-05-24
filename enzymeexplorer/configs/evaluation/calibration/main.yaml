@@ -38,19 +38,23 @@
 classifiers:
   PLM_Domains:
     model: PlmDomainsRandomForest
-    classes: [TPS, IDS, FPP, GPP, GGPP, EDSQ, CPP, GFPP]
+    classes: [TPS, IDS, FPP, GPP, GGPP, EDSQ, CPP, GFPP, 2xFPP, 2xGGPP]
     selection: {mode: fixed, version: ankh_large}
   PLM:
     model: PlmRandomForest
-    classes: [TPS, IDS, FPP, GPP, GGPP, EDSQ, CPP, GFPP]
+    classes: [TPS, IDS, FPP, GPP, GGPP, EDSQ, CPP, GFPP, 2xFPP, 2xGGPP]
     selection: {mode: fixed, version: ankh_large}
 
-# 2xFPP and 2xGGPP are intentionally excluded — n_pos is too small for an
-# honest beta fit; they would only inflate the diagnostics with NaNs.
+# 2xFPP and 2xGGPP have <30 positives in the dataset (n_pos ~ 17–19), so
+# the fit_summary marks them as ``fit_borderline`` (n_pos < 50). They are
+# still calibrated so the deploy-side pipeline can emit a TPS-style
+# probability for these classes (the user wants "some idea" of the score
+# even with wide uncertainty). All other classes have n_pos well above
+# the ``min_n_pos`` floor below so their fit grade is unchanged.
 
 calibration:
   classifiers: [PLM_Domains, PLM]
-  classes: [TPS, IDS, FPP, GPP, GGPP, EDSQ, CPP, GFPP]
+  classes: [TPS, IDS, FPP, GPP, GGPP, EDSQ, CPP, GFPP, 2xFPP, 2xGGPP]
 
   # Calibrator families competing for the per-(clf,class) winner.
   # Selection: lowest LOFO log-loss; ties broken by simpler family within
@@ -62,8 +66,13 @@ calibration:
   families: [identity, temperature, logit_platt, beta]
   family_tolerance: 1.0e-3
 
-  # Hard floor on n_pos: classes below this get no calibrator.
-  min_n_pos: 30
+  # Hard floor on n_pos: classes below this get no calibrator. Set to
+  # 15 so the two long-tail classes (2xFPP n_pos=19, 2xGGPP n_pos=17)
+  # qualify; they're still graded ``fit_borderline`` automatically via
+  # the n_pos<50 rule, so downstream consumers know to treat their
+  # probabilities with wider uncertainty. Other classes all have
+  # n_pos >> 30, so their grading and selection logic is unchanged.
+  min_n_pos: 15
 
   # Score clip used when forming logit / log features.
   score_eps: 1.0e-6

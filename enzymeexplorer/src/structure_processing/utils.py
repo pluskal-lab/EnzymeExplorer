@@ -1204,6 +1204,8 @@ def _first_atom_bfactors(sequence_id: str) -> dict[int, float]:
     )
     if loaded:
         cmd.delete(sequence_id)
+    if max(out.values()) <= 1:  # ESMFold pLDDT is in b-factor field, scaled by [0,1]
+        out = {r: b * 100 for r, b in out.items()}
     return out
 
 
