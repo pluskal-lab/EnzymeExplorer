@@ -5,12 +5,13 @@ import json
 from shutil import copy
 import os
 import logging
-from EnzymeExplorer.enzymeexplorer.src.data_preparation.structural_data_utils import (
+from enzymeexplorer.src.data_preparation.structural_data_utils import (
     get_residue_names_and_plddt_scores,
     calculate_metrics,
     calculate_metric_diff_thresholds,
 )
-from enzymeexplorer.src.data_preparation.constants import METRICS_2_FUNC
+from enzymeexplorer.src.data_preparation.structural_data_utils import METRICS_2_FUNC
+
 
 logger = logging.getLogger(__file__)
 logging.basicConfig(
