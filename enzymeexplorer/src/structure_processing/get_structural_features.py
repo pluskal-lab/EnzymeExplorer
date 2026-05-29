@@ -165,19 +165,22 @@ def compute_structural_features(args) -> dict:
                 ref_seq_2_regions, args.domain_type_preprocessing_config
             )
         )
-        pickle.dump(
-            query_seq_2_regions,
-            open(args.output_directory + "/preprocessed_query_seq_2_regions.pkl", "wb"),
+        # Persist BOTH .pkl (legacy) and .json (portable sidecar for
+        # external consumers that don't import EnzymeExplorer).
+        from enzymeexplorer.src.structure_processing.utils import (
+            save_seq_to_regions_json,
         )
-        pickle.dump(
-            ref_seq_2_regions,
-            open(
-                args.output_directory + "/preprocessed_reference_seq_2_regions.pkl",
-                "wb",
-            ),
-        )
+        for name, mapping in (
+            ("preprocessed_query_seq_2_regions", query_seq_2_regions),
+            ("preprocessed_reference_seq_2_regions", ref_seq_2_regions),
+        ):
+            pkl_path = Path(args.output_directory) / f"{name}.pkl"
+            with pkl_path.open("wb") as fh:
+                pickle.dump(mapping, fh)
+            save_seq_to_regions_json(mapping, pkl_path.with_suffix(".json"))
         logger.info(
-            "Domain type preprocessing completed. Preprocessed query and reference sequence to regions mappings saved."
+            "Domain type preprocessing completed. Preprocessed query and reference "
+            "sequence to regions mappings saved (.pkl + portable .json)."
         )
 
     assert set(

@@ -1,3 +1,4 @@
+import json
 import logging
 from enzymeexplorer.src.structure_processing.structural_algorithms import (
     MappedRegion,
@@ -362,6 +363,50 @@ def get_reference_domain_type_2_module_ids(
 REFERENCE_LAYOUT_CAPS = {
     "alpha": 2, "beta": 1, "gamma": 1, "delta": 1, "epsilon": 1,
 }
+
+
+def save_seq_to_regions_json(
+    seq_2_regions: "dict[str, list[MappedRegion]]",
+    out_path: "str | Path",
+) -> Path:
+    """Dump a ``{seq_id: [MappedRegion, ...]}`` mapping as portable JSON.
+
+    External programs that don't have EnzymeExplorer importable can read
+    this file without hitting the pickle/import problem; every region is
+    represented as a plain dict via ``MappedRegion.to_dict``. The path
+    is normalised to absolute and returned so callers can log it.
+
+    The on-disk shape mirrors the in-memory mapping::
+
+        {
+          "<seq_id>": [
+            {"module_id": "...", "domain": "...", "tmscore": 0.85,
+             "residues_mapping": {"1": 10, "2": 11, ...},
+             "aligned_template": "..."}
+          ],
+          ...
+        }
+    """
+    out_path = Path(out_path)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    payload = {
+        seq_id: [r.to_dict() for r in regions]
+        for seq_id, regions in seq_2_regions.items()
+    }
+    out_path.write_text(json.dumps(payload, indent=2, sort_keys=True))
+    return out_path.resolve()
+
+
+def load_seq_to_regions_json(
+    in_path: "str | Path",
+) -> "dict[str, list[MappedRegion]]":
+    """Reverse of :func:`save_seq_to_regions_json` — restore the full
+    ``{seq_id: [MappedRegion, ...]}`` mapping from a JSON sidecar."""
+    payload = json.loads(Path(in_path).read_text())
+    return {
+        seq_id: [MappedRegion.from_dict(r) for r in regions]
+        for seq_id, regions in payload.items()
+    }
 
 
 def cap_regions_to_reference_layout(

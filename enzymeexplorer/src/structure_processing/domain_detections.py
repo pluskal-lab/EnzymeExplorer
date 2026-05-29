@@ -494,13 +494,21 @@ def detect_domains(args) -> dict:
     import enzymeexplorer.src.structure_processing.structural_algorithms as _sa
     _sa._SS_FULL_MAP_CACHE.clear()
 
-    # save the confident regions
+    # save the confident regions — both the legacy .pkl (consumed by
+    # in-repo code via pickle) and a portable .json sidecar (so external
+    # programs that don't import EnzymeExplorer can still read it via
+    # MappedRegion.from_dict / a plain JSON parser).
+    from enzymeexplorer.src.structure_processing.utils import save_seq_to_regions_json
+
     Path(args.detections_output_path).parent.mkdir(parents=True, exist_ok=True)
     with open(args.detections_output_path, "wb") as f:
         pickle.dump(filename_2_known_regions_completed_confident, f)
+    json_path = Path(args.detections_output_path).with_suffix(".json")
+    save_seq_to_regions_json(filename_2_known_regions_completed_confident, json_path)
 
     logger.info(
-        f"Finished domain detection. Detected domains saved to {args.detections_output_path}"
+        f"Finished domain detection. Detected domains saved to {args.detections_output_path} "
+        f"and portable JSON sidecar at {json_path}"
     )
     return filename_2_known_regions_completed_confident
 

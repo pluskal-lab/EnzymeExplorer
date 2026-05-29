@@ -71,6 +71,42 @@ class MappedRegion:
     def __post_init__(self):
         self.aligned_template = self.domain
 
+    # ----- Portable (no-pickle) serialisation -----------------------------
+    # JSON sidecars next to the .pkl artefacts let downstream consumers
+    # (other Python projects, R, MATLAB, etc.) read detected-domain output
+    # without importing EnzymeExplorer. Keys of ``residues_mapping`` are
+    # ints in memory; JSON forces them to strings, so the round-trip
+    # converts them back on the way in.
+
+    def to_dict(self) -> dict:
+        return {
+            "module_id": self.module_id,
+            "domain": self.domain,
+            "tmscore": float(self.tmscore),
+            "residues_mapping": {
+                str(k): int(v) for k, v in self.residues_mapping.items()
+            },
+            "aligned_template": self.aligned_template,
+        }
+
+    @classmethod
+    def from_dict(cls, payload: dict) -> "MappedRegion":
+        rm = payload.get("residues_mapping", {}) or {}
+        residues_mapping = {int(k): int(v) for k, v in rm.items()}
+        obj = cls(
+            module_id=payload["module_id"],
+            domain=payload["domain"],
+            tmscore=float(payload["tmscore"]),
+            residues_mapping=residues_mapping,
+            aligned_template=payload.get("aligned_template", "") or "",
+        )
+        # ``__post_init__`` overwrites aligned_template with ``domain``;
+        # restore the persisted value so a round trip is lossless when
+        # callers set it explicitly.
+        if "aligned_template" in payload and payload["aligned_template"]:
+            obj.aligned_template = payload["aligned_template"]
+        return obj
+
 
 # https://pymolwiki.org/index.php/Selection_Exists
 def exists_in_pymol(pymol_cmd, sele):
