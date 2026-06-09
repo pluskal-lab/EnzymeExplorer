@@ -191,7 +191,7 @@ async def upload_file(file: UploadFile = File(...),
 
         for detected_domain_id in comparison_results[pdb_id]:
             detected_domain_file_path = detected_domain_structures_root / f"{detected_domain_id}.pdb"
-            pdb_id_current = detected_domain_id.split('_')[0]
+            pdb_id_current = detected_domain_id.rsplit('_', 2)[0]
             closest_known_domain_id, foldseek_tm_score = max([(known_domain_id, tmscore)
                                                               for known_domain_id, tmscore in comparison_results[pdb_id][detected_domain_id]
                                                               if known_domain_id.split('_')[0] != pdb_id_current and known_domain_id.split('_')[0] in id_2_domain_config],
