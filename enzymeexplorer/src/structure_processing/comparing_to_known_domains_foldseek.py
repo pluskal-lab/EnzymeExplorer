@@ -65,7 +65,7 @@ if __name__ == "__main__":
 
     for _, row in df_foldseek.iterrows():
         if row['target'] in dom_subset:
-            uni_id = row['query'].split('_')[0]
+            uni_id = row['query'].rsplit('_', 2)[0]
             if uni_id not in filename_2_regions_vs_known_reg_dists:
                 filename_2_regions_vs_known_reg_dists[uni_id] = defaultdict(list)
             filename_2_regions_vs_known_reg_dists[uni_id][row['query']].append([row['target'], float(row['alntmscore'])])
