@@ -1,0 +1,67 @@
+# ESM-2 LAYER ablation for PlmDomainsRandomForest on the t36 base model.
+# 5 classifiers, one per final layer (32..36).
+# Same RF head, only the representation layer varies.
+
+classifiers:
+  PLM_Domains_Esm2_T36_L32:
+    model: PlmDomainsRandomForest
+    classes: [TPS, IDS, FPP, GPP, GGPP, EDSQ, CPP, GFPP, 2xFPP, 2xGGPP]
+    selection: {mode: fixed, version: esm-2-t36-L32}
+  PLM_Domains_Esm2_T36_L33:
+    model: PlmDomainsRandomForest
+    classes: [TPS, IDS, FPP, GPP, GGPP, EDSQ, CPP, GFPP, 2xFPP, 2xGGPP]
+    selection: {mode: fixed, version: esm-2-t36-L33}
+  PLM_Domains_Esm2_T36_L34:
+    model: PlmDomainsRandomForest
+    classes: [TPS, IDS, FPP, GPP, GGPP, EDSQ, CPP, GFPP, 2xFPP, 2xGGPP]
+    selection: {mode: fixed, version: esm-2-t36-L34}
+  PLM_Domains_Esm2_T36_L35:
+    model: PlmDomainsRandomForest
+    classes: [TPS, IDS, FPP, GPP, GGPP, EDSQ, CPP, GFPP, 2xFPP, 2xGGPP]
+    selection: {mode: fixed, version: esm-2-t36-L35}
+  PLM_Domains_Esm2_T36_L36:
+    model: PlmDomainsRandomForest
+    classes: [TPS, IDS, FPP, GPP, GGPP, EDSQ, CPP, GFPP, 2xFPP, 2xGGPP]
+    selection: {mode: fixed, version: esm-2-t36-L36}
+
+bootstrap:
+  n_bootstraps: 1000
+  seed: 42
+  mode: cluster
+  ci: 0.95
+  ci_method: normal
+  metrics: [ap, roc_auc]
+  # Reference classifier for delta plots: final layer of t36.
+  target_model: PLM_Domains_Esm2_T36_L36
+
+aggregates:
+  Substrate_mAP: [FPP, GPP, GGPP, EDSQ, CPP, GFPP, 2xFPP, 2xGGPP]
+  TPS_IDS_mAP: [TPS, IDS]
+
+visualize:
+  plots:
+    - tps_detection
+    - substrate_map
+    - substrate_per_class
+    - pr_curves
+    - roc_curves
+    - pr_substrate
+    - roc_substrate
+  metric: ap
+  curve_classes: [TPS]
+  classifier_order:
+    - PLM_Domains_Esm2_T36_L32
+    - PLM_Domains_Esm2_T36_L33
+    - PLM_Domains_Esm2_T36_L34
+    - PLM_Domains_Esm2_T36_L35
+    - PLM_Domains_Esm2_T36_L36
+  fixed_classifier_order: true
+  auto_zoom:
+    enabled: true
+    delta_pct: 2.0
+  ablation_xtick_overrides:
+    PLM_Domains_Esm2_T36_L32: "L32"
+    PLM_Domains_Esm2_T36_L33: "L33"
+    PLM_Domains_Esm2_T36_L34: "L34"
+    PLM_Domains_Esm2_T36_L35: "L35"
+    PLM_Domains_Esm2_T36_L36: "L36"

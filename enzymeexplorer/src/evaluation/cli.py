@@ -738,8 +738,19 @@ def _render_v4_scenarios(
     palette = dict(theme.UNIVERSAL_PALETTE)
     if yaml_palette:
         palette.update(yaml_palette)
+    # Any classifier name that's neither in the master palette nor
+    # overridden by the YAML gets a colour from the sequential
+    # comparison ramp so brand-new ablation variants (e.g. ESM-2 layer
+    # variants ``PLM_Esm2_T33_L31``) don't trip a ``KeyError`` deep in
+    # ``bars.bar_classifier``. The fallback only fills MISSING keys —
+    # canonical names keep their Okabe-Ito assignments.
+    classifiers_present = list(summary_ap["classifier"].unique())
+    missing = [c for c in classifiers_present if c not in palette]
+    if missing:
+        fallback = theme.comparison_palette(missing)
+        for c, rgb in fallback.items():
+            palette.setdefault(c, rgb)
     if theme.is_poster() and pin_last:
-        classifiers_present = list(summary_ap["classifier"].unique())
         palette = theme.poster_two_tone_palette(classifiers_present, pin_last)
 
     def _order_for(class_list: list[str]) -> list[str]:

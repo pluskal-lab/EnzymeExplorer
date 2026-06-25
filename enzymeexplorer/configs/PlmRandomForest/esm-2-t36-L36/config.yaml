@@ -1,4 +1,4 @@
 include: ../main_config.yaml
-representations_path: "data/gathered_embs_esm-2_embs_avg.h5"
+representations_path: "data/gathered_embs_esm-2-t36-L36_embs_avg.h5"
 per_class_optimization: false
 optimize_hyperparams: true

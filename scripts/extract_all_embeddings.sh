@@ -5,14 +5,15 @@ sequence_column_name="Aminoacid_sequence"
 input_csv_path=data/EnzymeExplorer_Dataset.csv
 num_gpus=1
 
-# plm models
+# plm models — the ESM-2 family (incl. the layer-ablation variants) is
+# handled by the dedicated ``scripts/extract_esm2_ablation_embeddings.sh``
+# so a single forward pass per base model emits all five ablation layers.
 model_parameters=(
     "ankh_base 4 -1"
     "ankh_large 4 -1"
     "esm-1v 4 33"
     "ankh_tps 4 -1"
     "esm-1v-finetuned-subseq 8 33"
-    "esm-2 4 36"
 )
 
 # loop over each model and extract embeddings

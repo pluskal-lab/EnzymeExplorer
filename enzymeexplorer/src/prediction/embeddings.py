@@ -143,11 +143,20 @@ def load_plm_embedder(
     *,
     max_seq_len: int | None = None,
 ) -> PLMEmbedder:
-    """Build and load a :class:`PLMEmbedder`."""
+    """Build and load a :class:`PLMEmbedder`.
+
+    For ESM models the representation layer is resolved variant-aware via
+    ``get_repr_layer``: ablation variants like ``esm-2-t33-L31`` are parsed
+    to (base=esm-2-t33, layer=31); canonical names fall back to the final
+    layer (``MODEL_LAYERS``). Ankh uses its own final-layer projection,
+    so the layer index is unused there.
+    """
     if "esm" in model_name:
-        from enzymeexplorer.src.embeddings_extraction.esm_transformer_utils import MODEL_LAYERS
-        repr_layer = MODEL_LAYERS[model_name]
-    else:        
+        from enzymeexplorer.src.embeddings_extraction.esm_transformer_utils import (
+            get_repr_layer,
+        )
+        repr_layer = get_repr_layer(model_name)
+    else:
         repr_layer = -1  # ignored for Ankh
     return PLMEmbedder(
         model_name=model_name, repr_layer=repr_layer, max_seq_len=max_seq_len,

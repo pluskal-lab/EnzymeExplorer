@@ -19,7 +19,7 @@ classifiers:
   PLM_Esm2:
     model: PlmRandomForest
     classes: [TPS, IDS, FPP, GPP, GGPP, EDSQ, CPP, GFPP, 2xFPP, 2xGGPP]
-    selection: {mode: fixed, version: esm-2}
+    selection: {mode: fixed, version: esm-2-t36-L36}
   PLM_TpsAnkhBase:
     model: PlmRandomForest
     classes: [TPS, IDS, FPP, GPP, GGPP, EDSQ, CPP, GFPP, 2xFPP, 2xGGPP]
