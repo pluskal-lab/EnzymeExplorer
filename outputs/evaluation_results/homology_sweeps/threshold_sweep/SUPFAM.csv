@@ -1,9 +1,0 @@
-version,class,metric,value,x_axis,x_label
-supfam_bitscore15,TPS,ap,0.8990258747626839,tail_int,Bitscore
-supfam_bitscore25,TPS,ap,0.9028389610418923,tail_int,Bitscore
-supfam_bitscore40,TPS,ap,0.9186349379656921,tail_int,Bitscore
-supfam_bitscore5,TPS,ap,0.893917533761219,tail_int,Bitscore
-supfam_bitscore50,TPS,ap,0.9283869846497017,tail_int,Bitscore
-supfam_bitscore60,TPS,ap,0.9272235201882637,tail_int,Bitscore
-supfam_bitscore70,TPS,ap,0.9243974164847737,tail_int,Bitscore
-supfam_bitscore80,TPS,ap,0.916397069510327,tail_int,Bitscore

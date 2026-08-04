@@ -1,5 +1,0 @@
-version,class,metric,value,x_axis,x_label
-pfam_bitscore15,TPS,ap,0.9716586721156943,tail_int,Bitscore
-pfam_bitscore25,TPS,ap,0.9667642973675529,tail_int,Bitscore
-pfam_bitscore40,TPS,ap,0.9498817413284286,tail_int,Bitscore
-pfam_bitscore5,TPS,ap,0.9596813140964604,tail_int,Bitscore
