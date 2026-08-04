@@ -39,16 +39,24 @@ from sklearn.metrics import average_precision_score, roc_auc_score  # type: igno
 from tqdm.auto import tqdm  # type: ignore
 
 from enzymeexplorer.src.evaluation.io import FoldDfs
+from enzymeexplorer.src.evaluation.metrics import summary_mccf1
 
 logger = logging.getLogger(__name__)
 
 ApType = Literal["pooled_oof", "fold_mean"]
 CiMethod = Literal["normal", "percentile", "bca"]
 PvalueAdjustment = Literal["holm", "bonferroni", "none"]
+BootstrapUnit = Literal["rows", "clusters"]
 
 ClassifierClassFoldDfs = dict[str, dict[str, dict[int, FoldDfs]]]
 
 _AP_TYPES_DEFAULT: tuple[ApType, ...] = ("pooled_oof", "fold_mean")
+
+# Rows whose ID is missing from the cluster map get bucketed into this
+# sentinel so a single lookup miss doesn't crash the whole bootstrap.
+# Sentinel-labeled rows behave as one giant cluster; the CLI logs a
+# warning listing the offending IDs so the miss is noticed.
+_MISSING_CLUSTER_SENTINEL = "__missing_cluster__"
 
 
 # ---------------------------------------------------------------------------
@@ -105,8 +113,12 @@ class BootstrapResult:
 def _safe_metric(name: str, y_true: np.ndarray, y_score: np.ndarray) -> float:
     """Compute ``name`` on (y_true, y_score) returning NaN on degenerate input.
 
-    AP and ROC-AUC are both undefined when ``y_true`` has no positives or
-    no negatives. NaN is the "undefined" sentinel.
+    AP, ROC-AUC, and MCC-F1 are all undefined when ``y_true`` has no
+    positives or no negatives. NaN is the "undefined" sentinel.
+
+    ``mcc_f1`` is the Cao et al. (2020) curve-integral metric that
+    summarises the MCC-F1 curve into a single number in ``[0, 1]``
+    (higher = better) — implemented by :func:`summary_mccf1`.
     """
     n_pos = int(y_true.sum())
     if n_pos == 0 or n_pos == len(y_true):
@@ -115,6 +127,11 @@ def _safe_metric(name: str, y_true: np.ndarray, y_score: np.ndarray) -> float:
         return float(average_precision_score(y_true, y_score))
     if name == "roc_auc":
         return float(roc_auc_score(y_true, y_score))
+    if name == "mcc_f1":
+        try:
+            return float(summary_mccf1(y_true, y_score)["mccf1_metric"])
+        except Exception:  # ill-conditioned curves fall back to NaN
+            return float("nan")
     raise ValueError(f"Unsupported metric: {name}")
 
 
@@ -201,6 +218,78 @@ def _stratified_resample(
     if neg_idx.size:
         parts.append(rng.choice(neg_idx, size=neg_idx.size, replace=True))
     return np.concatenate(parts) if parts else np.empty(0, dtype=np.int64)
+
+
+# ---------------------------------------------------------------------------
+# Cluster-block helpers
+# ---------------------------------------------------------------------------
+
+
+def _row_cluster_labels(
+    id_array: np.ndarray, cluster_map: dict[str, str],
+) -> np.ndarray:
+    """Look up cluster label per row-ID, defaulting to a sentinel bucket."""
+    lut = cluster_map
+    out = np.empty(len(id_array), dtype=object)
+    for i, uid in enumerate(id_array):
+        out[i] = lut.get(str(uid), _MISSING_CLUSTER_SENTINEL)
+    return out
+
+
+def _cluster_index(labels: np.ndarray) -> tuple[np.ndarray, list[np.ndarray]]:
+    """From a length-N array of cluster labels, return (unique_clusters,
+    per_cluster_row_indices). ``unique_clusters`` is a numpy array of the
+    distinct labels; ``per_cluster_row_indices[k]`` is a ``np.int64`` array
+    of the row indices whose label is ``unique_clusters[k]``."""
+    order = np.argsort(labels, kind="stable")
+    sorted_labels = labels[order]
+    # boundaries of runs of equal labels
+    change = np.concatenate(([True], sorted_labels[1:] != sorted_labels[:-1]))
+    starts = np.flatnonzero(change)
+    ends = np.append(starts[1:], len(labels))
+    unique = sorted_labels[starts]
+    groups = [
+        np.asarray(order[s:e], dtype=np.int64) for s, e in zip(starts, ends)
+    ]
+    return unique, groups
+
+
+def _canonical_pooled_ids(
+    classifier_to_class_to_fold_dfs: ClassifierClassFoldDfs,
+    classes: list[str],
+    id_column: str = "ID",
+) -> np.ndarray:
+    """Pooled-OOF ID array from the canonical classifier / first populated class.
+
+    Rows are aligned across classifiers by the earlier fold-size assertion
+    in :func:`_pooled_arrays`, so any (classifier, class) column gives
+    the same ordering of IDs. This helper returns that vector once so
+    downstream code doesn't have to keep re-picking a canonical cell."""
+    canon_clf = next(iter(classifier_to_class_to_fold_dfs))
+    class_to_dfs = classifier_to_class_to_fold_dfs[canon_clf]
+    for cls in classes:
+        if cls not in class_to_dfs:
+            continue
+        fd = class_to_dfs[cls]
+        parts = []
+        for f in sorted(fd):
+            lab, _ = fd[f]
+            parts.append(lab[id_column].astype(str).to_numpy())
+        return np.concatenate(parts)
+    raise ValueError(
+        "No populated (classifier, class) cell found — cannot derive canonical IDs"
+    )
+
+
+def _canonical_fold_ids(
+    classifier_to_class_to_fold_dfs: ClassifierClassFoldDfs,
+    cls: str,
+    id_column: str = "ID",
+) -> dict[int, np.ndarray]:
+    """Per-fold ID vectors for class ``cls`` from the canonical classifier."""
+    canon_clf = next(iter(classifier_to_class_to_fold_dfs))
+    fd = classifier_to_class_to_fold_dfs[canon_clf][cls]
+    return {f: lab[id_column].astype(str).to_numpy() for f, (lab, _) in fd.items()}
 
 
 # ---------------------------------------------------------------------------
@@ -397,6 +486,242 @@ def _bootstrap_mean_fold(
 
 
 # ---------------------------------------------------------------------------
+# Cluster-block bootstrap variants
+# ---------------------------------------------------------------------------
+
+
+def _bootstrap_pooled_oof_clusters(
+    classifier_to_class_to_fold_dfs: ClassifierClassFoldDfs,
+    classifiers: list[str],
+    classes: list[str],
+    metrics: tuple[str, ...],
+    n_bootstraps: int,
+    seed: int,
+    progress: bool,
+    cluster_map: dict[str, str],
+) -> tuple[
+    dict[tuple[str, str, str], np.ndarray],
+    dict[tuple[str, str, str], float],
+]:
+    """Cluster-block pooled-OOF bootstrap.
+
+    Resampling unit is a **cluster** (from the shared 50%-seq-identity
+    mmseqs mapping): each draw samples ``G`` cluster labels with
+    replacement (``G`` = number of clusters spanning the OOF pool),
+    then concatenates the row indices in the sampled clusters. Rows
+    are aligned across (classifier, class) so the same resampled row
+    indices score every method / class in a given draw.
+    """
+    pooled = _pooled_arrays(classifier_to_class_to_fold_dfs, classes)
+    canon_ids = _canonical_pooled_ids(classifier_to_class_to_fold_dfs, classes)
+    labels = _row_cluster_labels(canon_ids, cluster_map)
+    unique_clusters, cluster_row_indices = _cluster_index(labels)
+    n_clusters = len(unique_clusters)
+
+    populated_cells: dict[str, list[str]] = {
+        clf: [c for c in classes if c in pooled[clf]] for clf in classifiers
+    }
+
+    # POINT estimates: metric on un-resampled pool.
+    point: dict[tuple[str, str, str], float] = {}
+    for clf in classifiers:
+        for cls in populated_cells[clf]:
+            y, s = pooled[clf][cls]
+            for m in metrics:
+                point[(clf, cls, m)] = _safe_metric(m, y, s)
+
+    draws: dict[tuple[str, str, str], np.ndarray] = {}
+    for clf in classifiers:
+        for cls in populated_cells[clf]:
+            for m in metrics:
+                draws[(clf, cls, m)] = np.empty(n_bootstraps, dtype=np.float64)
+
+    canon_clf = classifiers[0]
+    rng = np.random.default_rng(seed)
+    iterator = (
+        tqdm(total=n_bootstraps, desc="bootstrap[pooled_oof|clusters]",
+             unit="draw")
+        if progress else None
+    )
+    survived = 0
+    attempts = 0
+    while survived < n_bootstraps:
+        attempts += 1
+        pick = rng.integers(0, n_clusters, size=n_clusters)
+        idx = np.concatenate([cluster_row_indices[k] for k in pick])
+        # Degeneracy check.
+        bad = False
+        for cls in classes:
+            if cls not in pooled[canon_clf]:
+                continue
+            y_b = pooled[canon_clf][cls][0][idx]
+            n_pos = int(y_b.sum())
+            if n_pos == 0 or n_pos == len(y_b):
+                bad = True
+                break
+        if bad:
+            if attempts > n_bootstraps * 50:
+                raise RuntimeError(
+                    "cluster pooled-OOF bootstrap exhausted retries (>50× "
+                    "attempts); some class has zero positives or zero "
+                    "negatives in too many cluster resamples."
+                )
+            continue
+        for clf in classifiers:
+            for cls in populated_cells[clf]:
+                y_clf, s_clf = pooled[clf][cls]
+                yb = y_clf[idx]
+                sb = s_clf[idx]
+                for m in metrics:
+                    draws[(clf, cls, m)][survived] = _safe_metric(m, yb, sb)
+        survived += 1
+        if iterator is not None:
+            iterator.update(1)
+    if iterator is not None:
+        iterator.close()
+    if attempts > survived:
+        logger.info(
+            "pooled_oof|clusters: %d / %d draws survived (%.1f%% drop)",
+            survived, attempts, 100 * (attempts - survived) / attempts,
+        )
+    return draws, point
+
+
+def _bootstrap_mean_fold_clusters(
+    classifier_to_class_to_fold_dfs: ClassifierClassFoldDfs,
+    classifiers: list[str],
+    classes: list[str],
+    metrics: tuple[str, ...],
+    n_bootstraps: int,
+    seed: int,
+    progress: bool,
+    cluster_map: dict[str, str],
+) -> tuple[
+    dict[tuple[str, str, str], np.ndarray],
+    dict[tuple[str, str, str], float],
+]:
+    """Cluster-block mean-fold bootstrap.
+
+    Per class, per fold, resample ``G_f`` clusters with replacement
+    (``G_f`` = number of unique clusters within that fold's rows), then
+    concatenate the sampled cluster row indices to score the metric on
+    that fold. Values are averaged across folds using ``nanmean`` — a
+    fold with zero positives after resampling contributes NaN and is
+    ignored. Different classes share the same fold-level RNG (matching
+    the legacy behavior) but resamples are independent across classes.
+    """
+    fold_arrays: dict[str, dict[str, dict[int, tuple[np.ndarray, np.ndarray]]]] = {}
+    populated_cells: dict[str, list[str]] = {clf: [] for clf in classifiers}
+    for clf, class_to_dfs in classifier_to_class_to_fold_dfs.items():
+        fold_arrays[clf] = {}
+        for cls in classes:
+            if cls not in class_to_dfs:
+                continue
+            fold_arrays[clf][cls] = _gather_class_arrays(class_to_dfs[cls], cls)
+            populated_cells[clf].append(cls)
+
+    canon_clf = classifiers[0]
+    # Per class: {fold_id: (unique_clusters, [row_idx_per_cluster])}
+    fold_clusters: dict[str, dict[int, tuple[np.ndarray, list[np.ndarray]]]] = {}
+    for cls in classes:
+        if cls not in classifier_to_class_to_fold_dfs[canon_clf]:
+            continue
+        ids_per_fold = _canonical_fold_ids(classifier_to_class_to_fold_dfs, cls)
+        fc: dict[int, tuple[np.ndarray, list[np.ndarray]]] = {}
+        for f, ids in ids_per_fold.items():
+            labels = _row_cluster_labels(ids, cluster_map)
+            unique_c, groups = _cluster_index(labels)
+            fc[f] = (unique_c, groups)
+        fold_clusters[cls] = fc
+
+    # POINT estimates.
+    point: dict[tuple[str, str, str], float] = {}
+    for clf in classifiers:
+        for cls in populated_cells[clf]:
+            for m in metrics:
+                fold_vals = []
+                for f, (y, s) in fold_arrays[clf][cls].items():
+                    fold_vals.append(_safe_metric(m, y, s))
+                point[(clf, cls, m)] = float(np.nanmean(fold_vals))
+
+    draws: dict[tuple[str, str, str], np.ndarray] = {}
+    for clf in classifiers:
+        for cls in populated_cells[clf]:
+            for m in metrics:
+                draws[(clf, cls, m)] = np.empty(n_bootstraps, dtype=np.float64)
+
+    # Pre-fetch canonical (labels-only) fold arrays per class for the
+    # drop/redraw check. Labels are shared across classifiers so a single
+    # canonical view is enough.
+    fold_y_canon: dict[str, dict[int, np.ndarray]] = {}
+    for cls in classes:
+        if cls not in fold_arrays[canon_clf]:
+            continue
+        fold_y_canon[cls] = {
+            f: y for f, (y, _) in fold_arrays[canon_clf][cls].items()
+        }
+
+    cls_iter = (
+        tqdm(classes, desc="bootstrap[fold_mean|clusters]", unit="class")
+        if progress else classes
+    )
+    for cls in cls_iter:
+        if cls not in fold_clusters:
+            continue
+        rng = np.random.default_rng(seed)
+        fold_ids = sorted(fold_clusters[cls])
+        drops = 0
+        for b in range(n_bootstraps):
+            # Cluster resample per (class, draw, fold). Drop the draw and
+            # retry if it degenerates so badly that no fold has BOTH a
+            # positive and a negative row — that draw's AP would be NaN
+            # for every method (and hence useless for delta analysis).
+            attempts_this = 0
+            while True:
+                attempts_this += 1
+                per_fold_idx: dict[int, np.ndarray] = {}
+                for f in fold_ids:
+                    unique_c, groups = fold_clusters[cls][f]
+                    n_c = len(unique_c)
+                    pick = rng.integers(0, n_c, size=n_c)
+                    per_fold_idx[f] = np.concatenate([groups[k] for k in pick])
+                any_valid_fold = False
+                for f in fold_ids:
+                    y_b = fold_y_canon[cls][f][per_fold_idx[f]]
+                    n_pos = int(y_b.sum())
+                    if 0 < n_pos < len(y_b):
+                        any_valid_fold = True
+                        break
+                if any_valid_fold:
+                    break
+                drops += 1
+                if attempts_this > 50:
+                    raise RuntimeError(
+                        f"fold_mean|clusters: >50 redraws for class {cls} "
+                        f"draw {b}. Class likely has too few positive "
+                        f"clusters per fold."
+                    )
+            for clf in classifiers:
+                if cls not in fold_arrays[clf]:
+                    continue
+                for m in metrics:
+                    fold_metric_vals = []
+                    for f in fold_ids:
+                        y_clf, s_clf = fold_arrays[clf][cls][f]
+                        idx = per_fold_idx[f]
+                        fold_metric_vals.append(
+                            _safe_metric(m, y_clf[idx], s_clf[idx])
+                        )
+                    draws[(clf, cls, m)][b] = float(np.nanmean(fold_metric_vals))
+        if drops:
+            logger.info(
+                "fold_mean|clusters[%s]: %d redraws over %d survived draws",
+                cls, drops, n_bootstraps,
+            )
+    return draws, point
+
+
+# ---------------------------------------------------------------------------
 # Long-form assembly + delta tables
 # ---------------------------------------------------------------------------
 
@@ -558,10 +883,10 @@ def _compute_jackknife_ap(
 ) -> pd.DataFrame:
     """Leave-one-fold-out jackknife of the AP point statistic.
 
-    Returns a long-form ``classifier, class, metric, ap_type,
-    fold_left_out, value`` table. For ``fold_mean`` the value is the
-    mean of per-fold APs over the kept folds; for ``pooled_oof`` it is
-    AP on the row-pool excluding the left-out fold.
+    Used only for the legacy row-bootstrap path. Returns a long-form
+    ``classifier, class, metric, ap_type, fold_left_out, value`` table.
+    For cluster-block bootstrap the correct jackknife is leave-one-
+    CLUSTER-out — see :func:`_compute_jackknife_ap_clusters`.
     """
     rows: list[dict] = []
     for clf in classifiers:
@@ -591,6 +916,109 @@ def _compute_jackknife_ap(
                             "classifier": clf, "class": cls, "metric": m,
                             "ap_type": "fold_mean", "fold_left_out": f_left,
                             "value": float(np.nanmean(per)),
+                        })
+    return pd.DataFrame.from_records(rows)
+
+
+def _compute_jackknife_ap_clusters(
+    classifier_to_class_to_fold_dfs: ClassifierClassFoldDfs,
+    classifiers: list[str],
+    classes: list[str],
+    metrics: tuple[str, ...],
+    ap_types: tuple[ApType, ...],
+    cluster_map: dict[str, str],
+    id_column: str = "ID",
+    progress: bool = True,
+) -> pd.DataFrame:
+    """Leave-one-CLUSTER-out jackknife of the AP point statistic.
+
+    Consistent with the cluster-block bootstrap resampling unit. Rows in
+    the pooled OOF that fall into cluster ``c`` are removed simultaneously
+    (mirroring how the bootstrap resamples entire clusters as blocks),
+    then AP / ROC-AUC is recomputed on the survivors. Returns the same
+    long-form schema as :func:`_compute_jackknife_ap`; the ``fold_left_out``
+    column now holds a cluster label instead of a fold index.
+
+    ``fold_mean`` under cluster mode: for each fold we drop the rows of
+    cluster ``c`` from that fold before computing per-fold AP, then average
+    over folds. Only folds that still have positives in class ``cls``
+    contribute (folds with no positives after the drop are skipped).
+    """
+    rows: list[dict] = []
+    canonical_ids = _canonical_pooled_ids(
+        classifier_to_class_to_fold_dfs, classes, id_column=id_column,
+    )
+    labels = _row_cluster_labels(canonical_ids, cluster_map)
+    unique_clusters, groups = _cluster_index(labels)
+    logger.info(
+        "Leave-one-cluster-out jackknife: %d clusters × %d classifiers × "
+        "%d classes × %d metrics × %d ap_types",
+        len(unique_clusters), len(classifiers), len(classes),
+        len(metrics), len(ap_types),
+    )
+
+    cell_iterator = [
+        (clf, cls)
+        for clf in classifiers
+        for cls in classes
+        if cls in classifier_to_class_to_fold_dfs[clf]
+    ]
+    if progress:
+        from tqdm.auto import tqdm as _tqdm  # type: ignore
+        cell_iterator = _tqdm(
+            cell_iterator, desc="LOCO jackknife (classifier×class)",
+        )
+    for clf, cls in cell_iterator:
+        class_to_dfs = classifier_to_class_to_fold_dfs[clf]
+        if True:  # kept for indent parity with previous nested loops
+            if cls not in class_to_dfs:
+                continue
+            fold_dfs = class_to_dfs[cls]
+            fold_ids = sorted(fold_dfs)
+            arrays = _gather_class_arrays(fold_dfs, cls)
+
+            # Pooled OOF vectors ordered to match ``canonical_ids``.
+            if "pooled_oof" in ap_types:
+                y_pool = np.concatenate([arrays[f][0] for f in fold_ids])
+                s_pool = np.concatenate([arrays[f][1] for f in fold_ids])
+
+            # Per-fold cluster label lookup — used only when fold_mean is asked.
+            if "fold_mean" in ap_types:
+                fold_labels: dict[int, np.ndarray] = {}
+                for f in fold_ids:
+                    fold_id_col = fold_dfs[f][0][id_column].to_numpy()
+                    fold_labels[f] = _row_cluster_labels(fold_id_col, cluster_map)
+
+            for c_idx, c_label in enumerate(unique_clusters):
+                keep_mask = np.ones(len(canonical_ids), dtype=bool)
+                keep_mask[groups[c_idx]] = False
+
+                if "pooled_oof" in ap_types:
+                    yk = y_pool[keep_mask]
+                    sk = s_pool[keep_mask]
+                    for m in metrics:
+                        rows.append({
+                            "classifier": clf, "class": cls, "metric": m,
+                            "ap_type": "pooled_oof",
+                            "fold_left_out": str(c_label),
+                            "value": _safe_metric(m, yk, sk),
+                        })
+
+                if "fold_mean" in ap_types:
+                    for m in metrics:
+                        per_fold: list[float] = []
+                        for f in fold_ids:
+                            fmask = fold_labels[f] != c_label
+                            yf, sf = arrays[f][0][fmask], arrays[f][1][fmask]
+                            if yf.size == 0 or yf.sum() == 0 or yf.sum() == yf.size:
+                                continue
+                            per_fold.append(_safe_metric(m, yf, sf))
+                        val = float(np.nanmean(per_fold)) if per_fold else float("nan")
+                        rows.append({
+                            "classifier": clf, "class": cls, "metric": m,
+                            "ap_type": "fold_mean",
+                            "fold_left_out": str(c_label),
+                            "value": val,
                         })
     return pd.DataFrame.from_records(rows)
 
@@ -630,13 +1058,34 @@ def paired_bootstrap_metric_cis(
     seed: int = 42,
     target_model: str | None = None,
     progress: bool = True,
+    bootstrap_unit: BootstrapUnit = "clusters",
+    cluster_map: dict[str, str] | None = None,
 ) -> BootstrapResult:
-    """Run the v4 paired bootstrap (pooled OOF + mean-fold) in one pass.
+    """Run the paired bootstrap (pooled OOF + mean-fold) in one pass.
 
     Same draw indices are applied to every method for a given AP type
     so the returned ``long_delta`` table contains exactly-paired
     differences (within-pair variance is collapsed).
+
+    ``bootstrap_unit`` selects the resampling granularity:
+
+    * ``"clusters"`` (v5, default): draw ``G`` cluster representatives
+      with replacement (``G`` = # unique clusters in the pool / fold),
+      flatten to row indices. Correct under high sequence-similarity —
+      matches the 50% seq-id groupwise fold split.
+    * ``"rows"`` (legacy v4): draw ``N`` row indices with replacement
+      (or within-class strata for fold_mean). Kept as an opt-in fallback
+      to reproduce pre-v5 numbers.
     """
+    if bootstrap_unit == "clusters" and cluster_map is None:
+        raise ValueError(
+            "bootstrap_unit='clusters' requires a cluster_map — build one "
+            "via scripts/evaluation/build_eval_clusters.py and pass the "
+            "loaded {id: representative} dict."
+        )
+    if bootstrap_unit not in ("clusters", "rows"):
+        raise ValueError(f"Unknown bootstrap_unit: {bootstrap_unit!r}")
+
     classifiers = list(classifier_to_class_to_fold_dfs)
     classes = sorted(
         {
@@ -651,18 +1100,31 @@ def paired_bootstrap_metric_cis(
     draws_by_ap: dict[ApType, dict[tuple[str, str, str], np.ndarray]] = {}
     point_by_ap: dict[ApType, dict[tuple[str, str, str], float]] = {}
 
-    if "pooled_oof" in ap_types:
-        d, p = _bootstrap_pooled_oof(
+    if bootstrap_unit == "clusters":
+        pooled_fn = lambda: _bootstrap_pooled_oof_clusters(
+            classifier_to_class_to_fold_dfs, classifiers, classes, metrics,
+            n_bootstraps, seed, progress, cluster_map,
+        )
+        fold_fn = lambda: _bootstrap_mean_fold_clusters(
+            classifier_to_class_to_fold_dfs, classifiers, classes, metrics,
+            n_bootstraps, seed, progress, cluster_map,
+        )
+    else:
+        pooled_fn = lambda: _bootstrap_pooled_oof(
             classifier_to_class_to_fold_dfs, classifiers, classes, metrics,
             n_bootstraps, seed, progress,
         )
+        fold_fn = lambda: _bootstrap_mean_fold(
+            classifier_to_class_to_fold_dfs, classifiers, classes, metrics,
+            n_bootstraps, seed, progress,
+        )
+
+    if "pooled_oof" in ap_types:
+        d, p = pooled_fn()
         draws_by_ap["pooled_oof"] = d
         point_by_ap["pooled_oof"] = p
     if "fold_mean" in ap_types:
-        d, p = _bootstrap_mean_fold(
-            classifier_to_class_to_fold_dfs, classifiers, classes, metrics,
-            n_bootstraps, seed, progress,
-        )
+        d, p = fold_fn()
         draws_by_ap["fold_mean"] = d
         point_by_ap["fold_mean"] = p
 
@@ -679,9 +1141,24 @@ def paired_bootstrap_metric_cis(
         draws_by_ap, point_by_ap, classifiers, classes, metrics, target_model,
     )
 
-    jackknife_ap = _compute_jackknife_ap(
-        classifier_to_class_to_fold_dfs, classifiers, classes, metrics, ap_types,
-    )
+    # Cluster-block bootstrap needs a cluster-based jackknife so BCa
+    # acceleration matches the resampling unit (leave-one-cluster-out).
+    # Row-mode falls back to the classical leave-one-fold-out.
+    if bootstrap_unit == "clusters":
+        if cluster_map is None:
+            raise ValueError(
+                "bootstrap_unit='clusters' requires cluster_map for the "
+                "leave-one-cluster-out jackknife."
+            )
+        jackknife_ap = _compute_jackknife_ap_clusters(
+            classifier_to_class_to_fold_dfs, classifiers, classes,
+            metrics, ap_types, cluster_map,
+        )
+    else:
+        jackknife_ap = _compute_jackknife_ap(
+            classifier_to_class_to_fold_dfs, classifiers, classes,
+            metrics, ap_types,
+        )
     jackknife_delta = _build_jackknife_delta(jackknife_ap, point_delta)
 
     return BootstrapResult(

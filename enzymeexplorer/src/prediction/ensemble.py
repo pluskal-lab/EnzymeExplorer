@@ -236,8 +236,3 @@ def average_over_folds(per_fold_df: pd.DataFrame) -> pd.DataFrame:
     )  # type: ignore
 
 
-def long_to_wide(long_df: pd.DataFrame) -> pd.DataFrame:
-    """Pivot ``[id, class, score]`` → ``id × class`` wide form."""
-    if long_df.empty:
-        return pd.DataFrame()
-    return long_df.pivot(index="id", columns="class", values="score").reset_index()

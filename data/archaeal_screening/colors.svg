@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="B" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 389.23 213.71">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #878500;
+      }
+
+      .cls-1, .cls-2, .cls-3, .cls-4, .cls-5, .cls-6, .cls-7, .cls-8, .cls-9, .cls-10, .cls-11, .cls-12, .cls-13, .cls-14, .cls-15, .cls-16 {
+        stroke: #000;
+        stroke-miterlimit: 10;
+        stroke-width: .1px;
+      }
+
+      .cls-2 {
+        fill: #ebac23;
+      }
+
+      .cls-3 {
+        fill: #cdcdcd;
+      }
+
+      .cls-4 {
+        fill: #56641a;
+      }
+
+      .cls-5 {
+        fill: #e6a176;
+      }
+
+      .cls-17, .cls-18 {
+        font-size: 9px;
+      }
+
+      .cls-6 {
+        fill: #ff9287;
+      }
+
+      .cls-7 {
+        fill: #c0affb;
+      }
+
+      .cls-18 {
+        isolation: isolate;
+      }
+
+      .cls-18, .cls-19 {
+        font-family: ArialMT, Arial;
+      }
+
+      .cls-8 {
+        fill: #b80058;
+      }
+
+      .cls-9 {
+        fill: #00a76c;
+      }
+
+      .cls-10 {
+        fill: #d163e6;
+      }
+
+      .cls-11 {
+        fill: #00c6f8;
+      }
+
+      .cls-12 {
+        fill: #00bbad;
+      }
+
+      .cls-13 {
+        fill: #b24502;
+      }
+
+      .cls-20 {
+        font-family: Arial-ItalicMT, Arial;
+        font-style: italic;
+      }
+
+      .cls-14 {
+        fill: #006e00;
+      }
+
+      .cls-15 {
+        fill: #5954d6;
+      }
+
+      .cls-16 {
+        fill: #008cf9;
+      }
+    </style>
+  </defs>
+  <g>
+    <rect class="cls-15" x="293.33" y="122.16" width="5.89" height="5.9"/>
+    <text class="cls-18" transform="translate(302.17 127.94)"><tspan x="0" y="0">Methanobacteriota</tspan></text>
+  </g>
+  <g>
+    <rect class="cls-12" x="293.33" y="74.82" width="5.89" height="5.9"/>
+    <text class="cls-18" transform="translate(302.17 80.6)"><tspan x="0" y="0">Halobacteriota</tspan></text>
+  </g>
+  <g>
+    <rect class="cls-7" x="293.33" y="181.34" width="5.89" height="5.89"/>
+    <text class="cls-18" transform="translate(302.17 187.12)"><tspan x="0" y="0">Thermoproteota</tspan></text>
+  </g>
+  <g>
+    <rect class="cls-4" x="293.33" y="169.51" width="5.89" height="5.89"/>
+    <text class="cls-18" transform="translate(302.17 175.28)"><tspan x="0" y="0">Thermoplasmatota</tspan></text>
+  </g>
+  <g>
+    <rect class="cls-11" x="293.33" y="134" width="5.89" height="5.89"/>
+    <text class="cls-18" transform="translate(302.17 139.77)"><tspan x="0" y="0">Micrarchaeota</tspan></text>
+  </g>
+  <g>
+    <rect class="cls-1" x="293.33" y="145.83" width="5.89" height="5.89"/>
+    <text class="cls-18" transform="translate(302.17 151.61)"><tspan x="0" y="0">Nanoarchaeota</tspan></text>
+  </g>
+  <g>
+    <rect class="cls-3" x="293.33" y="205.01" width="5.89" height="5.89"/>
+    <text class="cls-18" transform="translate(302.17 210.79)"><tspan x="0" y="0">Other</tspan></text>
+  </g>
+  <g>
+    <rect class="cls-10" x="293.33" y="86.66" width="5.89" height="5.89"/>
+    <text class="cls-18" transform="translate(302.17 92.43)"><tspan x="0" y="0">Huberarchaeota</tspan></text>
+  </g>
+  <g>
+    <rect class="cls-16" x="293.33" y="51.15" width="5.89" height="5.9"/>
+    <text class="cls-18" transform="translate(302.17 56.93)"><tspan x="0" y="0">Asgardarchaeota</tspan></text>
+  </g>
+  <g>
+    <rect class="cls-2" x="293.33" y="27.48" width="5.89" height="5.89"/>
+    <text class="cls-18" transform="translate(302.17 33.25)"><tspan x="0" y="0">Aenigmatarchaeota</tspan></text>
+  </g>
+  <g>
+    <rect class="cls-8" x="293.33" y="39.32" width="5.89" height="5.89"/>
+    <text class="cls-18" transform="translate(302.17 45.09)"><tspan x="0" y="0">Altiarchaeota</tspan></text>
+  </g>
+  <g>
+    <rect class="cls-6" x="293.33" y="110.33" width="5.89" height="5.89"/>
+    <text class="cls-18" transform="translate(302.17 116.1)"><tspan x="0" y="0">Iainarchaeota</tspan></text>
+  </g>
+  <g>
+    <rect class="cls-13" x="293.33" y="98.49" width="5.89" height="5.9"/>
+    <text class="cls-18" transform="translate(302.17 104.27)"><tspan x="0" y="0">Hydrothermarchaeota</tspan></text>
+  </g>
+  <g>
+    <rect class="cls-9" x="293.33" y="157.67" width="5.89" height="5.89"/>
+    <text class="cls-18" transform="translate(302.17 163.45)"><tspan x="0" y="0">Nanohaloarchaeota</tspan></text>
+  </g>
+  <g>
+    <rect class="cls-5" x="293.33" y="193.18" width="5.89" height="5.89"/>
+    <text class="cls-18" transform="translate(302.17 198.95)"><tspan x="0" y="0">Undinarchaeota</tspan></text>
+  </g>
+  <g>
+    <rect class="cls-14" x="293.33" y="62.98" width="5.89" height="5.89"/>
+    <text class="cls-18" transform="translate(302.17 68.76)"><tspan x="0" y="0">Hadarchaeota</tspan></text>
+  </g>
+  <text/>
+  <text class="cls-17" transform="translate(293.32 7.73)"><tspan class="cls-20" x="0" y="0">Archaea</tspan><tspan class="cls-19" x="33.53" y="0" xml:space="preserve"> phylum</tspan></text>
+</svg>

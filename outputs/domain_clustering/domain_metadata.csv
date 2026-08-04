@@ -1,0 +1,2428 @@
+module_id,seq_id,domain_type,canonical_domain_type,kingdom,reaction_labels,has_no_reactions
+marts_E01021_gamma_0,marts_E01021,gamma,gamma,Fungi,"['di Class 1', 'di Class 2']",False
+marts_E01021_delta_0,marts_E01021,delta,delta,Fungi,"['di Class 1', 'di Class 2']",False
+marts_E01021_alpha_0,marts_E01021,alpha,alpha,Fungi,"['di Class 1', 'di Class 2']",False
+marts_E00664_beta_0,marts_E00664,beta,beta,Plants,['di Class 1'],False
+marts_E00664_gamma_0,marts_E00664,gamma,gamma,Plants,['di Class 1'],False
+marts_E00664_alpha_0,marts_E00664,alpha,alpha,Plants,['di Class 1'],False
+marts_E01134_beta_0,marts_E01134,beta,beta,Plants,['di Class 1'],False
+marts_E01134_gamma_0,marts_E01134,gamma,gamma,Plants,['di Class 1'],False
+marts_E01134_alpha_0,marts_E01134,alpha,alpha,Plants,['di Class 1'],False
+marts_E01000_ids_0,marts_E01000,ids,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E01000_alpha_0,marts_E01000,alpha,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E00655_beta_0,marts_E00655,beta,beta,Plants,"['di Class 1', 'di Class 2']",False
+marts_E00655_gamma_0,marts_E00655,gamma,gamma,Plants,"['di Class 1', 'di Class 2']",False
+marts_E00655_alpha_0,marts_E00655,alpha,alpha,Plants,"['di Class 1', 'di Class 2']",False
+marts_E01194_ids_0,marts_E01194,ids,alpha,Fungi,"['di Class 1', 'pt']",False
+marts_E01194_alpha_0,marts_E01194,alpha,alpha,Fungi,"['di Class 1', 'pt']",False
+marts_E01004_ids_0,marts_E01004,ids,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E01004_alpha_0,marts_E01004,alpha,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E01117_beta_0,marts_E01117,beta,beta,Plants,['di Class 2'],False
+marts_E01117_gamma_0,marts_E01117,gamma,gamma,Plants,['di Class 2'],False
+marts_E01117_alpha_0,marts_E01117,alpha,alpha,Plants,['di Class 2'],False
+marts_E01140_beta_0,marts_E01140,beta,beta,Plants,['di Class 2'],False
+marts_E01140_gamma_0,marts_E01140,gamma,gamma,Plants,['di Class 2'],False
+marts_E01140_alpha_0,marts_E01140,alpha,alpha,Plants,['di Class 2'],False
+marts_E00983_ids_0,marts_E00983,ids,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E00983_alpha_0,marts_E00983,alpha,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E01036_ids_0,marts_E01036,ids,alpha,Fungi,"['di Class 1', 'pt']",False
+marts_E01036_alpha_0,marts_E01036,alpha,alpha,Fungi,"['di Class 1', 'pt']",False
+marts_E00632_beta_0,marts_E00632,beta,beta,Plants,['mono Class 1'],False
+marts_E00632_alpha_0,marts_E00632,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00138_beta_0,marts_E00138,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00138_alpha_0,marts_E00138,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00680_beta_0,marts_E00680,beta,beta,Plants,['sesq Class 1'],False
+marts_E00680_alpha_0,marts_E00680,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01532_beta_0,marts_E01532,beta,beta,Plants,['sester Class 1'],False
+marts_E01532_alpha_0,marts_E01532,alpha,alpha,Plants,['sester Class 1'],False
+marts_E00369_beta_0,marts_E00369,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00369_alpha_0,marts_E00369,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00247_beta_0,marts_E00247,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00247_alpha_0,marts_E00247,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E01017_beta_0,marts_E01017,beta,beta,Plants,['sesq Class 1'],False
+marts_E01017_alpha_0,marts_E01017,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00000_beta_0,marts_E00000,beta,beta,Plants,['mono Class 1'],False
+marts_E00000_alpha_0,marts_E00000,alpha,alpha,Plants,['mono Class 1'],False
+marts_E01108_beta_0,marts_E01108,beta,beta,Plants,['mono Class 1'],False
+marts_E01108_alpha_0,marts_E01108,alpha,alpha,Plants,['mono Class 1'],False
+marts_E01266_beta_0,marts_E01266,beta,beta,Plants,['sesq Class 1'],False
+marts_E01266_alpha_0,marts_E01266,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00397_beta_0,marts_E00397,beta,beta,Plants,['sesq Class 1'],False
+marts_E00397_alpha_0,marts_E00397,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00326_beta_0,marts_E00326,beta,beta,Plants,['mono Class 1'],False
+marts_E00326_alpha_0,marts_E00326,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00068_beta_0,marts_E00068,beta,beta,Plants,['mono Class 1'],False
+marts_E00068_alpha_0,marts_E00068,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00713_beta_0,marts_E00713,beta,beta,Plants,['sesq Class 1'],False
+marts_E00713_alpha_0,marts_E00713,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00906_beta_0,marts_E00906,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00906_alpha_0,marts_E00906,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00681_beta_0,marts_E00681,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00681_alpha_0,marts_E00681,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00722_beta_0,marts_E00722,beta,beta,Plants,['mono Class 1'],False
+marts_E00722_alpha_0,marts_E00722,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00602_beta_0,marts_E00602,beta,beta,Plants,['sesq Class 1'],False
+marts_E00602_alpha_0,marts_E00602,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00764_beta_0,marts_E00764,beta,beta,Plants,['sesq Class 1'],False
+marts_E00764_alpha_0,marts_E00764,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01497_beta_0,marts_E01497,beta,beta,Plants,['sesq Class 1'],False
+marts_E01497_alpha_0,marts_E01497,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00236_beta_0,marts_E00236,beta,beta,Plants,['sesq Class 1'],False
+marts_E00236_alpha_0,marts_E00236,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00776_beta_0,marts_E00776,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00776_alpha_0,marts_E00776,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00636_beta_0,marts_E00636,beta,beta,Plants,['sesq Class 1'],False
+marts_E00636_alpha_0,marts_E00636,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00245_beta_0,marts_E00245,beta,beta,Plants,['sesq Class 1'],False
+marts_E00245_alpha_0,marts_E00245,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00458_beta_0,marts_E00458,beta,beta,Plants,['sesq Class 1'],False
+marts_E00458_alpha_0,marts_E00458,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00143_beta_0,marts_E00143,beta,beta,Plants,['sesq Class 1'],False
+marts_E00143_alpha_0,marts_E00143,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00724_beta_0,marts_E00724,beta,beta,Plants,['mono Class 1'],False
+marts_E00724_alpha_0,marts_E00724,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00848_beta_0,marts_E00848,beta,beta,Plants,['mono Class 1'],False
+marts_E00848_alpha_0,marts_E00848,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00706_ids_0,marts_E00706,ids,alpha,Plants,"['sqs', 'tri Class 1']",False
+marts_E00124_ids_0,marts_E00124,ids,alpha,Plants,['sqs'],False
+marts_E00475_ids_0,marts_E00475,ids,alpha,Animals,['sqs'],False
+marts_E00347_ids_0,marts_E00347,ids,alpha,Protists,['pt'],False
+marts_E01051_alpha_0,marts_E01051,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E00194_ids_0,marts_E00194,ids,alpha,Animals,['pt'],False
+marts_E01538_alpha_0,marts_E01538,alpha,alpha,Bacteria,['sesq Class 1'],False
+marts_E00388_ids_0,marts_E00388,ids,alpha,Archaea,['pt'],False
+marts_E01323_alpha_0,marts_E01323,alpha,alpha,Bacteria,['sesq Class 1'],False
+marts_E01326_ids_0,marts_E01326,ids,alpha,Animals,"['di Class 1', 'mono Class 1', 'sesq Class 1']",False
+marts_E00207_ids_0,marts_E00207,ids,alpha,Plants,['pt'],False
+marts_E00162_alpha_0,marts_E00162,alpha,alpha,Bacteria,['mono Class 1'],False
+marts_E01095_alpha_0,marts_E01095,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E00212_ids_0,marts_E00212,ids,alpha,Archaea,['pt'],False
+marts_E00597_alpha_0,marts_E00597,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E00880_alpha_0,marts_E00880,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E01337_alpha_0,marts_E01337,alpha,alpha,Bacteria,['di Class 1'],False
+marts_E00591_alpha_0,marts_E00591,alpha,alpha,Bacteria,['di Class 1'],False
+marts_E01461_alpha_0,marts_E01461,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E00563_ids_0,marts_E00563,ids,alpha,Plants,['pt'],False
+marts_E00461_ids_0,marts_E00461,ids,alpha,Plants,['pt'],False
+marts_E00857_alpha_0,marts_E00857,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E00504_ids_0,marts_E00504,ids,alpha,Bacteria,['pt'],False
+marts_E00491_ids_0,marts_E00491,ids,alpha,Plants,['psy'],False
+marts_E00497_ids_0,marts_E00497,ids,alpha,Plants,['pt'],False
+marts_E00505_ids_0,marts_E00505,ids,alpha,Bacteria,['tetra Class 1'],False
+marts_E01116_gamma_0,marts_E01116,gamma,gamma,Fungi,"['di Class 1', 'di Class 2']",False
+marts_E01116_delta_0,marts_E01116,delta,delta,Fungi,"['di Class 1', 'di Class 2']",False
+marts_E01116_alpha_0,marts_E01116,alpha,alpha,Fungi,"['di Class 1', 'di Class 2']",False
+marts_E00666_beta_0,marts_E00666,beta,beta,Plants,['di Class 1'],False
+marts_E00666_gamma_0,marts_E00666,gamma,gamma,Plants,['di Class 1'],False
+marts_E00666_alpha_0,marts_E00666,alpha,alpha,Plants,['di Class 1'],False
+marts_E00816_beta_0,marts_E00816,beta,beta,Plants,['di Class 1'],False
+marts_E00816_gamma_0,marts_E00816,gamma,gamma,Plants,['di Class 1'],False
+marts_E00816_alpha_0,marts_E00816,alpha,alpha,Plants,['di Class 1'],False
+marts_E00640_beta_0,marts_E00640,beta,beta,Plants,['mono Class 1'],False
+marts_E00640_alpha_0,marts_E00640,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00640_gamma_0,marts_E00640,gamma,gamma,Plants,['mono Class 1'],False
+marts_E01088_ids_0,marts_E01088,ids,alpha,Fungi,"['di Class 1', 'pt']",False
+marts_E01088_alpha_0,marts_E01088,alpha,alpha,Fungi,"['di Class 1', 'pt']",False
+marts_E01002_ids_0,marts_E01002,ids,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E01002_alpha_0,marts_E01002,alpha,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E00993_ids_0,marts_E00993,ids,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E00993_alpha_0,marts_E00993,alpha,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E00061_beta_0,marts_E00061,beta,beta,Plants,['di Class 2'],False
+marts_E00061_gamma_0,marts_E00061,gamma,gamma,Plants,['di Class 2'],False
+marts_E00061_ids_0,marts_E00061,ids,alpha,Plants,['di Class 2'],False
+marts_E01207_ids_0,marts_E01207,ids,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E01207_alpha_0,marts_E01207,alpha,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E00897_ids_0,marts_E00897,ids,alpha,Fungi,"['di Class 1', 'pt']",False
+marts_E00897_alpha_0,marts_E00897,alpha,alpha,Fungi,"['di Class 1', 'pt']",False
+marts_E01533_alpha_0,marts_E01533,alpha,alpha,Bacteria,['sesq Class 1'],False
+marts_E01533_alpha_1,marts_E01533,alpha,alpha,Bacteria,['sesq Class 1'],False
+marts_E00463_beta_0,marts_E00463,beta,beta,Plants,['di Class 1'],False
+marts_E00463_alpha_0,marts_E00463,alpha,alpha,Plants,['di Class 1'],False
+marts_E00924_beta_0,marts_E00924,beta,beta,Plants,['sesq Class 1'],False
+marts_E00924_alpha_0,marts_E00924,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00417_beta_0,marts_E00417,beta,beta,Plants,['mono Class 1'],False
+marts_E00417_alpha_0,marts_E00417,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00129_beta_0,marts_E00129,beta,beta,Plants,['mono Class 1'],False
+marts_E00129_alpha_0,marts_E00129,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00385_beta_0,marts_E00385,beta,beta,Plants,['mono Class 1'],False
+marts_E00385_alpha_0,marts_E00385,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00717_beta_0,marts_E00717,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00717_alpha_0,marts_E00717,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E01381_beta_0,marts_E01381,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E01381_alpha_0,marts_E01381,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00635_beta_0,marts_E00635,beta,beta,Plants,['sesq Class 1'],False
+marts_E00635_alpha_0,marts_E00635,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00729_beta_0,marts_E00729,beta,beta,Plants,['sesq Class 1'],False
+marts_E00729_alpha_0,marts_E00729,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01184_beta_0,marts_E01184,beta,beta,Plants,['sesq Class 1'],False
+marts_E01184_alpha_0,marts_E01184,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01292_beta_0,marts_E01292,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E01292_alpha_0,marts_E01292,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00959_beta_0,marts_E00959,beta,beta,Plants,['mono Class 1'],False
+marts_E00959_alpha_0,marts_E00959,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00556_beta_0,marts_E00556,beta,beta,Plants,['mono Class 1'],False
+marts_E00556_alpha_0,marts_E00556,alpha,alpha,Plants,['mono Class 1'],False
+marts_E01487_beta_0,marts_E01487,beta,beta,Plants,['sesq Class 1'],False
+marts_E01487_alpha_0,marts_E01487,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01183_beta_0,marts_E01183,beta,beta,Plants,['sesq Class 1'],False
+marts_E01183_alpha_0,marts_E01183,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00130_beta_0,marts_E00130,beta,beta,Plants,['mono Class 1'],False
+marts_E00130_alpha_0,marts_E00130,alpha,alpha,Plants,['mono Class 1'],False
+marts_E01059_beta_0,marts_E01059,beta,beta,Plants,['sesq Class 1'],False
+marts_E01059_alpha_0,marts_E01059,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00269_beta_0,marts_E00269,beta,beta,Plants,['sesq Class 1'],False
+marts_E00269_alpha_0,marts_E00269,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00676_beta_0,marts_E00676,beta,beta,Plants,['di Class 1'],False
+marts_E00676_alpha_0,marts_E00676,alpha,alpha,Plants,['di Class 1'],False
+marts_E00376_beta_0,marts_E00376,beta,beta,Plants,['sesq Class 1'],False
+marts_E00376_alpha_0,marts_E00376,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00542_beta_0,marts_E00542,beta,beta,Plants,['sesq Class 1'],False
+marts_E00542_alpha_0,marts_E00542,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01151_beta_0,marts_E01151,beta,beta,Plants,['sesq Class 1'],False
+marts_E01151_alpha_0,marts_E01151,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00375_beta_0,marts_E00375,beta,beta,Plants,['sesq Class 1'],False
+marts_E00375_alpha_0,marts_E00375,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00268_beta_0,marts_E00268,beta,beta,Plants,['sesq Class 1'],False
+marts_E00268_alpha_0,marts_E00268,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01143_beta_0,marts_E01143,beta,beta,Plants,['di Class 1'],False
+marts_E01143_alpha_0,marts_E01143,alpha,alpha,Plants,['di Class 1'],False
+marts_E00812_beta_0,marts_E00812,beta,beta,Plants,['sesq Class 1'],False
+marts_E00812_alpha_0,marts_E00812,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00331_beta_0,marts_E00331,beta,beta,Plants,['mono Class 1'],False
+marts_E00331_alpha_0,marts_E00331,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00082_beta_0,marts_E00082,beta,beta,Plants,['mono Class 1'],False
+marts_E00082_alpha_0,marts_E00082,alpha,alpha,Plants,['mono Class 1'],False
+marts_E01010_alpha_0,marts_E01010,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00501_alpha_0,marts_E00501,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E01189_alpha_0,marts_E01189,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00922_ids_0,marts_E00922,ids,alpha,Fungi,['pt'],False
+marts_E00480_ids_0,marts_E00480,ids,alpha,Plants,['pt'],False
+marts_E01227_ids_0,marts_E01227,ids,alpha,Animals,['sesq Class 1'],False
+marts_E01460_alpha_0,marts_E01460,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E00571_ids_0,marts_E00571,ids,alpha,Bacteria,['pt'],False
+marts_E01094_alpha_0,marts_E01094,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E01022_ids_0,marts_E01022,ids,alpha,Fungi,['pt'],False
+marts_E01470_alpha_0,marts_E01470,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E01332_alpha_0,marts_E01332,alpha,alpha,Bacteria,['sesq Class 1'],False
+marts_E00448_ids_0,marts_E00448,ids,alpha,Fungi,['pt'],False
+marts_E01419_alpha_0,marts_E01419,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E01322_alpha_0,marts_E01322,alpha,alpha,Bacteria,['sesq Class 1'],False
+marts_E00795_alpha_0,marts_E00795,alpha,alpha,Bacteria,['sesq Class 1'],False
+marts_E00819_alpha_0,marts_E00819,alpha,alpha,Bacteria,['sesq Class 1'],False
+marts_E01357_alpha_0,marts_E01357,alpha,alpha,Bacteria,['di Class 1'],False
+marts_E01092_alpha_0,marts_E01092,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E01255_alpha_0,marts_E01255,alpha,alpha,Bacteria,['di Class 1'],False
+marts_E00126_ids_0,marts_E00126,ids,alpha,Fungi,['pt'],False
+marts_E00135_ids_0,marts_E00135,ids,alpha,Plants,['pt'],False
+marts_E00506_ids_0,marts_E00506,ids,alpha,Bacteria,['psy'],False
+marts_E01321_alpha_0,marts_E01321,alpha,alpha,Viruses,"['mono Class 1', 'sesq Class 1']",False
+marts_E00920_gamma_0,marts_E00920,gamma,gamma,Fungi,"['di Class 1', 'di Class 2']",False
+marts_E00920_delta_0,marts_E00920,delta,delta,Fungi,"['di Class 1', 'di Class 2']",False
+marts_E00920_alpha_0,marts_E00920,alpha,alpha,Fungi,"['di Class 1', 'di Class 2']",False
+marts_E00436_beta_0,marts_E00436,beta,beta,Plants,['di Class 1'],False
+marts_E00436_gamma_0,marts_E00436,gamma,gamma,Plants,['di Class 1'],False
+marts_E00436_alpha_0,marts_E00436,alpha,alpha,Plants,['di Class 1'],False
+marts_E00311_beta_0,marts_E00311,beta,beta,Plants,['sesq Class 1'],False
+marts_E00311_gamma_0,marts_E00311,gamma,gamma,Plants,['sesq Class 1'],False
+marts_E00311_alpha_0,marts_E00311,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00976_ids_0,marts_E00976,ids,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E00976_alpha_0,marts_E00976,alpha,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E01429_beta_0,marts_E01429,beta,beta,Plants,['di Class 2'],False
+marts_E01429_gamma_0,marts_E01429,gamma,gamma,Plants,['di Class 2'],False
+marts_E01429_alpha_0,marts_E01429,alpha,alpha,Plants,['di Class 2'],False
+marts_E00584_beta_0,marts_E00584,beta,beta,Plants,"['di Class 1', 'di Class 2', 'mono Class 1']",False
+marts_E00584_gamma_0,marts_E00584,gamma,gamma,Plants,"['di Class 1', 'di Class 2', 'mono Class 1']",False
+marts_E00584_alpha_0,marts_E00584,alpha,alpha,Plants,"['di Class 1', 'di Class 2', 'mono Class 1']",False
+marts_E01463_beta_0,marts_E01463,beta,beta,Plants,['di Class 2'],False
+marts_E01463_gamma_0,marts_E01463,gamma,gamma,Plants,['di Class 2'],False
+marts_E01463_alpha_0,marts_E01463,alpha,alpha,Plants,['di Class 2'],False
+marts_E00888_beta_0,marts_E00888,beta,beta,Plants,['di Class 2'],False
+marts_E00888_gamma_0,marts_E00888,gamma,gamma,Plants,['di Class 2'],False
+marts_E00888_alpha_0,marts_E00888,alpha,alpha,Plants,['di Class 2'],False
+marts_E01171_ids_0,marts_E01171,ids,alpha,Fungi,"['di Class 1', 'pt']",False
+marts_E01171_alpha_0,marts_E01171,alpha,alpha,Fungi,"['di Class 1', 'pt']",False
+marts_E00617_beta_0,marts_E00617,beta,beta,Plants,['di Class 2'],False
+marts_E00617_gamma_0,marts_E00617,gamma,gamma,Plants,['di Class 2'],False
+marts_E00617_alpha_0,marts_E00617,alpha,alpha,Plants,['di Class 2'],False
+marts_E00006_beta_0,marts_E00006,beta,beta,Plants,['di Class 2'],False
+marts_E00006_gamma_0,marts_E00006,gamma,gamma,Plants,['di Class 2'],False
+marts_E00006_alpha_0,marts_E00006,alpha,alpha,Plants,['di Class 2'],False
+marts_E00798_beta_0,marts_E00798,beta,beta,Plants,['di Class 1'],False
+marts_E00798_alpha_0,marts_E00798,alpha,alpha,Plants,['di Class 1'],False
+marts_E01126_beta_0,marts_E01126,beta,beta,Plants,['sesq Class 1'],False
+marts_E01126_alpha_0,marts_E01126,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00202_beta_0,marts_E00202,beta,beta,Plants,['mono Class 1'],False
+marts_E00202_alpha_0,marts_E00202,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00334_beta_0,marts_E00334,beta,beta,Plants,['mono Class 1'],False
+marts_E00334_alpha_0,marts_E00334,alpha,alpha,Plants,['mono Class 1'],False
+marts_E01535_beta_0,marts_E01535,beta,beta,Plants,['mono Class 1'],False
+marts_E01535_alpha_0,marts_E01535,alpha,alpha,Plants,['mono Class 1'],False
+marts_E01443_beta_0,marts_E01443,beta,beta,Plants,"['di Class 1', 'sesq Class 1']",False
+marts_E01443_alpha_0,marts_E01443,alpha,alpha,Plants,"['di Class 1', 'sesq Class 1']",False
+marts_E00355_beta_0,marts_E00355,beta,beta,Plants,['hemi Class 1'],False
+marts_E00355_alpha_0,marts_E00355,alpha,alpha,Plants,['hemi Class 1'],False
+marts_E01478_beta_0,marts_E01478,beta,beta,Plants,['sester Class 1'],False
+marts_E01478_alpha_0,marts_E01478,alpha,alpha,Plants,['sester Class 1'],False
+marts_E00733_beta_0,marts_E00733,beta,beta,Plants,['mono Class 1'],False
+marts_E00733_alpha_0,marts_E00733,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00029_beta_0,marts_E00029,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00029_alpha_0,marts_E00029,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00414_beta_0,marts_E00414,beta,beta,Plants,"['di Class 1', 'mono Class 1', 'sesq Class 1']",False
+marts_E00414_alpha_0,marts_E00414,alpha,alpha,Plants,"['di Class 1', 'mono Class 1', 'sesq Class 1']",False
+marts_E00031_beta_0,marts_E00031,beta,beta,Plants,['mono Class 1'],False
+marts_E00031_alpha_0,marts_E00031,alpha,alpha,Plants,['mono Class 1'],False
+marts_E01009_beta_0,marts_E01009,beta,beta,Plants,['sesq Class 1'],False
+marts_E01009_alpha_0,marts_E01009,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00757_beta_0,marts_E00757,beta,beta,Plants,['mono Class 1'],False
+marts_E00757_alpha_0,marts_E00757,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00086_beta_0,marts_E00086,beta,beta,Plants,['mono Class 1'],False
+marts_E00086_alpha_0,marts_E00086,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00765_beta_0,marts_E00765,beta,beta,Plants,['sesq Class 1'],False
+marts_E00765_alpha_0,marts_E00765,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01217_beta_0,marts_E01217,beta,beta,Plants,['sesq Class 1'],False
+marts_E01217_alpha_0,marts_E01217,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00018_beta_0,marts_E00018,beta,beta,Plants,['sesq Class 1'],False
+marts_E00018_alpha_0,marts_E00018,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00078_beta_0,marts_E00078,beta,beta,Plants,['mono Class 1'],False
+marts_E00078_alpha_0,marts_E00078,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00961_beta_0,marts_E00961,beta,beta,Plants,['mono Class 1'],False
+marts_E00961_alpha_0,marts_E00961,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00679_beta_0,marts_E00679,beta,beta,Plants,['sesq Class 1'],False
+marts_E00679_alpha_0,marts_E00679,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00246_beta_0,marts_E00246,beta,beta,Plants,['sesq Class 1'],False
+marts_E00246_alpha_0,marts_E00246,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00825_beta_0,marts_E00825,beta,beta,Plants,['sesq Class 1'],False
+marts_E00825_alpha_0,marts_E00825,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00327_beta_0,marts_E00327,beta,beta,Plants,['sesq Class 1'],False
+marts_E00327_alpha_0,marts_E00327,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00841_beta_0,marts_E00841,beta,beta,Plants,['sesq Class 1'],False
+marts_E00841_alpha_0,marts_E00841,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01516_beta_0,marts_E01516,beta,beta,Plants,['sesq Class 1'],False
+marts_E01516_alpha_0,marts_E01516,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01295_beta_0,marts_E01295,beta,beta,Plants,['sesq Class 1'],False
+marts_E01295_alpha_0,marts_E01295,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01396_beta_0,marts_E01396,beta,beta,Plants,['sesq Class 1'],False
+marts_E01396_alpha_0,marts_E01396,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00045_beta_0,marts_E00045,beta,beta,Plants,['sesq Class 1'],False
+marts_E00045_alpha_0,marts_E00045,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00824_ids_0,marts_E00824,ids,alpha,Plants,['sqs'],False
+marts_E00056_ids_0,marts_E00056,ids,alpha,Fungi,['pt'],False
+marts_E00946_alpha_0,marts_E00946,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E00492_ids_0,marts_E00492,ids,alpha,Plants,"['psy', 'tetra Class 2']",False
+marts_E00909_ids_0,marts_E00909,ids,alpha,Fungi,['pt'],False
+marts_E00486_ids_0,marts_E00486,ids,alpha,Archaea,['pt'],False
+marts_E01356_alpha_0,marts_E01356,alpha,alpha,Bacteria,['di Class 1'],False
+marts_E01450_alpha_0,marts_E01450,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E01466_alpha_0,marts_E01466,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E01188_alpha_0,marts_E01188,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01400_alpha_0,marts_E01400,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E00931_alpha_0,marts_E00931,alpha,alpha,Bacteria,['sesq Class 1'],False
+marts_E01096_alpha_0,marts_E01096,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E00145_ids_0,marts_E00145,ids,alpha,Plants,['pt'],False
+marts_E00021_alpha_0,marts_E00021,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E00451_alpha_0,marts_E00451,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E01426_alpha_0,marts_E01426,alpha,alpha,Bacteria,['di Class 1'],False
+marts_E01318_alpha_0,marts_E01318,alpha,alpha,Bacteria,['sesq Class 1'],False
+marts_E00346_ids_0,marts_E00346,ids,alpha,Fungi,['pt'],False
+marts_E00941_alpha_0,marts_E00941,alpha,alpha,Bacteria,['sesq Class 1'],False
+marts_E01310_ids_0,marts_E01310,ids,alpha,Bacteria,['di Class 1'],False
+marts_E00503_ids_0,marts_E00503,ids,alpha,Bacteria,['pt'],False
+marts_E00930_ids_0,marts_E00930,ids,alpha,Bacteria,['pt'],False
+marts_E00539_ids_0,marts_E00539,ids,alpha,Bacteria,['pt'],False
+marts_E01157_gamma_0,marts_E01157,gamma,gamma,Fungi,['di Class 1'],False
+marts_E01157_delta_0,marts_E01157,delta,delta,Fungi,['di Class 1'],False
+marts_E01157_alpha_0,marts_E01157,alpha,alpha,Fungi,['di Class 1'],False
+marts_E00155_gamma_0,marts_E00155,gamma,gamma,Plants,['di Class 1'],False
+marts_E00155_beta_0,marts_E00155,beta,beta,Plants,['di Class 1'],False
+marts_E00155_alpha_0,marts_E00155,alpha,alpha,Plants,['di Class 1'],False
+marts_E01122_beta_0,marts_E01122,beta,beta,Plants,['di Class 1'],False
+marts_E01122_gamma_0,marts_E01122,gamma,gamma,Plants,['di Class 1'],False
+marts_E01122_alpha_0,marts_E01122,alpha,alpha,Plants,['di Class 1'],False
+marts_E00992_ids_0,marts_E00992,ids,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E00992_alpha_0,marts_E00992,alpha,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E00581_beta_0,marts_E00581,beta,beta,Plants,['di Class 1'],False
+marts_E00581_gamma_0,marts_E00581,gamma,gamma,Plants,['di Class 1'],False
+marts_E00581_alpha_0,marts_E00581,alpha,alpha,Plants,['di Class 1'],False
+marts_E00356_beta_0,marts_E00356,beta,beta,Plants,['di Class 1'],False
+marts_E00356_gamma_0,marts_E00356,gamma,gamma,Plants,['di Class 1'],False
+marts_E00356_alpha_0,marts_E00356,alpha,alpha,Plants,['di Class 1'],False
+marts_E01111_ids_0,marts_E01111,ids,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E01111_alpha_0,marts_E01111,alpha,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E00985_ids_0,marts_E00985,ids,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E00985_alpha_0,marts_E00985,alpha,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E01415_beta_0,marts_E01415,beta,beta,Plants,['di Class 1'],False
+marts_E01415_alpha_0,marts_E01415,alpha,alpha,Plants,['di Class 1'],False
+marts_E01415_gamma_0,marts_E01415,gamma,gamma,Plants,['di Class 1'],False
+marts_E00982_ids_0,marts_E00982,ids,alpha,Fungi,"['di Class 1', 'pt']",False
+marts_E00982_alpha_0,marts_E00982,alpha,alpha,Fungi,"['di Class 1', 'pt']",False
+marts_E00452_ids_0,marts_E00452,ids,alpha,Fungi,"['di Class 1', 'pt']",False
+marts_E00452_alpha_0,marts_E00452,alpha,alpha,Fungi,"['di Class 1', 'pt']",False
+marts_E01411_beta_0,marts_E01411,beta,beta,Plants,['di Class 2'],False
+marts_E01411_gamma_0,marts_E01411,gamma,gamma,Plants,['di Class 2'],False
+marts_E01411_alpha_0,marts_E01411,alpha,alpha,Plants,['di Class 2'],False
+marts_E00067_beta_0,marts_E00067,beta,beta,Plants,['mono Class 1'],False
+marts_E00067_alpha_0,marts_E00067,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00083_beta_0,marts_E00083,beta,beta,Plants,['mono Class 1'],False
+marts_E00083_alpha_0,marts_E00083,alpha,alpha,Plants,['mono Class 1'],False
+marts_E01030_beta_0,marts_E01030,beta,beta,Plants,['sesq Class 1'],False
+marts_E01030_alpha_0,marts_E01030,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00064_beta_0,marts_E00064,beta,beta,Plants,['mono Class 1'],False
+marts_E00064_alpha_0,marts_E00064,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00886_beta_0,marts_E00886,beta,beta,Plants,['sesq Class 1'],False
+marts_E00886_alpha_0,marts_E00886,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00546_beta_0,marts_E00546,beta,beta,Plants,['sesq Class 1'],False
+marts_E00546_alpha_0,marts_E00546,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00321_beta_0,marts_E00321,beta,beta,Plants,['sesq Class 1'],False
+marts_E00321_alpha_0,marts_E00321,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00625_beta_0,marts_E00625,beta,beta,Plants,['sesq Class 1'],False
+marts_E00625_alpha_0,marts_E00625,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00399_beta_0,marts_E00399,beta,beta,Plants,['mono Class 1'],False
+marts_E00399_alpha_0,marts_E00399,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00914_beta_0,marts_E00914,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00914_alpha_0,marts_E00914,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00050_beta_0,marts_E00050,beta,beta,Plants,['mono Class 1'],False
+marts_E00050_alpha_0,marts_E00050,alpha,alpha,Plants,['mono Class 1'],False
+marts_E01253_beta_0,marts_E01253,beta,beta,Plants,['mono Class 1'],False
+marts_E01253_alpha_0,marts_E01253,alpha,alpha,Plants,['mono Class 1'],False
+marts_E01128_beta_0,marts_E01128,beta,beta,Plants,['sesq Class 1'],False
+marts_E01128_alpha_0,marts_E01128,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01304_beta_0,marts_E01304,beta,beta,Plants,['sesq Class 1'],False
+marts_E01304_alpha_0,marts_E01304,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01288_beta_0,marts_E01288,beta,beta,Plants,['sesq Class 1'],False
+marts_E01288_alpha_0,marts_E01288,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00963_beta_0,marts_E00963,beta,beta,Plants,['sesq Class 1'],False
+marts_E00963_alpha_0,marts_E00963,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00616_beta_0,marts_E00616,beta,beta,Plants,['sesq Class 1'],False
+marts_E00616_alpha_0,marts_E00616,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00651_beta_0,marts_E00651,beta,beta,Plants,['sesq Class 1'],False
+marts_E00651_alpha_0,marts_E00651,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01146_beta_0,marts_E01146,beta,beta,Plants,['sesq Class 1'],False
+marts_E01146_alpha_0,marts_E01146,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00599_beta_0,marts_E00599,beta,beta,Plants,['sesq Class 1'],False
+marts_E00599_alpha_0,marts_E00599,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01222_beta_0,marts_E01222,beta,beta,Plants,['sesq Class 1'],False
+marts_E01222_alpha_0,marts_E01222,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00279_beta_0,marts_E00279,beta,beta,Plants,['mono Class 1'],False
+marts_E00279_alpha_0,marts_E00279,alpha,alpha,Plants,['mono Class 1'],False
+marts_E01069_beta_0,marts_E01069,beta,beta,Plants,['sesq Class 1'],False
+marts_E01069_alpha_0,marts_E01069,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01293_beta_0,marts_E01293,beta,beta,Plants,['sesq Class 1'],False
+marts_E01293_alpha_0,marts_E01293,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00791_beta_0,marts_E00791,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00791_alpha_0,marts_E00791,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E01383_beta_0,marts_E01383,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E01383_alpha_0,marts_E01383,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E01195_alpha_0,marts_E01195,alpha,alpha,Fungi,['sqs'],False
+marts_E00745_alpha_0,marts_E00745,alpha,alpha,Animals,"['di Class 1', 'mono Class 1', 'sesq Class 1']",False
+marts_E00344_ids_0,marts_E00344,ids,alpha,Animals,['pt'],False
+marts_E00892_ids_0,marts_E00892,ids,alpha,Plants,['psy'],False
+marts_E01185_alpha_0,marts_E01185,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00147_alpha_0,marts_E00147,alpha,alpha,Bacteria,['sesq Class 1'],False
+marts_E00350_ids_0,marts_E00350,ids,alpha,Protists,['pt'],False
+marts_E01449_alpha_0,marts_E01449,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E00801_alpha_0,marts_E00801,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01420_alpha_0,marts_E01420,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E01438_alpha_0,marts_E01438,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01534_ids_0,marts_E01534,ids,alpha,Bacteria,['di Class 1'],False
+marts_E01060_alpha_0,marts_E01060,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E01314_alpha_0,marts_E01314,alpha,alpha,Fungi,['di Class 1'],False
+marts_E01307_alpha_0,marts_E01307,alpha,alpha,Protists,['di Class 1'],False
+marts_E01277_ids_0,marts_E01277,ids,alpha,Archaea,['pt'],False
+marts_E00301_ids_0,marts_E00301,ids,alpha,Animals,['pt'],False
+marts_E00767_alpha_0,marts_E00767,alpha,alpha,Bacteria,"['mono Class 1', 'sesq Class 1']",False
+marts_E01316_alpha_0,marts_E01316,alpha,alpha,Bacteria,['sesq Class 1'],False
+marts_E00012_alpha_0,marts_E00012,alpha,alpha,Animals,['mono Class 1'],False
+marts_E00858_alpha_0,marts_E00858,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E01536_ids_0,marts_E01536,ids,alpha,Bacteria,['di Class 1'],False
+marts_E00228_ids_0,marts_E00228,ids,alpha,Bacteria,['pt'],False
+marts_E00470_alpha_0,marts_E00470,alpha,alpha,Bacteria,['psy'],False
+marts_E00919_gamma_0,marts_E00919,gamma,gamma,Fungi,['di Class 2'],False
+marts_E00919_alpha_0,marts_E00919,alpha,alpha,Fungi,['di Class 2'],False
+marts_E00919_delta_0,marts_E00919,delta,delta,Fungi,['di Class 2'],False
+marts_E01414_beta_0,marts_E01414,beta,beta,Plants,['di Class 1'],False
+marts_E01414_gamma_0,marts_E01414,gamma,gamma,Plants,['di Class 1'],False
+marts_E01414_alpha_0,marts_E01414,alpha,alpha,Plants,['di Class 1'],False
+marts_E01479_beta_0,marts_E01479,beta,beta,Plants,['di Class 1'],False
+marts_E01479_alpha_0,marts_E01479,alpha,alpha,Plants,['di Class 1'],False
+marts_E01479_gamma_0,marts_E01479,gamma,gamma,Plants,['di Class 1'],False
+marts_E01505_beta_0,marts_E01505,beta,beta,Plants,['di Class 1'],False
+marts_E01505_gamma_0,marts_E01505,gamma,gamma,Plants,['di Class 1'],False
+marts_E01505_alpha_0,marts_E01505,alpha,alpha,Plants,['di Class 1'],False
+marts_E00183_beta_0,marts_E00183,beta,beta,Plants,"['di Class 1', 'di Class 2']",False
+marts_E00183_gamma_0,marts_E00183,gamma,gamma,Plants,"['di Class 1', 'di Class 2']",False
+marts_E00183_alpha_0,marts_E00183,alpha,alpha,Plants,"['di Class 1', 'di Class 2']",False
+marts_E01137_beta_0,marts_E01137,beta,beta,Plants,['di Class 1'],False
+marts_E01137_gamma_0,marts_E01137,gamma,gamma,Plants,['di Class 1'],False
+marts_E01137_alpha_0,marts_E01137,alpha,alpha,Plants,['di Class 1'],False
+marts_E01159_beta_0,marts_E01159,beta,beta,Plants,['di Class 2'],False
+marts_E01159_gamma_0,marts_E01159,gamma,gamma,Plants,['di Class 2'],False
+marts_E01159_alpha_0,marts_E01159,alpha,alpha,Plants,['di Class 2'],False
+marts_E00978_ids_0,marts_E00978,ids,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E00978_alpha_0,marts_E00978,alpha,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E01519_ids_0,marts_E01519,ids,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E01519_alpha_0,marts_E01519,alpha,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E00675_beta_0,marts_E00675,beta,beta,Plants,['di Class 2'],False
+marts_E00675_gamma_0,marts_E00675,gamma,gamma,Plants,['di Class 2'],False
+marts_E00675_alpha_0,marts_E00675,alpha,alpha,Plants,['di Class 2'],False
+marts_E00674_beta_0,marts_E00674,beta,beta,Plants,['di Class 2'],False
+marts_E00674_gamma_0,marts_E00674,gamma,gamma,Plants,['di Class 2'],False
+marts_E00674_alpha_0,marts_E00674,alpha,alpha,Plants,['di Class 2'],False
+marts_E01138_beta_0,marts_E01138,beta,beta,Plants,['di Class 2'],False
+marts_E01138_gamma_0,marts_E01138,gamma,gamma,Plants,['di Class 2'],False
+marts_E01138_alpha_0,marts_E01138,alpha,alpha,Plants,['di Class 2'],False
+marts_E00314_beta_0,marts_E00314,beta,beta,Plants,['mono Class 1'],False
+marts_E00314_alpha_0,marts_E00314,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00856_beta_0,marts_E00856,beta,beta,Plants,['mono Class 1'],False
+marts_E00856_alpha_0,marts_E00856,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00241_beta_0,marts_E00241,beta,beta,Plants,['mono Class 1'],False
+marts_E00241_alpha_0,marts_E00241,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00131_beta_0,marts_E00131,beta,beta,Plants,['mono Class 1'],False
+marts_E00131_alpha_0,marts_E00131,alpha,alpha,Plants,['mono Class 1'],False
+marts_E01206_beta_0,marts_E01206,beta,beta,Plants,['di Class 1'],False
+marts_E01206_alpha_0,marts_E01206,alpha,alpha,Plants,['di Class 1'],False
+marts_E00060_beta_0,marts_E00060,beta,beta,Plants,['mono Class 1'],False
+marts_E00060_alpha_0,marts_E00060,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00096_beta_0,marts_E00096,beta,beta,Plants,['mono Class 1'],False
+marts_E00096_alpha_0,marts_E00096,alpha,alpha,Plants,['mono Class 1'],False
+marts_E01028_beta_0,marts_E01028,beta,beta,Plants,['sesq Class 1'],False
+marts_E01028_alpha_0,marts_E01028,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00208_beta_0,marts_E00208,beta,beta,Plants,['sesq Class 1'],False
+marts_E00208_alpha_0,marts_E00208,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01246_beta_0,marts_E01246,beta,beta,Plants,['sesq Class 1'],False
+marts_E01246_alpha_0,marts_E01246,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01218_beta_0,marts_E01218,beta,beta,Plants,['sesq Class 1'],False
+marts_E01218_alpha_0,marts_E01218,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01155_beta_0,marts_E01155,beta,beta,Plants,['mono Class 1'],False
+marts_E01155_alpha_0,marts_E01155,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00536_beta_0,marts_E00536,beta,beta,Plants,['mono Class 1'],False
+marts_E00536_alpha_0,marts_E00536,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00980_beta_0,marts_E00980,beta,beta,Plants,['sesq Class 1'],False
+marts_E00980_alpha_0,marts_E00980,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00686_beta_0,marts_E00686,beta,beta,Plants,['sesq Class 1'],False
+marts_E00686_alpha_0,marts_E00686,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00668_beta_0,marts_E00668,beta,beta,Plants,['sesq Class 1'],False
+marts_E00668_alpha_0,marts_E00668,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00185_beta_0,marts_E00185,beta,beta,Plants,['mono Class 1'],False
+marts_E00185_alpha_0,marts_E00185,alpha,alpha,Plants,['mono Class 1'],False
+marts_E01118_beta_0,marts_E01118,beta,beta,Plants,['di Class 1'],False
+marts_E01118_alpha_0,marts_E01118,alpha,alpha,Plants,['di Class 1'],False
+marts_E00690_beta_0,marts_E00690,beta,beta,Plants,['sesq Class 1'],False
+marts_E00690_alpha_0,marts_E00690,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00894_beta_0,marts_E00894,beta,beta,Plants,['sesq Class 1'],False
+marts_E00894_alpha_0,marts_E00894,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01281_beta_0,marts_E01281,beta,beta,Plants,['sesq Class 1'],False
+marts_E01281_alpha_0,marts_E01281,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00823_beta_0,marts_E00823,beta,beta,Plants,['sesq Class 1'],False
+marts_E00823_alpha_0,marts_E00823,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00834_beta_0,marts_E00834,beta,beta,Plants,['sesq Class 1'],False
+marts_E00834_alpha_0,marts_E00834,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01102_beta_0,marts_E01102,beta,beta,Plants,['sesq Class 1'],False
+marts_E01102_alpha_0,marts_E01102,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00329_beta_0,marts_E00329,beta,beta,Plants,['sesq Class 1'],False
+marts_E00329_alpha_0,marts_E00329,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00637_beta_0,marts_E00637,beta,beta,Plants,['mono Class 1'],False
+marts_E00637_alpha_0,marts_E00637,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00775_beta_0,marts_E00775,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00775_alpha_0,marts_E00775,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00661_beta_0,marts_E00661,beta,beta,Plants,['mono Class 1'],False
+marts_E00661_alpha_0,marts_E00661,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00538_ids_0,marts_E00538,ids,alpha,Fungi,['sqs'],False
+marts_E00058_alpha_0,marts_E00058,alpha,alpha,Animals,"['di Class 1', 'mono Class 1', 'sesq Class 1']",False
+marts_E01442_alpha_0,marts_E01442,alpha,alpha,Fungi,"['di Class 1', 'mono Class 1', 'sesq Class 1']",False
+marts_E01441_alpha_0,marts_E01441,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00256_ids_0,marts_E00256,ids,alpha,Plants,['pt'],False
+marts_E01269_alpha_0,marts_E01269,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E00803_ids_0,marts_E00803,ids,alpha,Fungi,['pt'],False
+marts_E00379_ids_0,marts_E00379,ids,alpha,Plants,['pt'],False
+marts_E01131_alpha_0,marts_E01131,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00937_ids_0,marts_E00937,ids,alpha,Plants,['psy'],False
+marts_E01424_alpha_0,marts_E01424,alpha,alpha,Bacteria,['di Class 1'],False
+marts_E00869_alpha_0,marts_E00869,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E00867_alpha_0,marts_E00867,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E01537_ids_0,marts_E01537,ids,alpha,Bacteria,['di Class 1'],False
+marts_E00868_alpha_0,marts_E00868,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E01403_alpha_0,marts_E01403,alpha,alpha,Bacteria,['sesq Class 1'],False
+marts_E00628_alpha_0,marts_E00628,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E01315_alpha_0,marts_E01315,alpha,alpha,Bacteria,"['di Class 1', 'sesq Class 1', 'sester Class 1']",False
+marts_E01343_alpha_0,marts_E01343,alpha,alpha,Bacteria,['di Class 1'],False
+marts_E01350_alpha_0,marts_E01350,alpha,alpha,Bacteria,['di Class 1'],False
+marts_E00918_alpha_0,marts_E00918,alpha,alpha,Bacteria,['sesq Class 1'],False
+marts_E00352_ids_0,marts_E00352,ids,alpha,Protists,['pt'],False
+marts_E01492_alpha_0,marts_E01492,alpha,alpha,Bacteria,['sesq Class 1'],False
+marts_E00494_ids_0,marts_E00494,ids,alpha,Bacteria,"['psy', 'tetra Class 2']",False
+marts_E00485_ids_0,marts_E00485,ids,alpha,Bacteria,['pt'],False
+marts_E00055_gamma_0,marts_E00055,gamma,gamma,Fungi,"['di Class 1', 'di Class 2']",False
+marts_E00055_alpha_0,marts_E00055,alpha,alpha,Fungi,"['di Class 1', 'di Class 2']",False
+marts_E00055_delta_0,marts_E00055,delta,delta,Fungi,"['di Class 1', 'di Class 2']",False
+marts_E00282_beta_0,marts_E00282,beta,beta,Plants,['di Class 1'],False
+marts_E00282_gamma_0,marts_E00282,gamma,gamma,Plants,['di Class 1'],False
+marts_E00282_alpha_0,marts_E00282,alpha,alpha,Plants,['di Class 1'],False
+marts_E00409_beta_0,marts_E00409,beta,beta,Plants,['di Class 1'],False
+marts_E00409_gamma_0,marts_E00409,gamma,gamma,Plants,['di Class 1'],False
+marts_E00409_alpha_0,marts_E00409,alpha,alpha,Plants,['di Class 1'],False
+marts_E00580_beta_0,marts_E00580,beta,beta,Plants,"['di Class 1', 'mono Class 1']",False
+marts_E00580_gamma_0,marts_E00580,gamma,gamma,Plants,"['di Class 1', 'mono Class 1']",False
+marts_E00580_alpha_0,marts_E00580,alpha,alpha,Plants,"['di Class 1', 'mono Class 1']",False
+marts_E00396_beta_0,marts_E00396,beta,beta,Plants,"['di Class 1', 'di Class 2']",False
+marts_E00396_gamma_0,marts_E00396,gamma,gamma,Plants,"['di Class 1', 'di Class 2']",False
+marts_E00396_alpha_0,marts_E00396,alpha,alpha,Plants,"['di Class 1', 'di Class 2']",False
+marts_E00582_beta_0,marts_E00582,beta,beta,Plants,"['di Class 1', 'di Class 2']",False
+marts_E00582_gamma_0,marts_E00582,gamma,gamma,Plants,"['di Class 1', 'di Class 2']",False
+marts_E00582_alpha_0,marts_E00582,alpha,alpha,Plants,"['di Class 1', 'di Class 2']",False
+marts_E00987_ids_0,marts_E00987,ids,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E00987_alpha_0,marts_E00987,alpha,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E00973_ids_0,marts_E00973,ids,alpha,Fungi,"['di Class 1', 'pt']",False
+marts_E00973_alpha_0,marts_E00973,alpha,alpha,Fungi,"['di Class 1', 'pt']",False
+marts_E01003_ids_0,marts_E01003,ids,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E01003_alpha_0,marts_E01003,alpha,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E00691_beta_0,marts_E00691,beta,beta,Plants,['di Class 2'],False
+marts_E00691_gamma_0,marts_E00691,gamma,gamma,Plants,['di Class 2'],False
+marts_E00691_ids_0,marts_E00691,ids,alpha,Plants,['di Class 2'],False
+marts_E00154_beta_0,marts_E00154,beta,beta,Plants,['mono Class 1'],False
+marts_E00154_alpha_0,marts_E00154,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00230_beta_0,marts_E00230,beta,beta,Plants,['mono Class 1'],False
+marts_E00230_alpha_0,marts_E00230,alpha,alpha,Plants,['mono Class 1'],False
+marts_E01523_beta_0,marts_E01523,beta,beta,Plants,['mono Class 1'],False
+marts_E01523_alpha_0,marts_E01523,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00700_beta_0,marts_E00700,beta,beta,Plants,['mono Class 1'],False
+marts_E00700_alpha_0,marts_E00700,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00080_beta_0,marts_E00080,beta,beta,Plants,['mono Class 1'],False
+marts_E00080_alpha_0,marts_E00080,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00845_beta_0,marts_E00845,beta,beta,Plants,['mono Class 1'],False
+marts_E00845_alpha_0,marts_E00845,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00644_beta_0,marts_E00644,beta,beta,Plants,['sesq Class 1'],False
+marts_E00644_alpha_0,marts_E00644,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01525_beta_0,marts_E01525,beta,beta,Plants,['sesq Class 1'],False
+marts_E01525_alpha_0,marts_E01525,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01432_beta_0,marts_E01432,beta,beta,Plants,['mono Class 1'],False
+marts_E01432_alpha_0,marts_E01432,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00622_beta_0,marts_E00622,beta,beta,Plants,['sesq Class 1'],False
+marts_E00622_alpha_0,marts_E00622,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01175_beta_0,marts_E01175,beta,beta,Plants,['sesq Class 1'],False
+marts_E01175_alpha_0,marts_E01175,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00047_beta_0,marts_E00047,beta,beta,Plants,['mono Class 1'],False
+marts_E00047_alpha_0,marts_E00047,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00092_beta_0,marts_E00092,beta,beta,Plants,['mono Class 1'],False
+marts_E00092_alpha_0,marts_E00092,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00702_beta_0,marts_E00702,beta,beta,Plants,['mono Class 1'],False
+marts_E00702_alpha_0,marts_E00702,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00077_beta_0,marts_E00077,beta,beta,Plants,['mono Class 1'],False
+marts_E00077_alpha_0,marts_E00077,alpha,alpha,Plants,['mono Class 1'],False
+marts_E01182_beta_0,marts_E01182,beta,beta,Plants,['sesq Class 1'],False
+marts_E01182_alpha_0,marts_E01182,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01130_beta_0,marts_E01130,beta,beta,Plants,['sesq Class 1'],False
+marts_E01130_alpha_0,marts_E01130,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01013_beta_0,marts_E01013,beta,beta,Plants,['sesq Class 1'],False
+marts_E01013_alpha_0,marts_E01013,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00042_beta_0,marts_E00042,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00042_alpha_0,marts_E00042,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00770_beta_0,marts_E00770,beta,beta,Plants,['sesq Class 1'],False
+marts_E00770_alpha_0,marts_E00770,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00689_beta_0,marts_E00689,beta,beta,Plants,['sesq Class 1'],False
+marts_E00689_alpha_0,marts_E00689,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01099_beta_0,marts_E01099,beta,beta,Plants,['sesq Class 1'],False
+marts_E01099_alpha_0,marts_E01099,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00609_beta_0,marts_E00609,beta,beta,Plants,['sesq Class 1'],False
+marts_E00609_alpha_0,marts_E00609,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01044_beta_0,marts_E01044,beta,beta,Plants,['sesq Class 1'],False
+marts_E01044_alpha_0,marts_E01044,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00634_beta_0,marts_E00634,beta,beta,Plants,['sesq Class 1'],False
+marts_E00634_alpha_0,marts_E00634,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00005_beta_0,marts_E00005,beta,beta,Plants,['di Class 1'],False
+marts_E00005_alpha_0,marts_E00005,alpha,alpha,Plants,['di Class 1'],False
+marts_E00515_beta_0,marts_E00515,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00515_alpha_0,marts_E00515,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00826_alpha_0,marts_E00826,alpha,alpha,Animals,['sesq Class 1'],False
+marts_E00027_alpha_0,marts_E00027,alpha,alpha,Animals,['di Class 1'],False
+marts_E00649_alpha_0,marts_E00649,alpha,alpha,Animals,['sesq Class 1'],False
+marts_E00508_ids_0,marts_E00508,ids,alpha,Animals,['pt'],False
+marts_E00697_alpha_0,marts_E00697,alpha,alpha,Bacteria,['sesq Class 1'],False
+marts_E00257_ids_0,marts_E00257,ids,alpha,Plants,['pt'],False
+marts_E00479_ids_0,marts_E00479,ids,alpha,Plants,['pt'],False
+marts_E01355_alpha_0,marts_E01355,alpha,alpha,Bacteria,['di Class 1'],False
+marts_E00901_alpha_0,marts_E00901,alpha,alpha,Bacteria,['sesq Class 1'],False
+marts_E00972_alpha_0,marts_E00972,alpha,alpha,Bacteria,['mono Class 1'],False
+marts_E01272_alpha_0,marts_E01272,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E01482_ids_0,marts_E01482,ids,alpha,Bacteria,['di Class 1'],False
+marts_E00877_alpha_0,marts_E00877,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E01065_alpha_0,marts_E01065,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E01324_alpha_0,marts_E01324,alpha,alpha,Bacteria,['sester Class 1'],False
+marts_E01340_alpha_0,marts_E01340,alpha,alpha,Bacteria,['di Class 1'],False
+marts_E01342_alpha_0,marts_E01342,alpha,alpha,Bacteria,['di Class 1'],False
+marts_E00446_ids_0,marts_E00446,ids,alpha,Fungi,['pt'],False
+marts_E00011_ids_0,marts_E00011,ids,alpha,Fungi,['pt'],False
+marts_E01306_alpha_0,marts_E01306,alpha,alpha,Protists,['sesq Class 1'],False
+marts_E00645_alpha_0,marts_E00645,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E00947_alpha_0,marts_E00947,alpha,alpha,Fungi,"['mono Class 1', 'sesq Class 1']",False
+marts_E00137_ids_0,marts_E00137,ids,alpha,Plants,['pt'],False
+marts_E00412_ids_0,marts_E00412,ids,alpha,Bacteria,['sqs'],False
+marts_E00540_ids_0,marts_E00540,ids,alpha,Bacteria,['pt'],False
+marts_E00106_gamma_0,marts_E00106,gamma,gamma,Fungi,"['di Class 1', 'di Class 2']",False
+marts_E00106_alpha_0,marts_E00106,alpha,alpha,Fungi,"['di Class 1', 'di Class 2']",False
+marts_E00106_delta_0,marts_E00106,delta,delta,Fungi,"['di Class 1', 'di Class 2']",False
+marts_E01177_beta_0,marts_E01177,beta,beta,Plants,['sesq Class 1'],False
+marts_E01177_gamma_0,marts_E01177,gamma,gamma,Plants,['sesq Class 1'],False
+marts_E01177_alpha_0,marts_E01177,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00428_beta_0,marts_E00428,beta,beta,Plants,['di Class 1'],False
+marts_E00428_gamma_0,marts_E00428,gamma,gamma,Plants,['di Class 1'],False
+marts_E00428_alpha_0,marts_E00428,alpha,alpha,Plants,['di Class 1'],False
+marts_E00101_beta_0,marts_E00101,beta,beta,Plants,['di Class 1'],False
+marts_E00101_gamma_0,marts_E00101,gamma,gamma,Plants,['di Class 1'],False
+marts_E00101_alpha_0,marts_E00101,alpha,alpha,Plants,['di Class 1'],False
+marts_E00274_beta_0,marts_E00274,beta,beta,Plants,['di Class 2'],False
+marts_E00274_gamma_0,marts_E00274,gamma,gamma,Plants,['di Class 2'],False
+marts_E00274_alpha_0,marts_E00274,alpha,alpha,Plants,['di Class 2'],False
+marts_E00663_beta_0,marts_E00663,beta,beta,Plants,"['di Class 1', 'di Class 2']",False
+marts_E00663_gamma_0,marts_E00663,gamma,gamma,Plants,"['di Class 1', 'di Class 2']",False
+marts_E00663_alpha_0,marts_E00663,alpha,alpha,Plants,"['di Class 1', 'di Class 2']",False
+marts_E00103_alpha_0,marts_E00103,alpha,alpha,Bacteria,['sesq Class 1'],False
+marts_E00103_alpha_1,marts_E00103,alpha,alpha,Bacteria,['sesq Class 1'],False
+marts_E01110_ids_0,marts_E01110,ids,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E01110_alpha_0,marts_E01110,alpha,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E01249_ids_0,marts_E01249,ids,alpha,Fungi,"['di Class 1', 'pt', 'sester Class 1']",False
+marts_E01249_alpha_0,marts_E01249,alpha,alpha,Fungi,"['di Class 1', 'pt', 'sester Class 1']",False
+marts_E01228_ids_0,marts_E01228,ids,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E01228_alpha_0,marts_E01228,alpha,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E01518_ids_0,marts_E01518,ids,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E01518_alpha_0,marts_E01518,alpha,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E00693_beta_0,marts_E00693,beta,beta,Plants,['di Class 2'],False
+marts_E00693_gamma_0,marts_E00693,gamma,gamma,Plants,['di Class 2'],False
+marts_E00693_alpha_0,marts_E00693,alpha,alpha,Plants,['di Class 2'],False
+marts_E00799_beta_0,marts_E00799,beta,beta,Plants,['di Class 1'],False
+marts_E00799_alpha_0,marts_E00799,alpha,alpha,Plants,['di Class 1'],False
+marts_E00736_beta_0,marts_E00736,beta,beta,Plants,['mono Class 1'],False
+marts_E00736_alpha_0,marts_E00736,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00840_beta_0,marts_E00840,beta,beta,Plants,['sesq Class 1'],False
+marts_E00840_alpha_0,marts_E00840,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01529_beta_0,marts_E01529,beta,beta,Plants,"['di Class 1', 'sesq Class 1', 'sester Class 1']",False
+marts_E01529_alpha_0,marts_E01529,alpha,alpha,Plants,"['di Class 1', 'sesq Class 1', 'sester Class 1']",False
+marts_E00343_beta_0,marts_E00343,beta,beta,Plants,['mono Class 1'],False
+marts_E00343_alpha_0,marts_E00343,alpha,alpha,Plants,['mono Class 1'],False
+marts_E01197_beta_0,marts_E01197,beta,beta,Plants,['mono Class 1'],False
+marts_E01197_alpha_0,marts_E01197,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00699_beta_0,marts_E00699,beta,beta,Plants,['mono Class 1'],False
+marts_E00699_alpha_0,marts_E00699,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00303_beta_0,marts_E00303,beta,beta,Plants,['hemi Class 1'],False
+marts_E00303_alpha_0,marts_E00303,alpha,alpha,Plants,['hemi Class 1'],False
+marts_E01501_beta_0,marts_E01501,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E01501_alpha_0,marts_E01501,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E01239_beta_0,marts_E01239,beta,beta,Plants,['sesq Class 1'],False
+marts_E01239_alpha_0,marts_E01239,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01481_beta_0,marts_E01481,beta,beta,Plants,['mono Class 1'],False
+marts_E01481_alpha_0,marts_E01481,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00604_beta_0,marts_E00604,beta,beta,Plants,['mono Class 1'],False
+marts_E00604_alpha_0,marts_E00604,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00633_beta_0,marts_E00633,beta,beta,Plants,['sesq Class 1'],False
+marts_E00633_alpha_0,marts_E00633,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00910_beta_0,marts_E00910,beta,beta,Plants,['sesq Class 1'],False
+marts_E00910_alpha_0,marts_E00910,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00755_beta_0,marts_E00755,beta,beta,Plants,['sesq Class 1'],False
+marts_E00755_alpha_0,marts_E00755,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01333_beta_0,marts_E01333,beta,beta,Plants,['sesq Class 1'],False
+marts_E01333_alpha_0,marts_E01333,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01043_beta_0,marts_E01043,beta,beta,Plants,['sesq Class 1'],False
+marts_E01043_alpha_0,marts_E01043,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01384_beta_0,marts_E01384,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E01384_alpha_0,marts_E01384,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00907_beta_0,marts_E00907,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00907_alpha_0,marts_E00907,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00601_beta_0,marts_E00601,beta,beta,Plants,['sesq Class 1'],False
+marts_E00601_alpha_0,marts_E00601,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01475_beta_0,marts_E01475,beta,beta,Plants,['sesq Class 1'],False
+marts_E01475_alpha_0,marts_E01475,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01181_beta_0,marts_E01181,beta,beta,Plants,['sesq Class 1'],False
+marts_E01181_alpha_0,marts_E01181,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00843_beta_0,marts_E00843,beta,beta,Plants,['sesq Class 1'],False
+marts_E00843_alpha_0,marts_E00843,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00835_beta_0,marts_E00835,beta,beta,Plants,['sesq Class 1'],False
+marts_E00835_alpha_0,marts_E00835,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01502_beta_0,marts_E01502,beta,beta,Plants,['sesq Class 1'],False
+marts_E01502_alpha_0,marts_E01502,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01039_beta_0,marts_E01039,beta,beta,Plants,['sesq Class 1'],False
+marts_E01039_alpha_0,marts_E01039,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00033_beta_0,marts_E00033,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00033_alpha_0,marts_E00033,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00790_beta_0,marts_E00790,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00790_alpha_0,marts_E00790,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00656_beta_0,marts_E00656,beta,beta,Plants,['mono Class 1'],False
+marts_E00656_alpha_0,marts_E00656,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00039_alpha_0,marts_E00039,alpha,alpha,Animals,['sesq Class 1'],False
+marts_E00040_alpha_0,marts_E00040,alpha,alpha,Animals,"['di Class 1', 'mono Class 1', 'sesq Class 1']",False
+marts_E00127_ids_0,marts_E00127,ids,alpha,Protists,['pt'],False
+marts_E01106_ids_0,marts_E01106,ids,alpha,Animals,['sesq Class 1'],False
+marts_E00544_ids_0,marts_E00544,ids,alpha,Plants,['pt'],False
+marts_E00557_ids_0,marts_E00557,ids,alpha,Plants,['pt'],False
+marts_E00618_alpha_0,marts_E00618,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00526_ids_0,marts_E00526,ids,alpha,Plants,['psy'],False
+marts_E00445_alpha_0,marts_E00445,alpha,alpha,Protists,"['mono Class 1', 'sesq Class 1']",False
+marts_E01271_alpha_0,marts_E01271,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E01086_alpha_0,marts_E01086,alpha,alpha,Protists,['sesq Class 1'],False
+marts_E00749_ids_0,marts_E00749,ids,alpha,Fungi,['pt'],False
+marts_E01046_alpha_0,marts_E01046,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E01192_alpha_0,marts_E01192,alpha,alpha,Bacteria,['di Class 1'],False
+marts_E00450_alpha_0,marts_E00450,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E01445_alpha_0,marts_E01445,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E00879_alpha_0,marts_E00879,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E00528_ids_0,marts_E00528,ids,alpha,Animals,['pt'],False
+marts_E00172_alpha_0,marts_E00172,alpha,alpha,Bacteria,"['di Class 1', 'sesq Class 1']",False
+marts_E01020_ids_0,marts_E01020,ids,alpha,Animals,['mono Class 1'],False
+marts_E01089_alpha_0,marts_E01089,alpha,alpha,Fungi,['mono Class 1'],False
+marts_E00829_ids_0,marts_E00829,ids,alpha,Bacteria,['di Class 1'],False
+marts_E00322_ids_0,marts_E00322,ids,alpha,Viruses,['pt'],False
+marts_E00566_gamma_0,marts_E00566,gamma,gamma,Fungi,"['di Class 1', 'di Class 2']",False
+marts_E00566_alpha_0,marts_E00566,alpha,alpha,Fungi,"['di Class 1', 'di Class 2']",False
+marts_E00566_delta_0,marts_E00566,delta,delta,Fungi,"['di Class 1', 'di Class 2']",False
+marts_E00310_beta_0,marts_E00310,beta,beta,Plants,['di Class 1'],False
+marts_E00310_gamma_0,marts_E00310,gamma,gamma,Plants,['di Class 1'],False
+marts_E00310_alpha_0,marts_E00310,alpha,alpha,Plants,['di Class 1'],False
+marts_E01198_beta_0,marts_E01198,beta,beta,Plants,['di Class 1'],False
+marts_E01198_gamma_0,marts_E01198,gamma,gamma,Plants,['di Class 1'],False
+marts_E01198_alpha_0,marts_E01198,alpha,alpha,Plants,['di Class 1'],False
+marts_E01431_beta_0,marts_E01431,beta,beta,Plants,['di Class 2'],False
+marts_E01431_gamma_0,marts_E01431,gamma,gamma,Plants,['di Class 2'],False
+marts_E01431_alpha_0,marts_E01431,alpha,alpha,Plants,['di Class 2'],False
+marts_E01504_beta_0,marts_E01504,beta,beta,Plants,['di Class 1'],False
+marts_E01504_gamma_0,marts_E01504,gamma,gamma,Plants,['di Class 1'],False
+marts_E01504_alpha_0,marts_E01504,alpha,alpha,Plants,['di Class 1'],False
+marts_E01299_beta_0,marts_E01299,beta,beta,Plants,['di Class 2'],False
+marts_E01299_gamma_0,marts_E01299,gamma,gamma,Plants,['di Class 2'],False
+marts_E01299_alpha_0,marts_E01299,alpha,alpha,Plants,['di Class 2'],False
+marts_E00019_ids_0,marts_E00019,ids,alpha,Fungi,"['di Class 1', 'pt']",False
+marts_E00019_alpha_0,marts_E00019,alpha,alpha,Fungi,"['di Class 1', 'pt']",False
+marts_E00784_beta_0,marts_E00784,beta,beta,Plants,['di Class 2'],False
+marts_E00784_gamma_0,marts_E00784,gamma,gamma,Plants,['di Class 2'],False
+marts_E00784_alpha_0,marts_E00784,alpha,alpha,Plants,['di Class 2'],False
+marts_E00994_ids_0,marts_E00994,ids,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E00994_alpha_0,marts_E00994,alpha,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E00620_beta_0,marts_E00620,beta,beta,Plants,['di Class 2'],False
+marts_E00620_gamma_0,marts_E00620,gamma,gamma,Plants,['di Class 2'],False
+marts_E00620_alpha_0,marts_E00620,alpha,alpha,Plants,['di Class 2'],False
+marts_E01241_beta_0,marts_E01241,beta,beta,Plants,['di Class 2'],False
+marts_E01241_gamma_0,marts_E01241,gamma,gamma,Plants,['di Class 2'],False
+marts_E01241_ids_0,marts_E01241,ids,alpha,Plants,['di Class 2'],False
+marts_E01374_beta_0,marts_E01374,beta,beta,Plants,['mono Class 1'],False
+marts_E01374_alpha_0,marts_E01374,alpha,alpha,Plants,['mono Class 1'],False
+marts_E01385_beta_0,marts_E01385,beta,beta,Plants,['mono Class 1'],False
+marts_E01385_alpha_0,marts_E01385,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00737_beta_0,marts_E00737,beta,beta,Plants,['mono Class 1'],False
+marts_E00737_alpha_0,marts_E00737,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00153_beta_0,marts_E00153,beta,beta,Plants,['mono Class 1'],False
+marts_E00153_alpha_0,marts_E00153,alpha,alpha,Plants,['mono Class 1'],False
+marts_E01528_beta_0,marts_E01528,beta,beta,Plants,['sesq Class 1'],False
+marts_E01528_alpha_0,marts_E01528,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00250_beta_0,marts_E00250,beta,beta,Plants,['mono Class 1'],False
+marts_E00250_alpha_0,marts_E00250,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00223_beta_0,marts_E00223,beta,beta,Plants,['mono Class 1'],False
+marts_E00223_alpha_0,marts_E00223,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00167_beta_0,marts_E00167,beta,beta,Plants,['mono Class 1'],False
+marts_E00167_alpha_0,marts_E00167,alpha,alpha,Plants,['mono Class 1'],False
+marts_E01238_beta_0,marts_E01238,beta,beta,Plants,['sesq Class 1'],False
+marts_E01238_alpha_0,marts_E01238,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00035_beta_0,marts_E00035,beta,beta,Plants,['sesq Class 1'],False
+marts_E00035_alpha_0,marts_E00035,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00365_beta_0,marts_E00365,beta,beta,Plants,['sesq Class 1'],False
+marts_E00365_alpha_0,marts_E00365,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00227_beta_0,marts_E00227,beta,beta,Plants,['mono Class 1'],False
+marts_E00227_alpha_0,marts_E00227,alpha,alpha,Plants,['mono Class 1'],False
+marts_E01040_beta_0,marts_E01040,beta,beta,Plants,['sesq Class 1'],False
+marts_E01040_alpha_0,marts_E01040,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00851_beta_0,marts_E00851,beta,beta,Plants,['sesq Class 1'],False
+marts_E00851_alpha_0,marts_E00851,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00785_beta_0,marts_E00785,beta,beta,Plants,['mono Class 1'],False
+marts_E00785_alpha_0,marts_E00785,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00374_beta_0,marts_E00374,beta,beta,Plants,['sesq Class 1'],False
+marts_E00374_alpha_0,marts_E00374,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01428_beta_0,marts_E01428,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E01428_alpha_0,marts_E01428,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00822_beta_0,marts_E00822,beta,beta,Plants,['sesq Class 1'],False
+marts_E00822_alpha_0,marts_E00822,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00615_beta_0,marts_E00615,beta,beta,Plants,['sesq Class 1'],False
+marts_E00615_alpha_0,marts_E00615,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00631_beta_0,marts_E00631,beta,beta,Plants,['sesq Class 1'],False
+marts_E00631_alpha_0,marts_E00631,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00792_beta_0,marts_E00792,beta,beta,Plants,['mono Class 1'],False
+marts_E00792_alpha_0,marts_E00792,alpha,alpha,Plants,['mono Class 1'],False
+marts_E01100_beta_0,marts_E01100,beta,beta,Plants,['sesq Class 1'],False
+marts_E01100_alpha_0,marts_E01100,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00319_beta_0,marts_E00319,beta,beta,Plants,['mono Class 1'],False
+marts_E00319_alpha_0,marts_E00319,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00773_beta_0,marts_E00773,beta,beta,Plants,['sesq Class 1'],False
+marts_E00773_alpha_0,marts_E00773,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00600_beta_0,marts_E00600,beta,beta,Plants,['sesq Class 1'],False
+marts_E00600_alpha_0,marts_E00600,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01057_beta_0,marts_E01057,beta,beta,Plants,['sesq Class 1'],False
+marts_E01057_alpha_0,marts_E01057,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00727_beta_0,marts_E00727,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00727_alpha_0,marts_E00727,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E01149_beta_0,marts_E01149,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E01149_alpha_0,marts_E01149,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00158_beta_0,marts_E00158,beta,beta,Plants,['sesq Class 1'],False
+marts_E00158_alpha_0,marts_E00158,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00882_alpha_0,marts_E00882,alpha,alpha,Animals,['di Class 1'],False
+marts_E01179_alpha_0,marts_E01179,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01422_alpha_0,marts_E01422,alpha,alpha,Bacteria,['di Class 1'],False
+marts_E01105_ids_0,marts_E01105,ids,alpha,Animals,['pt'],False
+marts_E01226_ids_0,marts_E01226,ids,alpha,Animals,"['mono Class 1', 'sesq Class 1']",False
+marts_E00619_alpha_0,marts_E00619,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00166_ids_0,marts_E00166,ids,alpha,Fungi,['pt'],False
+marts_E00349_alpha_0,marts_E00349,alpha,alpha,Bacteria,['sesq Class 1'],False
+marts_E01469_alpha_0,marts_E01469,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E01513_ids_0,marts_E01513,ids,alpha,Bacteria,['di Class 1'],False
+marts_E01190_alpha_0,marts_E01190,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01433_alpha_0,marts_E01433,alpha,alpha,Bacteria,['di Class 1'],False
+marts_E01320_alpha_0,marts_E01320,alpha,alpha,Bacteria,['sesq Class 1'],False
+marts_E00891_alpha_0,marts_E00891,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E00743_alpha_0,marts_E00743,alpha,alpha,Protists,"['mono Class 1', 'sesq Class 1']",False
+marts_E01085_alpha_0,marts_E01085,alpha,alpha,Protists,['sesq Class 1'],False
+marts_E01405_alpha_0,marts_E01405,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E00865_alpha_0,marts_E00865,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E00009_alpha_0,marts_E00009,alpha,alpha,Bacteria,['di Class 1'],False
+marts_E01362_alpha_0,marts_E01362,alpha,alpha,Bacteria,['di Class 1'],False
+marts_E00638_alpha_0,marts_E00638,alpha,alpha,Bacteria,['di Class 1'],False
+marts_E01308_alpha_0,marts_E01308,alpha,alpha,Bacteria,['di Class 1'],False
+marts_E00097_ids_0,marts_E00097,ids,alpha,Plants,['pt'],False
+marts_E00518_ids_0,marts_E00518,ids,alpha,Viruses,['pt'],False
+marts_E00175_gamma_0,marts_E00175,gamma,gamma,Fungi,"['di Class 1', 'di Class 2']",False
+marts_E00175_delta_0,marts_E00175,delta,delta,Fungi,"['di Class 1', 'di Class 2']",False
+marts_E00175_alpha_0,marts_E00175,alpha,alpha,Fungi,"['di Class 1', 'di Class 2']",False
+marts_E00968_beta_0,marts_E00968,beta,beta,Plants,['di Class 1'],False
+marts_E00968_gamma_0,marts_E00968,gamma,gamma,Plants,['di Class 1'],False
+marts_E00968_alpha_0,marts_E00968,alpha,alpha,Plants,['di Class 1'],False
+marts_E00062_beta_0,marts_E00062,beta,beta,Plants,['di Class 1'],False
+marts_E00062_gamma_0,marts_E00062,gamma,gamma,Plants,['di Class 1'],False
+marts_E00062_alpha_0,marts_E00062,alpha,alpha,Plants,['di Class 1'],False
+marts_E00313_beta_0,marts_E00313,beta,beta,Plants,"['di Class 1', 'di Class 2']",False
+marts_E00313_gamma_0,marts_E00313,gamma,gamma,Plants,"['di Class 1', 'di Class 2']",False
+marts_E00313_alpha_0,marts_E00313,alpha,alpha,Plants,"['di Class 1', 'di Class 2']",False
+marts_E00815_beta_0,marts_E00815,beta,beta,Plants,['di Class 2'],False
+marts_E00815_gamma_0,marts_E00815,gamma,gamma,Plants,['di Class 2'],False
+marts_E00815_alpha_0,marts_E00815,alpha,alpha,Plants,['di Class 2'],False
+marts_E00641_beta_0,marts_E00641,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00641_alpha_0,marts_E00641,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00641_gamma_0,marts_E00641,gamma,gamma,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00997_ids_0,marts_E00997,ids,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E00997_alpha_0,marts_E00997,alpha,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E01210_ids_0,marts_E01210,ids,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E01210_alpha_0,marts_E01210,alpha,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E01107_ids_0,marts_E01107,ids,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E01107_alpha_0,marts_E01107,alpha,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E01252_beta_0,marts_E01252,beta,beta,Plants,['di Class 2'],False
+marts_E01252_gamma_0,marts_E01252,gamma,gamma,Plants,['di Class 2'],False
+marts_E01252_alpha_0,marts_E01252,alpha,alpha,Plants,['di Class 2'],False
+marts_E01379_beta_0,marts_E01379,beta,beta,Plants,['mono Class 1'],False
+marts_E01379_alpha_0,marts_E01379,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00630_beta_0,marts_E00630,beta,beta,Plants,['mono Class 1'],False
+marts_E00630_alpha_0,marts_E00630,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00850_beta_0,marts_E00850,beta,beta,Plants,['mono Class 1'],False
+marts_E00850_alpha_0,marts_E00850,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00732_beta_0,marts_E00732,beta,beta,Plants,['mono Class 1'],False
+marts_E00732_alpha_0,marts_E00732,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00698_beta_0,marts_E00698,beta,beta,Plants,['mono Class 1'],False
+marts_E00698_alpha_0,marts_E00698,alpha,alpha,Plants,['mono Class 1'],False
+marts_E01373_beta_0,marts_E01373,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E01373_alpha_0,marts_E01373,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00276_beta_0,marts_E00276,beta,beta,Plants,['sesq Class 1'],False
+marts_E00276_alpha_0,marts_E00276,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01524_beta_0,marts_E01524,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E01524_alpha_0,marts_E01524,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00059_beta_0,marts_E00059,beta,beta,Plants,['sesq Class 1'],False
+marts_E00059_alpha_0,marts_E00059,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00730_beta_0,marts_E00730,beta,beta,Plants,['mono Class 1'],False
+marts_E00730_alpha_0,marts_E00730,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00624_beta_0,marts_E00624,beta,beta,Plants,['sesq Class 1'],False
+marts_E00624_alpha_0,marts_E00624,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00330_beta_0,marts_E00330,beta,beta,Plants,['sesq Class 1'],False
+marts_E00330_alpha_0,marts_E00330,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01127_beta_0,marts_E01127,beta,beta,Plants,['sesq Class 1'],False
+marts_E01127_alpha_0,marts_E01127,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01052_alpha_0,marts_E01052,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E01216_beta_0,marts_E01216,beta,beta,Plants,['sesq Class 1'],False
+marts_E01216_alpha_0,marts_E01216,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00853_beta_0,marts_E00853,beta,beta,Plants,['mono Class 1'],False
+marts_E00853_alpha_0,marts_E00853,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00316_beta_0,marts_E00316,beta,beta,Plants,['sesq Class 1'],False
+marts_E00316_alpha_0,marts_E00316,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00249_beta_0,marts_E00249,beta,beta,Plants,['sesq Class 1'],False
+marts_E00249_alpha_0,marts_E00249,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01395_beta_0,marts_E01395,beta,beta,Plants,['sesq Class 1'],False
+marts_E01395_alpha_0,marts_E01395,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01382_beta_0,marts_E01382,beta,beta,Plants,['sesq Class 1'],False
+marts_E01382_alpha_0,marts_E01382,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00627_beta_0,marts_E00627,beta,beta,Plants,['sesq Class 1'],False
+marts_E00627_alpha_0,marts_E00627,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01512_beta_0,marts_E01512,beta,beta,Plants,"['di Class 1', 'sesq Class 1']",False
+marts_E01512_alpha_0,marts_E01512,alpha,alpha,Plants,"['di Class 1', 'sesq Class 1']",False
+marts_E01233_beta_0,marts_E01233,beta,beta,Plants,['sesq Class 1'],False
+marts_E01233_alpha_0,marts_E01233,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00611_beta_0,marts_E00611,beta,beta,Plants,['sesq Class 1'],False
+marts_E00611_alpha_0,marts_E00611,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00934_beta_0,marts_E00934,beta,beta,Plants,['sesq Class 1'],False
+marts_E00934_alpha_0,marts_E00934,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01387_beta_0,marts_E01387,beta,beta,Plants,['sesq Class 1'],False
+marts_E01387_alpha_0,marts_E01387,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01389_beta_0,marts_E01389,beta,beta,Plants,['sesq Class 1'],False
+marts_E01389_alpha_0,marts_E01389,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00392_beta_0,marts_E00392,beta,beta,Plants,['sesq Class 1'],False
+marts_E00392_alpha_0,marts_E00392,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00707_ids_0,marts_E00707,ids,alpha,Plants,['sqs'],False
+marts_E01224_ids_0,marts_E01224,ids,alpha,Animals,"['di Class 1', 'mono Class 1', 'sesq Class 1']",False
+marts_E00430_ids_0,marts_E00430,ids,alpha,Plants,['pt'],False
+marts_E00525_ids_0,marts_E00525,ids,alpha,Fungi,['pt'],False
+marts_E01458_alpha_0,marts_E01458,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E00871_alpha_0,marts_E00871,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E01488_alpha_0,marts_E01488,alpha,alpha,Protists,['di Class 1'],False
+marts_E01446_alpha_0,marts_E01446,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E00423_ids_0,marts_E00423,ids,alpha,Fungi,['pt'],False
+marts_E01476_ids_0,marts_E01476,ids,alpha,Bacteria,['di Class 1'],False
+marts_E01170_alpha_0,marts_E01170,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E00861_alpha_0,marts_E00861,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E00054_alpha_0,marts_E00054,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E00742_alpha_0,marts_E00742,alpha,alpha,Protists,"['mono Class 1', 'sesq Class 1']",False
+marts_E00510_alpha_0,marts_E00510,alpha,alpha,Bacteria,['di Class 1'],False
+marts_E01364_alpha_0,marts_E01364,alpha,alpha,Bacteria,['di Class 1'],False
+marts_E00252_alpha_0,marts_E00252,alpha,alpha,Bacteria,['sesq Class 1'],False
+marts_E00626_ids_0,marts_E00626,ids,alpha,Fungi,['pt'],False
+marts_E00015_alpha_0,marts_E00015,alpha,alpha,Animals,['sesq Class 1'],False
+marts_E00455_ids_0,marts_E00455,ids,alpha,Fungi,['pt'],False
+marts_E00904_alpha_0,marts_E00904,alpha,alpha,Bacteria,['di Class 1'],False
+marts_E00205_ids_0,marts_E00205,ids,alpha,Viruses,['pt'],False
+marts_E00353_alpha_0,marts_E00353,alpha,alpha,Protists,['sesq Class 1'],False
+marts_E01421_beta_0,marts_E01421,beta,beta,Plants,['di Class 1'],False
+marts_E01421_gamma_0,marts_E01421,gamma,gamma,Plants,['di Class 1'],False
+marts_E01421_alpha_0,marts_E01421,alpha,alpha,Plants,['di Class 1'],False
+marts_E00394_beta_0,marts_E00394,beta,beta,Plants,['di Class 1'],False
+marts_E00394_gamma_0,marts_E00394,gamma,gamma,Plants,['di Class 1'],False
+marts_E00394_alpha_0,marts_E00394,alpha,alpha,Plants,['di Class 1'],False
+marts_E00036_beta_0,marts_E00036,beta,beta,Plants,['di Class 2'],False
+marts_E00036_gamma_0,marts_E00036,gamma,gamma,Plants,['di Class 2'],False
+marts_E00036_alpha_0,marts_E00036,alpha,alpha,Plants,['di Class 2'],False
+marts_E00422_beta_0,marts_E00422,beta,beta,Plants,['di Class 1'],False
+marts_E00422_gamma_0,marts_E00422,gamma,gamma,Plants,['di Class 1'],False
+marts_E00422_alpha_0,marts_E00422,alpha,alpha,Plants,['di Class 1'],False
+marts_E01522_beta_0,marts_E01522,beta,beta,Plants,['sesq Class 1'],False
+marts_E01522_gamma_0,marts_E01522,gamma,gamma,Plants,['sesq Class 1'],False
+marts_E01522_alpha_0,marts_E01522,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00734_beta_0,marts_E00734,beta,beta,Plants,"['di Class 1', 'di Class 2']",False
+marts_E00734_gamma_0,marts_E00734,gamma,gamma,Plants,"['di Class 1', 'di Class 2']",False
+marts_E00734_alpha_0,marts_E00734,alpha,alpha,Plants,"['di Class 1', 'di Class 2']",False
+marts_E01251_gamma_0,marts_E01251,gamma,gamma,Plants,['di Class 1'],False
+marts_E01251_beta_0,marts_E01251,beta,beta,Plants,['di Class 1'],False
+marts_E01251_alpha_0,marts_E01251,alpha,alpha,Plants,['di Class 1'],False
+marts_E00998_ids_0,marts_E00998,ids,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E00998_alpha_0,marts_E00998,alpha,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E01260_ids_0,marts_E01260,ids,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E01260_alpha_0,marts_E01260,alpha,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E01409_beta_0,marts_E01409,beta,beta,Plants,['di Class 2'],False
+marts_E01409_gamma_0,marts_E01409,gamma,gamma,Plants,['di Class 2'],False
+marts_E01409_alpha_0,marts_E01409,alpha,alpha,Plants,['di Class 2'],False
+marts_E01244_beta_0,marts_E01244,beta,beta,Plants,['di Class 2'],False
+marts_E01244_gamma_0,marts_E01244,gamma,gamma,Plants,['di Class 2'],False
+marts_E01244_alpha_0,marts_E01244,alpha,alpha,Plants,['di Class 2'],False
+marts_E00007_beta_0,marts_E00007,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00007_alpha_0,marts_E00007,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00512_beta_0,marts_E00512,beta,beta,Plants,['mono Class 1'],False
+marts_E00512_alpha_0,marts_E00512,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00071_beta_0,marts_E00071,beta,beta,Plants,['mono Class 1'],False
+marts_E00071_alpha_0,marts_E00071,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00069_beta_0,marts_E00069,beta,beta,Plants,['mono Class 1'],False
+marts_E00069_alpha_0,marts_E00069,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00371_beta_0,marts_E00371,beta,beta,Plants,['mono Class 1'],False
+marts_E00371_alpha_0,marts_E00371,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00731_beta_0,marts_E00731,beta,beta,Plants,['mono Class 1'],False
+marts_E00731_alpha_0,marts_E00731,alpha,alpha,Plants,['mono Class 1'],False
+marts_E01154_beta_0,marts_E01154,beta,beta,Plants,['sesq Class 1'],False
+marts_E01154_alpha_0,marts_E01154,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01061_beta_0,marts_E01061,beta,beta,Plants,['sesq Class 1'],False
+marts_E01061_alpha_0,marts_E01061,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00364_beta_0,marts_E00364,beta,beta,Plants,['sesq Class 1'],False
+marts_E00364_alpha_0,marts_E00364,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00855_beta_0,marts_E00855,beta,beta,Plants,['mono Class 1'],False
+marts_E00855_alpha_0,marts_E00855,alpha,alpha,Plants,['mono Class 1'],False
+marts_E01180_beta_0,marts_E01180,beta,beta,Plants,['sesq Class 1'],False
+marts_E01180_alpha_0,marts_E01180,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00277_beta_0,marts_E00277,beta,beta,Plants,['mono Class 1'],False
+marts_E00277_alpha_0,marts_E00277,alpha,alpha,Plants,['mono Class 1'],False
+marts_E01530_beta_0,marts_E01530,beta,beta,Plants,"['sesq Class 1', 'sester Class 1']",False
+marts_E01530_alpha_0,marts_E01530,alpha,alpha,Plants,"['sesq Class 1', 'sester Class 1']",False
+marts_E01257_beta_0,marts_E01257,beta,beta,Plants,['sesq Class 1'],False
+marts_E01257_alpha_0,marts_E01257,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00579_beta_0,marts_E00579,beta,beta,Plants,['sesq Class 1'],False
+marts_E00579_alpha_0,marts_E00579,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01232_beta_0,marts_E01232,beta,beta,Plants,['sesq Class 1'],False
+marts_E01232_alpha_0,marts_E01232,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00688_beta_0,marts_E00688,beta,beta,Plants,['sesq Class 1'],False
+marts_E00688_alpha_0,marts_E00688,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00756_beta_0,marts_E00756,beta,beta,Plants,['mono Class 1'],False
+marts_E00756_alpha_0,marts_E00756,alpha,alpha,Plants,['mono Class 1'],False
+marts_E01480_beta_0,marts_E01480,beta,beta,Plants,['mono Class 1'],False
+marts_E01480_alpha_0,marts_E01480,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00242_beta_0,marts_E00242,beta,beta,Plants,['mono Class 1'],False
+marts_E00242_alpha_0,marts_E00242,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00970_beta_0,marts_E00970,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00970_alpha_0,marts_E00970,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00761_beta_0,marts_E00761,beta,beta,Plants,['sesq Class 1'],False
+marts_E00761_alpha_0,marts_E00761,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01097_beta_0,marts_E01097,beta,beta,Plants,['sesq Class 1'],False
+marts_E01097_alpha_0,marts_E01097,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00672_beta_0,marts_E00672,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00672_alpha_0,marts_E00672,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00608_beta_0,marts_E00608,beta,beta,Plants,['sesq Class 1'],False
+marts_E00608_alpha_0,marts_E00608,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00402_beta_0,marts_E00402,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00402_alpha_0,marts_E00402,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E01498_beta_0,marts_E01498,beta,beta,Plants,['sesq Class 1'],False
+marts_E01498_alpha_0,marts_E01498,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00093_beta_0,marts_E00093,beta,beta,Plants,['sesq Class 1'],False
+marts_E00093_alpha_0,marts_E00093,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00473_ids_0,marts_E00473,ids,alpha,Plants,['sqs'],False
+marts_E01439_alpha_0,marts_E01439,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00578_ids_0,marts_E00578,ids,alpha,Bacteria,"['sesquar Class 1', 'sester Class 1', 'tri Class 1']",False
+marts_E01399_alpha_0,marts_E01399,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E00477_ids_0,marts_E00477,ids,alpha,Plants,['pt'],False
+marts_E01115_ids_0,marts_E01115,ids,alpha,Fungi,['pt'],False
+marts_E01454_alpha_0,marts_E01454,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E00502_ids_0,marts_E00502,ids,alpha,Fungi,['pt'],False
+marts_E00144_ids_0,marts_E00144,ids,alpha,Plants,['pt'],False
+marts_E01341_alpha_0,marts_E01341,alpha,alpha,Bacteria,['di Class 1'],False
+marts_E01447_alpha_0,marts_E01447,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E01049_alpha_0,marts_E01049,alpha,alpha,Fungi,"['mono Class 1', 'sesq Class 1']",False
+marts_E01313_alpha_0,marts_E01313,alpha,alpha,Bacteria,['sester Class 1'],False
+marts_E00751_alpha_0,marts_E00751,alpha,alpha,Bacteria,['sesq Class 1'],False
+marts_E00971_alpha_0,marts_E00971,alpha,alpha,Bacteria,['mono Class 1'],False
+marts_E01262_ids_0,marts_E01262,ids,alpha,Fungi,['pt'],False
+marts_E00593_alpha_0,marts_E00593,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E01358_alpha_0,marts_E01358,alpha,alpha,Bacteria,['di Class 1'],False
+marts_E01335_alpha_0,marts_E01335,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E01053_alpha_0,marts_E01053,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E00872_alpha_0,marts_E00872,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E00466_ids_0,marts_E00466,ids,alpha,Bacteria,['pt'],False
+marts_E01081_alpha_0,marts_E01081,alpha,alpha,Protists,"['di Class 1', 'mono Class 1', 'sesq Class 1']",False
+marts_E00469_ids_0,marts_E00469,ids,alpha,Bacteria,['pt'],False
+marts_E01087_ids_0,marts_E01087,ids,alpha,Fungi,"['di Class 2', 'pt']",False
+marts_E01087_gamma_0,marts_E01087,gamma,gamma,Fungi,"['di Class 2', 'pt']",False
+marts_E01087_delta_0,marts_E01087,delta,delta,Fungi,"['di Class 2', 'pt']",False
+marts_E01135_beta_0,marts_E01135,beta,beta,Plants,['di Class 1'],False
+marts_E01135_gamma_0,marts_E01135,gamma,gamma,Plants,['di Class 1'],False
+marts_E01135_alpha_0,marts_E01135,alpha,alpha,Plants,['di Class 1'],False
+marts_E00683_beta_0,marts_E00683,beta,beta,Plants,['di Class 1'],False
+marts_E00683_gamma_0,marts_E00683,gamma,gamma,Plants,['di Class 1'],False
+marts_E00683_alpha_0,marts_E00683,alpha,alpha,Plants,['di Class 1'],False
+marts_E00427_beta_0,marts_E00427,beta,beta,Plants,['di Class 1'],False
+marts_E00427_alpha_0,marts_E00427,alpha,alpha,Plants,['di Class 1'],False
+marts_E00427_gamma_0,marts_E00427,gamma,gamma,Plants,['di Class 1'],False
+marts_E00965_beta_0,marts_E00965,beta,beta,Plants,"['di Class 1', 'di Class 2']",False
+marts_E00965_gamma_0,marts_E00965,gamma,gamma,Plants,"['di Class 1', 'di Class 2']",False
+marts_E00965_alpha_0,marts_E00965,alpha,alpha,Plants,"['di Class 1', 'di Class 2']",False
+marts_E00586_beta_0,marts_E00586,beta,beta,Plants,"['di Class 1', 'di Class 2', 'mono Class 1']",False
+marts_E00586_gamma_0,marts_E00586,gamma,gamma,Plants,"['di Class 1', 'di Class 2', 'mono Class 1']",False
+marts_E00586_alpha_0,marts_E00586,alpha,alpha,Plants,"['di Class 1', 'di Class 2', 'mono Class 1']",False
+marts_E01464_beta_0,marts_E01464,beta,beta,Plants,['di Class 2'],False
+marts_E01464_gamma_0,marts_E01464,gamma,gamma,Plants,['di Class 2'],False
+marts_E01464_alpha_0,marts_E01464,alpha,alpha,Plants,['di Class 2'],False
+marts_E00151_beta_0,marts_E00151,beta,beta,Plants,['di Class 1'],False
+marts_E00151_gamma_0,marts_E00151,gamma,gamma,Plants,['di Class 1'],False
+marts_E00151_alpha_0,marts_E00151,alpha,alpha,Plants,['di Class 1'],False
+marts_E01413_beta_0,marts_E01413,beta,beta,Plants,['di Class 2'],False
+marts_E01413_gamma_0,marts_E01413,gamma,gamma,Plants,['di Class 2'],False
+marts_E01413_alpha_0,marts_E01413,alpha,alpha,Plants,['di Class 2'],False
+marts_E00996_ids_0,marts_E00996,ids,alpha,Fungi,"['di Class 1', 'pt', 'sester Class 1']",False
+marts_E00996_alpha_0,marts_E00996,alpha,alpha,Fungi,"['di Class 1', 'pt', 'sester Class 1']",False
+marts_E00986_ids_0,marts_E00986,ids,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E00986_alpha_0,marts_E00986,alpha,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E01005_ids_0,marts_E01005,ids,alpha,Fungi,"['di Class 1', 'pt', 'sester Class 1']",False
+marts_E01005_alpha_0,marts_E01005,alpha,alpha,Fungi,"['di Class 1', 'pt', 'sester Class 1']",False
+marts_E00235_beta_0,marts_E00235,beta,beta,Plants,['di Class 1'],False
+marts_E00235_alpha_0,marts_E00235,alpha,alpha,Plants,['di Class 1'],False
+marts_E00895_beta_0,marts_E00895,beta,beta,Plants,['mono Class 1'],False
+marts_E00895_alpha_0,marts_E00895,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00225_beta_0,marts_E00225,beta,beta,Plants,['mono Class 1'],False
+marts_E00225_alpha_0,marts_E00225,alpha,alpha,Plants,['mono Class 1'],False
+marts_E01427_beta_0,marts_E01427,beta,beta,Plants,['sesq Class 1'],False
+marts_E01427_alpha_0,marts_E01427,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01397_beta_0,marts_E01397,beta,beta,Plants,['sesq Class 1'],False
+marts_E01397_alpha_0,marts_E01397,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00325_beta_0,marts_E00325,beta,beta,Plants,['sesq Class 1'],False
+marts_E00325_alpha_0,marts_E00325,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00113_beta_0,marts_E00113,beta,beta,Plants,['mono Class 1'],False
+marts_E00113_alpha_0,marts_E00113,alpha,alpha,Plants,['mono Class 1'],False
+marts_E01390_beta_0,marts_E01390,beta,beta,Plants,['mono Class 1'],False
+marts_E01390_alpha_0,marts_E01390,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00333_beta_0,marts_E00333,beta,beta,Plants,['mono Class 1'],False
+marts_E00333_alpha_0,marts_E00333,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00820_beta_0,marts_E00820,beta,beta,Plants,['sesq Class 1'],False
+marts_E00820_alpha_0,marts_E00820,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00287_beta_0,marts_E00287,beta,beta,Plants,['sesq Class 1'],False
+marts_E00287_alpha_0,marts_E00287,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00391_beta_0,marts_E00391,beta,beta,Plants,['sesq Class 1'],False
+marts_E00391_alpha_0,marts_E00391,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00916_beta_0,marts_E00916,beta,beta,Plants,['sesq Class 1'],False
+marts_E00916_alpha_0,marts_E00916,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00669_beta_0,marts_E00669,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00669_alpha_0,marts_E00669,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00233_beta_0,marts_E00233,beta,beta,Plants,"['di Class 1', 'mono Class 1', 'sesq Class 1']",False
+marts_E00233_alpha_0,marts_E00233,alpha,alpha,Plants,"['di Class 1', 'mono Class 1', 'sesq Class 1']",False
+marts_E01201_beta_0,marts_E01201,beta,beta,Plants,['sesq Class 1'],False
+marts_E01201_alpha_0,marts_E01201,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00726_beta_0,marts_E00726,beta,beta,Plants,['sesq Class 1'],False
+marts_E00726_alpha_0,marts_E00726,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00915_beta_0,marts_E00915,beta,beta,Plants,['sesq Class 1'],False
+marts_E00915_alpha_0,marts_E00915,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01032_beta_0,marts_E01032,beta,beta,Plants,['sesq Class 1'],False
+marts_E01032_alpha_0,marts_E01032,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01038_beta_0,marts_E01038,beta,beta,Plants,['sesq Class 1'],False
+marts_E01038_alpha_0,marts_E01038,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00244_beta_0,marts_E00244,beta,beta,Plants,['sesq Class 1'],False
+marts_E00244_alpha_0,marts_E00244,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00271_beta_0,marts_E00271,beta,beta,Plants,['sesq Class 1'],False
+marts_E00271_alpha_0,marts_E00271,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00933_beta_0,marts_E00933,beta,beta,Plants,['sesq Class 1'],False
+marts_E00933_alpha_0,marts_E00933,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00291_beta_0,marts_E00291,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00291_alpha_0,marts_E00291,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00048_beta_0,marts_E00048,beta,beta,Plants,['sesq Class 1'],False
+marts_E00048_alpha_0,marts_E00048,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00418_beta_0,marts_E00418,beta,beta,Plants,['sesq Class 1'],False
+marts_E00418_alpha_0,marts_E00418,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00234_beta_0,marts_E00234,beta,beta,Plants,['mono Class 1'],False
+marts_E00234_alpha_0,marts_E00234,alpha,alpha,Plants,['mono Class 1'],False
+marts_E01298_beta_0,marts_E01298,beta,beta,Plants,['di Class 1'],False
+marts_E01298_alpha_0,marts_E01298,alpha,alpha,Plants,['di Class 1'],False
+marts_E00440_alpha_0,marts_E00440,alpha,alpha,Animals,"['di Class 1', 'mono Class 1', 'sesq Class 1']",False
+marts_E01050_alpha_0,marts_E01050,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E01080_ids_0,marts_E01080,ids,alpha,Animals,['sesq Class 1'],False
+marts_E01196_ids_0,marts_E01196,ids,alpha,Fungi,['pt'],False
+marts_E00482_alpha_0,marts_E00482,alpha,alpha,Plants,['psy'],False
+marts_E01354_alpha_0,marts_E01354,alpha,alpha,Bacteria,['di Class 1'],False
+marts_E00023_ids_0,marts_E00023,ids,alpha,Fungi,['pt'],False
+marts_E00008_alpha_0,marts_E00008,alpha,alpha,Bacteria,['di Class 1'],False
+marts_E00592_alpha_0,marts_E00592,alpha,alpha,Bacteria,['di Class 1'],False
+marts_E01467_alpha_0,marts_E01467,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E00570_ids_0,marts_E00570,ids,alpha,Bacteria,['pt'],False
+marts_E00266_ids_0,marts_E00266,ids,alpha,Fungi,['pt'],False
+marts_E01123_ids_0,marts_E01123,ids,alpha,Fungi,['pt'],False
+marts_E01485_ids_0,marts_E01485,ids,alpha,Fungi,['di Class 1'],False
+marts_E01346_alpha_0,marts_E01346,alpha,alpha,Bacteria,['di Class 1'],False
+marts_E01408_alpha_0,marts_E01408,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E00596_alpha_0,marts_E00596,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E01348_alpha_0,marts_E01348,alpha,alpha,Bacteria,['di Class 1'],False
+marts_E00444_alpha_0,marts_E00444,alpha,alpha,Protists,"['mono Class 1', 'sesq Class 1']",False
+marts_E01493_alpha_0,marts_E01493,alpha,alpha,Bacteria,['di Class 1'],False
+marts_E00709_ids_0,marts_E00709,ids,alpha,Fungi,['pt'],False
+marts_E00520_ids_0,marts_E00520,ids,alpha,Viruses,['pt'],False
+marts_E01339_alpha_0,marts_E01339,alpha,alpha,Bacteria,['di Class 1'],False
+marts_E00177_beta_0,marts_E00177,beta,beta,Plants,['mono Class 1'],False
+marts_E00177_gamma_0,marts_E00177,gamma,gamma,Plants,['mono Class 1'],False
+marts_E00177_alpha_0,marts_E00177,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00063_beta_0,marts_E00063,beta,beta,Plants,['di Class 1'],False
+marts_E00063_gamma_0,marts_E00063,gamma,gamma,Plants,['di Class 1'],False
+marts_E00063_alpha_0,marts_E00063,alpha,alpha,Plants,['di Class 1'],False
+marts_E00320_beta_0,marts_E00320,beta,beta,Plants,['di Class 1'],False
+marts_E00320_alpha_0,marts_E00320,alpha,alpha,Plants,['di Class 1'],False
+marts_E00320_gamma_0,marts_E00320,gamma,gamma,Plants,['di Class 1'],False
+marts_E01507_beta_0,marts_E01507,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E01507_gamma_0,marts_E01507,gamma,gamma,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E01507_alpha_0,marts_E01507,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00817_beta_0,marts_E00817,beta,beta,Plants,['di Class 2'],False
+marts_E00817_gamma_0,marts_E00817,gamma,gamma,Plants,['di Class 2'],False
+marts_E00817_alpha_0,marts_E00817,alpha,alpha,Plants,['di Class 2'],False
+marts_E00692_beta_0,marts_E00692,beta,beta,Plants,['mono Class 1'],False
+marts_E00692_gamma_0,marts_E00692,gamma,gamma,Plants,['mono Class 1'],False
+marts_E00692_alpha_0,marts_E00692,alpha,alpha,Plants,['mono Class 1'],False
+marts_E01133_beta_0,marts_E01133,beta,beta,Plants,['di Class 1'],False
+marts_E01133_alpha_0,marts_E01133,alpha,alpha,Plants,['di Class 1'],False
+marts_E01133_gamma_0,marts_E01133,gamma,gamma,Plants,['di Class 1'],False
+marts_E00395_beta_0,marts_E00395,beta,beta,Plants,['di Class 2'],False
+marts_E00395_gamma_0,marts_E00395,gamma,gamma,Plants,['di Class 2'],False
+marts_E00395_alpha_0,marts_E00395,alpha,alpha,Plants,['di Class 2'],False
+marts_E01203_beta_0,marts_E01203,beta,beta,Plants,['di Class 2'],False
+marts_E01203_gamma_0,marts_E01203,gamma,gamma,Plants,['di Class 2'],False
+marts_E01203_alpha_0,marts_E01203,alpha,alpha,Plants,['di Class 2'],False
+marts_E01236_ids_0,marts_E01236,ids,alpha,Fungi,"['di Class 1', 'pt']",False
+marts_E01236_alpha_0,marts_E01236,alpha,alpha,Fungi,"['di Class 1', 'pt']",False
+marts_E00999_ids_0,marts_E00999,ids,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E00999_alpha_0,marts_E00999,alpha,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E00426_beta_0,marts_E00426,beta,beta,Plants,['di Class 2'],False
+marts_E00426_gamma_0,marts_E00426,gamma,gamma,Plants,['di Class 2'],False
+marts_E00426_ids_0,marts_E00426,ids,alpha,Plants,['di Class 2'],False
+marts_E00074_beta_0,marts_E00074,beta,beta,Plants,['mono Class 1'],False
+marts_E00074_alpha_0,marts_E00074,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00416_beta_0,marts_E00416,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00416_alpha_0,marts_E00416,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00929_beta_0,marts_E00929,beta,beta,Plants,['sesq Class 1'],False
+marts_E00929_alpha_0,marts_E00929,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01531_beta_0,marts_E01531,beta,beta,Plants,['sesq Class 1'],False
+marts_E01531_alpha_0,marts_E01531,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00647_beta_0,marts_E00647,beta,beta,Plants,['mono Class 1'],False
+marts_E00647_alpha_0,marts_E00647,alpha,alpha,Plants,['mono Class 1'],False
+marts_E01202_beta_0,marts_E01202,beta,beta,Plants,['mono Class 1'],False
+marts_E01202_alpha_0,marts_E01202,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00774_beta_0,marts_E00774,beta,beta,Plants,['sesq Class 1'],False
+marts_E00774_alpha_0,marts_E00774,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00572_beta_0,marts_E00572,beta,beta,Plants,['mono Class 1'],False
+marts_E00572_alpha_0,marts_E00572,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00911_beta_0,marts_E00911,beta,beta,Plants,['sesq Class 1'],False
+marts_E00911_alpha_0,marts_E00911,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00049_beta_0,marts_E00049,beta,beta,Plants,['mono Class 1'],False
+marts_E00049_alpha_0,marts_E00049,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00623_beta_0,marts_E00623,beta,beta,Plants,['sesq Class 1'],False
+marts_E00623_alpha_0,marts_E00623,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00044_beta_0,marts_E00044,beta,beta,Plants,['mono Class 1'],False
+marts_E00044_alpha_0,marts_E00044,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00206_beta_0,marts_E00206,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00206_alpha_0,marts_E00206,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00762_beta_0,marts_E00762,beta,beta,Plants,['sesq Class 1'],False
+marts_E00762_alpha_0,marts_E00762,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00789_beta_0,marts_E00789,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00789_alpha_0,marts_E00789,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00017_beta_0,marts_E00017,beta,beta,Plants,['di Class 1'],False
+marts_E00017_alpha_0,marts_E00017,alpha,alpha,Plants,['di Class 1'],False
+marts_E01014_beta_0,marts_E01014,beta,beta,Plants,['sesq Class 1'],False
+marts_E01014_alpha_0,marts_E01014,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01073_beta_0,marts_E01073,beta,beta,Plants,['sesq Class 1'],False
+marts_E01073_alpha_0,marts_E01073,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01074_beta_0,marts_E01074,beta,beta,Plants,['sesq Class 1'],False
+marts_E01074_alpha_0,marts_E01074,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01015_beta_0,marts_E01015,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E01015_alpha_0,marts_E01015,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E01283_beta_0,marts_E01283,beta,beta,Plants,['sesq Class 1'],False
+marts_E01283_alpha_0,marts_E01283,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01285_beta_0,marts_E01285,beta,beta,Plants,['sesq Class 1'],False
+marts_E01285_alpha_0,marts_E01285,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01209_beta_0,marts_E01209,beta,beta,Plants,['sesq Class 1'],False
+marts_E01209_alpha_0,marts_E01209,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00844_beta_0,marts_E00844,beta,beta,Plants,['sesq Class 1'],False
+marts_E00844_alpha_0,marts_E00844,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01265_beta_0,marts_E01265,beta,beta,Plants,['sesq Class 1'],False
+marts_E01265_alpha_0,marts_E01265,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00849_beta_0,marts_E00849,beta,beta,Plants,['mono Class 1'],False
+marts_E00849_alpha_0,marts_E00849,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00043_beta_0,marts_E00043,beta,beta,Plants,['sesq Class 1'],False
+marts_E00043_alpha_0,marts_E00043,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00516_beta_0,marts_E00516,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00516_alpha_0,marts_E00516,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00554_ids_0,marts_E00554,ids,alpha,Plants,['sqs'],False
+marts_E01327_ids_0,marts_E01327,ids,alpha,Bacteria,['sesquar Class 1'],False
+marts_E01225_ids_0,marts_E01225,ids,alpha,Animals,"['di Class 1', 'mono Class 1', 'sesq Class 1']",False
+marts_E01402_ids_0,marts_E01402,ids,alpha,Bacteria,"['di Class 1', 'sesquar Class 1', 'sester Class 1', 'tri Class 1']",False
+marts_E01302_alpha_0,marts_E01302,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E00255_ids_0,marts_E00255,ids,alpha,Plants,['pt'],False
+marts_E01268_alpha_0,marts_E01268,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E00441_ids_0,marts_E00441,ids,alpha,Bacteria,['pt'],False
+marts_E00945_alpha_0,marts_E00945,alpha,alpha,Fungi,"['mono Class 1', 'sesq Class 1']",False
+marts_E00876_alpha_0,marts_E00876,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E00053_alpha_0,marts_E00053,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E01186_alpha_0,marts_E01186,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01401_alpha_0,marts_E01401,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E00942_alpha_0,marts_E00942,alpha,alpha,Bacteria,['sesq Class 1'],False
+marts_E01263_ids_0,marts_E01263,ids,alpha,Fungi,['pt'],False
+marts_E01369_alpha_0,marts_E01369,alpha,alpha,Bacteria,"['di Class 1', 'mono Class 1', 'sesq Class 1']",False
+marts_E01329_alpha_0,marts_E01329,alpha,alpha,Bacteria,['sester Class 1'],False
+marts_E01309_alpha_0,marts_E01309,alpha,alpha,Bacteria,['sester Class 1'],False
+marts_E00833_alpha_0,marts_E00833,alpha,alpha,Bacteria,['sesq Class 1'],False
+marts_E01338_alpha_0,marts_E01338,alpha,alpha,Bacteria,['di Class 1'],False
+marts_E00107_alpha_0,marts_E00107,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E00472_ids_0,marts_E00472,ids,alpha,Bacteria,['pt'],False
+marts_E01496_alpha_0,marts_E01496,alpha,alpha,Bacteria,['sesq Class 1'],False
+marts_E00657_beta_0,marts_E00657,beta,beta,Plants,['di Class 1'],False
+marts_E00657_gamma_0,marts_E00657,gamma,gamma,Plants,['di Class 1'],False
+marts_E00657_alpha_0,marts_E00657,alpha,alpha,Plants,['di Class 1'],False
+marts_E01483_beta_0,marts_E01483,beta,beta,Plants,['di Class 1'],False
+marts_E01483_gamma_0,marts_E01483,gamma,gamma,Plants,['di Class 1'],False
+marts_E01483_alpha_0,marts_E01483,alpha,alpha,Plants,['di Class 1'],False
+marts_E00186_beta_0,marts_E00186,beta,beta,Plants,['di Class 1'],False
+marts_E00186_gamma_0,marts_E00186,gamma,gamma,Plants,['di Class 1'],False
+marts_E00186_alpha_0,marts_E00186,alpha,alpha,Plants,['di Class 1'],False
+marts_E00367_beta_0,marts_E00367,beta,beta,Plants,['sesq Class 1'],False
+marts_E00367_gamma_0,marts_E00367,gamma,gamma,Plants,['sesq Class 1'],False
+marts_E00367_alpha_0,marts_E00367,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01142_beta_0,marts_E01142,beta,beta,Plants,['di Class 2'],False
+marts_E01142_gamma_0,marts_E01142,gamma,gamma,Plants,['di Class 2'],False
+marts_E01142_alpha_0,marts_E01142,alpha,alpha,Plants,['di Class 2'],False
+marts_E00719_beta_0,marts_E00719,beta,beta,Plants,"['di Class 1', 'di Class 2']",False
+marts_E00719_gamma_0,marts_E00719,gamma,gamma,Plants,"['di Class 1', 'di Class 2']",False
+marts_E00719_alpha_0,marts_E00719,alpha,alpha,Plants,"['di Class 1', 'di Class 2']",False
+marts_E00302_beta_0,marts_E00302,beta,beta,Plants,['di Class 2'],False
+marts_E00302_gamma_0,marts_E00302,gamma,gamma,Plants,['di Class 2'],False
+marts_E00302_alpha_0,marts_E00302,alpha,alpha,Plants,['di Class 2'],False
+marts_E00991_ids_0,marts_E00991,ids,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E00991_alpha_0,marts_E00991,alpha,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E01136_ids_0,marts_E01136,ids,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E01136_alpha_0,marts_E01136,alpha,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E01410_beta_0,marts_E01410,beta,beta,Plants,['di Class 2'],False
+marts_E01410_gamma_0,marts_E01410,gamma,gamma,Plants,['di Class 2'],False
+marts_E01410_alpha_0,marts_E01410,alpha,alpha,Plants,['di Class 2'],False
+marts_E00605_ids_0,marts_E00605,ids,alpha,Fungi,"['pt', 'tri Class 1']",False
+marts_E00605_alpha_0,marts_E00605,alpha,alpha,Fungi,"['pt', 'tri Class 1']",False
+marts_E00134_beta_0,marts_E00134,beta,beta,Plants,['sester Class 1'],False
+marts_E00134_alpha_0,marts_E00134,alpha,alpha,Plants,['sester Class 1'],False
+marts_E01031_beta_0,marts_E01031,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E01031_alpha_0,marts_E01031,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00721_beta_0,marts_E00721,beta,beta,Plants,['mono Class 1'],False
+marts_E00721_alpha_0,marts_E00721,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00073_beta_0,marts_E00073,beta,beta,Plants,['mono Class 1'],False
+marts_E00073_alpha_0,marts_E00073,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00545_beta_0,marts_E00545,beta,beta,Plants,['sesq Class 1'],False
+marts_E00545_alpha_0,marts_E00545,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00598_beta_0,marts_E00598,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00598_alpha_0,marts_E00598,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E01148_beta_0,marts_E01148,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E01148_alpha_0,marts_E01148,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00288_beta_0,marts_E00288,beta,beta,Plants,['mono Class 1'],False
+marts_E00288_alpha_0,marts_E00288,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00081_beta_0,marts_E00081,beta,beta,Plants,['mono Class 1'],False
+marts_E00081_alpha_0,marts_E00081,alpha,alpha,Plants,['mono Class 1'],False
+marts_E01514_beta_0,marts_E01514,beta,beta,Plants,['mono Class 1'],False
+marts_E01514_alpha_0,marts_E01514,alpha,alpha,Plants,['mono Class 1'],False
+marts_E01394_beta_0,marts_E01394,beta,beta,Plants,['sesq Class 1'],False
+marts_E01394_alpha_0,marts_E01394,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01029_beta_0,marts_E01029,beta,beta,Plants,['sesq Class 1'],False
+marts_E01029_alpha_0,marts_E01029,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00684_beta_0,marts_E00684,beta,beta,Plants,['sesq Class 1'],False
+marts_E00684_alpha_0,marts_E00684,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00772_beta_0,marts_E00772,beta,beta,Plants,['sesq Class 1'],False
+marts_E00772_alpha_0,marts_E00772,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00629_beta_0,marts_E00629,beta,beta,Plants,['sesq Class 1'],False
+marts_E00629_alpha_0,marts_E00629,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00926_beta_0,marts_E00926,beta,beta,Plants,['sesq Class 1'],False
+marts_E00926_alpha_0,marts_E00926,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00415_beta_0,marts_E00415,beta,beta,Plants,['mono Class 1'],False
+marts_E00415_alpha_0,marts_E00415,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00893_beta_0,marts_E00893,beta,beta,Plants,['sesq Class 1'],False
+marts_E00893_alpha_0,marts_E00893,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01371_beta_0,marts_E01371,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E01371_alpha_0,marts_E01371,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E01071_beta_0,marts_E01071,beta,beta,Plants,['sesq Class 1'],False
+marts_E01071_alpha_0,marts_E01071,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00836_beta_0,marts_E00836,beta,beta,Plants,['sesq Class 1'],False
+marts_E00836_alpha_0,marts_E00836,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01055_beta_0,marts_E01055,beta,beta,Plants,['sesq Class 1'],False
+marts_E01055_alpha_0,marts_E01055,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00366_beta_0,marts_E00366,beta,beta,Plants,['mono Class 1'],False
+marts_E00366_alpha_0,marts_E00366,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00758_beta_0,marts_E00758,beta,beta,Plants,['sesq Class 1'],False
+marts_E00758_alpha_0,marts_E00758,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01515_beta_0,marts_E01515,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E01515_alpha_0,marts_E01515,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E01261_beta_0,marts_E01261,beta,beta,Plants,['sesq Class 1'],False
+marts_E01261_alpha_0,marts_E01261,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00650_alpha_0,marts_E00650,alpha,alpha,Animals,['di Class 1'],False
+marts_E00881_alpha_0,marts_E00881,alpha,alpha,Animals,"['di Class 1', 'mono Class 1', 'sesq Class 1']",False
+marts_E01440_alpha_0,marts_E01440,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01172_alpha_0,marts_E01172,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E00196_ids_0,marts_E00196,ids,alpha,Animals,['pt'],False
+marts_E01474_alpha_0,marts_E01474,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E00192_ids_0,marts_E00192,ids,alpha,Fungi,['pt'],False
+marts_E01484_ids_0,marts_E01484,ids,alpha,Fungi,['di Class 1'],False
+marts_E01457_alpha_0,marts_E01457,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E01276_alpha_0,marts_E01276,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E00796_alpha_0,marts_E00796,alpha,alpha,Bacteria,['sesq Class 1'],False
+marts_E00739_alpha_0,marts_E00739,alpha,alpha,Protists,"['mono Class 1', 'sesq Class 1']",False
+marts_E00864_alpha_0,marts_E00864,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E00146_ids_0,marts_E00146,ids,alpha,Plants,['pt'],False
+marts_E00952_alpha_0,marts_E00952,alpha,alpha,Bacteria,['sesq Class 1'],False
+marts_E01347_alpha_0,marts_E01347,alpha,alpha,Bacteria,['di Class 1'],False
+marts_E01365_alpha_0,marts_E01365,alpha,alpha,Bacteria,['di Class 1'],False
+marts_E01091_alpha_0,marts_E01091,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E00805_alpha_0,marts_E00805,alpha,alpha,Bacteria,"['mono Class 1', 'sesq Class 1']",False
+marts_E00905_alpha_0,marts_E00905,alpha,alpha,Bacteria,['mono Class 1'],False
+marts_E00878_alpha_0,marts_E00878,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E00013_alpha_0,marts_E00013,alpha,alpha,Animals,"['mono Class 1', 'sesq Class 1']",False
+marts_E01468_alpha_0,marts_E01468,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E00380_ids_0,marts_E00380,ids,alpha,Plants,['pt'],False
+marts_E00807_ids_0,marts_E00807,ids,alpha,Bacteria,"['psy', 'tetra Class 2']",False
+marts_E00884_gamma_0,marts_E00884,gamma,gamma,Plants,['di Class 1'],False
+marts_E00884_beta_0,marts_E00884,beta,beta,Plants,['di Class 1'],False
+marts_E00884_alpha_0,marts_E00884,alpha,alpha,Plants,['di Class 1'],False
+marts_E00537_beta_0,marts_E00537,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00537_gamma_0,marts_E00537,gamma,gamma,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00537_alpha_0,marts_E00537,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E01311_beta_0,marts_E01311,beta,beta,Plants,['di Class 1'],False
+marts_E01311_gamma_0,marts_E01311,gamma,gamma,Plants,['di Class 1'],False
+marts_E01311_alpha_0,marts_E01311,alpha,alpha,Plants,['di Class 1'],False
+marts_E01119_beta_0,marts_E01119,beta,beta,Plants,['di Class 2'],False
+marts_E01119_gamma_0,marts_E01119,gamma,gamma,Plants,['di Class 2'],False
+marts_E01119_ids_0,marts_E01119,ids,alpha,Plants,['di Class 2'],False
+marts_E00312_beta_0,marts_E00312,beta,beta,Plants,"['di Class 1', 'di Class 2']",False
+marts_E00312_gamma_0,marts_E00312,gamma,gamma,Plants,"['di Class 1', 'di Class 2']",False
+marts_E00312_alpha_0,marts_E00312,alpha,alpha,Plants,"['di Class 1', 'di Class 2']",False
+marts_E01506_beta_0,marts_E01506,beta,beta,Plants,['di Class 1'],False
+marts_E01506_gamma_0,marts_E01506,gamma,gamma,Plants,['di Class 1'],False
+marts_E01506_alpha_0,marts_E01506,alpha,alpha,Plants,['di Class 1'],False
+marts_E01139_beta_0,marts_E01139,beta,beta,Plants,['di Class 1'],False
+marts_E01139_gamma_0,marts_E01139,gamma,gamma,Plants,['di Class 1'],False
+marts_E01139_alpha_0,marts_E01139,alpha,alpha,Plants,['di Class 1'],False
+marts_E01412_beta_0,marts_E01412,beta,beta,Plants,['di Class 2'],False
+marts_E01412_gamma_0,marts_E01412,gamma,gamma,Plants,['di Class 2'],False
+marts_E01412_alpha_0,marts_E01412,alpha,alpha,Plants,['di Class 2'],False
+marts_E00828_ids_0,marts_E00828,ids,alpha,Fungi,"['di Class 1', 'pt']",False
+marts_E00828_alpha_0,marts_E00828,alpha,alpha,Fungi,"['di Class 1', 'pt']",False
+marts_E01248_ids_0,marts_E01248,ids,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E01248_alpha_0,marts_E01248,alpha,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E01211_ids_0,marts_E01211,ids,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E01211_alpha_0,marts_E01211,alpha,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E00002_beta_0,marts_E00002,beta,beta,Plants,['di Class 2'],False
+marts_E00002_alpha_0,marts_E00002,alpha,alpha,Plants,['di Class 2'],False
+marts_E00002_gamma_0,marts_E00002,gamma,gamma,Plants,['di Class 2'],False
+marts_E01033_beta_0,marts_E01033,beta,beta,Plants,['sesq Class 1'],False
+marts_E01033_alpha_0,marts_E01033,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00928_beta_0,marts_E00928,beta,beta,Plants,['sesq Class 1'],False
+marts_E00928_alpha_0,marts_E00928,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00852_beta_0,marts_E00852,beta,beta,Plants,['mono Class 1'],False
+marts_E00852_alpha_0,marts_E00852,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00117_beta_0,marts_E00117,beta,beta,Plants,['mono Class 1'],False
+marts_E00117_alpha_0,marts_E00117,alpha,alpha,Plants,['mono Class 1'],False
+marts_E01153_beta_0,marts_E01153,beta,beta,Plants,['sesq Class 1'],False
+marts_E01153_alpha_0,marts_E01153,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00181_beta_0,marts_E00181,beta,beta,Plants,['mono Class 1'],False
+marts_E00181_alpha_0,marts_E00181,alpha,alpha,Plants,['mono Class 1'],False
+marts_E01012_beta_0,marts_E01012,beta,beta,Plants,['mono Class 1'],False
+marts_E01012_alpha_0,marts_E01012,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00938_beta_0,marts_E00938,beta,beta,Plants,['sesq Class 1'],False
+marts_E00938_alpha_0,marts_E00938,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00229_beta_0,marts_E00229,beta,beta,Plants,['mono Class 1'],False
+marts_E00229_alpha_0,marts_E00229,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00065_beta_0,marts_E00065,beta,beta,Plants,['mono Class 1'],False
+marts_E00065_alpha_0,marts_E00065,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00046_beta_0,marts_E00046,beta,beta,Plants,['mono Class 1'],False
+marts_E00046_alpha_0,marts_E00046,alpha,alpha,Plants,['mono Class 1'],False
+marts_E01378_beta_0,marts_E01378,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E01378_alpha_0,marts_E01378,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00763_beta_0,marts_E00763,beta,beta,Plants,['sesq Class 1'],False
+marts_E00763_alpha_0,marts_E00763,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00022_beta_0,marts_E00022,beta,beta,Plants,['sesq Class 1'],False
+marts_E00022_alpha_0,marts_E00022,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00089_beta_0,marts_E00089,beta,beta,Plants,['mono Class 1'],False
+marts_E00089_alpha_0,marts_E00089,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00270_beta_0,marts_E00270,beta,beta,Plants,['sesq Class 1'],False
+marts_E00270_alpha_0,marts_E00270,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01176_beta_0,marts_E01176,beta,beta,Plants,['sesq Class 1'],False
+marts_E01176_alpha_0,marts_E01176,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00831_beta_0,marts_E00831,beta,beta,Plants,['di Class 1'],False
+marts_E00831_alpha_0,marts_E00831,alpha,alpha,Plants,['di Class 1'],False
+marts_E00786_beta_0,marts_E00786,beta,beta,Plants,['mono Class 1'],False
+marts_E00786_alpha_0,marts_E00786,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00603_beta_0,marts_E00603,beta,beta,Plants,['mono Class 1'],False
+marts_E00603_alpha_0,marts_E00603,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00286_beta_0,marts_E00286,beta,beta,Plants,['sesq Class 1'],False
+marts_E00286_alpha_0,marts_E00286,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00425_beta_0,marts_E00425,beta,beta,Plants,['sesq Class 1'],False
+marts_E00425_alpha_0,marts_E00425,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00543_beta_0,marts_E00543,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00543_alpha_0,marts_E00543,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E01101_beta_0,marts_E01101,beta,beta,Plants,['sesq Class 1'],False
+marts_E01101_alpha_0,marts_E01101,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00075_beta_0,marts_E00075,beta,beta,Plants,['mono Class 1'],False
+marts_E00075_alpha_0,marts_E00075,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00340_beta_0,marts_E00340,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00340_alpha_0,marts_E00340,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00747_beta_0,marts_E00747,beta,beta,Plants,['mono Class 1'],False
+marts_E00747_alpha_0,marts_E00747,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00328_beta_0,marts_E00328,beta,beta,Plants,['sesq Class 1'],False
+marts_E00328_alpha_0,marts_E00328,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00648_alpha_0,marts_E00648,alpha,alpha,Animals,"['di Class 1', 'sesq Class 1']",False
+marts_E00746_alpha_0,marts_E00746,alpha,alpha,Animals,"['mono Class 1', 'sesq Class 1']",False
+marts_E00026_alpha_0,marts_E00026,alpha,alpha,Animals,['di Class 1'],False
+marts_E01495_alpha_0,marts_E01495,alpha,alpha,Bacteria,['di Class 1'],False
+marts_E00875_alpha_0,marts_E00875,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E00866_alpha_0,marts_E00866,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E01077_alpha_0,marts_E01077,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E00360_ids_0,marts_E00360,ids,alpha,Fungi,['pt'],False
+marts_E01456_alpha_0,marts_E01456,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E01212_alpha_0,marts_E01212,alpha,alpha,Protists,['sesq Class 1'],False
+marts_E01273_alpha_0,marts_E01273,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E01187_alpha_0,marts_E01187,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E01471_alpha_0,marts_E01471,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E01169_alpha_0,marts_E01169,alpha,alpha,Bacteria,['di Class 1'],False
+marts_E00051_alpha_0,marts_E00051,alpha,alpha,Animals,"['di Class 1', 'mono Class 1', 'sesq Class 1']",False
+marts_E01093_alpha_0,marts_E01093,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E01361_alpha_0,marts_E01361,alpha,alpha,Bacteria,['di Class 1'],False
+marts_E01344_alpha_0,marts_E01344,alpha,alpha,Bacteria,['di Class 1'],False
+marts_E01152_ids_0,marts_E01152,ids,alpha,Fungi,['pt'],False
+marts_E01353_alpha_0,marts_E01353,alpha,alpha,Bacteria,['di Class 1'],False
+marts_E00300_ids_0,marts_E00300,ids,alpha,Fungi,['pt'],False
+marts_E01435_alpha_0,marts_E01435,alpha,alpha,Bacteria,['di Class 1'],False
+marts_E01494_alpha_0,marts_E01494,alpha,alpha,Bacteria,['di Class 1'],False
+marts_E00490_alpha_0,marts_E00490,alpha,alpha,Bacteria,['psy'],False
+marts_E00659_ids_0,marts_E00659,ids,alpha,Bacteria,['sqs'],False
+marts_E00383_beta_0,marts_E00383,beta,beta,Plants,['di Class 1'],False
+marts_E00383_gamma_0,marts_E00383,gamma,gamma,Plants,['di Class 1'],False
+marts_E00383_alpha_0,marts_E00383,alpha,alpha,Plants,['di Class 1'],False
+marts_E00317_beta_0,marts_E00317,beta,beta,Plants,['di Class 1'],False
+marts_E00317_gamma_0,marts_E00317,gamma,gamma,Plants,['di Class 1'],False
+marts_E00317_alpha_0,marts_E00317,alpha,alpha,Plants,['di Class 1'],False
+marts_E00429_beta_0,marts_E00429,beta,beta,Plants,['di Class 1'],False
+marts_E00429_gamma_0,marts_E00429,gamma,gamma,Plants,['di Class 1'],False
+marts_E00429_alpha_0,marts_E00429,alpha,alpha,Plants,['di Class 1'],False
+marts_E01345_gamma_0,marts_E01345,gamma,gamma,Bacteria,"['di Class 1', 'di Class 2']",False
+marts_E01345_alpha_0,marts_E01345,alpha,alpha,Bacteria,"['di Class 1', 'di Class 2']",False
+marts_E01345_beta_0,marts_E01345,beta,beta,Bacteria,"['di Class 1', 'di Class 2']",False
+marts_E00583_beta_0,marts_E00583,beta,beta,Plants,['di Class 1'],False
+marts_E00583_gamma_0,marts_E00583,gamma,gamma,Plants,['di Class 1'],False
+marts_E00583_alpha_0,marts_E00583,alpha,alpha,Plants,['di Class 1'],False
+marts_E00585_beta_0,marts_E00585,beta,beta,Plants,"['di Class 1', 'mono Class 1']",False
+marts_E00585_gamma_0,marts_E00585,gamma,gamma,Plants,"['di Class 1', 'mono Class 1']",False
+marts_E00585_alpha_0,marts_E00585,alpha,alpha,Plants,"['di Class 1', 'mono Class 1']",False
+marts_E00696_beta_0,marts_E00696,beta,beta,Plants,['di Class 2'],False
+marts_E00696_gamma_0,marts_E00696,gamma,gamma,Plants,['di Class 2'],False
+marts_E00696_alpha_0,marts_E00696,alpha,alpha,Plants,['di Class 2'],False
+marts_E00701_beta_0,marts_E00701,beta,beta,Plants,"['di Class 1', 'di Class 2']",False
+marts_E00701_gamma_0,marts_E00701,gamma,gamma,Plants,"['di Class 1', 'di Class 2']",False
+marts_E00701_alpha_0,marts_E00701,alpha,alpha,Plants,"['di Class 1', 'di Class 2']",False
+marts_E00573_beta_0,marts_E00573,beta,beta,Plants,['di Class 2'],False
+marts_E00573_gamma_0,marts_E00573,gamma,gamma,Plants,['di Class 2'],False
+marts_E00573_alpha_0,marts_E00573,alpha,alpha,Plants,['di Class 2'],False
+marts_E01300_beta_0,marts_E01300,beta,beta,Plants,['di Class 2'],False
+marts_E01300_gamma_0,marts_E01300,gamma,gamma,Plants,['di Class 2'],False
+marts_E01300_alpha_0,marts_E01300,alpha,alpha,Plants,['di Class 2'],False
+marts_E01075_beta_0,marts_E01075,beta,beta,Plants,['di Class 2'],False
+marts_E01075_gamma_0,marts_E01075,gamma,gamma,Plants,['di Class 2'],False
+marts_E01075_alpha_0,marts_E01075,alpha,alpha,Plants,['di Class 2'],False
+marts_E00305_beta_0,marts_E00305,beta,beta,Plants,['di Class 2'],False
+marts_E00305_gamma_0,marts_E00305,gamma,gamma,Plants,['di Class 2'],False
+marts_E00305_ids_0,marts_E00305,ids,alpha,Plants,['di Class 2'],False
+marts_E00254_zeta_0,marts_E00254,zeta,alpha,Fungi,"['psy', 'tetra Class 2']",False
+marts_E00254_alpha_0,marts_E00254,alpha,alpha,Fungi,"['psy', 'tetra Class 2']",False
+marts_E01372_beta_0,marts_E01372,beta,beta,Plants,['mono Class 1'],False
+marts_E01372_alpha_0,marts_E01372,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00095_beta_0,marts_E00095,beta,beta,Plants,['di Class 1'],False
+marts_E00095_alpha_0,marts_E00095,alpha,alpha,Plants,['di Class 1'],False
+marts_E00136_beta_0,marts_E00136,beta,beta,Plants,['sester Class 1'],False
+marts_E00136_alpha_0,marts_E00136,alpha,alpha,Plants,['sester Class 1'],False
+marts_E00555_beta_0,marts_E00555,beta,beta,Plants,['mono Class 1'],False
+marts_E00555_alpha_0,marts_E00555,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00224_beta_0,marts_E00224,beta,beta,Plants,['mono Class 1'],False
+marts_E00224_alpha_0,marts_E00224,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00258_beta_0,marts_E00258,beta,beta,Plants,['hemi Class 1'],False
+marts_E00258_alpha_0,marts_E00258,alpha,alpha,Plants,['hemi Class 1'],False
+marts_E00221_beta_0,marts_E00221,beta,beta,Plants,['sesq Class 1'],False
+marts_E00221_alpha_0,marts_E00221,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01375_beta_0,marts_E01375,beta,beta,Plants,['mono Class 1'],False
+marts_E01375_alpha_0,marts_E01375,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00401_beta_0,marts_E00401,beta,beta,Plants,['mono Class 1'],False
+marts_E00401_alpha_0,marts_E00401,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00209_beta_0,marts_E00209,beta,beta,Plants,['sesq Class 1'],False
+marts_E00209_alpha_0,marts_E00209,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01517_beta_0,marts_E01517,beta,beta,Plants,['mono Class 1'],False
+marts_E01517_alpha_0,marts_E01517,alpha,alpha,Plants,['mono Class 1'],False
+marts_E01508_beta_0,marts_E01508,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E01508_alpha_0,marts_E01508,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00534_beta_0,marts_E00534,beta,beta,Plants,['mono Class 1'],False
+marts_E00534_alpha_0,marts_E00534,alpha,alpha,Plants,['mono Class 1'],False
+marts_E01035_beta_0,marts_E01035,beta,beta,Plants,['sesq Class 1'],False
+marts_E01035_alpha_0,marts_E01035,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00030_beta_0,marts_E00030,beta,beta,Plants,['sesq Class 1'],False
+marts_E00030_alpha_0,marts_E00030,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01037_beta_0,marts_E01037,beta,beta,Plants,['di Class 1'],False
+marts_E01037_alpha_0,marts_E01037,alpha,alpha,Plants,['di Class 1'],False
+marts_E01112_beta_0,marts_E01112,beta,beta,Plants,['sesq Class 1'],False
+marts_E01112_alpha_0,marts_E01112,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00821_beta_0,marts_E00821,beta,beta,Plants,['sesq Class 1'],False
+marts_E00821_alpha_0,marts_E00821,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01109_beta_0,marts_E01109,beta,beta,Plants,['sesq Class 1'],False
+marts_E01109_alpha_0,marts_E01109,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01291_beta_0,marts_E01291,beta,beta,Plants,['sesq Class 1'],False
+marts_E01291_alpha_0,marts_E01291,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00373_beta_0,marts_E00373,beta,beta,Plants,['sesq Class 1'],False
+marts_E00373_alpha_0,marts_E00373,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01098_beta_0,marts_E01098,beta,beta,Plants,['sesq Class 1'],False
+marts_E01098_alpha_0,marts_E01098,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00411_beta_0,marts_E00411,beta,beta,Plants,['sesq Class 1'],False
+marts_E00411_alpha_0,marts_E00411,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01290_beta_0,marts_E01290,beta,beta,Plants,['sesq Class 1'],False
+marts_E01290_alpha_0,marts_E01290,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01296_beta_0,marts_E01296,beta,beta,Plants,['sesq Class 1'],False
+marts_E01296_alpha_0,marts_E01296,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00413_beta_0,marts_E00413,beta,beta,Plants,['sesq Class 1'],False
+marts_E00413_alpha_0,marts_E00413,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00159_beta_0,marts_E00159,beta,beta,Plants,['sesq Class 1'],False
+marts_E00159_alpha_0,marts_E00159,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01509_beta_0,marts_E01509,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E01509_alpha_0,marts_E01509,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00148_ids_0,marts_E00148,ids,alpha,Fungi,['sqs'],False
+marts_E01047_alpha_0,marts_E01047,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E00509_alpha_0,marts_E00509,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E01398_alpha_0,marts_E01398,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00522_ids_0,marts_E00522,ids,alpha,Plants,['mono Class 1'],False
+marts_E01125_alpha_0,marts_E01125,alpha,alpha,Bacteria,['sesq Class 1'],False
+marts_E00191_ids_0,marts_E00191,ids,alpha,Fungi,['pt'],False
+marts_E01205_alpha_0,marts_E01205,alpha,alpha,Fungi,['di Class 1'],False
+marts_E01317_alpha_0,marts_E01317,alpha,alpha,Bacteria,['di Class 1'],False
+marts_E01193_alpha_0,marts_E01193,alpha,alpha,Bacteria,['di Class 1'],False
+marts_E00873_alpha_0,marts_E00873,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E00862_alpha_0,marts_E00862,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E00057_alpha_0,marts_E00057,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E01274_alpha_0,marts_E01274,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E01360_alpha_0,marts_E01360,alpha,alpha,Bacteria,['di Class 1'],False
+marts_E01090_alpha_0,marts_E01090,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E01406_alpha_0,marts_E01406,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E00179_ids_0,marts_E00179,ids,alpha,Plants,['pt'],False
+marts_E00195_alpha_0,marts_E00195,alpha,alpha,Bacteria,['sesq Class 1'],False
+marts_E01254_alpha_0,marts_E01254,alpha,alpha,Bacteria,['di Class 1'],False
+marts_E01407_alpha_0,marts_E01407,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E00211_ids_0,marts_E00211,ids,alpha,Archaea,['pt'],False
+marts_E01367_alpha_0,marts_E01367,alpha,alpha,Bacteria,['di Class 1'],False
+marts_E00569_ids_0,marts_E00569,ids,alpha,Bacteria,['sesq Class 1'],False
+marts_E01418_beta_0,marts_E01418,beta,beta,Plants,['di Class 1'],False
+marts_E01418_gamma_0,marts_E01418,gamma,gamma,Plants,['di Class 1'],False
+marts_E01418_alpha_0,marts_E01418,alpha,alpha,Plants,['di Class 1'],False
+marts_E01240_gamma_0,marts_E01240,gamma,gamma,Plants,['di Class 1'],False
+marts_E01240_alpha_0,marts_E01240,alpha,alpha,Plants,['di Class 1'],False
+marts_E01240_beta_0,marts_E01240,beta,beta,Plants,['di Class 1'],False
+marts_E01444_beta_0,marts_E01444,beta,beta,Plants,['di Class 1'],False
+marts_E01444_gamma_0,marts_E01444,gamma,gamma,Plants,['di Class 1'],False
+marts_E01444_alpha_0,marts_E01444,alpha,alpha,Plants,['di Class 1'],False
+marts_E00695_beta_0,marts_E00695,beta,beta,Plants,['di Class 1'],False
+marts_E00695_gamma_0,marts_E00695,gamma,gamma,Plants,['di Class 1'],False
+marts_E00695_alpha_0,marts_E00695,alpha,alpha,Plants,['di Class 1'],False
+marts_E01076_beta_0,marts_E01076,beta,beta,Plants,['di Class 1'],False
+marts_E01076_gamma_0,marts_E01076,gamma,gamma,Plants,['di Class 1'],False
+marts_E01076_alpha_0,marts_E01076,alpha,alpha,Plants,['di Class 1'],False
+marts_E00654_beta_0,marts_E00654,beta,beta,Plants,"['di Class 1', 'di Class 2']",False
+marts_E00654_gamma_0,marts_E00654,gamma,gamma,Plants,"['di Class 1', 'di Class 2']",False
+marts_E00654_alpha_0,marts_E00654,alpha,alpha,Plants,"['di Class 1', 'di Class 2']",False
+marts_E00847_beta_0,marts_E00847,beta,beta,Plants,['di Class 2'],False
+marts_E00847_gamma_0,marts_E00847,gamma,gamma,Plants,['di Class 2'],False
+marts_E00847_alpha_0,marts_E00847,alpha,alpha,Plants,['di Class 2'],False
+marts_E01066_ids_0,marts_E01066,ids,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E01066_alpha_0,marts_E01066,alpha,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E00454_ids_0,marts_E00454,ids,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E00454_alpha_0,marts_E00454,alpha,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E00456_ids_0,marts_E00456,ids,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E00456_alpha_0,marts_E00456,alpha,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E00890_beta_0,marts_E00890,beta,beta,Plants,['di Class 2'],False
+marts_E00890_gamma_0,marts_E00890,gamma,gamma,Plants,['di Class 2'],False
+marts_E00890_alpha_0,marts_E00890,alpha,alpha,Plants,['di Class 2'],False
+marts_E00590_ids_0,marts_E00590,ids,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E00590_alpha_0,marts_E00590,alpha,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E01034_beta_0,marts_E01034,beta,beta,Plants,['sesq Class 1'],False
+marts_E01034_alpha_0,marts_E01034,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00887_beta_0,marts_E00887,beta,beta,Plants,['di Class 1'],False
+marts_E00887_alpha_0,marts_E00887,alpha,alpha,Plants,['di Class 1'],False
+marts_E00925_beta_0,marts_E00925,beta,beta,Plants,['sesq Class 1'],False
+marts_E00925_alpha_0,marts_E00925,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00180_beta_0,marts_E00180,beta,beta,Plants,['mono Class 1'],False
+marts_E00180_alpha_0,marts_E00180,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00957_beta_0,marts_E00957,beta,beta,Plants,['mono Class 1'],False
+marts_E00957_alpha_0,marts_E00957,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00400_beta_0,marts_E00400,beta,beta,Plants,['mono Class 1'],False
+marts_E00400_alpha_0,marts_E00400,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00079_beta_0,marts_E00079,beta,beta,Plants,['mono Class 1'],False
+marts_E00079_alpha_0,marts_E00079,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00714_beta_0,marts_E00714,beta,beta,Plants,['sesq Class 1'],False
+marts_E00714_alpha_0,marts_E00714,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01019_beta_0,marts_E01019,beta,beta,Plants,['mono Class 1'],False
+marts_E01019_alpha_0,marts_E01019,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00251_beta_0,marts_E00251,beta,beta,Plants,['mono Class 1'],False
+marts_E00251_alpha_0,marts_E00251,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00188_beta_0,marts_E00188,beta,beta,Plants,['mono Class 1'],False
+marts_E00188_alpha_0,marts_E00188,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00332_beta_0,marts_E00332,beta,beta,Plants,['mono Class 1'],False
+marts_E00332_alpha_0,marts_E00332,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00240_beta_0,marts_E00240,beta,beta,Plants,['mono Class 1'],False
+marts_E00240_alpha_0,marts_E00240,alpha,alpha,Plants,['mono Class 1'],False
+marts_E01221_beta_0,marts_E01221,beta,beta,Plants,['sesq Class 1'],False
+marts_E01221_alpha_0,marts_E01221,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00885_beta_0,marts_E00885,beta,beta,Plants,['sesq Class 1'],False
+marts_E00885_alpha_0,marts_E00885,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00559_beta_0,marts_E00559,beta,beta,Plants,['mono Class 1'],False
+marts_E00559_alpha_0,marts_E00559,alpha,alpha,Plants,['mono Class 1'],False
+marts_E01011_beta_0,marts_E01011,beta,beta,Plants,['sesq Class 1'],False
+marts_E01011_alpha_0,marts_E01011,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01510_beta_0,marts_E01510,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E01510_alpha_0,marts_E01510,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00958_beta_0,marts_E00958,beta,beta,Plants,['mono Class 1'],False
+marts_E00958_alpha_0,marts_E00958,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00621_beta_0,marts_E00621,beta,beta,Plants,['sesq Class 1'],False
+marts_E00621_alpha_0,marts_E00621,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00032_beta_0,marts_E00032,beta,beta,Plants,['sesq Class 1'],False
+marts_E00032_alpha_0,marts_E00032,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01070_beta_0,marts_E01070,beta,beta,Plants,['sesq Class 1'],False
+marts_E01070_alpha_0,marts_E01070,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00178_beta_0,marts_E00178,beta,beta,Plants,['sesq Class 1'],False
+marts_E00178_alpha_0,marts_E00178,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00715_beta_0,marts_E00715,beta,beta,Plants,['sesq Class 1'],False
+marts_E00715_alpha_0,marts_E00715,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01388_beta_0,marts_E01388,beta,beta,Plants,['sesq Class 1'],False
+marts_E01388_alpha_0,marts_E01388,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00384_beta_0,marts_E00384,beta,beta,Plants,['sesq Class 1'],False
+marts_E00384_alpha_0,marts_E00384,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00725_beta_0,marts_E00725,beta,beta,Plants,['mono Class 1'],False
+marts_E00725_alpha_0,marts_E00725,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00099_ids_0,marts_E00099,ids,alpha,Fungi,['sqs'],False
+marts_E00474_ids_0,marts_E00474,ids,alpha,Plants,['sqs'],False
+marts_E00549_ids_0,marts_E00549,ids,alpha,Bacteria,['pt'],False
+marts_E01141_alpha_0,marts_E01141,alpha,alpha,Plants,['di Class 2'],False
+marts_E01141_beta_0,marts_E01141,beta,beta,Plants,['di Class 2'],False
+marts_E00564_ids_0,marts_E00564,ids,alpha,Fungi,['pt'],False
+marts_E00558_ids_0,marts_E00558,ids,alpha,Plants,['pt'],False
+marts_E00457_ids_0,marts_E00457,ids,alpha,Archaea,['pt'],False
+marts_E00253_alpha_0,marts_E00253,alpha,alpha,Bacteria,['sesq Class 1'],False
+marts_E01473_alpha_0,marts_E01473,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E01451_alpha_0,marts_E01451,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E01455_alpha_0,marts_E01455,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E00646_ids_0,marts_E00646,ids,alpha,Fungi,['pt'],False
+marts_E00900_alpha_0,marts_E00900,alpha,alpha,Bacteria,['sesq Class 1'],False
+marts_E00903_alpha_0,marts_E00903,alpha,alpha,Bacteria,['sesq Class 1'],False
+marts_E01336_alpha_0,marts_E01336,alpha,alpha,Bacteria,['di Class 1'],False
+marts_E00449_alpha_0,marts_E00449,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E00711_ids_0,marts_E00711,ids,alpha,Fungi,['pt'],False
+marts_E01312_alpha_0,marts_E01312,alpha,alpha,Bacteria,"['di Class 1', 'sester Class 1']",False
+marts_E01370_alpha_0,marts_E01370,alpha,alpha,Bacteria,"['di Class 1', 'mono Class 1', 'sesq Class 1']",False
+marts_E00465_ids_0,marts_E00465,ids,alpha,Animals,['pt'],False
+marts_E00318_ids_0,marts_E00318,ids,alpha,Fungi,['pt'],False
+marts_E00859_alpha_0,marts_E00859,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E01352_alpha_0,marts_E01352,alpha,alpha,Bacteria,['di Class 1'],False
+marts_E01434_alpha_0,marts_E01434,alpha,alpha,Bacteria,['di Class 1'],False
+marts_E01417_beta_0,marts_E01417,beta,beta,Plants,['di Class 1'],False
+marts_E01417_gamma_0,marts_E01417,gamma,gamma,Plants,['di Class 1'],False
+marts_E01417_alpha_0,marts_E01417,alpha,alpha,Plants,['di Class 1'],False
+marts_E00125_beta_0,marts_E00125,beta,beta,Plants,['di Class 1'],False
+marts_E00125_gamma_0,marts_E00125,gamma,gamma,Plants,['di Class 1'],False
+marts_E00125_alpha_0,marts_E00125,alpha,alpha,Plants,['di Class 1'],False
+marts_E01297_beta_0,marts_E01297,beta,beta,Plants,['di Class 1'],False
+marts_E01297_gamma_0,marts_E01297,gamma,gamma,Plants,['di Class 1'],False
+marts_E01297_alpha_0,marts_E01297,alpha,alpha,Plants,['di Class 1'],False
+marts_E00102_beta_0,marts_E00102,beta,beta,Plants,['di Class 1'],False
+marts_E00102_gamma_0,marts_E00102,gamma,gamma,Plants,['di Class 1'],False
+marts_E00102_alpha_0,marts_E00102,alpha,alpha,Plants,['di Class 1'],False
+marts_E00639_beta_0,marts_E00639,beta,beta,Plants,['mono Class 1'],False
+marts_E00639_gamma_0,marts_E00639,gamma,gamma,Plants,['mono Class 1'],False
+marts_E00639_alpha_0,marts_E00639,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00846_beta_0,marts_E00846,beta,beta,Plants,['mono Class 1'],False
+marts_E00846_alpha_0,marts_E00846,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00846_gamma_0,marts_E00846,gamma,gamma,Plants,['mono Class 1'],False
+marts_E00653_beta_0,marts_E00653,beta,beta,Plants,"['di Class 1', 'di Class 2']",False
+marts_E00653_gamma_0,marts_E00653,gamma,gamma,Plants,"['di Class 1', 'di Class 2']",False
+marts_E00653_alpha_0,marts_E00653,alpha,alpha,Plants,"['di Class 1', 'di Class 2']",False
+marts_E01120_beta_0,marts_E01120,beta,beta,Plants,['di Class 2'],False
+marts_E01120_gamma_0,marts_E01120,gamma,gamma,Plants,['di Class 2'],False
+marts_E01120_alpha_0,marts_E01120,alpha,alpha,Plants,['di Class 2'],False
+marts_E01208_ids_0,marts_E01208,ids,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E01208_alpha_0,marts_E01208,alpha,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E01234_ids_0,marts_E01234,ids,alpha,Fungi,"['di Class 1', 'pt', 'sester Class 1']",False
+marts_E01234_alpha_0,marts_E01234,alpha,alpha,Fungi,"['di Class 1', 'pt', 'sester Class 1']",False
+marts_E01023_ids_0,marts_E01023,ids,alpha,Fungi,"['di Class 1', 'pt', 'sester Class 1']",False
+marts_E01023_alpha_0,marts_E01023,alpha,alpha,Fungi,"['di Class 1', 'pt', 'sester Class 1']",False
+marts_E00489_zeta_0,marts_E00489,zeta,alpha,Fungi,"['psy', 'tetra Class 2']",False
+marts_E00489_ids_0,marts_E00489,ids,alpha,Fungi,"['psy', 'tetra Class 2']",False
+marts_E01391_beta_0,marts_E01391,beta,beta,Plants,['mono Class 1'],False
+marts_E01391_alpha_0,marts_E01391,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00272_beta_0,marts_E00272,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00272_alpha_0,marts_E00272,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00960_beta_0,marts_E00960,beta,beta,Plants,['mono Class 1'],False
+marts_E00960_alpha_0,marts_E00960,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00927_beta_0,marts_E00927,beta,beta,Plants,['sesq Class 1'],False
+marts_E00927_alpha_0,marts_E00927,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00738_beta_0,marts_E00738,beta,beta,Plants,['mono Class 1'],False
+marts_E00738_alpha_0,marts_E00738,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00541_beta_0,marts_E00541,beta,beta,Plants,['di Class 1'],False
+marts_E00541_alpha_0,marts_E00541,alpha,alpha,Plants,['di Class 1'],False
+marts_E00553_beta_0,marts_E00553,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00553_alpha_0,marts_E00553,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00954_beta_0,marts_E00954,beta,beta,Plants,['mono Class 1'],False
+marts_E00954_alpha_0,marts_E00954,alpha,alpha,Plants,['mono Class 1'],False
+marts_E01245_beta_0,marts_E01245,beta,beta,Plants,['sesq Class 1'],False
+marts_E01245_alpha_0,marts_E01245,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01527_beta_0,marts_E01527,beta,beta,Plants,['mono Class 1'],False
+marts_E01527_alpha_0,marts_E01527,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00323_beta_0,marts_E00323,beta,beta,Plants,['sesq Class 1'],False
+marts_E00323_alpha_0,marts_E00323,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01215_beta_0,marts_E01215,beta,beta,Plants,['sesq Class 1'],False
+marts_E01215_alpha_0,marts_E01215,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01041_beta_0,marts_E01041,beta,beta,Plants,['sesq Class 1'],False
+marts_E01041_alpha_0,marts_E01041,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00771_beta_0,marts_E00771,beta,beta,Plants,['sesq Class 1'],False
+marts_E00771_alpha_0,marts_E00771,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00788_beta_0,marts_E00788,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00788_alpha_0,marts_E00788,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00787_beta_0,marts_E00787,beta,beta,Plants,['mono Class 1'],False
+marts_E00787_alpha_0,marts_E00787,alpha,alpha,Plants,['mono Class 1'],False
+marts_E01503_beta_0,marts_E01503,beta,beta,Plants,['di Class 1'],False
+marts_E01503_alpha_0,marts_E01503,alpha,alpha,Plants,['di Class 1'],False
+marts_E01499_beta_0,marts_E01499,beta,beta,Plants,['mono Class 1'],False
+marts_E01499_alpha_0,marts_E01499,alpha,alpha,Plants,['mono Class 1'],False
+marts_E01377_beta_0,marts_E01377,beta,beta,Plants,['sesq Class 1'],False
+marts_E01377_alpha_0,marts_E01377,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00142_beta_0,marts_E00142,beta,beta,Plants,['sesq Class 1'],False
+marts_E00142_alpha_0,marts_E00142,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01008_beta_0,marts_E01008,beta,beta,Plants,"['di Class 1', 'mono Class 1', 'sesq Class 1']",False
+marts_E01008_alpha_0,marts_E01008,alpha,alpha,Plants,"['di Class 1', 'mono Class 1', 'sesq Class 1']",False
+marts_E01121_beta_0,marts_E01121,beta,beta,Plants,['di Class 1'],False
+marts_E01121_alpha_0,marts_E01121,alpha,alpha,Plants,['di Class 1'],False
+marts_E00315_beta_0,marts_E00315,beta,beta,Plants,['mono Class 1'],False
+marts_E00315_alpha_0,marts_E00315,alpha,alpha,Plants,['mono Class 1'],False
+marts_E01386_beta_0,marts_E01386,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E01386_alpha_0,marts_E01386,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00290_beta_0,marts_E00290,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00290_alpha_0,marts_E00290,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00673_beta_0,marts_E00673,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00673_alpha_0,marts_E00673,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E01376_beta_0,marts_E01376,beta,beta,Plants,['sesq Class 1'],False
+marts_E01376_alpha_0,marts_E01376,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00500_ids_0,marts_E00500,ids,alpha,Fungi,['sqs'],False
+marts_E00794_alpha_0,marts_E00794,alpha,alpha,Animals,['sesq Class 1'],False
+marts_E01331_alpha_0,marts_E01331,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00123_ids_0,marts_E00123,ids,alpha,Plants,['pt'],False
+marts_E01173_alpha_0,marts_E01173,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E00481_ids_0,marts_E00481,ids,alpha,Fungi,['pt'],False
+marts_E00370_ids_0,marts_E00370,ids,alpha,Plants,['pt'],False
+marts_E00478_ids_0,marts_E00478,ids,alpha,Plants,['pt'],False
+marts_E00550_ids_0,marts_E00550,ids,alpha,Bacteria,['pt'],False
+marts_E00748_alpha_0,marts_E00748,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E00710_ids_0,marts_E00710,ids,alpha,Fungi,['pt'],False
+marts_E01459_alpha_0,marts_E01459,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E00863_alpha_0,marts_E00863,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E01048_alpha_0,marts_E01048,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E00870_alpha_0,marts_E00870,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E01359_alpha_0,marts_E01359,alpha,alpha,Bacteria,['di Class 1'],False
+marts_E00614_alpha_0,marts_E00614,alpha,alpha,Bacteria,['sesq Class 1'],False
+marts_E01430_alpha_0,marts_E01430,alpha,alpha,Bacteria,['di Class 1'],False
+marts_E01064_alpha_0,marts_E01064,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01368_alpha_0,marts_E01368,alpha,alpha,Bacteria,['di Class 1'],False
+marts_E00020_alpha_0,marts_E00020,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E01500_alpha_0,marts_E01500,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E01521_alpha_0,marts_E01521,alpha,alpha,Bacteria,['di Class 1'],False
+marts_E01242_ids_0,marts_E01242,ids,alpha,Plants,['pt'],False
+marts_E00338_alpha_0,marts_E00338,alpha,alpha,Bacteria,['di Class 1'],False
+marts_E00273_beta_0,marts_E00273,beta,beta,Plants,['di Class 1'],False
+marts_E00273_gamma_0,marts_E00273,gamma,gamma,Plants,['di Class 1'],False
+marts_E00273_alpha_0,marts_E00273,alpha,alpha,Plants,['di Class 1'],False
+marts_E01178_beta_0,marts_E01178,beta,beta,Plants,['di Class 1'],False
+marts_E01178_gamma_0,marts_E01178,gamma,gamma,Plants,['di Class 1'],False
+marts_E01178_alpha_0,marts_E01178,alpha,alpha,Plants,['di Class 1'],False
+marts_E01511_beta_0,marts_E01511,beta,beta,Plants,['di Class 1'],False
+marts_E01511_alpha_0,marts_E01511,alpha,alpha,Plants,['di Class 1'],False
+marts_E01511_gamma_0,marts_E01511,gamma,gamma,Plants,['di Class 1'],False
+marts_E01477_beta_0,marts_E01477,beta,beta,Plants,['sesq Class 1'],False
+marts_E01477_gamma_0,marts_E01477,gamma,gamma,Plants,['sesq Class 1'],False
+marts_E01477_alpha_0,marts_E01477,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00682_beta_0,marts_E00682,beta,beta,Plants,['di Class 1'],False
+marts_E00682_alpha_0,marts_E00682,alpha,alpha,Plants,['di Class 1'],False
+marts_E00682_gamma_0,marts_E00682,gamma,gamma,Plants,['di Class 1'],False
+marts_E00995_ids_0,marts_E00995,ids,alpha,Fungi,"['di Class 1', 'pt']",False
+marts_E00995_alpha_0,marts_E00995,alpha,alpha,Fungi,"['di Class 1', 'pt']",False
+marts_E00827_ids_0,marts_E00827,ids,alpha,Fungi,"['pt', 'tri Class 1']",False
+marts_E00827_alpha_0,marts_E00827,alpha,alpha,Fungi,"['pt', 'tri Class 1']",False
+marts_E00098_beta_0,marts_E00098,beta,beta,Plants,['di Class 2'],False
+marts_E00098_gamma_0,marts_E00098,gamma,gamma,Plants,['di Class 2'],False
+marts_E00098_alpha_0,marts_E00098,alpha,alpha,Plants,['di Class 2'],False
+marts_E01284_beta_0,marts_E01284,beta,beta,Plants,['sesq Class 1'],False
+marts_E01284_gamma_0,marts_E01284,gamma,gamma,Plants,['sesq Class 1'],False
+marts_E01284_alpha_0,marts_E01284,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00576_ids_0,marts_E00576,ids,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E00576_alpha_0,marts_E00576,alpha,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E00658_beta_0,marts_E00658,beta,beta,Plants,['di Class 2'],False
+marts_E00658_gamma_0,marts_E00658,gamma,gamma,Plants,['di Class 2'],False
+marts_E00658_alpha_0,marts_E00658,alpha,alpha,Plants,['di Class 2'],False
+marts_E00797_beta_0,marts_E00797,beta,beta,Plants,['di Class 1'],False
+marts_E00797_alpha_0,marts_E00797,alpha,alpha,Plants,['di Class 1'],False
+marts_E00070_beta_0,marts_E00070,beta,beta,Plants,['mono Class 1'],False
+marts_E00070_alpha_0,marts_E00070,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00517_beta_0,marts_E00517,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00517_alpha_0,marts_E00517,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00735_beta_0,marts_E00735,beta,beta,Plants,['mono Class 1'],False
+marts_E00735_alpha_0,marts_E00735,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00368_beta_0,marts_E00368,beta,beta,Plants,['mono Class 1'],False
+marts_E00368_alpha_0,marts_E00368,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00912_beta_0,marts_E00912,beta,beta,Plants,['sesq Class 1'],False
+marts_E00912_alpha_0,marts_E00912,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00671_beta_0,marts_E00671,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00671_alpha_0,marts_E00671,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00720_beta_0,marts_E00720,beta,beta,Plants,['mono Class 1'],False
+marts_E00720_alpha_0,marts_E00720,alpha,alpha,Plants,['mono Class 1'],False
+marts_E01006_beta_0,marts_E01006,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E01006_alpha_0,marts_E01006,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00703_beta_0,marts_E00703,beta,beta,Plants,['mono Class 1'],False
+marts_E00703_alpha_0,marts_E00703,alpha,alpha,Plants,['mono Class 1'],False
+marts_E01526_beta_0,marts_E01526,beta,beta,Plants,['mono Class 1'],False
+marts_E01526_alpha_0,marts_E01526,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00643_beta_0,marts_E00643,beta,beta,Plants,['sesq Class 1'],False
+marts_E00643_alpha_0,marts_E00643,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00066_beta_0,marts_E00066,beta,beta,Plants,['mono Class 1'],False
+marts_E00066_alpha_0,marts_E00066,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00670_beta_0,marts_E00670,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00670_alpha_0,marts_E00670,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00728_beta_0,marts_E00728,beta,beta,Plants,['mono Class 1'],False
+marts_E00728_alpha_0,marts_E00728,alpha,alpha,Plants,['mono Class 1'],False
+marts_E01026_beta_0,marts_E01026,beta,beta,Plants,['mono Class 1'],False
+marts_E01026_alpha_0,marts_E01026,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00169_beta_0,marts_E00169,beta,beta,Plants,['sesq Class 1'],False
+marts_E00169_alpha_0,marts_E00169,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00085_beta_0,marts_E00085,beta,beta,Plants,['mono Class 1'],False
+marts_E00085_alpha_0,marts_E00085,alpha,alpha,Plants,['mono Class 1'],False
+marts_E01018_beta_0,marts_E01018,beta,beta,Plants,['sesq Class 1'],False
+marts_E01018_alpha_0,marts_E01018,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01062_beta_0,marts_E01062,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E01062_alpha_0,marts_E01062,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00777_beta_0,marts_E00777,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00777_alpha_0,marts_E00777,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00964_beta_0,marts_E00964,beta,beta,Plants,['sesq Class 1'],False
+marts_E00964_alpha_0,marts_E00964,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01280_beta_0,marts_E01280,beta,beta,Plants,['sesq Class 1'],False
+marts_E01280_alpha_0,marts_E01280,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01286_beta_0,marts_E01286,beta,beta,Plants,['sesq Class 1'],False
+marts_E01286_alpha_0,marts_E01286,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00842_beta_0,marts_E00842,beta,beta,Plants,['sesq Class 1'],False
+marts_E00842_alpha_0,marts_E00842,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00378_beta_0,marts_E00378,beta,beta,Plants,['sesq Class 1'],False
+marts_E00378_alpha_0,marts_E00378,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00034_beta_0,marts_E00034,beta,beta,Plants,['sesq Class 1'],False
+marts_E00034_alpha_0,marts_E00034,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00393_beta_0,marts_E00393,beta,beta,Plants,['sesq Class 1'],False
+marts_E00393_alpha_0,marts_E00393,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01214_ids_0,marts_E01214,ids,alpha,Plants,['sqs'],False
+marts_E00001_alpha_0,marts_E00001,alpha,alpha,Animals,"['di Class 1', 'sesq Class 1']",False
+marts_E00705_ids_0,marts_E00705,ids,alpha,Plants,['tri Class 1'],False
+marts_E00548_ids_0,marts_E00548,ids,alpha,Fungi,['pt'],False
+marts_E00574_ids_0,marts_E00574,ids,alpha,Plants,['pt'],False
+marts_E01083_alpha_0,marts_E01083,alpha,alpha,Protists,"['mono Class 1', 'sesq Class 1']",False
+marts_E01082_alpha_0,marts_E01082,alpha,alpha,Plants,"['di Class 1', 'sesq Class 1']",False
+marts_E00278_alpha_0,marts_E00278,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E00304_ids_0,marts_E00304,ids,alpha,Plants,['psy'],False
+marts_E00105_ids_0,marts_E00105,ids,alpha,Archaea,['pt'],False
+marts_E01305_alpha_0,marts_E01305,alpha,alpha,Protists,['sesq Class 1'],False
+marts_E00800_alpha_0,marts_E00800,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00594_alpha_0,marts_E00594,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E01223_ids_0,marts_E01223,ids,alpha,Fungi,['pt'],False
+marts_E01156_ids_0,marts_E01156,ids,alpha,Fungi,['pt'],False
+marts_E01084_alpha_0,marts_E01084,alpha,alpha,Protists,['sesq Class 1'],False
+marts_E01325_alpha_0,marts_E01325,alpha,alpha,Bacteria,['di Class 1'],False
+marts_E01472_alpha_0,marts_E01472,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E01319_alpha_0,marts_E01319,alpha,alpha,Bacteria,['sesq Class 1'],False
+marts_E01351_alpha_0,marts_E01351,alpha,alpha,Bacteria,['di Class 1'],False
+marts_E01349_alpha_0,marts_E01349,alpha,alpha,Bacteria,['di Class 1'],False
+marts_E01404_alpha_0,marts_E01404,alpha,alpha,Bacteria,['di Class 1'],False
+marts_E00519_ids_0,marts_E00519,ids,alpha,Viruses,['pt'],False
+marts_E00432_ids_0,marts_E00432,ids,alpha,Bacteria,['pt'],False
+marts_E00740_alpha_0,marts_E00740,alpha,alpha,Protists,"['mono Class 1', 'sesq Class 1']",False
+marts_E00769_beta_0,marts_E00769,beta,beta,Plants,"['di Class 1', 'di Class 2']",False
+marts_E00769_gamma_0,marts_E00769,gamma,gamma,Plants,"['di Class 1', 'di Class 2']",False
+marts_E00769_alpha_0,marts_E00769,alpha,alpha,Plants,"['di Class 1', 'di Class 2']",False
+marts_E00038_beta_0,marts_E00038,beta,beta,Plants,['di Class 1'],False
+marts_E00038_gamma_0,marts_E00038,gamma,gamma,Plants,['di Class 1'],False
+marts_E00038_alpha_0,marts_E00038,alpha,alpha,Plants,['di Class 1'],False
+marts_E00667_beta_0,marts_E00667,beta,beta,Plants,['di Class 1'],False
+marts_E00667_alpha_0,marts_E00667,alpha,alpha,Plants,['di Class 1'],False
+marts_E00667_gamma_0,marts_E00667,gamma,gamma,Plants,['di Class 1'],False
+marts_E00814_beta_0,marts_E00814,beta,beta,Plants,['di Class 1'],False
+marts_E00814_gamma_0,marts_E00814,gamma,gamma,Plants,['di Class 1'],False
+marts_E00814_alpha_0,marts_E00814,alpha,alpha,Plants,['di Class 1'],False
+marts_E00988_ids_0,marts_E00988,ids,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E00988_alpha_0,marts_E00988,alpha,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E00382_beta_0,marts_E00382,beta,beta,Plants,['di Class 2'],False
+marts_E00382_gamma_0,marts_E00382,gamma,gamma,Plants,['di Class 2'],False
+marts_E00382_alpha_0,marts_E00382,alpha,alpha,Plants,['di Class 2'],False
+marts_E00989_ids_0,marts_E00989,ids,alpha,Fungi,"['di Class 1', 'pt']",False
+marts_E00989_alpha_0,marts_E00989,alpha,alpha,Fungi,"['di Class 1', 'pt']",False
+marts_E00575_ids_0,marts_E00575,ids,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E00575_alpha_0,marts_E00575,alpha,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E00694_beta_0,marts_E00694,beta,beta,Plants,['di Class 2'],False
+marts_E00694_gamma_0,marts_E00694,gamma,gamma,Plants,['di Class 2'],False
+marts_E00694_alpha_0,marts_E00694,alpha,alpha,Plants,['di Class 2'],False
+marts_E01027_ids_0,marts_E01027,ids,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E01027_alpha_0,marts_E01027,alpha,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E01250_beta_0,marts_E01250,beta,beta,Plants,['di Class 2'],False
+marts_E01250_gamma_0,marts_E01250,gamma,gamma,Plants,['di Class 2'],False
+marts_E01250_alpha_0,marts_E01250,alpha,alpha,Plants,['di Class 2'],False
+marts_E00984_alpha_0,marts_E00984,alpha,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E00984_ids_0,marts_E00984,ids,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E00259_beta_0,marts_E00259,beta,beta,Plants,['sesq Class 1'],False
+marts_E00259_alpha_0,marts_E00259,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00072_beta_0,marts_E00072,beta,beta,Plants,['mono Class 1'],False
+marts_E00072_alpha_0,marts_E00072,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00908_beta_0,marts_E00908,beta,beta,Plants,['sesq Class 1'],False
+marts_E00908_alpha_0,marts_E00908,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00248_beta_0,marts_E00248,beta,beta,Plants,['mono Class 1'],False
+marts_E00248_alpha_0,marts_E00248,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00237_beta_0,marts_E00237,beta,beta,Plants,['mono Class 1'],False
+marts_E00237_alpha_0,marts_E00237,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00168_beta_0,marts_E00168,beta,beta,Plants,"['hemi Class 1', 'mono Class 1']",False
+marts_E00168_alpha_0,marts_E00168,alpha,alpha,Plants,"['hemi Class 1', 'mono Class 1']",False
+marts_E00109_beta_0,marts_E00109,beta,beta,Plants,['sesq Class 1'],False
+marts_E00109_alpha_0,marts_E00109,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00222_beta_0,marts_E00222,beta,beta,Plants,['sesq Class 1'],False
+marts_E00222_alpha_0,marts_E00222,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00917_beta_0,marts_E00917,beta,beta,Plants,['sesq Class 1'],False
+marts_E00917_alpha_0,marts_E00917,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01287_beta_0,marts_E01287,beta,beta,Plants,['sesq Class 1'],False
+marts_E01287_alpha_0,marts_E01287,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01393_beta_0,marts_E01393,beta,beta,Plants,['sesq Class 1'],False
+marts_E01393_alpha_0,marts_E01393,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00170_beta_0,marts_E00170,beta,beta,Plants,['sesq Class 1'],False
+marts_E00170_alpha_0,marts_E00170,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01016_beta_0,marts_E01016,beta,beta,Plants,['mono Class 1'],False
+marts_E01016_alpha_0,marts_E01016,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00535_beta_0,marts_E00535,beta,beta,Plants,['mono Class 1'],False
+marts_E00535_alpha_0,marts_E00535,alpha,alpha,Plants,['mono Class 1'],False
+marts_E01301_beta_0,marts_E01301,beta,beta,Plants,['mono Class 1'],False
+marts_E01301_alpha_0,marts_E01301,alpha,alpha,Plants,['mono Class 1'],False
+marts_E01144_beta_0,marts_E01144,beta,beta,Plants,['sesq Class 1'],False
+marts_E01144_alpha_0,marts_E01144,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01334_beta_0,marts_E01334,beta,beta,Plants,['sesq Class 1'],False
+marts_E01334_alpha_0,marts_E01334,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00953_beta_0,marts_E00953,beta,beta,Plants,['mono Class 1'],False
+marts_E00953_alpha_0,marts_E00953,alpha,alpha,Plants,['mono Class 1'],False
+marts_E01072_beta_0,marts_E01072,beta,beta,Plants,['sesq Class 1'],False
+marts_E01072_alpha_0,marts_E01072,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01380_beta_0,marts_E01380,beta,beta,Plants,['mono Class 1'],False
+marts_E01380_alpha_0,marts_E01380,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00685_beta_0,marts_E00685,beta,beta,Plants,['sesq Class 1'],False
+marts_E00685_alpha_0,marts_E00685,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00341_beta_0,marts_E00341,beta,beta,Plants,['sesq Class 1'],False
+marts_E00341_alpha_0,marts_E00341,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01392_beta_0,marts_E01392,beta,beta,Plants,['sesq Class 1'],False
+marts_E01392_alpha_0,marts_E01392,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00612_beta_0,marts_E00612,beta,beta,Plants,['sesq Class 1'],False
+marts_E00612_alpha_0,marts_E00612,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00421_beta_0,marts_E00421,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00421_alpha_0,marts_E00421,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E01150_beta_0,marts_E01150,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E01150_alpha_0,marts_E01150,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00723_beta_0,marts_E00723,beta,beta,Plants,['mono Class 1'],False
+marts_E00723_alpha_0,marts_E00723,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00112_beta_0,marts_E00112,beta,beta,Plants,['sesq Class 1'],False
+marts_E00112_alpha_0,marts_E00112,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00496_ids_0,marts_E00496,ids,alpha,Fungi,['sqs'],False
+marts_E00527_ids_0,marts_E00527,ids,alpha,Animals,['pt'],False
+marts_E00410_alpha_0,marts_E00410,alpha,alpha,Plants,['psy'],False
+marts_E00524_ids_0,marts_E00524,ids,alpha,Animals,['pt'],False
+marts_E01045_alpha_0,marts_E01045,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E00193_ids_0,marts_E00193,ids,alpha,Fungi,['pt'],False
+marts_E00750_alpha_0,marts_E00750,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E01366_alpha_0,marts_E01366,alpha,alpha,Bacteria,"['di Class 1', 'mono Class 1', 'sesq Class 1']",False
+marts_E01124_alpha_0,marts_E01124,alpha,alpha,Bacteria,"['di Class 1', 'sesq Class 1']",False
+marts_E01465_alpha_0,marts_E01465,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E01452_alpha_0,marts_E01452,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E00768_alpha_0,marts_E00768,alpha,alpha,Bacteria,['sesq Class 1'],False
+marts_E01448_alpha_0,marts_E01448,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E01328_alpha_0,marts_E01328,alpha,alpha,Bacteria,['sesq Class 1'],False
+marts_E01204_ids_0,marts_E01204,ids,alpha,Fungi,['pt'],False
+marts_E00741_alpha_0,marts_E00741,alpha,alpha,Protists,['sesq Class 1'],False
+marts_E00662_ids_0,marts_E00662,ids,alpha,Fungi,['pt'],False
+marts_E00104_ids_0,marts_E00104,ids,alpha,Animals,['pt'],False
+marts_E00010_alpha_0,marts_E00010,alpha,alpha,Fungi,['di Class 1'],False
+marts_E00447_ids_0,marts_E00447,ids,alpha,Fungi,['pt'],False
+marts_E00377_ids_0,marts_E00377,ids,alpha,Bacteria,['pt'],False
+marts_E00381_ids_0,marts_E00381,ids,alpha,Plants,['pt'],False
+marts_E00289_ids_0,marts_E00289,ids,alpha,Bacteria,['sqs'],False
+marts_E01416_beta_0,marts_E01416,beta,beta,Plants,['di Class 1'],False
+marts_E01416_gamma_0,marts_E01416,gamma,gamma,Plants,['di Class 1'],False
+marts_E01416_alpha_0,marts_E01416,alpha,alpha,Plants,['di Class 1'],False
+marts_E00969_beta_0,marts_E00969,beta,beta,Plants,['di Class 1'],False
+marts_E00969_gamma_0,marts_E00969,gamma,gamma,Plants,['di Class 1'],False
+marts_E00969_alpha_0,marts_E00969,alpha,alpha,Plants,['di Class 1'],False
+marts_E00037_beta_0,marts_E00037,beta,beta,Plants,['di Class 1'],False
+marts_E00037_gamma_0,marts_E00037,gamma,gamma,Plants,['di Class 1'],False
+marts_E00037_alpha_0,marts_E00037,alpha,alpha,Plants,['di Class 1'],False
+marts_E00813_beta_0,marts_E00813,beta,beta,Plants,['di Class 1'],False
+marts_E00813_gamma_0,marts_E00813,gamma,gamma,Plants,['di Class 1'],False
+marts_E00813_alpha_0,marts_E00813,alpha,alpha,Plants,['di Class 1'],False
+marts_E00308_beta_0,marts_E00308,beta,beta,Plants,['di Class 1'],False
+marts_E00308_gamma_0,marts_E00308,gamma,gamma,Plants,['di Class 1'],False
+marts_E00308_alpha_0,marts_E00308,alpha,alpha,Plants,['di Class 1'],False
+marts_E01103_beta_0,marts_E01103,beta,beta,Plants,['di Class 2'],False
+marts_E01103_gamma_0,marts_E01103,gamma,gamma,Plants,['di Class 2'],False
+marts_E01103_ids_0,marts_E01103,ids,alpha,Plants,['di Class 2'],False
+marts_E01199_beta_0,marts_E01199,beta,beta,Plants,['di Class 2'],False
+marts_E01199_gamma_0,marts_E01199,gamma,gamma,Plants,['di Class 2'],False
+marts_E01199_alpha_0,marts_E01199,alpha,alpha,Plants,['di Class 2'],False
+marts_E00336_beta_0,marts_E00336,beta,beta,Plants,['di Class 2'],False
+marts_E00336_gamma_0,marts_E00336,gamma,gamma,Plants,['di Class 2'],False
+marts_E00336_alpha_0,marts_E00336,alpha,alpha,Plants,['di Class 2'],False
+marts_E00004_beta_0,marts_E00004,beta,beta,Plants,['di Class 2'],False
+marts_E00004_gamma_0,marts_E00004,gamma,gamma,Plants,['di Class 2'],False
+marts_E00004_alpha_0,marts_E00004,alpha,alpha,Plants,['di Class 2'],False
+marts_E01147_ids_0,marts_E01147,ids,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E01147_alpha_0,marts_E01147,alpha,alpha,Fungi,"['pt', 'sester Class 1']",False
+marts_E00453_ids_0,marts_E00453,ids,alpha,Fungi,"['di Class 1', 'pt']",False
+marts_E00453_alpha_0,marts_E00453,alpha,alpha,Fungi,"['di Class 1', 'pt']",False
+marts_E00613_ids_0,marts_E00613,ids,alpha,Fungi,"['pt', 'tri Class 1']",False
+marts_E00613_alpha_0,marts_E00613,alpha,alpha,Fungi,"['pt', 'tri Class 1']",False
+marts_E00759_beta_0,marts_E00759,beta,beta,Plants,['sesq Class 1'],False
+marts_E00759_alpha_0,marts_E00759,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00854_beta_0,marts_E00854,beta,beta,Plants,['mono Class 1'],False
+marts_E00854_alpha_0,marts_E00854,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00562_beta_0,marts_E00562,beta,beta,Plants,['mono Class 1'],False
+marts_E00562_alpha_0,marts_E00562,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00118_beta_0,marts_E00118,beta,beta,Plants,['mono Class 1'],False
+marts_E00118_alpha_0,marts_E00118,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00923_beta_0,marts_E00923,beta,beta,Plants,['sesq Class 1'],False
+marts_E00923_alpha_0,marts_E00923,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01294_beta_0,marts_E01294,beta,beta,Plants,['sesq Class 1'],False
+marts_E01294_alpha_0,marts_E01294,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00704_beta_0,marts_E00704,beta,beta,Plants,['mono Class 1'],False
+marts_E00704_alpha_0,marts_E00704,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00760_beta_0,marts_E00760,beta,beta,Plants,['sesq Class 1'],False
+marts_E00760_alpha_0,marts_E00760,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00108_beta_0,marts_E00108,beta,beta,Plants,['sesq Class 1'],False
+marts_E00108_alpha_0,marts_E00108,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00839_beta_0,marts_E00839,beta,beta,Plants,['sesq Class 1'],False
+marts_E00839_alpha_0,marts_E00839,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00226_beta_0,marts_E00226,beta,beta,Plants,['mono Class 1'],False
+marts_E00226_alpha_0,marts_E00226,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00076_beta_0,marts_E00076,beta,beta,Plants,['mono Class 1'],False
+marts_E00076_alpha_0,marts_E00076,alpha,alpha,Plants,['mono Class 1'],False
+marts_E00981_beta_0,marts_E00981,beta,beta,Plants,['sesq Class 1'],False
+marts_E00981_alpha_0,marts_E00981,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01129_beta_0,marts_E01129,beta,beta,Plants,['sesq Class 1'],False
+marts_E01129_alpha_0,marts_E01129,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01145_beta_0,marts_E01145,beta,beta,Plants,['sesq Class 1'],False
+marts_E01145_alpha_0,marts_E01145,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00016_beta_0,marts_E00016,beta,beta,Plants,['di Class 1'],False
+marts_E00016_alpha_0,marts_E00016,alpha,alpha,Plants,['di Class 1'],False
+marts_E01174_beta_0,marts_E01174,beta,beta,Plants,['sesq Class 1'],False
+marts_E01174_alpha_0,marts_E01174,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00372_beta_0,marts_E00372,beta,beta,Plants,['sesq Class 1'],False
+marts_E00372_alpha_0,marts_E00372,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00687_beta_0,marts_E00687,beta,beta,Plants,['sesq Class 1'],False
+marts_E00687_alpha_0,marts_E00687,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00150_beta_0,marts_E00150,beta,beta,Plants,['sesq Class 1'],False
+marts_E00150_alpha_0,marts_E00150,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00003_beta_0,marts_E00003,beta,beta,Plants,['di Class 1'],False
+marts_E00003_alpha_0,marts_E00003,alpha,alpha,Plants,['di Class 1'],False
+marts_E01289_beta_0,marts_E01289,beta,beta,Plants,['sesq Class 1'],False
+marts_E01289_alpha_0,marts_E01289,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00837_beta_0,marts_E00837,beta,beta,Plants,['sesq Class 1'],False
+marts_E00837_alpha_0,marts_E00837,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E01539_beta_0,marts_E01539,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E01539_alpha_0,marts_E01539,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00808_beta_0,marts_E00808,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E00808_alpha_0,marts_E00808,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E01270_beta_0,marts_E01270,beta,beta,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E01270_alpha_0,marts_E01270,alpha,alpha,Plants,"['mono Class 1', 'sesq Class 1']",False
+marts_E01007_beta_0,marts_E01007,beta,beta,Plants,"['di Class 1', 'mono Class 1', 'sesq Class 1']",False
+marts_E01007_alpha_0,marts_E01007,alpha,alpha,Plants,"['di Class 1', 'mono Class 1', 'sesq Class 1']",False
+marts_E01213_ids_0,marts_E01213,ids,alpha,Plants,['sqs'],False
+marts_E01437_alpha_0,marts_E01437,alpha,alpha,Plants,['sesq Class 1'],False
+marts_E00793_alpha_0,marts_E00793,alpha,alpha,Animals,"['di Class 1', 'sesq Class 1']",False
+marts_E00874_alpha_0,marts_E00874,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E01491_alpha_0,marts_E01491,alpha,alpha,Bacteria,['di Class 1'],False
+marts_E00476_ids_0,marts_E00476,ids,alpha,Plants,['tetra Class 1'],False
+marts_E01330_alpha_0,marts_E01330,alpha,alpha,Bacteria,['sester Class 1'],False
+marts_E00052_alpha_0,marts_E00052,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E01453_alpha_0,marts_E01453,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E01054_alpha_0,marts_E01054,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E01425_alpha_0,marts_E01425,alpha,alpha,Bacteria,['di Class 1'],False
+marts_E01363_alpha_0,marts_E01363,alpha,alpha,Bacteria,['di Class 1'],False
+marts_E00595_alpha_0,marts_E00595,alpha,alpha,Fungi,"['mono Class 1', 'sesq Class 1']",False
+marts_E00811_alpha_0,marts_E00811,alpha,alpha,Bacteria,['mono Class 1'],False
+marts_E01275_alpha_0,marts_E01275,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E00511_alpha_0,marts_E00511,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E00902_alpha_0,marts_E00902,alpha,alpha,Bacteria,['sesq Class 1'],False
+marts_E01436_alpha_0,marts_E01436,alpha,alpha,Bacteria,['di Class 1'],False
+marts_E01486_alpha_0,marts_E01486,alpha,alpha,Bacteria,['sesq Class 1'],False
+marts_E00921_ids_0,marts_E00921,ids,alpha,Fungi,['pt'],False
+marts_E01267_alpha_0,marts_E01267,alpha,alpha,Fungi,['sesq Class 1'],False
+marts_E00014_alpha_0,marts_E00014,alpha,alpha,Animals,"['mono Class 1', 'sesq Class 1']",False
+marts_E00439_alpha_0,marts_E00439,alpha,alpha,Animals,"['di Class 1', 'mono Class 1', 'sesq Class 1', 'sester Class 1']",False
+marts_E00744_alpha_0,marts_E00744,alpha,alpha,Protists,"['mono Class 1', 'sesq Class 1']",False
+marts_E00464_ids_0,marts_E00464,ids,alpha,Bacteria,['pt'],False
+marts_E00560_epsilon_0,marts_E00560,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00560_delta_0,marts_E00560,delta,delta,Plants,['tri Class 2'],False
+marts_E01229_epsilon_0,marts_E01229,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E01229_delta_0,marts_E01229,delta,delta,Plants,['tri Class 2'],False
+marts_E01231_epsilon_0,marts_E01231,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E01231_delta_0,marts_E01231,delta,delta,Plants,['tri Class 2'],False
+marts_E00944_epsilon_0,marts_E00944,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00944_delta_0,marts_E00944,delta,delta,Plants,['tri Class 2'],False
+marts_E00530_epsilon_0,marts_E00530,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00530_delta_0,marts_E00530,delta,delta,Plants,['tri Class 2'],False
+marts_E01230_delta_0,marts_E01230,delta,delta,Plants,['tri Class 2'],False
+marts_E01230_epsilon_0,marts_E01230,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00781_epsilon_0,marts_E00781,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00781_delta_0,marts_E00781,delta,delta,Plants,['tri Class 2'],False
+marts_E00419_epsilon_0,marts_E00419,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00419_delta_0,marts_E00419,delta,delta,Plants,['tri Class 2'],False
+marts_E00531_epsilon_0,marts_E00531,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00531_delta_0,marts_E00531,delta,delta,Plants,['tri Class 2'],False
+marts_E00806_delta_0,marts_E00806,delta,delta,Bacteria,['di Class 2'],False
+marts_E00806_gamma_0,marts_E00806,gamma,gamma,Bacteria,['di Class 2'],False
+marts_E00783_epsilon_0,marts_E00783,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00783_delta_0,marts_E00783,delta,delta,Plants,['tri Class 2'],False
+marts_E00420_epsilon_0,marts_E00420,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00420_delta_0,marts_E00420,delta,delta,Plants,['tri Class 2'],False
+marts_E00431_epsilon_0,marts_E00431,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00431_delta_0,marts_E00431,delta,delta,Plants,['tri Class 2'],False
+marts_E00348_epsilon_0,marts_E00348,epsilon,epsilon,Protists,['tri Class 2'],False
+marts_E00348_delta_0,marts_E00348,delta,delta,Protists,['tri Class 2'],False
+marts_E01423_delta_0,marts_E01423,delta,delta,Bacteria,['di Class 2'],False
+marts_E01423_gamma_0,marts_E01423,gamma,gamma,Bacteria,['di Class 2'],False
+marts_E00199_epsilon_0,marts_E00199,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00199_delta_0,marts_E00199,delta,delta,Plants,['tri Class 2'],False
+marts_E00140_epsilon_0,marts_E00140,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00140_delta_0,marts_E00140,delta,delta,Plants,['tri Class 2'],False
+marts_E00182_epsilon_0,marts_E00182,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00182_delta_0,marts_E00182,delta,delta,Plants,['tri Class 2'],False
+marts_E00766_epsilon_0,marts_E00766,epsilon,epsilon,Fungi,['tri Class 2'],False
+marts_E00766_delta_0,marts_E00766,delta,delta,Fungi,['tri Class 2'],False
+marts_E00483_epsilon_0,marts_E00483,epsilon,epsilon,Animals,['tri Class 2'],False
+marts_E00483_delta_0,marts_E00483,delta,delta,Animals,['tri Class 2'],False
+marts_E00484_delta_0,marts_E00484,delta,delta,Animals,['tri Class 2'],False
+marts_E00484_epsilon_0,marts_E00484,epsilon,epsilon,Animals,['tri Class 2'],False
+marts_E00551_gamma_0,marts_E00551,gamma,gamma,Bacteria,['di Class 2'],False
+marts_E00551_delta_0,marts_E00551,delta,delta,Bacteria,['di Class 2'],False
+marts_E00407_epsilon_0,marts_E00407,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00407_delta_0,marts_E00407,delta,delta,Plants,['tri Class 2'],False
+marts_E00406_epsilon_0,marts_E00406,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00406_delta_0,marts_E00406,delta,delta,Plants,['tri Class 2'],False
+marts_E00660_epsilon_0,marts_E00660,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00660_delta_0,marts_E00660,delta,delta,Plants,['tri Class 2'],False
+marts_E01489_epsilon_0,marts_E01489,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E01489_delta_0,marts_E01489,delta,delta,Plants,['tri Class 2'],False
+marts_E00307_epsilon_0,marts_E00307,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00307_delta_0,marts_E00307,delta,delta,Plants,['tri Class 2'],False
+marts_E00487_epsilon_0,marts_E00487,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00487_delta_0,marts_E00487,delta,delta,Plants,['tri Class 2'],False
+marts_E00561_delta_0,marts_E00561,delta,delta,Plants,['tri Class 2'],False
+marts_E00561_epsilon_0,marts_E00561,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00198_epsilon_0,marts_E00198,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00198_delta_0,marts_E00198,delta,delta,Plants,['tri Class 2'],False
+marts_E01247_epsilon_0,marts_E01247,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E01247_delta_0,marts_E01247,delta,delta,Plants,['tri Class 2'],False
+marts_E00488_epsilon_0,marts_E00488,epsilon,epsilon,Fungi,['tri Class 2'],False
+marts_E00488_delta_0,marts_E00488,delta,delta,Fungi,['tri Class 2'],False
+marts_E00460_delta_0,marts_E00460,delta,delta,Animals,['tri Class 2'],False
+marts_E00460_epsilon_0,marts_E00460,epsilon,epsilon,Animals,['tri Class 2'],False
+marts_E00962_epsilon_0,marts_E00962,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00962_delta_0,marts_E00962,delta,delta,Plants,['tri Class 2'],False
+marts_E00025_delta_0,marts_E00025,delta,delta,Plants,['tri Class 2'],False
+marts_E00025_epsilon_0,marts_E00025,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00936_delta_0,marts_E00936,delta,delta,Fungi,['tri Class 2'],False
+marts_E00936_epsilon_0,marts_E00936,epsilon,epsilon,Fungi,['tri Class 2'],False
+marts_E00943_gamma_0,marts_E00943,gamma,gamma,Bacteria,['di Class 2'],False
+marts_E00943_delta_0,marts_E00943,delta,delta,Bacteria,['di Class 2'],False
+marts_E00408_epsilon_0,marts_E00408,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00408_delta_0,marts_E00408,delta,delta,Plants,['tri Class 2'],False
+marts_E00149_epsilon_0,marts_E00149,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00149_delta_0,marts_E00149,delta,delta,Plants,['tri Class 2'],False
+marts_E00239_epsilon_0,marts_E00239,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00239_delta_0,marts_E00239,delta,delta,Plants,['tri Class 2'],False
+marts_E00024_epsilon_0,marts_E00024,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00024_delta_0,marts_E00024,delta,delta,Plants,['tri Class 2'],False
+marts_E00950_epsilon_0,marts_E00950,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00950_delta_0,marts_E00950,delta,delta,Plants,['tri Class 2'],False
+marts_E00779_epsilon_0,marts_E00779,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00779_delta_0,marts_E00779,delta,delta,Plants,['tri Class 2'],False
+marts_E00160_delta_0,marts_E00160,delta,delta,Plants,['tri Class 2'],False
+marts_E00160_epsilon_0,marts_E00160,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00238_epsilon_0,marts_E00238,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00238_delta_0,marts_E00238,delta,delta,Plants,['tri Class 2'],False
+marts_E00949_epsilon_0,marts_E00949,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00949_delta_0,marts_E00949,delta,delta,Plants,['tri Class 2'],False
+marts_E00176_epsilon_0,marts_E00176,epsilon,epsilon,Fungi,['tri Class 2'],False
+marts_E00176_delta_0,marts_E00176,delta,delta,Fungi,['tri Class 2'],False
+marts_E01235_delta_0,marts_E01235,delta,delta,Fungi,['sesq Class 1'],False
+marts_E01243_epsilon_0,marts_E01243,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E01243_delta_0,marts_E01243,delta,delta,Plants,['tri Class 2'],False
+marts_E00780_delta_0,marts_E00780,delta,delta,Plants,['tri Class 2'],False
+marts_E00780_epsilon_0,marts_E00780,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00110_delta_0,marts_E00110,delta,delta,Plants,['tri Class 2'],False
+marts_E00110_epsilon_0,marts_E00110,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00956_epsilon_0,marts_E00956,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00956_delta_0,marts_E00956,delta,delta,Plants,['tri Class 2'],False
+marts_E00204_epsilon_0,marts_E00204,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00204_delta_0,marts_E00204,delta,delta,Plants,['tri Class 2'],False
+marts_E00913_delta_0,marts_E00913,delta,delta,Plants,['tri Class 2'],False
+marts_E00913_epsilon_0,marts_E00913,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00197_epsilon_0,marts_E00197,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00197_delta_0,marts_E00197,delta,delta,Plants,['tri Class 2'],False
+marts_E00403_delta_0,marts_E00403,delta,delta,Plants,['tri Class 2'],False
+marts_E00403_epsilon_0,marts_E00403,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00712_epsilon_0,marts_E00712,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00712_delta_0,marts_E00712,delta,delta,Plants,['tri Class 2'],False
+marts_E01264_delta_0,marts_E01264,delta,delta,Fungi,['tri Class 2'],False
+marts_E01264_epsilon_0,marts_E01264,epsilon,epsilon,Fungi,['tri Class 2'],False
+marts_E00716_delta_0,marts_E00716,delta,delta,Bacteria,['sesq Class 2'],False
+marts_E00716_gamma_0,marts_E00716,gamma,gamma,Bacteria,['sesq Class 2'],False
+marts_E00128_epsilon_0,marts_E00128,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00128_delta_0,marts_E00128,delta,delta,Plants,['tri Class 2'],False
+marts_E00532_epsilon_0,marts_E00532,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00532_delta_0,marts_E00532,delta,delta,Plants,['tri Class 2'],False
+marts_E00521_epsilon_0,marts_E00521,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00521_delta_0,marts_E00521,delta,delta,Plants,['tri Class 2'],False
+marts_E00201_delta_0,marts_E00201,delta,delta,Plants,['tri Class 2'],False
+marts_E00201_epsilon_0,marts_E00201,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E01256_delta_0,marts_E01256,delta,delta,Bacteria,['di Class 2'],False
+marts_E01256_gamma_0,marts_E01256,gamma,gamma,Bacteria,['di Class 2'],False
+marts_E00165_epsilon_0,marts_E00165,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00165_delta_0,marts_E00165,delta,delta,Plants,['tri Class 2'],False
+marts_E00116_epsilon_0,marts_E00116,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00116_delta_0,marts_E00116,delta,delta,Plants,['tri Class 2'],False
+marts_E01462_epsilon_0,marts_E01462,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E01462_delta_0,marts_E01462,delta,delta,Plants,['tri Class 2'],False
+marts_E00883_epsilon_0,marts_E00883,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00883_delta_0,marts_E00883,delta,delta,Plants,['tri Class 2'],False
+marts_E00752_epsilon_0,marts_E00752,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00752_delta_0,marts_E00752,delta,delta,Plants,['tri Class 2'],False
+marts_E00357_epsilon_0,marts_E00357,epsilon,epsilon,Fungi,['tri Class 2'],False
+marts_E00357_delta_0,marts_E00357,delta,delta,Fungi,['tri Class 2'],False
+marts_E00433_epsilon_0,marts_E00433,epsilon,epsilon,Fungi,['tri Class 2'],False
+marts_E00433_delta_0,marts_E00433,delta,delta,Fungi,['tri Class 2'],False
+marts_E00200_delta_0,marts_E00200,delta,delta,Plants,['tri Class 2'],False
+marts_E00200_epsilon_0,marts_E00200,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00203_epsilon_0,marts_E00203,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00203_delta_0,marts_E00203,delta,delta,Plants,['tri Class 2'],False
+marts_E00405_epsilon_0,marts_E00405,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00405_delta_0,marts_E00405,delta,delta,Plants,['tri Class 2'],False
+marts_E01490_epsilon_0,marts_E01490,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E01490_delta_0,marts_E01490,delta,delta,Plants,['tri Class 2'],False
+marts_E00141_epsilon_0,marts_E00141,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00141_delta_0,marts_E00141,delta,delta,Plants,['tri Class 2'],False
+marts_E00782_epsilon_0,marts_E00782,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00782_delta_0,marts_E00782,delta,delta,Plants,['tri Class 2'],False
+marts_E00119_delta_0,marts_E00119,delta,delta,Plants,['tri Class 2'],False
+marts_E00119_epsilon_0,marts_E00119,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00171_gamma_0,marts_E00171,gamma,gamma,Bacteria,['di Class 2'],False
+marts_E00171_delta_0,marts_E00171,delta,delta,Bacteria,['di Class 2'],False
+marts_E00955_epsilon_0,marts_E00955,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00955_delta_0,marts_E00955,delta,delta,Plants,['tri Class 2'],False
+marts_E00899_epsilon_0,marts_E00899,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00899_delta_0,marts_E00899,delta,delta,Plants,['tri Class 2'],False
+marts_E00832_epsilon_0,marts_E00832,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00832_delta_0,marts_E00832,delta,delta,Plants,['tri Class 2'],False
+marts_E00424_epsilon_0,marts_E00424,epsilon,epsilon,Fungi,['tri Class 2'],False
+marts_E00424_delta_0,marts_E00424,delta,delta,Fungi,['tri Class 2'],False
+marts_E00263_delta_0,marts_E00263,delta,delta,Bacteria,['sesquar Class 2'],False
+marts_E00263_epsilon_0,marts_E00263,epsilon,epsilon,Bacteria,['sesquar Class 2'],False
+marts_E00610_epsilon_0,marts_E00610,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00610_delta_0,marts_E00610,delta,delta,Plants,['tri Class 2'],False
+marts_E00306_epsilon_0,marts_E00306,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00306_delta_0,marts_E00306,delta,delta,Plants,['tri Class 2'],False
+marts_E00404_epsilon_0,marts_E00404,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00404_delta_0,marts_E00404,delta,delta,Plants,['tri Class 2'],False
+marts_E00156_epsilon_0,marts_E00156,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00156_delta_0,marts_E00156,delta,delta,Plants,['tri Class 2'],False
+marts_E00499_delta_0,marts_E00499,delta,delta,Bacteria,['tri Class 2'],False
+marts_E00499_epsilon_0,marts_E00499,epsilon,epsilon,Bacteria,['tri Class 2'],False
+marts_E00189_epsilon_0,marts_E00189,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00189_delta_0,marts_E00189,delta,delta,Plants,['tri Class 2'],False
+marts_E00275_epsilon_0,marts_E00275,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00275_delta_0,marts_E00275,delta,delta,Plants,['tri Class 2'],False
+marts_E00386_epsilon_0,marts_E00386,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00386_delta_0,marts_E00386,delta,delta,Plants,['tri Class 2'],False
+marts_E00231_epsilon_0,marts_E00231,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00231_delta_0,marts_E00231,delta,delta,Plants,['tri Class 2'],False
+marts_E00498_delta_0,marts_E00498,delta,delta,Bacteria,['tri Class 2'],False
+marts_E00498_epsilon_0,marts_E00498,epsilon,epsilon,Bacteria,['tri Class 2'],False
+marts_E00264_epsilon_0,marts_E00264,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00264_delta_0,marts_E00264,delta,delta,Plants,['tri Class 2'],False
+marts_E00951_epsilon_0,marts_E00951,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00951_delta_0,marts_E00951,delta,delta,Plants,['tri Class 2'],False
+marts_E00948_delta_0,marts_E00948,delta,delta,Plants,['tri Class 2'],False
+marts_E00948_epsilon_0,marts_E00948,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00753_epsilon_0,marts_E00753,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00753_delta_0,marts_E00753,delta,delta,Plants,['tri Class 2'],False
+marts_E01114_delta_0,marts_E01114,delta,delta,Bacteria,['sesq Class 2'],False
+marts_E01114_gamma_0,marts_E01114,gamma,gamma,Bacteria,['sesq Class 2'],False
+marts_E01520_gamma_0,marts_E01520,gamma,gamma,Bacteria,['di Class 2'],False
+marts_E01520_delta_0,marts_E01520,delta,delta,Bacteria,['di Class 2'],False
+marts_E00132_epsilon_0,marts_E00132,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00132_delta_0,marts_E00132,delta,delta,Plants,['tri Class 2'],False
+marts_E00161_epsilon_0,marts_E00161,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00161_delta_0,marts_E00161,delta,delta,Plants,['tri Class 2'],False
+marts_E00210_epsilon_0,marts_E00210,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00210_delta_0,marts_E00210,delta,delta,Plants,['tri Class 2'],False
+marts_E00120_epsilon_0,marts_E00120,epsilon,epsilon,Plants,['tri Class 2'],False
+marts_E00120_delta_0,marts_E00120,delta,delta,Plants,['tri Class 2'],False
+marts_E00337_delta_0,marts_E00337,delta,delta,Bacteria,['di Class 2'],False
+marts_E00337_gamma_0,marts_E00337,gamma,gamma,Bacteria,['di Class 2'],False

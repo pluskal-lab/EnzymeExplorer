@@ -1,5 +1,18 @@
 from datetime import datetime
 import configargparse
+
+# Single source of truth for the domain-type rename map applied before
+# foldseek alignment. Consumed by both the CLI default and the
+# ``run_structural_feature_computation`` Python wrapper.
+DEFAULT_DOMAIN_TYPE_PREPROCESSING = {
+    "alpha": "alpha",
+    "beta": "beta",
+    "gamma": "gamma",
+    "delta": "delta",
+    "epsilon": "epsilon",
+    "ids": "alpha",
+    "zeta": "alpha",
+}
 import logging
 import os
 import pickle
@@ -43,7 +56,7 @@ def parse_args() -> configargparse.Namespace:
         "--config",
         is_config_file=True,
         help="config file path",
-        default="configs/structural_features_config.yaml",
+        default="enzymeexplorer/configs/enzyme_explorer_structural_features_config.yaml",
     )
     parser.add_argument(
         "--reference-domains-file-path",
@@ -85,15 +98,7 @@ def parse_args() -> configargparse.Namespace:
     parser.add_argument(
         "--domain-type-preprocessing-config",
         "-domaintypepreprocconfig",
-        default={
-            "alpha": "alpha",
-            "beta": "beta",
-            "gamma": "gamma",
-            "delta": "delta",
-            "epsilon": "epsilon",
-            "ids": "alpha",
-            "zeta": "alpha",
-        },
+        default=DEFAULT_DOMAIN_TYPE_PREPROCESSING,
     )
     return parser.parse_args()
 
@@ -329,15 +334,7 @@ def run_structural_feature_computation(
     import argparse as _argparse
 
     if domain_type_preprocessing_config is None:
-        domain_type_preprocessing_config = {
-            "alpha": "alpha",
-            "beta": "beta",
-            "gamma": "gamma",
-            "delta": "delta",
-            "epsilon": "epsilon",
-            "ids": "alpha",
-            "zeta": "alpha",
-        }
+        domain_type_preprocessing_config = DEFAULT_DOMAIN_TYPE_PREPROCESSING
     args = _argparse.Namespace(
         query_domains_file_path=str(query_domains_file_path),
         reference_domains_file_path=str(reference_domains_file_path),

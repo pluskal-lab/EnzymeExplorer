@@ -10,13 +10,11 @@ from collections import defaultdict, Counter
 import json
 from rdkit.Chem import MolToSmiles, rdChemReactions  # type: ignore
 from rdkit import Chem
-from indigo import Indigo
 import logging
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__file__)
 
-indigo = Indigo()
 
 def get_canonical_substrates_no_stereo(rxn_smiles: str):
     rxn = rdChemReactions.ReactionFromSmarts(rxn_smiles, useSmiles=True)

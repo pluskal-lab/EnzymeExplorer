@@ -1,7 +1,8 @@
 """Predict TPS class probabilities from sequences alone (no structures).
 
 Uses the PlmRandomForest fold ensemble. Output is a single CSV with
-``<class>_score`` and ``<class>_p_calibrated`` columns per protein, with
+``<class>_raw`` (uncalibrated score) and ``<class>_p`` (calibrated
+probability) columns per protein, with
 calibrated probabilities produced from the ``PLM`` rows of
 ``calibration_fit_summary.csv``.
 """

@@ -738,6 +738,83 @@ def fit_best_calibrator(
 # Leave-one-fold-out evaluation (using winning family)
 # ---------------------------------------------------------------------------
 
+def per_fold_lofo_metrics(
+    lofo_df: pd.DataFrame,
+    *,
+    n_bins: int,
+) -> pd.DataFrame:
+    """Per-fold log_loss / Brier / ECE / MCE on held-out predictions.
+
+    Consumes the long ``lofo_df`` emitted by :func:`evaluate_lofo`
+    (columns include ``fold``, ``p_lofo``, ``label``) and returns one
+    row per fold plus a summary row (fold = ``"__mean_sd__"``) with
+    mean ± SD across folds so paper tables can be produced without
+    extra pandas gymnastics.
+    """
+    if lofo_df.empty:
+        return pd.DataFrame(columns=[
+            "fold", "n", "n_pos", "log_loss", "brier", "ece", "mce",
+        ])
+    rows: list[dict] = []
+    for fold, sub in lofo_df.groupby("fold"):
+        y = sub["label"].to_numpy().astype(np.int8)
+        p = sub["p_lofo"].to_numpy().astype(np.float64)
+        e, m = _ece_mce(y, p, n_bins)
+        rows.append({
+            "fold": int(fold),
+            "n": int(len(y)),
+            "n_pos": int(y.sum()),
+            "log_loss": _log_loss(y, p),
+            "brier": _brier(y, p),
+            "ece": e,
+            "mce": m,
+        })
+    per_fold = pd.DataFrame(rows)
+    # Append mean/SD row for legibility. Skip NaN so degenerate folds
+    # (e.g. no positives) don't poison the summary.
+    if not per_fold.empty:
+        agg: dict = {"fold": "__mean_sd__",
+                     "n": int(per_fold["n"].sum()),
+                     "n_pos": int(per_fold["n_pos"].sum())}
+        for col in ("log_loss", "brier", "ece", "mce"):
+            v = per_fold[col].to_numpy(dtype=float)
+            mean = float(np.nanmean(v))
+            sd = float(np.nanstd(v, ddof=1)) if np.isfinite(v).sum() > 1 else float("nan")
+            agg[col] = f"{mean:.6f}"
+            agg[f"{col}_mean"] = mean
+            agg[f"{col}_sd"] = sd
+        per_fold = pd.concat(
+            [per_fold, pd.DataFrame([agg])], ignore_index=True,
+        )
+    return per_fold
+
+
+def per_fold_reliability(
+    lofo_df: pd.DataFrame,
+    *,
+    n_bins: int,
+) -> pd.DataFrame:
+    """Per-fold reliability table — one reliability table per held-out fold.
+
+    Used by the curve-overlap plot: overlaying five per-fold reliability
+    curves lets a reviewer eyeball whether the pooled LOFO reliability
+    (which the paper reports) is representative or driven by one fold."""
+    if lofo_df.empty:
+        return pd.DataFrame()
+    pieces: list[pd.DataFrame] = []
+    for fold, sub in lofo_df.groupby("fold"):
+        rel = reliability_table(
+            sub["label"].to_numpy(),
+            sub["p_lofo"].to_numpy(),
+            n_bins=n_bins,
+        )
+        if rel.empty:
+            continue
+        rel.insert(0, "fold", int(fold))
+        pieces.append(rel)
+    return pd.concat(pieces, ignore_index=True) if pieces else pd.DataFrame()
+
+
 def evaluate_lofo(
     oof: OofFrame,
     family: str,
@@ -871,6 +948,49 @@ class BootstrapRibbon:
         })
 
 
+def _resample_indices(
+    unit: str,
+    oof_df: pd.DataFrame,
+    rng: np.random.Generator,
+    cluster_map: dict[str, str] | None,
+) -> np.ndarray:
+    """Draw one bootstrap row-index vector according to ``unit``.
+
+    ``fold``     — sample n_folds folds with replacement, concat rows.
+    ``cluster``  — sample n_clusters cluster labels with replacement (from
+                   the mmseqs 50%-seq-id mapping), concat their rows.
+    ``row``      — sample len(oof_df) rows with replacement. Wrong for
+                   this problem (homology inflates N) — kept for parity.
+    """
+    if unit == "fold":
+        folds = np.array(sorted(int(f) for f in oof_df["fold"].unique()))
+        sampled = rng.choice(folds, size=len(folds), replace=True)
+        parts = [
+            np.flatnonzero(oof_df["fold"].to_numpy() == int(f)) for f in sampled
+        ]
+        return np.concatenate(parts) if parts else np.empty(0, dtype=np.int64)
+    if unit == "cluster":
+        if cluster_map is None:
+            raise ValueError("cluster bootstrap unit requires cluster_map")
+        ids = oof_df["id"].astype(str).to_numpy()
+        labels = np.array(
+            [cluster_map.get(u, "__missing_cluster__") for u in ids],
+            dtype=object,
+        )
+        order = np.argsort(labels, kind="stable")
+        sorted_labels = labels[order]
+        change = np.concatenate(([True], sorted_labels[1:] != sorted_labels[:-1]))
+        starts = np.flatnonzero(change)
+        ends = np.append(starts[1:], len(labels))
+        groups = [order[s:e] for s, e in zip(starts, ends)]
+        pick = rng.integers(0, len(groups), size=len(groups))
+        return np.concatenate([groups[k] for k in pick])
+    if unit == "row":
+        n = len(oof_df)
+        return rng.integers(0, n, size=n)
+    raise ValueError(f"Unknown bootstrap unit for calibrator: {unit!r}")
+
+
 def cluster_bootstrap_calibrator(
     oof: OofFrame,
     deployment,
@@ -881,18 +1001,28 @@ def cluster_bootstrap_calibrator(
     eps: float = DEFAULT_SCORE_EPS,
     score_grid: np.ndarray | None = None,
     ci: float = DEFAULT_CI,
+    bootstrap_unit: str = "cluster",
+    cluster_map: dict[str, str] | None = None,
 ) -> BootstrapRibbon:
-    """Cluster-by-fold bootstrap of the chosen calibrator family.
+    """Bootstrap the chosen calibrator family and report its curve CI.
 
-    Each draw resamples folds with replacement (size = n_folds), refits
-    the *same* family on the pooled rows, evaluates on ``score_grid``.
-    ``p_hat`` is the deployment fit applied to the grid (the served
-    curve), not the bootstrap median.
+    ``bootstrap_unit``:
+
+    * ``"cluster"`` (default) — resample 50%-seq-identity cluster reps
+      with replacement (from ``cluster_map``), refit the family. Consistent
+      with the eval-pipeline block bootstrap and much finer-grained than
+      the legacy 5-fold ribbon.
+    * ``"fold"`` — legacy behavior: resample folds with replacement.
+      Retained for reproducibility of pre-refactor ribbons.
+    * ``"row"`` — sample rows with replacement. Wrong under high
+      homology (inflates effective N) — parity option only.
+
+    ``p_hat`` is the deployment fit applied to ``score_grid`` — the curve
+    that will be served in production. The ribbon (``p_lo``, ``p_hi``)
+    marks where a resample-refit could have landed.
     """
     rng = np.random.default_rng(seed)
-    folds = np.array(sorted(int(f) for f in oof.df["fold"].unique()))
-    n_folds = len(folds)
-    if n_folds == 0:
+    if oof.df.empty:
         nan = np.array([], dtype=np.float64)
         return BootstrapRibbon(
             oof.classifier, oof.target_class, family,
@@ -903,14 +1033,11 @@ def cluster_bootstrap_calibrator(
             oof.df["score"].to_numpy(), eps, 1.0 - eps
         ))
     grid = np.asarray(score_grid)
-    by_fold = {int(f): oof.df[oof.df["fold"] == f] for f in folds}
 
     accum: list[np.ndarray] = []
     for _ in range(n_iter):
-        sampled = rng.choice(folds, size=n_folds, replace=True)
-        df_k = pd.concat(
-            [by_fold[int(f)] for f in sampled], ignore_index=True,
-        )
+        idx = _resample_indices(bootstrap_unit, oof.df, rng, cluster_map)
+        df_k = oof.df.iloc[idx].reset_index(drop=True)
         cal = _refit_for_family(family, df_k, eps=eps)
         if cal is None:
             continue
@@ -931,6 +1058,83 @@ def cluster_bootstrap_calibrator(
         oof.classifier, oof.target_class, family,
         grid, p_lo, p_hat, p_hi, len(accum), ci,
     )
+
+
+def _bootstrap_lofo_metrics(
+    oof: OofFrame,
+    family: str,
+    *,
+    n_iter: int,
+    seed: int,
+    eps: float,
+    bootstrap_unit: str,
+    cluster_map: dict[str, str] | None,
+    n_bins: int,
+) -> pd.DataFrame:
+    """Cluster-block bootstrap CIs on the LOFO calibration metrics.
+
+    Each draw: resample rows per ``bootstrap_unit`` (default cluster),
+    then RE-COMPUTE LOFO on the resampled fold structure — that is,
+    run the leave-one-fold-out refit inside the draw. Returns one row
+    per (metric, draw) so callers can compute quantiles.
+
+    The resample assigns to each drawn row its ORIGINAL fold label, so
+    the 5-fold structure is preserved and LOFO stays a real hold-out
+    even after resampling.
+    """
+    rng = np.random.default_rng(seed)
+    rows: list[dict] = []
+    for b in range(n_iter):
+        idx = _resample_indices(bootstrap_unit, oof.df, rng, cluster_map)
+        df_k = oof.df.iloc[idx].reset_index(drop=True)
+        if df_k["label"].nunique() < 2:
+            continue
+        oof_k = OofFrame(df_k, oof.classifier, oof.target_class)
+        p_and_y = _lofo_predict_for_family(oof_k, family, eps=eps)
+        if p_and_y is None:
+            continue
+        p_lofo, y = p_and_y
+        e, m = _ece_mce(y, p_lofo, n_bins)
+        rows.append({
+            "bootstrap_idx": b,
+            "log_loss": _log_loss(y, p_lofo),
+            "brier":    _brier(y, p_lofo),
+            "ece":      e,
+            "mce":      m,
+        })
+    return pd.DataFrame(rows)
+
+
+def _bootstrap_calibrator_params(
+    oof: OofFrame,
+    family: str,
+    *,
+    n_iter: int,
+    seed: int,
+    eps: float,
+    bootstrap_unit: str,
+    cluster_map: dict[str, str] | None,
+) -> pd.DataFrame:
+    """Cluster-block bootstrap CIs on the winning family's parameters.
+
+    Each draw refits the family on the resample and records
+    ``{a, b, c, T}`` (unused params are NaN). Callers take quantiles
+    to build parameter CIs."""
+    rng = np.random.default_rng(seed)
+    rows: list[dict] = []
+    for b in range(n_iter):
+        idx = _resample_indices(bootstrap_unit, oof.df, rng, cluster_map)
+        df_k = oof.df.iloc[idx].reset_index(drop=True)
+        cal = _refit_for_family(family, df_k, eps=eps)
+        if cal is None:
+            continue
+        p = cal.params_dict()
+        rows.append({
+            "bootstrap_idx": b,
+            "a": p.get("a"), "b": p.get("b"),
+            "c": p.get("c"), "T": p.get("T"),
+        })
+    return pd.DataFrame(rows)
 
 
 # ---------------------------------------------------------------------------
@@ -1073,9 +1277,14 @@ class CalibrationArtefacts:
     selection_log_loss: pd.DataFrame
     skipped: pd.DataFrame
     lofo_predictions: pd.DataFrame
-    reliability: pd.DataFrame
-    metrics: pd.DataFrame
-    ribbon: pd.DataFrame
+    reliability: pd.DataFrame          # pooled LOFO reliability
+    reliability_per_fold: pd.DataFrame # 5 per-fold reliability tables
+    metrics: pd.DataFrame              # pooled LOFO log_loss / Brier / ECE / MCE
+    metrics_per_fold: pd.DataFrame     # per-fold LOFO metrics + mean/SD summary row
+    lofo_metric_ci: pd.DataFrame       # cluster-block bootstrap CIs on the pooled LOFO metrics
+    param_ci: pd.DataFrame             # cluster-block bootstrap CIs on winning-family params
+    ribbon: pd.DataFrame               # cluster-block curve ribbon (p_lo, p_hat, p_hi)
+    ribbon_coverage: pd.DataFrame      # deployment-in-ribbon check summary per class
     per_fold_params: pd.DataFrame
     fold_drift_summary: pd.DataFrame
     hard_errors: pd.DataFrame
@@ -1115,21 +1324,47 @@ def fit_calibration_table(
     bottom_k_fn: int = DEFAULT_BOTTOM_K_FN,
     ci: float = DEFAULT_CI,
     fold_drift_threshold: float = DEFAULT_FOLD_DRIFT_THRESHOLD,
+    bootstrap_unit: str = "cluster",
+    cluster_map: dict[str, str] | None = None,
 ) -> CalibrationArtefacts:
-    """End-to-end calibration over every (classifier, class) pair."""
+    """End-to-end calibration over every (classifier, class) pair.
+
+    ``bootstrap_unit``/``cluster_map`` route the curve ribbon and the new
+    LOFO-metric/parameter bootstrap CIs to a 50%-seq-identity cluster
+    block bootstrap (default) instead of the legacy 5-fold cluster.
+    """
     fit_rows: list[dict] = []
     selection_rows: list[dict] = []
     skip_rows: list[dict] = []
     lofo_pieces: list[pd.DataFrame] = []
     reliability_pieces: list[pd.DataFrame] = []
+    reliability_pf_pieces: list[pd.DataFrame] = []
     metrics_rows: list[dict] = []
+    metrics_pf_pieces: list[pd.DataFrame] = []
+    lofo_metric_ci_rows: list[dict] = []
+    param_ci_rows: list[dict] = []
     ribbon_pieces: list[pd.DataFrame] = []
+    ribbon_coverage_rows: list[dict] = []
     pfp_pieces: list[pd.DataFrame] = []
     drift_rows: list[dict] = []
     hard_pieces: list[pd.DataFrame] = []
 
-    for clf, cls_map in oof_per_clf_class.items():
-        for cls, oof in cls_map.items():
+    total_cells = sum(len(cm) for cm in oof_per_clf_class.values())
+    logger.info(
+        "Fitting calibration for %d (classifier, class) cells across %d "
+        "candidate families%s",
+        total_cells, len(families),
+        f", ribbon via cluster-block bootstrap ({n_bootstrap} draws)" if
+        bootstrap_unit == "cluster" and cluster_map else "",
+    )
+    from tqdm.auto import tqdm as _tqdm  # type: ignore
+    cells = [
+        (clf, cls, oof)
+        for clf, cls_map in oof_per_clf_class.items()
+        for cls, oof in cls_map.items()
+    ]
+    for clf, cls, oof in _tqdm(cells, desc="calibration cells"):
+        if True:  # keep indentation for the fit block below
             fit = fit_best_calibrator(
                 oof, families=families, min_n_pos=min_n_pos,
                 eps=eps, family_tolerance=family_tolerance,
@@ -1176,6 +1411,14 @@ def fit_calibration_table(
                     rel.insert(2, "family", family)
                     reliability_pieces.append(rel)
 
+                # Per-fold reliability (for the 5-CV curve-overlap plot).
+                rel_pf = per_fold_reliability(lofo, n_bins=n_bins_eff)
+                if not rel_pf.empty:
+                    rel_pf.insert(0, "target_class", cls)
+                    rel_pf.insert(0, "classifier", clf)
+                    rel_pf.insert(2, "family", family)
+                    reliability_pf_pieces.append(rel_pf)
+
                 metrics_rows.append({
                     "classifier": clf,
                     "target_class": cls,
@@ -1189,19 +1432,105 @@ def fit_calibration_table(
                     ),
                 })
 
+                # Per-fold LOFO metrics + mean/SD summary row.
+                pf_metrics = per_fold_lofo_metrics(lofo, n_bins=n_bins_eff)
+                if not pf_metrics.empty:
+                    pf_metrics.insert(0, "target_class", cls)
+                    pf_metrics.insert(0, "classifier", clf)
+                    pf_metrics.insert(2, "family", family)
+                    metrics_pf_pieces.append(pf_metrics)
+
                 he = hard_error_panel(
                     lofo, top_k_fp=top_k_fp, bottom_k_fn=bottom_k_fn,
                 )
                 if not he.empty:
                     hard_pieces.append(he)
 
-            # Cluster-bootstrap ribbon (winning family).
+            # Cluster-bootstrap ribbon (winning family) + coverage check.
             ribbon = cluster_bootstrap_calibrator(
                 oof, fit.calibrator, family=family,
                 n_iter=n_bootstrap, seed=bootstrap_seed,
                 eps=eps, ci=ci,
+                bootstrap_unit=bootstrap_unit,
+                cluster_map=cluster_map,
             )
             ribbon_pieces.append(ribbon.to_long_frame())
+            if ribbon.p_hat.size:
+                outside = np.logical_or(
+                    ribbon.p_hat < ribbon.p_lo,
+                    ribbon.p_hat > ribbon.p_hi,
+                )
+                pct_outside = float(np.mean(outside)) * 100.0
+            else:
+                pct_outside = float("nan")
+            ribbon_coverage_rows.append({
+                "classifier": clf,
+                "target_class": cls,
+                "family": family,
+                "bootstrap_unit": bootstrap_unit,
+                "n_resamples_used": ribbon.n_resamples_used,
+                "pct_deployment_outside_ribbon": pct_outside,
+                "ci": ci,
+            })
+
+            # Bootstrap CIs on LOFO metrics + winning-family parameters.
+            metric_boot = _bootstrap_lofo_metrics(
+                oof, family, n_iter=n_bootstrap, seed=bootstrap_seed,
+                eps=eps, bootstrap_unit=bootstrap_unit,
+                cluster_map=cluster_map, n_bins=n_bins_eff,
+            )
+            if not metric_boot.empty:
+                pooled_pt = calibration_metrics(
+                    lofo["label"].to_numpy(),
+                    lofo["raw_score"].to_numpy(),
+                    lofo["p_lofo"].to_numpy(),
+                    n_bins=n_bins_eff,
+                ) if not lofo.empty else {}
+                alpha = (1.0 - ci) / 2.0
+                for metric_name, pooled_key in (
+                    ("log_loss", "log_loss_cal"),
+                    ("brier",    "brier_cal"),
+                    ("ece",      "ece_cal"),
+                    ("mce",      "mce_cal"),
+                ):
+                    vals = metric_boot[metric_name].to_numpy(dtype=float)
+                    vals = vals[np.isfinite(vals)]
+                    if vals.size == 0:
+                        continue
+                    lofo_metric_ci_rows.append({
+                        "classifier": clf,
+                        "target_class": cls,
+                        "family": family,
+                        "metric": metric_name,
+                        "point": float(pooled_pt.get(pooled_key, float("nan"))),
+                        "ci_low": float(np.quantile(vals, alpha)),
+                        "ci_high": float(np.quantile(vals, 1.0 - alpha)),
+                        "n_resamples_used": int(vals.size),
+                        "ci": ci,
+                    })
+            param_boot = _bootstrap_calibrator_params(
+                oof, family, n_iter=n_bootstrap, seed=bootstrap_seed,
+                eps=eps, bootstrap_unit=bootstrap_unit, cluster_map=cluster_map,
+            )
+            if not param_boot.empty:
+                deploy_params = fit.calibrator.params_dict()
+                alpha = (1.0 - ci) / 2.0
+                for pname in ("a", "b", "c", "T"):
+                    col = param_boot[pname].to_numpy(dtype=float)
+                    col = col[np.isfinite(col)]
+                    if col.size == 0 or deploy_params.get(pname) is None:
+                        continue
+                    param_ci_rows.append({
+                        "classifier": clf,
+                        "target_class": cls,
+                        "family": family,
+                        "parameter": pname,
+                        "point": float(deploy_params[pname]),
+                        "ci_low": float(np.quantile(col, alpha)),
+                        "ci_high": float(np.quantile(col, 1.0 - alpha)),
+                        "n_resamples_used": int(col.size),
+                        "ci": ci,
+                    })
 
             # Per-fold drift (winning family).
             pfp = per_fold_param_drift(oof, family, eps=eps)
@@ -1235,8 +1564,13 @@ def fit_calibration_table(
         skipped=pd.DataFrame(skip_rows),
         lofo_predictions=_maybe_concat(lofo_pieces),
         reliability=_maybe_concat(reliability_pieces),
+        reliability_per_fold=_maybe_concat(reliability_pf_pieces),
         metrics=pd.DataFrame(metrics_rows),
+        metrics_per_fold=_maybe_concat(metrics_pf_pieces),
+        lofo_metric_ci=pd.DataFrame(lofo_metric_ci_rows),
+        param_ci=pd.DataFrame(param_ci_rows),
         ribbon=_maybe_concat(ribbon_pieces),
+        ribbon_coverage=pd.DataFrame(ribbon_coverage_rows),
         per_fold_params=_maybe_concat(pfp_pieces),
         fold_drift_summary=pd.DataFrame(drift_rows),
         hard_errors=_maybe_concat(hard_pieces),

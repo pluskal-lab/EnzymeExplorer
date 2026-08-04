@@ -2,7 +2,7 @@ marts-db-csv-path: "data/martsDB_reactions_2026_02_22.csv"
 swissprot-tsv-path: "data/swissprot_with_af_2026_03_14.tsv"
 go-dag-path: "data/go-basic_2026_03_14.obo"
 pfam-models-dir: "data/pfam_models/"
-supfam-models-dir: "data/supfam_models/"
+supfam-models-dir: "data/supfam_models_negative_cleanup/"
 n-folds: 5
 number-of-negatives: -1
 rhea-to-swissprot-tsv-path: "data/rhea2uniprot_sprot_2026_03_14.tsv"

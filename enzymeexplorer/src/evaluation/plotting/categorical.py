@@ -78,6 +78,16 @@ def plot_category_boxplot(
     ylim: tuple[float, float] | None = None,
     figsize: tuple[float, float] | None = None,
     showfliers: bool = True,
+    box_width: float | None = None,      # cluster width per classifier (0..1)
+    linewidth: float = 0.5,              # median / whisker / cap
+    edge_linewidth: float = 0.45,        # per-box edge stroke
+    flier_size: float = 1.5,
+    xtick_fontsize: float | None = None,
+    ytick_fontsize: float | None = None,
+    title_fontsize: float | None = None,
+    intra_box_gap: float = 0.0,          # seaborn ``gap`` — space between
+                                         # hue-boxes inside a single cluster
+                                         # (fraction of a box's width)
 ) -> plt.Figure:
     """Grouped boxplot: one column per classifier, one box per category
     inside each column. Box colour is by category (Kingdom / TPS type), so
@@ -141,7 +151,7 @@ def plot_category_boxplot(
     df["category"] = pd.Categorical(df["category"], categories=cats, ordered=True)
 
     target_box_inches = 0.10
-    cluster_width = 0.66
+    cluster_width = 0.66 if box_width is None else float(box_width)
     if figsize is None:
         figsize = (
             max(
@@ -162,20 +172,20 @@ def plot_category_boxplot(
         palette=palette,
         showfliers=showfliers,
         flierprops=dict(
-            marker="o", markersize=1.5,
+            marker="o", markersize=flier_size,
             markerfacecolor="0.7", markeredgecolor="none",
             linestyle="none", alpha=0.6,
         ),
         whis=(2.5, 97.5),
-        linewidth=0.5,
+        linewidth=linewidth,
         width=cluster_width,
-        gap=0.0,
+        gap=intra_box_gap,
         ax=ax,
     )
     # Box edges should be subtle.
     for patch in ax.patches:
         patch.set_edgecolor("0.2")
-        patch.set_linewidth(0.45)
+        patch.set_linewidth(edge_linewidth)
     ax.margins(x=0.03)
     ax.yaxis.grid(True, color="0.92", linewidth=0.4)
     ax.set_axisbelow(True)
@@ -184,10 +194,14 @@ def plot_category_boxplot(
     ax.set_xticklabels(
         [theme.display_name(clf) for clf in classifier_order],
         rotation=0, ha="center",
+        fontsize=xtick_fontsize if xtick_fontsize is not None else None,
     )
+    if ytick_fontsize is not None:
+        ax.tick_params(axis="y", labelsize=float(ytick_fontsize))
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel if ylabel is not None else f"{metric.upper()} (%)")
-    ax.set_title(title, loc="left")
+    ax.set_title(title, loc="left",
+                 fontsize=title_fontsize if title_fontsize is not None else None)
     if ylim is not None:
         ax.set_ylim(*ylim)
     ax.legend(
@@ -216,6 +230,7 @@ def plot_category_heatmap(
     annotation_fmt: str = "{:.1f}",
     figsize: tuple[float, float] | None = None,
     title: str = "",
+    title_fontsize: float | None = None,
     skip_nan_categories: bool = True,
     vmin: float | None = None,
     vmax: float | None = None,
@@ -274,7 +289,8 @@ def plot_category_heatmap(
     )
     ax.set_yticks(np.arange(len(cats)))
     ax.set_yticklabels(cats)
-    ax.set_title(title, loc="left")
+    ax.set_title(title, loc="left",
+                 fontsize=title_fontsize if title_fontsize is not None else None)
     # Hairline spines + faint cell borders so adjacent cells read as a grid.
     ax.tick_params(length=0)
     for spine in ax.spines.values():

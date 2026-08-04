@@ -34,7 +34,6 @@ class CLEANConfig(BaseConfig):
 
     clean_installation_root: Path
     ec_2_substrates_json_path: str
-    is_halo: bool
     pretrained_models_link: str
 
 
@@ -58,24 +57,16 @@ class CLEAN(BaseModel):
         data_df = pd.read_csv(config.tps_cleaned_csv_path)
         
         data_df.loc[data_df[config.type_col_name] == "Unknown", config.target_col_name] = "Unknown"
-        self.is_halo = getattr(config, "is_halo", False)
-        if not self.is_halo:
-            data_df.loc[
-                data_df[config.type_col_name].isin(
-                {"pt"}
-            ),
+        data_df.loc[
+            data_df[config.type_col_name].isin({"pt"}),
             config.target_col_name,
-            ] = "precursor substr"
-            self.precursor_smiles = set(
-                data_df.loc[
-                    data_df[config.type_col_name].isin(
-                        {"pt"}
-                    ),
-                    config.target_col_name,
-                ].values
-            )
-        else:
-            self.precursor_smiles = set()
+        ] = "precursor substr"
+        self.precursor_smiles = set(
+            data_df.loc[
+                data_df[config.type_col_name].isin({"pt"}),
+                config.target_col_name,
+            ].values
+        )
 
         self.tps_substrate_smiles = {
             substr
@@ -175,13 +166,6 @@ class CLEAN(BaseModel):
 
         for row_i, protein_id in enumerate(ids):
             ec_scores = id_2_ec_scores.get(protein_id, [])
-            if self.is_halo:
-                for ec_num, conf in ec_scores:
-                    class_i = class_name_2_idx.get(ec_num)
-                    if class_i is not None:
-                        val_proba_np[row_i, class_i] = conf
-                continue
-
             neg_score = 0.0
             tps_pos_score = 0.0
             class_2_pos_score: dict[str, float] = defaultdict(float)

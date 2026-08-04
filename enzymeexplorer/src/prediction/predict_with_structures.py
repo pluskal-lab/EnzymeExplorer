@@ -172,6 +172,32 @@ def parse_args() -> argparse.Namespace:
         help="Don't delete the per-invocation scratch dir on exit.",
     )
     parser.add_argument(
+        "--prefilter-pdbs-by-foldseek",
+        action="store_true",
+        help=(
+            "Opt-in: skip (query × template) USalign pairs with no plausible "
+            "foldseek alignment. ~5-10x faster on batches dominated by "
+            "non-TPS proteins; small recall loss. Off by default."
+        ),
+    )
+    parser.add_argument(
+        "--postfilter-domains-by-foldseek",
+        action="store_true",
+        help=(
+            "Opt-in: drop detected domains whose foldseek e-value to any "
+            "reference exceeds the postfilter threshold. Off by default."
+        ),
+    )
+    parser.add_argument(
+        "--detect-multiple-domains-in-each-iteration",
+        action="store_true",
+        help=(
+            "Opt-in: extract every template match per iteration (higher "
+            "recall on multi-domain proteins, slower). Off by default — "
+            "one domain per iteration."
+        ),
+    )
+    parser.add_argument(
         "--log-dir",
         type=Path,
         default=DEFAULT_LOG_DIR,
@@ -222,6 +248,11 @@ def main() -> None:
             plm_batch_size=args.plm_batch_size,
             workdir=None,
             keep_intermediate=False,
+            prefilter_pdbs_by_foldseek=args.prefilter_pdbs_by_foldseek,
+            postfilter_domains_by_foldseek=args.postfilter_domains_by_foldseek,
+            detect_multiple_domains_in_each_iteration=(
+                args.detect_multiple_domains_in_each_iteration
+            ),
         )
 
         args.output_dir.mkdir(parents=True, exist_ok=True)

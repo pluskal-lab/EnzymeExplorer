@@ -1,0 +1,89 @@
+IQ-TREE multicore version 2.3.0 COVID-edition for Linux 64-bit built Mar 14 2024
+Developed by Bui Quang Minh, James Barbetti, Nguyen Lam Tung,
+Olga Chernomor, Heiko Schmidt, Dominik Schrempf, Michael Woodhams, Ly Trong Nhan.
+
+Host:    terka.uochb.cas.cz (AVX2, FMA3, 125 GB RAM)
+Command: iqtree2 -s data/hard_candidates/selection/alignment.fasta -m LG+G4 -fast -nt AUTO -ntmax 32 -pre data/hard_candidates/selection/iqtree -redo
+Seed:    746342 (Using SPRNG - Scalable Parallel Random Number Generator)
+Time:    Sun Jul 19 17:15:15 2026
+Kernel:  AVX+FMA - auto-detect threads (64 CPU cores detected)
+
+Reading alignment file data/hard_candidates/selection/alignment.fasta ... Fasta format detected
+Reading fasta file: done in 0.244382 secs using 91.61% CPU
+Alignment most likely contains protein sequences
+Alignment has 2315 sequences with 7224 columns, 6465 distinct patterns
+4273 parsimony-informative, 1408 singleton sites, 1543 constant sites
+Analyzing sequences: done in 0.00511237 secs using 5215% CPU
+WARNING: 2315 sequences contain more than 50% gaps/ambiguity
+
+Create initial parsimony tree by phylogenetic likelihood library (PLL)... 35.51 seconds
+
+NOTE: 9281 MB RAM (9 GB) is required!
+Measuring multi-threading efficiency up to 32 CPU cores
+2 trees examined
+Threads: 1 / Time: 92.18 sec / Speedup: 1.00 / Efficiency: 100% / LogL: -2698892
+Threads: 2 / Time: 56.72 sec / Speedup: 1.63 / Efficiency: 81% / LogL: -2698892
+Threads: 3 / Time: 48.51 sec / Speedup: 1.90 / Efficiency: 63% / LogL: -2698892
+Threads: 4 / Time: 38.55 sec / Speedup: 2.39 / Efficiency: 60% / LogL: -2698892
+Threads: 5 / Time: 31.66 sec / Speedup: 2.91 / Efficiency: 58% / LogL: -2698892
+Threads: 6 / Time: 27.76 sec / Speedup: 3.32 / Efficiency: 55% / LogL: -2698892
+Threads: 7 / Time: 24.87 sec / Speedup: 3.71 / Efficiency: 53% / LogL: -2698892
+Threads: 8 / Time: 22.86 sec / Speedup: 4.03 / Efficiency: 50% / LogL: -2698892
+Threads: 9 / Time: 21.18 sec / Speedup: 4.35 / Efficiency: 48% / LogL: -2698892
+BEST NUMBER OF THREADS: 8
+
+Estimate model parameters (epsilon = 0.50)
+1. Initial log-likelihood: -1956445.25
+2. Current log-likelihood: -1504514.37
+3. Current log-likelihood: -1499499.89
+4. Current log-likelihood: -1499148.02
+5. Current log-likelihood: -1499136.47
+Optimal log-likelihood: -1499136.00
+Gamma shape alpha: 3.06
+Parameters optimization took 5 rounds (197.67 sec)
+Wrote distance file to... 
+Computing ML distances based on estimated model parameters...
+Calculating distance matrix: done in 71.1862 secs using 798% CPU
+Computing ML distances took 71.217109 sec (of wall-clock time) 568.133621 sec (of CPU time)
+WARNING: Some pairwise ML distances are too long (saturated)
+Setting up auxiliary I and S matrices: done in 0.0188862 secs using 734.6% CPU
+Computing RapidNJ tree took 2.995671 sec (of wall-clock time) 8.446411 sec (of CPU time)
+Log-likelihood of RapidNJ tree: -1507644.897
+--------------------------------------------------------------------
+|             INITIALIZING CANDIDATE TREE SET                      |
+--------------------------------------------------------------------
+
+Do NNI search on 2 best initial trees
+Estimate model parameters (epsilon = 0.500)
+BETTER TREE FOUND at iteration 1: -1496169.221
+Finish initializing candidate tree set (4)
+Current best tree score: -1496169.221 / CPU time: 1050.835
+Number of iterations: 2
+TREE SEARCH COMPLETED AFTER 2 ITERATIONS / Time: 0h:31m:34s
+
+--------------------------------------------------------------------
+|                    FINALIZING TREE SEARCH                        |
+--------------------------------------------------------------------
+Performs final model parameters optimization
+Estimate model parameters (epsilon = 0.050)
+1. Initial log-likelihood: -1496169.221
+2. Current log-likelihood: -1496169.160
+Optimal log-likelihood: -1496169.133
+Gamma shape alpha: 3.108
+Parameters optimization took 2 rounds (38.167 sec)
+BEST SCORE FOUND : -1496169.133
+Total tree length: 1423.268
+
+Total number of iterations: 2
+CPU time used for tree search: 8376.245 sec (2h:19m:36s)
+Wall-clock time used for tree search: 1050.840 sec (0h:17m:30s)
+Total CPU time used: 13487.398 sec (3h:44m:47s)
+Total wall-clock time used: 1932.710 sec (0h:32m:12s)
+
+Analysis results written to: 
+  IQ-TREE report:                data/hard_candidates/selection/iqtree.iqtree
+  Maximum-likelihood tree:       data/hard_candidates/selection/iqtree.treefile
+  Likelihood distances:          data/hard_candidates/selection/iqtree.mldist
+  Screen log file:               data/hard_candidates/selection/iqtree.log
+
+Date and Time: Sun Jul 19 17:47:29 2026

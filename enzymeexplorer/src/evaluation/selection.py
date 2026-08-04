@@ -1,4 +1,4 @@
-"""Per-class version selection for HBI-style baselines.
+"""Per-class version selection for homology-based baselines.
 
 For models whose optimal threshold is class-dependent (Blastp, Foldseek, HMM,
 Pfam, SUPFAM), the evaluation pipeline picks the version that maximises a
@@ -21,7 +21,7 @@ from sklearn.metrics import average_precision_score, roc_auc_score  # type: igno
 
 from enzymeexplorer.src.evaluation import io as eio
 from enzymeexplorer.src.evaluation.classes import SHORT_TO_SMILES
-from enzymeexplorer.src.utils.project_info import get_config_root, get_output_root
+from enzymeexplorer.src.utils.project_info import get_config_root, get_models_output_root
 
 logger = logging.getLogger(__name__)
 
@@ -55,7 +55,7 @@ def discover_versions(
     no-distractor universe that matches the new training default. When
     ``True``, only ``_with_distractors`` versions are returned.
     """
-    out_root = output_root or get_output_root()
+    out_root = output_root or get_models_output_root()
     model_outputs = out_root / model
     if not model_outputs.is_dir():
         raise FileNotFoundError(f"No outputs dir for model: {model_outputs}")

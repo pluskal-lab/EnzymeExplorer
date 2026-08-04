@@ -9,7 +9,7 @@ Two orchestrators:
 * :func:`predict_sequences_only` — PLM-only over all input proteins.
 
 Both return wide-form tables with one row per protein and
-``<class>_score`` / ``<class>_p_calibrated`` columns; both also accept a
+``<class>_raw`` / ``<class>_p`` columns; both also accept a
 callable ``embedder`` so the FastAPI app can reuse a long-lived embedder
 across requests.
 """
@@ -66,7 +66,7 @@ PLM_ONLY_CLASSIFIER_NAME = "PLM"
 
 
 def _filter_by_min_tps_p(table: pd.DataFrame, min_tps_p: float) -> pd.DataFrame:
-    """Drop rows whose ``TPS_p_calibrated`` is below ``min_tps_p``.
+    """Drop rows whose ``TPS_p`` (calibrated probability) is below ``min_tps_p``.
 
     A missing column or an all-NaN column short-circuits to the input
     table (e.g. fallback frames produced by ``predict_with_structures``
@@ -74,7 +74,7 @@ def _filter_by_min_tps_p(table: pd.DataFrame, min_tps_p: float) -> pd.DataFrame:
     the threshold so an unscored row is dropped — calling code can opt
     out by passing ``min_tps_p=None``.
     """
-    col = "TPS_p_calibrated"
+    col = "TPS_p"
     if col not in table.columns:
         return table.reset_index(drop=True)
     # NaN >= x is False, so rows without a TPS calibration drop out.
@@ -87,13 +87,14 @@ def _ensure_embedder(
     embedder: "PLMEmbedder | None",
     *,
     model_name: str,
+    max_seq_len: int | None = None,
 ) -> "PLMEmbedder":
     if embedder is not None:
         return embedder
     # Deferred import — see module docstring on why.
     from enzymeexplorer.src.prediction.embeddings import load_plm_embedder
 
-    return load_plm_embedder(model_name)
+    return load_plm_embedder(model_name, max_seq_len=max_seq_len)
 
 
 def _score_and_calibrate(
@@ -128,18 +129,22 @@ def predict_with_structures(
     plm_only_model: str = DEFAULT_PLM_MODEL,
     embedder: PLMEmbedder | None = None,
     plm_only_embedder: PLMEmbedder | None = None,
+    plm_max_seq_len: int | None = None,
     precomputed_embeddings=None,  # np.ndarray | None — aligned with sequences_df rows
     n_jobs: int = 10,
     plm_batch_size: int = 4,
     workdir: str | Path | None = None,
     keep_intermediate: bool = False,
     min_tps_p: float | None = None,
+    prefilter_pdbs_by_foldseek: bool = False,
+    postfilter_domains_by_foldseek: bool = False,
+    detect_multiple_domains_in_each_iteration: bool = False,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     """End-to-end prediction with structures.
 
     Returns ``(plm_domains_predictions, plm_only_fallback_predictions)`` —
-    two wide-form DataFrames with per-class ``_score`` and
-    ``_p_calibrated`` columns. The second frame is empty when every
+    two wide-form DataFrames with per-class ``_raw`` and
+    ``_p`` columns. The second frame is empty when every
     protein produced a meaningful domain comparison; otherwise it
     contains the proteins that fell back.
 
@@ -175,6 +180,11 @@ def predict_with_structures(
         workdir=workdir,
         n_jobs=n_jobs,
         keep_intermediate=keep_intermediate,
+        prefilter_pdbs_by_foldseek=prefilter_pdbs_by_foldseek,
+        postfilter_domains_by_foldseek=postfilter_domains_by_foldseek,
+        detect_multiple_domains_in_each_iteration=(
+            detect_multiple_domains_in_each_iteration
+        ),
     )
     logger.info(
         "[step 1/4] Domain detection done — %d proteins with detections, "
@@ -201,7 +211,7 @@ def predict_with_structures(
         )
     else:
         logger.info("[step 2/4] Loading PLM embedder (%s)", plm_model)
-        embedder = _ensure_embedder(embedder, model_name=plm_model)
+        embedder = _ensure_embedder(embedder, model_name=plm_model, max_seq_len=plm_max_seq_len)
         logger.info(
             "[step 2/4] Computing PLM embeddings for %d sequences", len(sequences)
         )
@@ -271,7 +281,7 @@ def predict_with_structures(
                 plm_only_model,
             )
             plm_only_embedder_inst = _ensure_embedder(
-                plm_only_embedder, model_name=plm_only_model
+                plm_only_embedder, model_name=plm_only_model, max_seq_len=plm_max_seq_len,
             )
             fallback_embeddings = plm_only_embedder_inst.embed(
                 fallback_df["sequence"].tolist(),
@@ -301,7 +311,7 @@ def predict_with_structures(
         plm_domains_table = _filter_by_min_tps_p(plm_domains_table, min_tps_p)
         plm_only_table = _filter_by_min_tps_p(plm_only_table, min_tps_p)
         logger.info(
-            "predict_with_structures: kept rows with TPS_p_calibrated >= %.4f — "
+            "predict_with_structures: kept rows with TPS_p >= %.4f — "
             "PLM_Domains=%d, PLM-only=%d",
             min_tps_p, len(plm_domains_table), len(plm_only_table),
         )
@@ -320,6 +330,7 @@ def predict_sequences_only(
     calibration_csv_path: str | Path = DEFAULT_CALIBRATION_CSV,
     plm_model: str = DEFAULT_PLM_MODEL,
     embedder: PLMEmbedder | None = None,
+    plm_max_seq_len: int | None = None,
     precomputed_embeddings=None,  # np.ndarray | None — aligned with sequences_df rows
     plm_batch_size: int = 4,
     min_tps_p: float | None = None,
@@ -345,7 +356,7 @@ def predict_sequences_only(
         )
     else:
         logger.info("[step 1/3] Loading PLM embedder (%s)", plm_model)
-        embedder = _ensure_embedder(embedder, model_name=plm_model)
+        embedder = _ensure_embedder(embedder, model_name=plm_model, max_seq_len=plm_max_seq_len)
         logger.info(
             "[step 1/3] Computing PLM embeddings for %d sequences",
             len(sequences_df),
@@ -378,7 +389,7 @@ def predict_sequences_only(
         before = len(table)
         table = _filter_by_min_tps_p(table, min_tps_p)
         logger.info(
-            "predict_sequences_only: kept %d/%d rows with TPS_p_calibrated >= %.4f",
+            "predict_sequences_only: kept %d/%d rows with TPS_p >= %.4f",
             len(table), before, min_tps_p,
         )
     logger.info("predict_sequences_only: done — %d rows", len(table))

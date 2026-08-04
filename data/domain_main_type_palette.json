@@ -1,0 +1,9 @@
+{
+    "_comment": "Colorblind-safe main-type hues (Okabe-Ito). Shared across all Section-3 figures.",
+    "alpha": "#0072B2",
+    "beta": "#009E73",
+    "gamma": "#E69F00",
+    "delta": "#CC79A7",
+    "epsilon": "#D55E00",
+    "zeta": "#666666"
+}

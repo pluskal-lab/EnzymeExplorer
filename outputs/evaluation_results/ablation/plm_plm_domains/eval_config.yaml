@@ -1,0 +1,197 @@
+visualize:
+  plots:
+  - tps_detection
+  - substrate_map
+  - substrate_per_class
+  metrics:
+  - ap
+  - roc_auc
+  palette_mode: ablation
+  uniform_delta_color: '#80ceb9'
+  bar_figsize:
+  - 2.2
+  - 3.0
+  curve_figsize:
+  - 2.4
+  - 2.4
+  curve_classes:
+  - TPS
+  fixed_classifier_order: false
+  auto_zoom:
+    enabled: true
+    delta_pct: 2.0
+  classifier_order:
+  - PLM_Domains_AnkhBase
+  - PLM_Domains_AnkhLarge
+  - PLM_Domains_Esm1v
+  - PLM_Domains_Esm2
+  - PLM_Domains_TpsAnkhBase
+  - PLM_Domains_TpsEsm1vSubseq
+  pin_last: PLM_Domains_AnkhLarge
+  ablation_xtick_overrides:
+    PLM_Domains_AnkhBase: 'Ankh
+
+      Base'
+    PLM_Domains_AnkhLarge: 'Ankh
+
+      Large'
+    PLM_Domains_Esm1v: ESM-1v
+    PLM_Domains_Esm2: ESM-2
+    PLM_Domains_TpsAnkhBase: 'Finetuned
+
+      Ankh
+
+      Base'
+    PLM_Domains_TpsEsm1vSubseq: 'Finetuned
+
+      ESM-1v'
+  bar_plots:
+    tps_detection:
+      figsize:
+      - 4.5
+      - 2.0
+      bar_width: 0.8
+      xtic_rotation: 45
+      xtick_fontsize: 8
+      ytick_fontsize: 8
+      title_fontsize: 12
+    substrate_map:
+      figsize:
+      - 4.5
+      - 2.0
+      bar_width: 0.8
+      xtick_fontsize: 8
+      ytick_fontsize: 8
+      title_fontsize: 12
+    substrate_per_class:
+      figsize:
+      - 6.5
+      - 2.0
+      cluster_width: 0.8
+      bar_width_frac: 0.92
+      title_fontsize: 12
+  delta_plots:
+    figsize:
+    - 3.0
+    - 2.0
+    box_width: 0.3
+    xtick_fontsize: 8
+    ytick_fontsize: 8
+    title_fontsize: 12
+classifiers:
+  PLM_Domains_AnkhBase:
+    model: PlmDomainsRandomForest
+    classes:
+    - TPS
+    - IDS
+    - FPP
+    - GPP
+    - GGPP
+    - EDSQ
+    - CPP
+    - GFPP
+    - 2xFPP
+    - 2xGGPP
+    selection:
+      mode: fixed
+      version: ankh_base
+  PLM_Domains_AnkhLarge:
+    model: PlmDomainsRandomForest
+    classes:
+    - TPS
+    - IDS
+    - FPP
+    - GPP
+    - GGPP
+    - EDSQ
+    - CPP
+    - GFPP
+    - 2xFPP
+    - 2xGGPP
+    selection:
+      mode: fixed
+      version: ankh_large
+  PLM_Domains_Esm1v:
+    model: PlmDomainsRandomForest
+    classes:
+    - TPS
+    - IDS
+    - FPP
+    - GPP
+    - GGPP
+    - EDSQ
+    - CPP
+    - GFPP
+    - 2xFPP
+    - 2xGGPP
+    selection:
+      mode: fixed
+      version: esm-1v
+  PLM_Domains_Esm2:
+    model: PlmDomainsRandomForest
+    classes:
+    - TPS
+    - IDS
+    - FPP
+    - GPP
+    - GGPP
+    - EDSQ
+    - CPP
+    - GFPP
+    - 2xFPP
+    - 2xGGPP
+    selection:
+      mode: fixed
+      version: esm-2-t36-L36
+  PLM_Domains_TpsAnkhBase:
+    model: PlmDomainsRandomForest
+    classes:
+    - TPS
+    - IDS
+    - FPP
+    - GPP
+    - GGPP
+    - EDSQ
+    - CPP
+    - GFPP
+    - 2xFPP
+    - 2xGGPP
+    selection:
+      mode: fixed
+      version: tps_ankh_base
+  PLM_Domains_TpsEsm1vSubseq:
+    model: PlmDomainsRandomForest
+    classes:
+    - TPS
+    - IDS
+    - FPP
+    - GPP
+    - GGPP
+    - EDSQ
+    - CPP
+    - GFPP
+    - 2xFPP
+    - 2xGGPP
+    selection:
+      mode: fixed
+      version: tps_esm-1v-subseq
+bootstrap:
+  n_bootstraps: 1000
+  seed: 42
+  mode: cluster
+  ci: 0.95
+  ci_method: bca
+  metrics:
+  - ap
+  - roc_auc
+  target_model: PLM_Domains_AnkhLarge
+aggregates:
+  Substrate_mAP:
+  - FPP
+  - GPP
+  - GGPP
+  - EDSQ
+  - CPP
+  - GFPP
+  - 2xFPP
+  - 2xGGPP

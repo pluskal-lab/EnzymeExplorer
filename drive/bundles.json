@@ -1,0 +1,548 @@
+{
+  "_comment": "Source of truth for all Google-Drive-hosted artifacts.\n\nEach bundle is either type: 'zip' (default) or type: 'raw'.\n  zip: Drive URL points at a zip built by scripts/build_drive_bundles.py; the setup script downloads \u2192 verifies MANIFEST.txt (per-entry sha256) \u2192 applies extract_recipes \u2192 runs sanity_checks.\n  raw: Drive URL points at a single file uploaded as-is (no zipping); the setup script downloads it directly to target_path.\n\nFields:\n  url                 \u2014 Google Drive URL (fill in as you upload each artifact).\n  required_by         \u2014 [prod, dev]. setup scripts read only entries matching their role.\n  zip: zip_name, src_paths, extract_recipes, size_bytes, sha256_zip, n_files, sanity_checks.\n  raw: download_filename, target_path, sanity_checks.\n\nThe enzyme_explorer training-time PDB set is NOT shipped as a bundle; scripts/download_enzyme_explorer_pdbs.py rebuilds data/enzyme_explorer_pdbs/ by copying marts_* IDs from data/martsDB_pdbs/ and downloading everything else from AlphaFold-DB (v6 direct URL, with AFDB-API fallback).",
+  "bundles": {
+    "model-checkpoints": {
+      "url": "https://drive.google.com/uc?id=1qJJU_pA5D6RIWKES-66c0708f2EFEyU1",
+      "zip_name": "model-checkpoints.zip",
+      "description": "Deploy-side prediction bundles + calibration table (needed by predict_with_structures / predict_sequences_only).",
+      "src_paths": [
+        "data/enzyme_explorer_checkpoints.pkl",
+        "data/enzyme_explorer_plm_checkpoints.pkl",
+        "data/calibration_fit_summary.csv"
+      ],
+      "extract_recipes": [
+        {
+          "patterns": [
+            "enzyme_explorer_checkpoints.pkl",
+            "enzyme_explorer_plm_checkpoints.pkl",
+            "calibration_fit_summary.csv"
+          ],
+          "target_dir": "data/"
+        }
+      ],
+      "sanity_checks": [
+        "data/enzyme_explorer_checkpoints.pkl",
+        "data/enzyme_explorer_plm_checkpoints.pkl",
+        "data/calibration_fit_summary.csv"
+      ],
+      "required_by": [
+        "prod",
+        "dev"
+      ]
+    },
+    "reference-domains": {
+      "url": "https://drive.google.com/uc?id=1S1dNj1QDPY8ix7Tb3-zLJ45maWpHruf2",
+      "zip_name": "reference-domains.zip",
+      "description": "MARTS-DB reference-domain library + prebuilt foldseek DB cache. Needed by structure-aware prediction.",
+      "src_paths": [
+        "data/detected_domains/martsDB_detected_domains",
+        "data/foldseek_cache"
+      ],
+      "extract_recipes": [
+        {
+          "patterns": [
+            "martsDB_detected_domains/*"
+          ],
+          "target_dir": "data/detected_domains/"
+        },
+        {
+          "patterns": [
+            "foldseek_cache/*"
+          ],
+          "target_dir": "data/"
+        }
+      ],
+      "sanity_checks": [
+        "data/detected_domains/martsDB_detected_domains/martsDB_detected_domains.pkl",
+        "data/detected_domains/martsDB_detected_domains/secondary_structure_residues.pkl",
+        "data/detected_domains/martsDB_detected_domains/domains",
+        "data/foldseek_cache"
+      ],
+      "required_by": [
+        "prod",
+        "dev"
+      ]
+    },
+    "binaries": {
+      "url": "https://drive.google.com/uc?id=1T86gt8GFS0LJI6do2o-zWB6fbVwNZwcc",
+      "zip_name": "binaries.zip",
+      "description": "Pinned foldseek + USalign binaries \u2014 installed into the env's bin/.",
+      "src_paths": [],
+      "_note_src_paths": "This bundle is produced by hand \u2014 the current binaries live in $CONDA_PREFIX/bin of the packager's env. src_paths is empty because we don't ship them from data/; the URL points at the pre-existing zip already on Drive.",
+      "extract_recipes": [
+        {
+          "patterns": [
+            "foldseek",
+            "USalign"
+          ],
+          "target_dir": "$CONDA_PREFIX/bin/"
+        }
+      ],
+      "sanity_checks": [
+        "$CONDA_PREFIX/bin/foldseek",
+        "$CONDA_PREFIX/bin/USalign"
+      ],
+      "required_by": [
+        "prod",
+        "dev"
+      ],
+      "skip_local_build": true
+    },
+    "candidate-structures": {
+      "url": "https://drive.google.com/uc?id=1zd6pSSlvqC6hmXi5BoHjOgLkfPSwxtwv",
+      "zip_name": "candidate-structures.zip",
+      "description": "AlphaFold-DB structures for the 11 dark-proteome-selected candidates + the 9 Pfam/SUPFAM-selected candidates. Small but curated (not regeneratable \u2014 the specific proteins were hand-picked).",
+      "src_paths": [
+        "data/dark_candidates",
+        "data/pfam_supfam_candidates"
+      ],
+      "include": [
+        "dark_candidates/afdb/*.pdb",
+        "pfam_supfam_candidates/afdb/*.pdb"
+      ],
+      "extract_recipes": [
+        {
+          "patterns": [
+            "dark_candidates/afdb/*"
+          ],
+          "target_dir": "data/"
+        },
+        {
+          "patterns": [
+            "pfam_supfam_candidates/afdb/*"
+          ],
+          "target_dir": "data/"
+        }
+      ],
+      "sanity_checks": [
+        "data/dark_candidates/afdb",
+        "data/pfam_supfam_candidates/afdb"
+      ],
+      "required_by": [
+        "prod",
+        "dev"
+      ],
+      "size_bytes": 6467963,
+      "sha256_zip": "6793548c4f58724d68341ca79b410c63b95d925823b0d2a99dad98501020a7d0",
+      "n_files": 20
+    },
+    "gathered-embeddings": {
+      "url": "https://drive.google.com/uc?id=1e8l5c8QQlT_4lZhvX3jwRRD_aFkjAuZy",
+      "zip_name": "gathered-embeddings.zip",
+      "description": "Six pre-gathered PLM embedding tables (.h5) \u2014 inputs to the training-time PlmRandomForest / PlmDomainsRandomForest ensembles.",
+      "src_paths": [
+        "data/gathered_embs_ankh_base_embs_avg.h5",
+        "data/gathered_embs_ankh_large_embs_avg.h5",
+        "data/gathered_embs_ankh_tps_embs_avg.h5",
+        "data/gathered_embs_esm-1v_embs_avg.h5",
+        "data/gathered_embs_esm-1v-finetuned-subseq_embs_avg.h5",
+        "data/gathered_embs_esm-2-t36-L36_embs_avg.h5"
+      ],
+      "extract_recipes": [
+        {
+          "patterns": [
+            "gathered_embs_*.h5"
+          ],
+          "target_dir": "data/"
+        }
+      ],
+      "sanity_checks": [
+        "data/gathered_embs_ankh_large_embs_avg.h5"
+      ],
+      "required_by": [
+        "dev"
+      ],
+      "size_bytes": 561381540,
+      "sha256_zip": "a073db2527061b4577b96129b3f9c8864b562dcdbb1ad1f5f167f757dac89fdc",
+      "n_files": 6
+    },
+    "structural-features": {
+      "url": "https://drive.google.com/uc?id=1_LyGi4qw2_EVYy457jpSgA6Rhlttd2S4",
+      "zip_name": "structural-features.zip",
+      "description": "Precomputed foldseek TM-score matrix (query \u00d7 template) \u2014 input to PlmDomainsRandomForest / DomainsRandomForest training.",
+      "src_paths": [
+        "data/enzyme_explorer_structural_features"
+      ],
+      "extract_recipes": [
+        {
+          "patterns": [
+            "enzyme_explorer_structural_features/*"
+          ],
+          "target_dir": "data/"
+        }
+      ],
+      "sanity_checks": [
+        "data/enzyme_explorer_structural_features"
+      ],
+      "required_by": [
+        "dev"
+      ],
+      "size_bytes": 133539808,
+      "sha256_zip": "51c4be5cdcff9b5b9a60ea2f448fa4989de757be7e2e6ae5f9e4b108d451439f",
+      "n_files": 5
+    },
+    "swissprot-export": {
+      "url": "https://drive.google.com/uc?id=1Vj_UCKfAeJwB2Q8QQYZdrJ6smqvvYSqs",
+      "zip_name": "swissprot-export.zip",
+      "description": "SwissProt entries with AlphaFold-DB availability flag (data-prep input for the eval negative pool).",
+      "src_paths": [
+        "data/swissprot_with_af_2026_03_14.tsv"
+      ],
+      "extract_recipes": [
+        {
+          "patterns": [
+            "swissprot_with_af_2026_03_14.tsv"
+          ],
+          "target_dir": "data/"
+        }
+      ],
+      "sanity_checks": [
+        "data/swissprot_with_af_2026_03_14.tsv"
+      ],
+      "required_by": [
+        "dev"
+      ],
+      "size_bytes": 262717288,
+      "sha256_zip": "d6888681da4abc16475af4d7ce8dc32335b5d787f9152a9b7fed12f586b7767f",
+      "n_files": 1
+    },
+    "martsdb-pdbs": {
+      "url": "https://drive.google.com/uc?id=1brq_45XTOdh2LoZ4qh8wPApEAtj_I6P9",
+      "zip_name": "martsdb-pdbs.zip",
+      "description": "MARTS-DB reference PDBs used by the foldseek + USalign backends during training.",
+      "src_paths": [
+        "data/martsDB_pdbs"
+      ],
+      "extract_recipes": [
+        {
+          "patterns": [
+            "martsDB_pdbs/*"
+          ],
+          "target_dir": "data/"
+        }
+      ],
+      "sanity_checks": [
+        "data/martsDB_pdbs"
+      ],
+      "required_by": [
+        "dev"
+      ],
+      "size_bytes": 496026348,
+      "sha256_zip": "2ecf61424bb582315744bc6f747a04804970e392a29384c2e4bc187501875d96",
+      "n_files": 1378
+    },
+    "domain-clustering-all-vs-all": {
+      "url": "https://drive.google.com/uc?id=14iv3Epa4SDRSpiFB2VpzlWDIT_Qp_P7q",
+      "zip_name": "domain-clustering-all-vs-all.zip",
+      "description": "Precomputed USalign all-vs-all TM cache \u2014 input to the domain clustering + subtype identification pipeline.",
+      "src_paths": [
+        "data/domain_clustering/all_vs_all"
+      ],
+      "extract_recipes": [
+        {
+          "patterns": [
+            "all_vs_all/*"
+          ],
+          "target_dir": "data/domain_clustering/"
+        }
+      ],
+      "sanity_checks": [
+        "data/domain_clustering/all_vs_all/pairwise_tm.pkl"
+      ],
+      "required_by": [
+        "dev"
+      ],
+      "size_bytes": 1364709076,
+      "sha256_zip": "a16a8d3357f84ef83b16ace1fae9dd8fd30672ca2f85035b4eb59d835b7b8e6f",
+      "n_files": 37
+    },
+    "detected-domains-extras": {
+      "url": "https://drive.google.com/uc?id=1FBy5BAOGhTdGa-lvxQ7KlbM2feL8cmGZ",
+      "zip_name": "detected-domains-extras.zip",
+      "description": "Additional detected-domain sets used by training / re-evaluation: martsDB_detected_domains_initial (pre-refit), enzyme_explorer_detected_domains (full training set), and dark_candidates (for the alpha-domain analysis).",
+      "src_paths": [
+        "data/detected_domains/martsDB_detected_domains_initial",
+        "data/detected_domains/enzyme_explorer_detected_domains",
+        "data/detected_domains/dark_candidates"
+      ],
+      "extract_recipes": [
+        {
+          "patterns": [
+            "martsDB_detected_domains_initial/*"
+          ],
+          "target_dir": "data/detected_domains/"
+        },
+        {
+          "patterns": [
+            "enzyme_explorer_detected_domains/*"
+          ],
+          "target_dir": "data/detected_domains/"
+        },
+        {
+          "patterns": [
+            "dark_candidates/*"
+          ],
+          "target_dir": "data/detected_domains/"
+        }
+      ],
+      "sanity_checks": [
+        "data/detected_domains/martsDB_detected_domains_initial",
+        "data/detected_domains/enzyme_explorer_detected_domains",
+        "data/detected_domains/dark_candidates"
+      ],
+      "required_by": [
+        "dev"
+      ],
+      "size_bytes": 1583182826,
+      "sha256_zip": "e01a1cacc38099997f124debc2be26b6abfdbd49c7d4ec9139bc23d9aa5cdd4e",
+      "n_files": 10618
+    },
+    "dark-proteome-screening": {
+      "url": "https://drive.google.com/uc?id=1sYPxaXb-9sKQhr81DxxcHkfwvV2_ku64",
+      "zip_name": "dark-proteome-screening.zip",
+      "description": "Full 5.1B-sequence dark-proteome screening result (~265 MB CSV) + phylogenetic tree intermediates for the candidate selection.",
+      "src_paths": [
+        "data/dark_proteome_screening/dark_proteome_screening.csv",
+        "data/dark_proteome_screening/candidate_selection/phylo_tree/alignment.fasta",
+        "data/dark_proteome_screening/candidate_selection/phylo_tree/iqtree.mldist",
+        "data/dark_proteome_screening/candidate_selection/phylo_tree/iqtree.ckp.gz"
+      ],
+      "extract_recipes": [
+        {
+          "patterns": [
+            "dark_proteome_screening.csv"
+          ],
+          "target_dir": "data/dark_proteome_screening/"
+        },
+        {
+          "patterns": [
+            "alignment.fasta",
+            "iqtree.mldist",
+            "iqtree.ckp.gz"
+          ],
+          "target_dir": "data/dark_proteome_screening/candidate_selection/phylo_tree/"
+        }
+      ],
+      "sanity_checks": [
+        "data/dark_proteome_screening/dark_proteome_screening.csv",
+        "data/dark_proteome_screening/candidate_selection/phylo_tree/alignment.fasta"
+      ],
+      "required_by": [
+        "dev"
+      ],
+      "size_bytes": 347996944,
+      "sha256_zip": "6517bc2052b90b19076b7ba18410505f333962ce3618b153e4d5729cf66970e7",
+      "n_files": 4
+    },
+    "plm-checkpoint-ankh-tps": {
+      "url": "https://drive.google.com/uc?id=1sjtL7YBvkj0sjZbweOrXyfB88I1pLSDM",
+      "description": "Ankh-based PLM checkpoint finetuned on TPS (~8.3 GB). Needed only if regenerating gathered_embs_ankh_tps.",
+      "sanity_checks": [
+        "data/plm_checkpoints/tps_ankh_lr=5e-05_bs=32.pth"
+      ],
+      "required_by": [
+        "dev"
+      ],
+      "type": "raw",
+      "download_filename": "tps_ankh_lr=5e-05_bs=32.pth",
+      "target_path": "data/plm_checkpoints/tps_ankh_lr=5e-05_bs=32.pth"
+    },
+    "plm-checkpoint-esm1v-subseq": {
+      "url": "https://drive.google.com/uc?id=1jU76oUl0-CmiB9m3XhaKmI2HorFhyxC7",
+      "description": "ESM-1v checkpoint finetuned on TPS subseq (~7.3 GB). Needed only if regenerating gathered_embs_esm-1v-finetuned-subseq.",
+      "sanity_checks": [
+        "data/plm_checkpoints/checkpoint-tps-esm1v-t33-subseq.ckpt"
+      ],
+      "required_by": [
+        "dev"
+      ],
+      "type": "raw",
+      "download_filename": "checkpoint-tps-esm1v-t33-subseq.ckpt",
+      "target_path": "data/plm_checkpoints/checkpoint-tps-esm1v-t33-subseq.ckpt"
+    },
+    "outputs-models-baselines": {
+      "url": "https://drive.google.com/uc?id=1qRKYPYwvJJK4Ceu420s3Hrv-Yk4_kNtW",
+      "zip_name": "outputs-models-baselines.zip",
+      "description": "Trained per-fold checkpoints for the sequence/HMM baselines (Blastp + Foldseek + HMM + PfamSUPFAM + CLEAN).",
+      "src_paths": [
+        "outputs/models/Blastp",
+        "outputs/models/Foldseek",
+        "outputs/models/HMM",
+        "outputs/models/PfamSUPFAM",
+        "outputs/models/CLEAN"
+      ],
+      "extract_recipes": [
+        {
+          "patterns": [
+            "Blastp/*",
+            "Foldseek/*",
+            "HMM/*",
+            "PfamSUPFAM/*",
+            "CLEAN/*"
+          ],
+          "target_dir": "outputs/models/"
+        }
+      ],
+      "sanity_checks": [
+        "outputs/models/Blastp",
+        "outputs/models/CLEAN"
+      ],
+      "required_by": [
+        "dev"
+      ],
+      "size_bytes": 331445237,
+      "sha256_zip": "bfff62a38f3f6fae6ad573a9fa1186e5bcac27743d817f7d071fbbe064dccfff",
+      "n_files": 285
+    },
+    "outputs-models-domains-rf": {
+      "url": "https://drive.google.com/uc?id=12cV3pSHGgtDmJctq6WQ1gZMK7ORgjl98",
+      "zip_name": "outputs-models-domains-rf.zip",
+      "description": "Trained per-fold checkpoints for DomainsRandomForest (structural-features-only baseline).",
+      "src_paths": [
+        "outputs/models/DomainsRandomForest"
+      ],
+      "extract_recipes": [
+        {
+          "patterns": [
+            "DomainsRandomForest/*"
+          ],
+          "target_dir": "outputs/models/"
+        }
+      ],
+      "sanity_checks": [
+        "outputs/models/DomainsRandomForest"
+      ],
+      "required_by": [
+        "dev"
+      ],
+      "size_bytes": 1504026241,
+      "sha256_zip": "b9d97faf800aa5744ad4268738638e1a300b243eb7ad407747d35273e2b47557",
+      "n_files": 62
+    },
+    "outputs-models-plm-rf": {
+      "url": "https://drive.google.com/uc?id=",
+      "zip_name": "outputs-models-plm-rf.zip",
+      "description": "Trained per-fold checkpoints for PlmRandomForest (PLM-only ensemble across every PLM).",
+      "src_paths": [
+        "outputs/models/PlmRandomForest"
+      ],
+      "extract_recipes": [
+        {
+          "patterns": [
+            "PlmRandomForest/*"
+          ],
+          "target_dir": "outputs/models/"
+        }
+      ],
+      "sanity_checks": [
+        "outputs/models/PlmRandomForest"
+      ],
+      "required_by": [
+        "dev"
+      ],
+      "size_bytes": 3104928702,
+      "sha256_zip": "f4a194010b7d9031c49dfc093a8a3ded047de581289829391a033528ad02a230",
+      "n_files": 309
+    },
+    "outputs-models-plm-domains-lr": {
+      "url": "https://drive.google.com/uc?id=1VaQyJZMd_zLhMLl7_aQk0NvOmzQTcaks",
+      "zip_name": "outputs-models-plm-domains-lr.zip",
+      "description": "Trained per-fold checkpoints for PlmDomainsLogisticRegression.",
+      "src_paths": [
+        "outputs/models/PlmDomainsLogisticRegression"
+      ],
+      "extract_recipes": [
+        {
+          "patterns": [
+            "PlmDomainsLogisticRegression/*"
+          ],
+          "target_dir": "outputs/models/"
+        }
+      ],
+      "sanity_checks": [
+        "outputs/models/PlmDomainsLogisticRegression"
+      ],
+      "required_by": [
+        "dev"
+      ],
+      "size_bytes": 2700612423,
+      "sha256_zip": "c8f8c3f46a0e75af0bbbd17c88f480f7d5c31ccae96c89c0811ab685973c41b7",
+      "n_files": 10
+    },
+    "outputs-models-plm-domains-mlp": {
+      "url": "https://drive.google.com/uc?id=1AhYHWWhpUIfbEG0fc-taacY5MLBkIDZ1",
+      "zip_name": "outputs-models-plm-domains-mlp.zip",
+      "description": "Trained per-fold checkpoints for PlmDomainsMLP.",
+      "src_paths": [
+        "outputs/models/PlmDomainsMLP"
+      ],
+      "extract_recipes": [
+        {
+          "patterns": [
+            "PlmDomainsMLP/*"
+          ],
+          "target_dir": "outputs/models/"
+        }
+      ],
+      "sanity_checks": [
+        "outputs/models/PlmDomainsMLP"
+      ],
+      "required_by": [
+        "dev"
+      ],
+      "size_bytes": 2844625910,
+      "sha256_zip": "673ac2cdd7b1e532af83b595b725157b1b71de51addc1c8a01485a840cad1c48",
+      "n_files": 10
+    },
+    "outputs-models-plm-domains-rf": {
+      "url": "https://drive.google.com/uc?id=",
+      "zip_name": "outputs-models-plm-domains-rf.zip",
+      "description": "Trained per-fold checkpoints for PlmDomainsRandomForest \u2014 the largest family (~16 GB) covering every PLM \u00d7 RandomForest cell in the ablation.",
+      "src_paths": [
+        "outputs/models/PlmDomainsRandomForest"
+      ],
+      "extract_recipes": [
+        {
+          "patterns": [
+            "PlmDomainsRandomForest/*"
+          ],
+          "target_dir": "outputs/models/"
+        }
+      ],
+      "sanity_checks": [
+        "outputs/models/PlmDomainsRandomForest"
+      ],
+      "required_by": [
+        "dev"
+      ],
+      "size_bytes": 16181106693,
+      "sha256_zip": "592374bfcc78e0c4e2a0bac097f481e9357277a2f1bdc92d3609b015ca4b17b8",
+      "n_files": 334
+    },
+    "go-basic-ontology": {
+      "url": "https://drive.google.com/uc?id=1vXAI0iVKUMtbFcsUdRVnVZkGUl3xcvgL",
+      "zip_name": "go-basic-ontology.zip",
+      "description": "Pinned GO basic ontology (go-basic_2026_03_14.obo). Locked at a specific version so GOATools-driven analyses stay reproducible.",
+      "src_paths": [
+        "data/go-basic_2026_03_14.obo"
+      ],
+      "extract_recipes": [
+        {
+          "patterns": [
+            "go-basic_2026_03_14.obo"
+          ],
+          "target_dir": "data/"
+        }
+      ],
+      "sanity_checks": [
+        "data/go-basic_2026_03_14.obo"
+      ],
+      "required_by": [
+        "dev"
+      ],
+      "size_bytes": 31933710,
+      "sha256_zip": "0c66c6ef3cf2ad5bb86e778baec085228e09415a0c4149c481adc703304075f2",
+      "n_files": 1
+    }
+  }
+}

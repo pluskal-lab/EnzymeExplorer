@@ -34,7 +34,11 @@
 #       [--structures-dir <dir>]               (default: download per-batch)
 #       [--workdir <dir>]                      (default: tps_predict_fasta's own default — <repo>/tmp)
 #       [--results-dir <dir>]                  (default: none — final CSVs live only under <output_root>)
-#       [--min-tps-p <float>]                  (default: none — keep every scored row regardless of TPS_p_calibrated)
+#       [--min-tps-p <float>]                  (default: none — keep every scored row regardless of TPS_p)
+#       [--cleanup-on-complete]                (default: OFF — preserve structures/, embeddings_cache/, missing_csvs/
+#                                               even when every batch finishes. Enable when EE owns the structures dir
+#                                               (i.e. when --structures-dir was NOT passed). Externally-supplied
+#                                               --structures-dir directories MUST NEVER be wiped, so leave this off.)
 #
 # ``--batch-size`` is the number of FASTA records per SLURM array task.
 # ``--plm-batch-size`` is the mini-batch size used inside one task for
@@ -83,8 +87,9 @@
 # off so a 3rd-party bashrc bug doesn't take the screening down
 # before it starts. We re-enable strict-unbound-var checking for our
 # own code right after.
-set -eo pipefail
+set -o pipefail
 source ~/.bashrc
+set -e
 conda activate enzyme_explorer_prod
 set -u
 
@@ -105,11 +110,17 @@ output_root=""
 classifier="both"
 batch_size=40000
 n_jobs=32
-plm_batch_size=16
+plm_batch_size=32
 structures_dir=""
 workdir=""
 results_dir=""
 min_tps_p=""
+# Default is OFF: gather will NOT wipe <output_root>/{structures,
+# embeddings_cache,missing_csvs} even when every batch completes. This is
+# safe for the common case of an externally-supplied --structures-dir.
+# Enable with --cleanup-on-complete when running the AF-DB download
+# pipeline (i.e. when --structures-dir is NOT given).
+cleanup_on_complete=0
 
 usage() { sed -n '2,46p' "$0" >&2; exit 1; }
 
@@ -125,6 +136,7 @@ while (( $# > 0 )); do
         --workdir)          workdir="$2";        shift 2 ;;
         --results-dir)      results_dir="$2";    shift 2 ;;
         --min-tps-p)        min_tps_p="$2";      shift 2 ;;
+        --cleanup-on-complete) cleanup_on_complete=1; shift ;;
         -h|--help)          usage ;;
         *) echo "[mgr] unknown arg: $1" >&2; usage ;;
     esac
@@ -190,7 +202,7 @@ if [[ -n "$results_dir" ]]; then
     results_dir="$(realpath -m "$results_dir")"
 fi
 echo "[mgr] results_dir=${results_dir:-<unset, final CSVs only under output_root>}"
-echo "[mgr] min_tps_p=${min_tps_p:-<unset, no TPS_p_calibrated filter applied>}"
+echo "[mgr] min_tps_p=${min_tps_p:-<unset, no TPS_p filter applied>}"
 
 # ---- count records → number of batches -----------------------------------
 
@@ -275,7 +287,7 @@ echo "[mgr] submitted predict array job: $pred_array_id (logs: $logs_dir/predict
 gather_id=$(sbatch --parsable \
     --dependency=afterany:"$pred_array_id" \
     --output="$logs_dir/gather_%j.log" \
-    "$scripts_dir/tps_screening_gather.sh" "$output_root" "$n_batches" "$classifier" "$results_dir")
+    "$scripts_dir/tps_screening_gather.sh" "$output_root" "$n_batches" "$classifier" "$results_dir" "$cleanup_on_complete")
 echo "[mgr] submitted gather job: $gather_id (log: $logs_dir/gather_${gather_id}.log)"
 
 echo "[mgr] all jobs submitted."

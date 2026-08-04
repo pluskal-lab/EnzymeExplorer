@@ -1,1 +1,1 @@
-"""Domain clustering: Foldseek-based TM-threshold sweep on detected domains."""
+"""Domain clustering: all-vs-all USalign TM → UPGMA HAC → dynamic tree cut."""

@@ -1,0 +1,126 @@
+classifiers:
+  BLAST:
+    model: Blastp
+    classes:
+    - TPS
+    - IDS
+    - FPP
+    - GPP
+    - GGPP
+    - EDSQ
+    - CPP
+    - GFPP
+    - 2xFPP
+    - 2xGGPP
+    selection:
+      mode: auto
+      prefix: eval
+      metric: ap
+  HMM:
+    model: HMM
+    classes:
+    - TPS
+    - IDS
+    - FPP
+    - GPP
+    - GGPP
+    - EDSQ
+    - CPP
+    - GFPP
+    - 2xFPP
+    - 2xGGPP
+    selection:
+      mode: auto
+      prefix: eval
+      metric: ap
+  Foldseek:
+    model: Foldseek
+    classes:
+    - TPS
+    - IDS
+    - FPP
+    - GPP
+    - GGPP
+    - EDSQ
+    - CPP
+    - GFPP
+    - 2xFPP
+    - 2xGGPP
+    selection:
+      mode: auto
+      prefix: eval
+      metric: ap
+  PFAM:
+    model: PfamSUPFAM
+    classes:
+    - TPS
+    selection:
+      mode: auto
+      prefix: pfam_bitscore
+      metric: ap
+  SUPFAM:
+    model: PfamSUPFAM
+    classes:
+    - TPS
+    selection:
+      mode: auto
+      prefix: supfam_bitscore
+      metric: ap
+bootstrap:
+  n_bootstraps: 1000
+  seed: 42
+  mode: cluster
+  ci: 0.95
+  ci_method: bca
+  metrics:
+  - ap
+  - roc_auc
+aggregates:
+  Substrate_mAP:
+  - FPP
+  - GPP
+  - GGPP
+  - EDSQ
+  - CPP
+  - GFPP
+  - 2xFPP
+  - 2xGGPP
+threshold_sweep:
+- label: BLAST
+  model: Blastp
+  prefix: eval
+  x_axis: neglog10
+  x_label: E-value (-log10)
+  metric: ap
+- label: HMM
+  model: HMM
+  prefix: eval
+  x_axis: neglog10
+  x_label: E-value (-log10)
+  metric: ap
+- label: Foldseek
+  model: Foldseek
+  prefix: eval
+  x_axis: neglog10
+  x_label: E-value (-log10)
+  metric: ap
+- label: PFAM
+  model: PfamSUPFAM
+  prefix: pfam_bitscore
+  x_axis: tail_int
+  x_label: Bitscore
+  metric: ap
+  classes:
+  - TPS
+- label: SUPFAM
+  model: PfamSUPFAM
+  prefix: supfam_bitscore
+  x_axis: tail_int
+  x_label: Bitscore
+  metric: ap
+  classes:
+  - TPS
+visualize:
+  plots:
+  - threshold_sweep
+  metric: ap

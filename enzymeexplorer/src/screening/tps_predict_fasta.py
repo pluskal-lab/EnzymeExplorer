@@ -39,7 +39,7 @@ file per batch — the manager passes ``--shard-name batch_<idx>``)::
 
 Filtering is disabled by default — every scored row is written.
 Pass ``--min-p-keep <float>`` to enable the screening compression
-(drop rows where every ``*_p_calibrated`` is below the threshold).
+(drop rows where every ``*_p`` is below the threshold).
 """
 
 from __future__ import annotations
@@ -162,7 +162,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--min-p-keep", type=float, default=None,
         help=(
-            "Optional filter: drop rows where every <class>_p_calibrated "
+            "Optional filter: drop rows where every <class>_p "
             "is below this value. Disabled by default (every scored row "
             "is written). Applies to both plm and plm_domains outputs."
         ),
@@ -171,7 +171,7 @@ def parse_args() -> argparse.Namespace:
         "--min-tps-p", type=float, default=None,
         help=(
             "Optional TPS-specific filter: drop rows whose "
-            "TPS_p_calibrated is below this value. Independent from "
+            "TPS_p is below this value. Independent from "
             "--min-p-keep (the per-row 'any class' filter). When both "
             "are set the TPS threshold is applied first at the "
             "pipeline level, then --min-p-keep runs on whatever rows "
@@ -228,12 +228,12 @@ def _load_fasta_shard(
 def _filter_by_calibrated_probability(
     table: pd.DataFrame, min_p: float,
 ) -> pd.DataFrame:
-    """Drop rows where every ``*_p_calibrated`` column is below ``min_p``.
+    """Drop rows where every ``*_p`` column is below ``min_p``.
 
     NaN cells (classes without a calibrator) do not count against a row;
     a row whose every calibrated cell is NaN is kept.
     """
-    p_cols = [c for c in table.columns if c.endswith("_p_calibrated")]
+    p_cols = [c for c in table.columns if c.endswith("_p")]
     if not p_cols:
         return table
     arr = table[p_cols].to_numpy(dtype=np.float64)

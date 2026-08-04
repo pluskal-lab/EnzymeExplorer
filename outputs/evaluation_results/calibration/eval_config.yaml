@@ -1,0 +1,66 @@
+classifiers:
+  PLM_Domains:
+    model: PlmDomainsRandomForest
+    classes:
+    - TPS
+    - IDS
+    - FPP
+    - GPP
+    - GGPP
+    - EDSQ
+    - CPP
+    - GFPP
+    - 2xFPP
+    - 2xGGPP
+    selection:
+      mode: fixed
+      version: ankh_large
+  PLM:
+    model: PlmRandomForest
+    classes:
+    - TPS
+    - IDS
+    - FPP
+    - GPP
+    - GGPP
+    - EDSQ
+    - CPP
+    - GFPP
+    - 2xFPP
+    - 2xGGPP
+    selection:
+      mode: fixed
+      version: ankh_large
+calibration:
+  classifiers:
+  - PLM_Domains
+  - PLM
+  classes:
+  - TPS
+  - IDS
+  - FPP
+  - GPP
+  - GGPP
+  - EDSQ
+  - CPP
+  - GFPP
+  - 2xFPP
+  - 2xGGPP
+  families:
+  - identity
+  - temperature
+  - logit_platt
+  - beta
+  family_tolerance: 0.001
+  min_n_pos: 15
+  score_eps: 1.0e-06
+  n_bootstrap: 1000
+  bootstrap_seed: 0
+  ci: 0.95
+  n_reliability_bins: 10
+  top_k_fp: 25
+  bottom_k_fn: 25
+  fold_drift_threshold: 0.5
+visualize:
+  plots:
+  - calibration

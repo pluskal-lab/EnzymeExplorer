@@ -6,7 +6,7 @@ Eagerly re-exporting every model class at package import time made
 optional dependencies that production prediction does not need:
 
   * ``CLEAN`` baseline -> ``gdown`` for model fetches, ProFun
-  * ``DomainsXgb`` / ``PlmXgb`` -> ``xgboost``
+  * ``DomainsXgb`` -> ``xgboost``
   * ``Foldseek`` / ``Blastp`` / ``HMM`` / ``PfamSUPFAM`` -> wrappers
     around external command-line tools that we do not ship in the
     production env
@@ -48,8 +48,6 @@ _LAZY_IMPORTS: dict[str, str] = {
     "PlmDomainsLogisticRegression":  ".plm_domains_logistic_regression",
     # PLM-only models.
     "PlmRandomForest":               ".plm_randomforest",
-    "PlmXgb":                        ".plm_xgb",
-    "PlmMLP":                        ".plm_mlp",
     # External-tool baselines (each pulls in its own subprocess wrapper).
     "Blastp":                        ".baselines",
     "Foldseek":                      ".baselines",

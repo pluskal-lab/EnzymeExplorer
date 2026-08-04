@@ -30,9 +30,14 @@ from tqdm.auto import tqdm  # type: ignore
 
 from enzymeexplorer.src.evaluation.bootstrap import (
     ApType,
+    BootstrapUnit,
     ClassifierClassFoldDfs,
+    _canonical_fold_ids,
+    _canonical_pooled_ids,
+    _cluster_index,
     _gather_class_arrays,
     _pooled_arrays,
+    _row_cluster_labels,
     _safe_metric,
     _strata_per_class,
     _stratified_resample,
@@ -154,6 +159,51 @@ def _replay_pooled_oof_indices(
     return out
 
 
+def _replay_pooled_oof_cluster_indices(
+    canon_y_per_class: dict[str, np.ndarray],
+    classes: list[str],
+    canon_ids: np.ndarray,
+    n_bootstraps: int,
+    seed: int,
+    cluster_map: dict[str, str],
+) -> list[np.ndarray]:
+    """Replay the v5 cluster-block pooled-OOF resample indices.
+
+    Same iteration order and drop-and-redraw rule as
+    :func:`bootstrap._bootstrap_pooled_oof_clusters`. Returns per-draw
+    row-index arrays (variable length)."""
+    labels = _row_cluster_labels(canon_ids, cluster_map)
+    unique_clusters, cluster_row_indices = _cluster_index(labels)
+    n_clusters = len(unique_clusters)
+
+    rng = np.random.default_rng(seed)
+    out: list[np.ndarray] = []
+    survived = 0
+    attempts = 0
+    while survived < n_bootstraps:
+        attempts += 1
+        pick = rng.integers(0, n_clusters, size=n_clusters)
+        idx = np.concatenate([cluster_row_indices[k] for k in pick])
+        bad = False
+        for cls in classes:
+            if cls not in canon_y_per_class:
+                continue
+            yb = canon_y_per_class[cls][idx]
+            n_pos = int(yb.sum())
+            if n_pos == 0 or n_pos == len(yb):
+                bad = True
+                break
+        if bad:
+            if attempts > n_bootstraps * 50:
+                raise RuntimeError(
+                    "pooled-OOF cluster replay exhausted retries."
+                )
+            continue
+        out.append(idx)
+        survived += 1
+    return out
+
+
 def _row_category_assignment(
     ids: np.ndarray, id_to_cat: dict[str, str], negative_label: str = "Unknown",
 ) -> np.ndarray:
@@ -177,6 +227,8 @@ def compute_masked_ap_from_seed(
     negative_labels: dict[str, str] | None = None,
     min_rows: int = 5,
     progress: bool = True,
+    bootstrap_unit: BootstrapUnit = "clusters",
+    cluster_map: dict[str, str] | None = None,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     """Compute per-(category, classifier, class) AP draws by replaying
     the v4 paired-bootstrap RNG and applying a row mask.
@@ -207,6 +259,11 @@ def compute_masked_ap_from_seed(
     ap_types = tuple(ap_types)
     negative_labels = negative_labels or {}
     canon_clf = classifiers[0]
+    if bootstrap_unit == "clusters" and cluster_map is None:
+        raise ValueError(
+            "compute_masked_ap_from_seed(bootstrap_unit='clusters') requires "
+            "a cluster_map"
+        )
 
     long_rows: list[dict] = []
     point_rows: list[dict] = []
@@ -230,9 +287,18 @@ def compute_masked_ap_from_seed(
 
         n_total = len(next(iter(pooled[canon_clf].values()))[0])
         canon_y_per_class = {cls: pooled[canon_clf][cls][0] for cls in pooled[canon_clf]}
-        idx_per_draw = _replay_pooled_oof_indices(
-            canon_y_per_class, classes, n_total, n_bootstraps, seed,
-        )
+        if bootstrap_unit == "clusters":
+            canon_ids_full = _canonical_pooled_ids(
+                classifier_to_class_to_fold_dfs, classes, id_column=id_column,
+            )
+            idx_per_draw = _replay_pooled_oof_cluster_indices(
+                canon_y_per_class, classes, canon_ids_full,
+                n_bootstraps, seed, cluster_map,
+            )
+        else:
+            idx_per_draw = _replay_pooled_oof_indices(
+                canon_y_per_class, classes, n_total, n_bootstraps, seed,
+            )
 
         for cat_name, id_to_cat in masked_categories.items():
             neg = negative_labels.get(cat_name, "Unknown")
@@ -293,14 +359,28 @@ def compute_masked_ap_from_seed(
 
     # ----- Fold-mean replay -----
     if "fold_mean" in ap_types:
-        # Per-class strata (same as `_bootstrap_mean_fold` derives).
         for cls in classes:
             if cls not in classifier_to_class_to_fold_dfs[canon_clf]:
                 continue
-            fold_strata = _strata_per_class(
-                classifier_to_class_to_fold_dfs[canon_clf][cls], cls
-            )
-            fold_ids_sorted = sorted(fold_strata)
+            # Row path uses stratified resampling; cluster path uses
+            # per-fold cluster resampling. Build the appropriate index
+            # source up front so the inner draw loop stays simple.
+            fold_strata = None
+            fold_cluster_groups: dict[int, tuple[np.ndarray, list[np.ndarray]]] | None = None
+            if bootstrap_unit == "clusters":
+                ids_per_fold = _canonical_fold_ids(
+                    classifier_to_class_to_fold_dfs, cls, id_column=id_column,
+                )
+                fold_cluster_groups = {
+                    f: _cluster_index(_row_cluster_labels(ids, cluster_map))
+                    for f, ids in ids_per_fold.items()
+                }
+                fold_ids_sorted = sorted(fold_cluster_groups)
+            else:
+                fold_strata = _strata_per_class(
+                    classifier_to_class_to_fold_dfs[canon_clf][cls], cls
+                )
+                fold_ids_sorted = sorted(fold_strata)
 
             # Per-fold (y, s) and IDs per classifier.
             fold_arrays: dict[str, dict[int, tuple[np.ndarray, np.ndarray]]] = {}
@@ -332,11 +412,46 @@ def compute_masked_ap_from_seed(
                         unit="draw",
                     ) if progress else range(n_bootstraps)
                 )
+                # For the cluster path we need the label vector per fold
+                # to reproduce the main bootstrap's drop/redraw check.
+                fold_y_canon: dict[int, np.ndarray] = {}
+                if bootstrap_unit == "clusters":
+                    for f in fold_ids_sorted:
+                        lab, _ = classifier_to_class_to_fold_dfs[canon_clf][cls][f]
+                        fold_y_canon[f] = lab[cls].to_numpy().astype(np.int8)
                 for b in iterator:
-                    fold_idx_resamples = {
-                        f: _stratified_resample(*fold_strata[f], rng)
-                        for f in fold_ids_sorted
-                    }
+                    if bootstrap_unit == "clusters":
+                        attempts_this = 0
+                        while True:
+                            attempts_this += 1
+                            fold_idx_resamples = {}
+                            for f in fold_ids_sorted:
+                                unique_c, groups = fold_cluster_groups[f]
+                                pick = rng.integers(
+                                    0, len(unique_c), size=len(unique_c)
+                                )
+                                fold_idx_resamples[f] = np.concatenate(
+                                    [groups[k] for k in pick]
+                                )
+                            any_valid_fold = False
+                            for f in fold_ids_sorted:
+                                y_b = fold_y_canon[f][fold_idx_resamples[f]]
+                                n_pos = int(y_b.sum())
+                                if 0 < n_pos < len(y_b):
+                                    any_valid_fold = True
+                                    break
+                            if any_valid_fold:
+                                break
+                            if attempts_this > 50:
+                                raise RuntimeError(
+                                    "fold_mean|clusters replay drift — "
+                                    "exceeded 50 redraws"
+                                )
+                    else:
+                        fold_idx_resamples = {
+                            f: _stratified_resample(*fold_strata[f], rng)
+                            for f in fold_ids_sorted
+                        }
                     for cat_v in cat_values:
                         for clf in fold_arrays:
                             fold_metric_vals = {m: [] for m in metrics}

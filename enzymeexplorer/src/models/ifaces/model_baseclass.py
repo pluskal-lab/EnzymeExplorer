@@ -18,7 +18,7 @@ from sklearn.base import BaseEstimator  # type: ignore
 from sklearn.metrics import average_precision_score  # type: ignore
 
 from enzymeexplorer.src.models.ifaces.config_baseclasses import BaseConfig
-from enzymeexplorer.src.utils.project_info import get_output_root
+from enzymeexplorer.src.utils.project_info import get_models_output_root
 
 logger = logging.getLogger(__file__)
 logger.setLevel(logging.INFO)
@@ -34,7 +34,7 @@ class BaseModel(ABC, BaseEstimator):
         self.config = config
         assert isinstance(self.config.experiment_info._timestamp, datetime)
         self.output_root = (
-            get_output_root()
+            get_models_output_root()
             / config.experiment_info.model_type
             / config.experiment_info.model_version
             / config.experiment_info.fold

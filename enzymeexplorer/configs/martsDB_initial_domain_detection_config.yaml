@@ -10,7 +10,6 @@ domains-output-path: "data/detected_domains/martsDB_detected_domains_initial/dom
 is-bfactor-confidence: true
 do-not-store-intermediate-files: true
 secondary-structure-residues-path: "data/detected_domains/martsDB_detected_domains_initial/secondary_structure_residues.pkl"
-recompute-existing-secondary-structure-residues: true
 prefilter-pdbs-by-foldseek: False
 postfilter-domains-by-foldseek: False
 

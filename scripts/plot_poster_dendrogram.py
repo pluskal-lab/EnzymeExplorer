@@ -1,7 +1,7 @@
 """Minimal poster dendrogram from the final HAC.
 
 Loads the cached linkage matrix and member ids from
-``data/domain_clustering/martsDB_hac_sweep/intermediate/`` plus the
+``outputs/domain_clustering/intermediate/`` plus the
 ``domain_metadata.csv`` next to it, and renders one dendrogram with no
 title, no legend, no grid, no stripe annotations. Only the clades that
 are monophyletic in one of {alpha, beta, gamma, delta, epsilon} are
@@ -30,17 +30,16 @@ DOMAIN_COLORS = {
 OTHER_COLOR = "#013333"
 
 
-IGNORE_SUBTYPES = {"alpha_cls2"}
 DROP_SUBTYPES = {"delta1", "zeta"}
 
 
 def _bucket(subtype: str | None) -> str | None:
     """Map a fine-grained subtype label (e.g. ``alpha1A``) to its base type.
 
-    Returns ``None`` for ignored subtypes (``zeta``/``alpha_cls2``) and for
-    any label that doesn't start with one of the canonical base types.
+    Returns ``None`` for any label that doesn't start with one of the
+    canonical base types.
     """
-    if not isinstance(subtype, str) or subtype in IGNORE_SUBTYPES:
+    if not isinstance(subtype, str):
         return None
     for base in DOMAIN_COLORS:
         if subtype.startswith(base):
@@ -83,7 +82,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--hac-dir", type=Path,
-        default=Path("data/domain_clustering/martsDB_hac_sweep"),
+        default=Path("outputs/domain_clustering"),
     )
     parser.add_argument(
         "--subtype-pkl", type=Path,
@@ -94,7 +93,7 @@ def main() -> None:
     )
     parser.add_argument(
         "--output", type=Path,
-        default=Path("data/domain_clustering/martsDB_hac_sweep/poster_dendrogram.png"),
+        default=Path("outputs/domain_clustering/poster_dendrogram.png"),
     )
     parser.add_argument(
         "--balance-clades", action="store_true", default=True,

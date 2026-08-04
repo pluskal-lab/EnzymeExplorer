@@ -94,10 +94,25 @@ class PLMEmbedder:
         if self._model is None:
             self.load()
         if self.max_seq_len is not None:
-            seqs = [
-                (s if len(s) <= self.max_seq_len else s[: self.max_seq_len - 2])
-                for s in sequences
-            ]
+            n_truncated = 0
+            longest_truncated = 0
+            seqs = []
+            for s in sequences:
+                if len(s) > self.max_seq_len:
+                    n_truncated += 1
+                    longest_truncated = max(longest_truncated, len(s))
+                    seqs.append(s[: self.max_seq_len - 2])
+                else:
+                    seqs.append(s)
+            if n_truncated:
+                logger.warning(
+                    "PLMEmbedder(%s): truncated %d/%d sequence(s) at "
+                    "max_seq_len=%d (longest was %d aa). Prod embeddings "
+                    "for these will differ from the un-truncated training "
+                    "embeddings — pass max_seq_len=None to disable.",
+                    self.model_name, n_truncated, len(seqs),
+                    self.max_seq_len, longest_truncated,
+                )
         else:
             seqs = list(sequences)
         if not seqs:

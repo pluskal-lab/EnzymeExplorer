@@ -1,10 +1,7 @@
-# Homology-based methods sweeps. One line plot per HBI method showing
-# per-class AP across candidate thresholds. No bootstrap bars — this YAML
-# drives the threshold_sweep diagnostic only.
-
-# The classifiers list is required by the pipeline but the bootstrap step
-# is irrelevant to the sweep; the entries below are auto-resolved cheaply
-# and their bootstrap cache is shared with the all-methods comparison.
+# Homology-based methods sweeps. One line plot per homology method
+# showing per-class AP across candidate thresholds. The bootstrap block
+# below matches the setup used by all_methods_comparison so cached
+# results are shared and consistent.
 
 classifiers:
   BLAST:
@@ -33,13 +30,11 @@ bootstrap:
   seed: 42
   mode: cluster
   ci: 0.95
-  ci_method: normal
+  ci_method: bca
   metrics: [ap, roc_auc]
 
 aggregates:
   Substrate_mAP: [FPP, GPP, GGPP, EDSQ, CPP, GFPP, 2xFPP, 2xGGPP]
-  TPS_IDS_mAP: [TPS, IDS]
-
 threshold_sweep:
   - label: BLAST
     model: Blastp

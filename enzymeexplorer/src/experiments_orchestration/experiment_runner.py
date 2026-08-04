@@ -77,11 +77,6 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
     if hasattr(config, "gpu_id"):
         os.environ["CUDA_VISIBLE_DEVICES"] = str(config.gpu_id)
 
-    if hasattr(config, "is_halo"):
-        is_halo = config.is_halo
-    else:
-        is_halo = False
-
     # instantiating model
     model = model_class(config)
     if load_hyperparameters:
@@ -151,13 +146,12 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
         "Unknown"
     )
         
-    if not is_halo:
-        data_df.loc[
-            data_df[config.type_col_name].isin(
-                {"ggpps", "fpps", "gpps", "gfpps", "hsqs"}
-            ),
-            "SMILES_substrate_canonical_no_stereo",
-        ] = "precursor substr"
+    data_df.loc[
+        data_df[config.type_col_name].isin(
+            {"ggpps", "fpps", "gpps", "gfpps", "hsqs"}
+        ),
+        "SMILES_substrate_canonical_no_stereo",
+    ] = "precursor substr"
 
     try:
         save_trained_model = config.save_trained_model
@@ -167,13 +161,9 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
     with logging_redirect_tqdm([logger]):
         # pylint: disable=too-many-nested-blocks
         for test_fold in tqdm(
-            (
-                get_folds_from_csv(
-                    csv_path=config.tps_cleaned_csv_path,
-                    split_col_name=config.split_col_name,
-                )
-                if not is_halo
-                else [0]
+            get_folds_from_csv(
+                csv_path=config.tps_cleaned_csv_path,
+                split_col_name=config.split_col_name,
             ),
             desc=f"Iterating over validation folds per {config.split_col_name}..",
         ):
@@ -182,26 +172,22 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
                 logger.info("Fold: %d", test_fold)
                 fold_needs_resetting = experiment_info.fold == "all_folds"
                 model.config.experiment_info.fold = str(test_fold)
-                if not is_halo:
-                    trn_folds = [
-                        fold_trn
-                        for fold_trn in get_folds_from_csv(
-                            csv_path=config.tps_cleaned_csv_path,
-                            split_col_name=config.split_col_name,
-                        )
-                        if fold_trn != test_fold
-                    ]
-                else:
-                    trn_folds = ["train"]
+                trn_folds = [
+                    fold_trn
+                    for fold_trn in get_folds_from_csv(
+                        csv_path=config.tps_cleaned_csv_path,
+                        split_col_name=config.split_col_name,
+                    )
+                    if fold_trn != test_fold
+                ]
                 trn_df = data_df[
                     data_df[config.split_col_name].isin(set(trn_folds))
                     & ~data_df[config.id_col_name].isin(distractor_ids)
                 ].copy()
-                if not is_halo:
-                    trn_df.loc[
-                        trn_df[f"{config.split_col_name}_ignore_in_eval"] == 1,
-                        config.target_col_name,
-                    ] = "other"
+                trn_df.loc[
+                    trn_df[f"{config.split_col_name}_ignore_in_eval"] == 1,
+                    config.target_col_name,
+                ] = "other"
                 trn_df = (
                     trn_df.groupby(config.id_col_name)[config.target_col_name]
                     .agg(set)
@@ -215,27 +201,13 @@ def run_experiment(experiment_info: ExperimentInfo, load_hyperparameters: bool =
                     )
                 )
 
-                if config.run_against_wetlab:
-                    test_df_raw = get_tps_df(
-                        path_to_file="data/df_wetlab_long_clean.csv",
-                        path_to_sampled_negatives="data/sampled_id_2_seq_experimental.pkl",
-                        id_col_name="ID",
-                        remove_fragments=False,
-                    )
-                    test_id_column_name = "ID"
-                    raw_dataset_id_colunm_name = config.id_col_name
-                    trn_df[test_id_column_name] = trn_df[raw_dataset_id_colunm_name]
-                    data_df[test_id_column_name] = data_df[raw_dataset_id_colunm_name]
-                    model.config.id_col_name = test_id_column_name
-                else:
-                    test_df_raw = data_df[data_df[config.split_col_name] == test_fold]
-                    if not is_halo:
-                        test_df_raw.loc[
-                            test_df_raw[f"{config.split_col_name}_ignore_in_eval"] == 1,
-                            config.target_col_name,
-                        ] = "other"
-                    test_id_column_name = config.id_col_name
-                    model.config.id_col_name = test_id_column_name
+                test_df_raw = data_df[data_df[config.split_col_name] == test_fold]
+                test_df_raw.loc[
+                    test_df_raw[f"{config.split_col_name}_ignore_in_eval"] == 1,
+                    config.target_col_name,
+                ] = "other"
+                test_id_column_name = config.id_col_name
+                model.config.id_col_name = test_id_column_name
                 test_df = (
                     test_df_raw.groupby(test_id_column_name)[config.target_col_name]
                     .agg(set)

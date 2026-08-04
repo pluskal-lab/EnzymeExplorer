@@ -1,0 +1,65 @@
+plots:
+- tps_detection
+- substrate_map
+- substrate_per_class
+metrics:
+- ap
+- roc_auc
+palette_mode: ablation
+uniform_delta_color: '#80ceb9'
+bar_figsize:
+- 2.2
+- 3.0
+curve_figsize:
+- 2.4
+- 2.4
+curve_classes:
+- TPS
+fixed_classifier_order: false
+auto_zoom:
+  enabled: true
+  delta_pct: 2.0
+classifier_order:
+- Domains
+- PLM
+- PLM_Domains
+pin_last: PLM_Domains
+ablation_xtick_overrides:
+  Domains: Domains
+  PLM: PLM
+  PLM_Domains: 'PLM
+
+    Domains'
+bar_plots:
+  tps_detection:
+    figsize:
+    - 3
+    - 2.0
+    bar_width: 0.8
+    xtic_rotation: 45
+    xtick_fontsize: 8
+    ytick_fontsize: 8
+    title_fontsize: 12
+  substrate_map:
+    figsize:
+    - 3
+    - 2.0
+    bar_width: 0.5
+    xtick_fontsize: 8
+    ytick_fontsize: 8
+    title_fontsize: 12
+  substrate_per_class:
+    figsize:
+    - 6.5
+    - 2.0
+    cluster_width: 0.8
+    bar_width_frac: 0.92
+    title_fontsize: 12
+delta_plots:
+  figsize:
+  - 2.0
+  - 2.0
+  box_width: 0.3
+  xtick_fontsize: 8
+  ytick_fontsize: 8
+  title_fontsize: 12

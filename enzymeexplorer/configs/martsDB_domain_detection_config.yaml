@@ -11,7 +11,6 @@ domains-output-path: "data/detected_domains/martsDB_detected_domains/domains/"
 is-bfactor-confidence: true
 do-not-store-intermediate-files: true
 secondary-structure-residues-path: "data/detected_domains/martsDB_detected_domains/secondary_structure_residues.pkl"
-recompute-existing-secondary-structure-residues: true
 prefilter-pdbs-by-foldseek: False
 postfilter-domains-by-foldseek: False
 
@@ -56,6 +55,6 @@ domain-templates:
     path: "data/domain_templates/P37295.pdb"
     residues: "resi 3-248 & chain A & ss H+S"
     thresholds:
-      tmscore: 0.70
+      tmscore: 0.65
       min_align_len: 85
   

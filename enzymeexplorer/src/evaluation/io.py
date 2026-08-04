@@ -23,7 +23,7 @@ from enzymeexplorer.src.evaluation.classes import (
     SHORT_TO_SMILES,
     SMILES_TO_SHORT,
 )
-from enzymeexplorer.src.utils.project_info import get_output_root
+from enzymeexplorer.src.utils.project_info import get_models_output_root
 
 logger = logging.getLogger(__name__)
 
@@ -60,7 +60,7 @@ def latest_experiment_dir(
     fold error.
     """
     root = (
-        (output_root or get_output_root())
+        (output_root or get_models_output_root())
         / model
         / version
         / "all_folds"
@@ -226,7 +226,7 @@ def load_classifier_class_fold_dfs(
 
     ``version_spec`` is either a single version string (one experiment, all
     classes share the same per-fold DFs) or a ``{class_short: version_str}``
-    mapping (HBI per-class optimal: each class loads from its own experiment).
+    mapping (homology per-class optimal: each class loads from its own experiment).
     The single-version case shares DataFrame references across class keys.
 
     Pinning to specific timestamps:

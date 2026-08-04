@@ -105,6 +105,14 @@ def get_output_root() -> Path:
     return get_repo_root() / "outputs"
 
 
+def get_models_output_root() -> Path:
+    """Returns absolute path to the model-training output directory
+    (``<repo>/outputs/models``). Every trained model's per-fold /
+    per-class artefacts land under this root.
+    """
+    return get_output_root() / "models"
+
+
 def get_default_workdir_parent() -> Path:
     """Default parent for per-run scratch directories.
 

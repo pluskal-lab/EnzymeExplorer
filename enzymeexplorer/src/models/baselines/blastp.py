@@ -19,7 +19,6 @@ class BlastConfig(BaseConfig):
     e_threshold: float
     pred_batch_size: Optional[int] = 32
     n_jobs: Optional[int] = 64
-    is_halo: bool = False
 
 
 class Blastp(BaseModel):

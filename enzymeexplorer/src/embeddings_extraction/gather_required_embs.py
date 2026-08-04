@@ -30,6 +30,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--id-column", type=str, default="ID")
     parser.add_argument("--verbose", action="store_true")
     parser.add_argument("--remove-raw-files-on-end", action="store_true")
+    parser.add_argument(
+        "--output-dir",
+        type=str,
+        default="data",
+        help="Where to write the gathered .h5 file(s). Default: data/ (matches "
+             "the historical behaviour of writing to data/gathered_embs_*.h5).",
+    )
     args = parser.parse_args()
     return args
 
@@ -89,27 +96,29 @@ def main():
     results_df = pd.DataFrame(
         {cli_args.id_column: all_found_ids, "Emb": all_found_embs}
     )
+    variant = root_path.split("uniprot_embs_")[-1].replace("/", "")
+    out_dir = cli_args.output_dir
+    os.makedirs(out_dir, exist_ok=True)
     if cli_args.embs_suffix == "embs_seqs":
         for part_i, _ in enumerate(range(0, len(results_df), cli_args.storage_step)):
             results_df.iloc[
                 part_i * cli_args.storage_step : (part_i + 1) * cli_args.storage_step
             ].to_hdf(
-                f"data/gathered_embs_{root_path.split('uniprot_embs_')[-1].replace('/', '')}_{part_i}_{cli_args.embs_suffix}.h5",
+                f"{out_dir}/gathered_embs_{variant}_{part_i}_{cli_args.embs_suffix}.h5",
                 key="data",
             )
         logger.info(
-            "Stored embeddings data into chunks here: data/gathered_embs_%s*_",
-            root_path.split("uniprot_embs_")[-1].replace("/", ""),
+            "Stored embeddings data into chunks here: %s/gathered_embs_%s*_",
+            out_dir, variant,
         )
     else:
         results_df.to_hdf(
-            f"data/gathered_embs_{root_path.split('uniprot_embs_')[-1].replace('/', '')}_{cli_args.embs_suffix}.h5",
+            f"{out_dir}/gathered_embs_{variant}_{cli_args.embs_suffix}.h5",
             key="data",
         )
         logger.info(
-            "Stored embeddings data into a single .h5 file here: data/gathered_embs_%s_%s",
-            root_path.split("uniprot_embs_")[-1].replace("/", ""),
-            cli_args.embs_suffix,
+            "Stored embeddings data into a single .h5 file here: %s/gathered_embs_%s_%s",
+            out_dir, variant, cli_args.embs_suffix,
         )
         if cli_args.remove_raw_files_on_end:
             rmtree(root_path)

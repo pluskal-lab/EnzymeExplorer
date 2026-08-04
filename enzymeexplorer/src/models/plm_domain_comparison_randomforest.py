@@ -39,7 +39,7 @@ class PlmDomainsRandomForest(PlmRandomForest):
         # pylint: disable=R0801
         if hasattr(config, "domain_dist_path") and config.domain_dist_path:
             domain_dist_path = config.domain_dist_path
-        elif hasattr(config, "foldseek_distances") and config.foldseek_distances:            
+        elif hasattr(config, "foldseek_distances") and config.foldseek_distances:
             domain_dist_path = "data/clustering__domain_dist_based_features_foldseek.pkl"
         else:
             domain_dist_path = "data/clustering__domain_dist_based_features.pkl"
@@ -55,21 +55,6 @@ class PlmDomainsRandomForest(PlmRandomForest):
         self.features_df = None
         self.domain_feature_novelty_detector = None
         self.plm_feature_novelty_detector = None
-        # to experiment with the domain features subset
-        if "domains_subset" in self.config.experiment_info.model_version:
-            # to obtain the subset of domain features, run the following code:
-            # python -m src.models.plm_domain_faster.get_domains_feature_importances
-            with open("data/domains_subset.pkl", "rb") as file:
-                _, self.feat_indices_subset = pickle.load(file)
-        else:
-            self.feat_indices_subset = None
-        if "plm_subset" in self.config.experiment_info.model_version:
-            # to obtain the subset of domain features, run the following code:
-            # python -m src.models.plm_domain_faster.get_domains_feature_importances
-            with open("data/plm_feats_subset.pkl", "rb") as file:
-                self.plm_feat_indices_subset = sorted(pickle.load(file))
-        else:
-            self.plm_feat_indices_subset = None
 
     def fit_core(self, train_df: pd.DataFrame, class_name: str = None):
         """
@@ -81,7 +66,7 @@ class PlmDomainsRandomForest(PlmRandomForest):
         (
             self.allowed_feat_indices,
             dom_features_df,
-        ) = compare_domains_to_known_instances(train_df, self, self.feat_indices_subset)
+        ) = compare_domains_to_known_instances(train_df, self, None)
 
         dom_features_df["Emb_dom"] = dom_features_df["Emb"]
 

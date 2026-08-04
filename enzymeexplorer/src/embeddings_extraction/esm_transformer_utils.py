@@ -16,7 +16,6 @@ logger = logging.getLogger(__file__)
 logger.setLevel(logging.INFO)
 
 CHECKPOINT_NAMES = {
-    "esm-1v-finetuned": "checkpoint-tps-esm1v-t33-finetuned.ckpt",
     "esm-1v-finetuned-subseq": "checkpoint-tps-esm1v-t33-subseq.ckpt",
 }
 
@@ -29,7 +28,6 @@ CHECKPOINT_NAMES = {
 MODEL_LAYERS = {
     "esm-1b": 33,
     "esm-1v": 33,
-    "esm-1v-finetuned": 33,
     "esm-1v-finetuned-subseq": 33,
     "esm-2-t30": 30,
     "esm-2-t33": 33,

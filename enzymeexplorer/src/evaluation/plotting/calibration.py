@@ -430,3 +430,103 @@ def plot_calibration_metrics_grid(
         fig.suptitle(title, x=0.02, ha="left")
     fig.tight_layout(rect=(0, 0, 1, 0.95) if title else None)
     return fig
+
+
+# ---------------------------------------------------------------------------
+# 7. Curve-overlap: 5 per-fold LOFO curves + deployment + bootstrap ribbon
+# ---------------------------------------------------------------------------
+
+def plot_curve_overlap(
+    ribbon_df: pd.DataFrame,
+    reliability_per_fold_df: pd.DataFrame,
+    pooled_reliability_df: pd.DataFrame | None,
+    *,
+    classifier: str,
+    target_class: str,
+    coverage_pct_outside: float | None = None,
+    title: str | None = None,
+    figsize: tuple[float, float] = (5.6, 4.4),
+) -> plt.Figure:
+    """Overlay the 5 per-fold reliability curves, the pooled LOFO curve,
+    the deployment calibrator, and the cluster-block bootstrap ribbon.
+
+    Reviewer-facing evidence that:
+
+    * the 5 CV calibrators agree with each other,
+    * the deployment fit sits inside the bootstrap uncertainty band,
+    * and the pooled LOFO reliability (paper headline) is not driven by
+      a single fold.
+
+    ``coverage_pct_outside`` is the % of score-grid points where the
+    deployment curve is outside the 95% ribbon (paper caption fodder —
+    should be ≈ 5%; > 10% is a warning).
+    """
+    theme.apply_theme()
+    fig, ax = plt.subplots(figsize=figsize)
+
+    # Bootstrap ribbon + deployment curve.
+    if ribbon_df is not None and not ribbon_df.empty:
+        rib = ribbon_df.sort_values("score")
+        s = rib["score"].to_numpy()
+        p_lo = rib["p_lo"].to_numpy()
+        p_hi = rib["p_hi"].to_numpy()
+        p_hat = rib["p_hat"].to_numpy()
+        if not np.all(np.isnan(p_lo)):
+            ax.fill_between(s, p_lo, p_hi, color=_BAND_COLOR, alpha=0.16,
+                            linewidth=0,
+                            label="95% CI (seq-id cluster bootstrap)")
+        ax.plot(s, p_hat, color=_FIT_COLOR, linewidth=1.6, zorder=4,
+                label="deployment fit p̂(s)")
+
+    # 5 per-fold LOFO reliability curves.
+    if reliability_per_fold_df is not None and not reliability_per_fold_df.empty:
+        folds = sorted(reliability_per_fold_df["fold"].unique())
+        cmap = plt.get_cmap("viridis")
+        for i, f in enumerate(folds):
+            sub = reliability_per_fold_df[reliability_per_fold_df["fold"] == f]
+            if sub.empty:
+                continue
+            color = cmap(0.15 + 0.7 * (i / max(len(folds) - 1, 1)))
+            ax.plot(
+                sub["p_pred_mean"].to_numpy(),
+                sub["p_obs"].to_numpy(),
+                marker="o", markersize=3.5,
+                linewidth=0.9, linestyle="-",
+                color=color, alpha=0.85, zorder=3,
+                label=f"fold {int(f)} LOFO reliability",
+            )
+
+    # Pooled LOFO reliability — bold markers on top.
+    if pooled_reliability_df is not None and not pooled_reliability_df.empty:
+        prd = pooled_reliability_df
+        ax.plot(
+            prd["p_pred_mean"].to_numpy(),
+            prd["p_obs"].to_numpy(),
+            marker="s", markersize=5.0,
+            linewidth=0.0, linestyle="",
+            color="0.1", markerfacecolor="none",
+            markeredgewidth=1.0, zorder=5,
+            label="pooled LOFO reliability",
+        )
+
+    ax.plot([0.0, 1.0], [0.0, 1.0], color="0.5", linestyle="--",
+            linewidth=0.7, zorder=1, label="identity")
+
+    ax.set_xlim(-0.02, 1.02)
+    ax.set_ylim(-0.02, 1.02)
+    ax.set_aspect("equal", adjustable="box")
+    ax.set_xlabel("Predicted probability")
+    ax.set_ylabel("Empirical positive rate")
+    ax.grid(linestyle=":", linewidth=0.4, alpha=0.6)
+
+    if title is None:
+        title = (
+            f"{theme.display_name(classifier)} — {target_class}: "
+            "cross-validation ↔ deployment overlap"
+        )
+    if coverage_pct_outside is not None and np.isfinite(coverage_pct_outside):
+        title += f"  (deploy outside 95% ribbon: {coverage_pct_outside:.1f}%)"
+    ax.set_title(title, loc="left")
+    ax.legend(loc="lower right", frameon=False, fontsize=7)
+    fig.tight_layout()
+    return fig

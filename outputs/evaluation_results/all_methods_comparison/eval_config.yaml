@@ -1,0 +1,335 @@
+classifiers:
+  BLAST:
+    model: Blastp
+    classes:
+    - TPS
+    - IDS
+    - FPP
+    - GPP
+    - GGPP
+    - EDSQ
+    - CPP
+    - GFPP
+    - 2xFPP
+    - 2xGGPP
+    selection:
+      mode: auto
+      prefix: eval
+      metric: ap
+  HMM:
+    model: HMM
+    classes:
+    - TPS
+    - IDS
+    - FPP
+    - GPP
+    - GGPP
+    - EDSQ
+    - CPP
+    - GFPP
+    - 2xFPP
+    - 2xGGPP
+    selection:
+      mode: auto
+      prefix: eval
+      metric: ap
+  Foldseek:
+    model: Foldseek
+    classes:
+    - TPS
+    - IDS
+    - FPP
+    - GPP
+    - GGPP
+    - EDSQ
+    - CPP
+    - GFPP
+    - 2xFPP
+    - 2xGGPP
+    selection:
+      mode: auto
+      prefix: eval
+      metric: ap
+  PFAM:
+    model: PfamSUPFAM
+    classes:
+    - TPS
+    selection:
+      mode: auto
+      prefix: pfam_bitscore
+      metric: ap
+  SUPFAM:
+    model: PfamSUPFAM
+    classes:
+    - TPS
+    selection:
+      mode: auto
+      prefix: supfam_bitscore
+      metric: ap
+  CLEAN:
+    model: CLEAN
+    classes:
+    - TPS
+    - IDS
+    - FPP
+    - GPP
+    - GGPP
+    - EDSQ
+    - CPP
+    - GFPP
+    - 2xFPP
+    - 2xGGPP
+    selection:
+      mode: fixed
+      version: with_minor_reactions
+  PLM_Domains:
+    model: PlmDomainsRandomForest
+    classes:
+    - TPS
+    - IDS
+    - FPP
+    - GPP
+    - GGPP
+    - EDSQ
+    - CPP
+    - GFPP
+    - 2xFPP
+    - 2xGGPP
+    selection:
+      mode: fixed
+      version: ankh_large
+bootstrap:
+  n_bootstraps: 1000
+  seed: 42
+  mode: cluster
+  ci: 0.95
+  ci_method: bca
+  metrics:
+  - ap
+  - roc_auc
+  target_model: PLM_Domains
+aggregates:
+  Substrate_mAP:
+  - FPP
+  - GPP
+  - GGPP
+  - EDSQ
+  - CPP
+  - GFPP
+  - 2xFPP
+  - 2xGGPP
+  Overall_mAP:
+  - TPS
+  - IDS
+  - FPP
+  - GPP
+  - GGPP
+  - EDSQ
+  - CPP
+  - GFPP
+  - 2xFPP
+  - 2xGGPP
+id_metadata:
+  csv: data/EnzymeExplorer_Dataset.csv
+categories:
+  Kingdom:
+    column: Kingdom
+    order:
+    - Animals
+    - Archaea
+    - Bacteria
+    - Fungi
+    - Plants
+    - Protists
+    - Viruses
+    negative_label: Unknown
+  TPS_Type:
+    column: OriginalType
+    order:
+    - mono
+    - sesq
+    - di
+    - sester
+    - tri
+    - tetra
+    - hemi
+    - sqs
+    - psy
+    - pt
+    negative_label: Unknown
+    type_grouping: true
+visualize:
+  plots:
+  - tps_detection
+  - substrate_map
+  - substrate_per_class
+  - pr_curves
+  - roc_curves
+  - pr_substrate
+  - roc_substrate
+  - category_boxplot
+  metrics:
+  - ap
+  - roc_auc
+  palette_mode: all_methods
+  uniform_delta_color: '#56B4E9'
+  bar_figsize:
+  - 2.2
+  - 3.0
+  curve_figsize:
+  - 2.4
+  - 2.4
+  pin_last: PLM_Domains
+  curve_classes:
+  - TPS
+  - IDS
+  pr_per_class_classifier: PLM_Domains
+  category_classes:
+  - TPS
+  - Substrate_mAP
+  auto_zoom:
+    enabled: true
+    delta_pct: 2.0
+  bar_plots:
+    tps_detection:
+      figsize:
+      - 2.7
+      - 3.0
+      bar_width: 0.6
+      xtick_rotation: 45
+      xtick_fontsize: 10
+      ytick_fontsize: 10
+      title_fontsize: 12
+    substrate_map:
+      figsize:
+      - 2.0
+      - 2.5
+      bar_width: 0.6
+      xtick_rotation: 45
+      xtick_fontsize: 10
+      ytick_fontsize: 10
+      title_fontsize: 12
+    substrate_per_class:
+      figsize:
+      - 5.4
+      - 2.0
+      cluster_width: 0.8
+      bar_width_frac: 0.92
+      title_fontsize: 12
+  curves:
+    pr_curves:
+      figsize:
+      - 3.6
+      - 2
+      linewidth: 0.5
+      title_fontsize: 12
+    roc_curves:
+      figsize:
+      - 3.6
+      - 2
+      linewidth: 0.5
+      title_fontsize: 12
+    pr_per_class:
+      figsize:
+      - 3.6
+      - 2
+      linewidth: 0.5
+      title_fontsize: 12
+    pr_substrate:
+      figsize:
+      - 3.6
+      - 2
+      linewidth: 0.5
+      title_fontsize: 12
+    roc_substrate:
+      figsize:
+      - 3.6
+      - 2
+      linewidth: 0.5
+      title_fontsize: 12
+  delta_plots:
+    figsize:
+    - 2.6
+    - 3.0
+    box_width: 0.3
+    cluster_width: 0.88
+    grouped_box_frac: 0.675
+    title_fontsize: 12
+  category_plots:
+    boxplot:
+      figsize:
+      - 6.5
+      - 3.0
+      box_width: 0.7
+      intra_box_gap: 0.1
+      linewidth: 0.7
+      edge_linewidth: 0.5
+      flier_size: 0.5
+      showfliers: false
+      xtick_fontsize: 10
+      ytick_fontsize: 10
+      title_fontsize: 12
+    heatmap:
+      figsize:
+      - 4.6
+      - 3.0
+      title_fontsize: 12
+  headline:
+    enabled: true
+    methods:
+    - PLM_Domains
+    - Foldseek
+    - BLAST
+    bar_plots:
+      tps_detection:
+        figsize:
+        - 1.5
+        - 2.0
+        bar_width: 0.5
+        xtick_rotation: 45
+        xtick_fontsize: 8
+        ytick_fontsize: 8
+        title_fontsize: 12
+      substrate_map:
+        figsize:
+        - 1.5
+        - 2.0
+        bar_width: 0.5
+        xtick_rotation: 45
+        xtick_fontsize: 8
+        ytick_fontsize: 8
+        title_fontsize: 12
+    delta_plots:
+      figsize:
+      - 1.5
+      - 2.0
+      box_width: 0.5
+      xtick_rotation: 45
+      xtick_fontsize: 8
+      ytick_fontsize: 8
+      title_fontsize: 12
+    curves:
+      pr_curves:
+        figsize:
+        - 1.8
+        - 1.8
+        linewidth: 1.4
+        title_fontsize: 12
+      roc_curves:
+        figsize:
+        - 1.8
+        - 1.8
+        linewidth: 1.4
+        title_fontsize: 12
+      pr_substrate:
+        figsize:
+        - 1.8
+        - 1.8
+        linewidth: 1.4
+        title_fontsize: 12
+      roc_substrate:
+        figsize:
+        - 1.8
+        - 1.8
+        linewidth: 1.4
+        title_fontsize: 12

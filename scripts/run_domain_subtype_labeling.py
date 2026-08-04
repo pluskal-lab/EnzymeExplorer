@@ -1,11 +1,12 @@
-"""Produce the canonical domain-subtype labeling for d0_m5.
+"""Produce the canonical domain-subtype labeling for d0_m3.
 
 The dynamicTreeCut sweep (``run_dynamic_tree_cut_sweep.py``) is the
 exploratory tool that emits clades + auto-labels for many (deepSplit,
 minClusterSize) configs. This script is the production entry point: it
-runs a SINGLE config (default ``deepSplit=0, minClusterSize=5``),
+runs a SINGLE config (default ``deepSplit=0, minClusterSize=3``),
 computes the auto-labels, optionally applies a manually curated
-``clade_id -> label`` override JSON, and writes the canonical artefacts:
+override JSON (clade-level renames + individual module promotions),
+and writes the canonical artefacts:
 
   * ``data/domain_module_id_2_domain_subtype.pkl`` —
     ``{module_id: final_label}`` (overwritten by default)
@@ -71,7 +72,7 @@ def parse_args() -> argparse.Namespace:
     )
     p.add_argument(
         "--hac-dir",
-        default="data/domain_clustering/martsDB_hac_sweep",
+        default="outputs/domain_clustering",
     )
     p.add_argument(
         "--detected-domains-pkl",
@@ -83,7 +84,7 @@ def parse_args() -> argparse.Namespace:
     )
     p.add_argument("--dtc-subdir", default="dtc_sweep")
     p.add_argument("--deep-split", type=int, default=0)
-    p.add_argument("--min-cluster-size", type=int, default=5)
+    p.add_argument("--min-cluster-size", type=int, default=3)
     p.add_argument("--bootstrap-iter", type=int, default=100)
     p.add_argument("--bootstrap-keep-frac", type=float, default=0.80)
     p.add_argument("--bootstrap-seed", type=int, default=42)
@@ -94,11 +95,15 @@ def parse_args() -> argparse.Namespace:
     )
     p.add_argument(
         "--label-overrides",
-        default=None,
+        default="enzymeexplorer/configs/domain_subtype_label_overrides.json",
         help=(
-            "Optional path to a JSON file mapping ``clade_id -> label`` "
-            "(e.g. ``{\"dtc_1\": \"alpha2D\"}``). Overrides the auto label "
-            "for the listed clade_ids; all other clades keep the auto label."
+            "Path to a JSON file with two keys:\n"
+            "  * ``clade_labels`` — ``{clade_id: label}`` renames applied on\n"
+            "    top of the auto label (e.g. ``{\"dtc_1\": \"alpha1D\"}``).\n"
+            "  * ``module_labels`` — ``{module_id: label}`` promotions applied\n"
+            "    on top of the clade-derived label (e.g. delta3 outlier).\n"
+            "For back-compat a flat ``{clade_id: label}`` dict is accepted\n"
+            "and treated as clade_labels."
         ),
     )
     p.add_argument(
@@ -245,23 +250,38 @@ def main() -> None:
     )
 
     # Apply overrides if provided.
-    overrides: dict[str, str] = {}
+    clade_overrides: dict[str, str] = {}
+    module_overrides: dict[str, str] = {}
     if args.label_overrides:
         ov_path = Path(args.label_overrides)
         with open(ov_path, "r", encoding="utf-8") as fh:
-            overrides = json.load(fh)
-        unknown = sorted(set(overrides) - set(clades))
+            payload = json.load(fh)
+        # Support new nested schema {clade_labels, module_labels} and legacy
+        # flat {clade_id: label} dicts (treated as clade_labels).
+        if isinstance(payload, dict) and (
+            "clade_labels" in payload or "module_labels" in payload
+        ):
+            clade_overrides = payload.get("clade_labels", {}) or {}
+            module_overrides = payload.get("module_labels", {}) or {}
+        else:
+            clade_overrides = {
+                k: v for k, v in payload.items() if not k.startswith("_")
+            }
+        unknown = sorted(set(clade_overrides) - set(clades))
         if unknown:
             logger.warning(
-                "%d override key(s) don't match any clade_id and will be "
-                "ignored: %s",
+                "%d clade override key(s) don't match any clade_id and will "
+                "be ignored: %s",
                 len(unknown), unknown,
             )
-            overrides = {k: v for k, v in overrides.items() if k in clades}
+            clade_overrides = {
+                k: v for k, v in clade_overrides.items() if k in clades
+            }
         logger.info(
-            "Loaded %d label overrides from %s", len(overrides), ov_path,
+            "Loaded %d clade overrides and %d module overrides from %s",
+            len(clade_overrides), len(module_overrides), ov_path,
         )
-    final_label_map = {**auto_label_map, **overrides}
+    final_label_map = {**auto_label_map, **clade_overrides}
 
     # Bootstrap support for the table (optional).
     if args.skip_bootstrap:
@@ -304,6 +324,18 @@ def main() -> None:
         label = final_label_map.get(cid, cid)
         for mid in sorted(clades[cid]):
             module_to_label[mid] = label
+
+    # Apply per-module promotions (e.g. delta3 outlier) on top.
+    unknown_modules = sorted(set(module_overrides) - set(module_to_label))
+    if unknown_modules:
+        logger.warning(
+            "%d module override key(s) don't match any module_id and will "
+            "be ignored: %s",
+            len(unknown_modules), unknown_modules,
+        )
+    for mid, lbl in module_overrides.items():
+        if mid in module_to_label:
+            module_to_label[mid] = lbl
 
     # Pickle preserves insertion order in cpython but we sort the dict by
     # module_id for portability.

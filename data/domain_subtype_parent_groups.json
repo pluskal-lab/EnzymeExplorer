@@ -1,0 +1,38 @@
+{
+  "alpha1": [
+    "alpha1A",
+    "alpha1B",
+    "alpha1C",
+    "alpha1D",
+    "alpha1E",
+    "alpha1F",
+    "alpha1G"
+  ],
+  "alpha2": [
+    "alpha2A"
+  ],
+  "alpha3": [
+    "alpha3A",
+    "alpha3B"
+  ],
+  "alpha4": [
+    "alpha4A",
+    "alpha4B"
+  ],
+  "beta": [
+    "beta"
+  ],
+  "delta": [
+    "delta1",
+    "delta2"
+  ],
+  "epsilon": [
+    "epsilon"
+  ],
+  "gamma": [
+    "gamma"
+  ],
+  "zeta": [
+    "zeta"
+  ]
+}

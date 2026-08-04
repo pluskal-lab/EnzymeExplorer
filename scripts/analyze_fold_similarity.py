@@ -24,7 +24,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from terpeneminer.src.utils.msa import get_fasta_seqs
 
 
-# Major substrates used in mAP evaluation (from terpene_miner_main.py)
+# Major substrates used in mAP evaluation (from enzyme_explorer_main.py)
 MAJOR_SUBSTRATES_FOR_METRICS = {
     "CC(C)=CCCC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",  # FPP (sesquiterpene)
     "CC(C)=CCCC(C)=CCOP([O-])(=O)OP([O-])([O-])=O",  # GPP (monoterpene)

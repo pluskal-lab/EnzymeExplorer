@@ -1,0 +1,89 @@
+IQ-TREE multicore version 2.3.0 COVID-edition for Linux 64-bit built Mar 14 2024
+Developed by Bui Quang Minh, James Barbetti, Nguyen Lam Tung,
+Olga Chernomor, Heiko Schmidt, Dominik Schrempf, Michael Woodhams, Ly Trong Nhan.
+
+Host:    terka.uochb.cas.cz (AVX2, FMA3, 125 GB RAM)
+Command: iqtree2 -s outputs/martsdb/phylogeny/alignment.fasta -m LG+G4 -fast -nt AUTO -ntmax 32 -pre outputs/martsdb/phylogeny/iqtree -redo
+Seed:    563190 (Using SPRNG - Scalable Parallel Random Number Generator)
+Time:    Sun Jul 12 23:48:29 2026
+Kernel:  AVX+FMA - auto-detect threads (64 CPU cores detected)
+
+Reading alignment file outputs/martsdb/phylogeny/alignment.fasta ... Fasta format detected
+Reading fasta file: done in 0.097431 secs using 94.64% CPU
+Alignment most likely contains protein sequences
+Alignment has 1374 sequences with 4751 columns, 4341 distinct patterns
+2734 parsimony-informative, 1007 singleton sites, 1010 constant sites
+Analyzing sequences: done in 0.00229257 secs using 5571% CPU
+WARNING: 1374 sequences contain more than 50% gaps/ambiguity
+
+Create initial parsimony tree by phylogenetic likelihood library (PLL)... 7.28 seconds
+
+NOTE: 3705 MB RAM (3 GB) is required!
+Measuring multi-threading efficiency up to 32 CPU cores
+2 trees examined
+Threads: 1 / Time: 34.53 sec / Speedup: 1.00 / Efficiency: 100% / LogL: -1699229
+Threads: 2 / Time: 22.00 sec / Speedup: 1.57 / Efficiency: 78% / LogL: -1699229
+Threads: 3 / Time: 18.32 sec / Speedup: 1.88 / Efficiency: 63% / LogL: -1699229
+Threads: 4 / Time: 14.73 sec / Speedup: 2.34 / Efficiency: 59% / LogL: -1699229
+Threads: 5 / Time: 13.83 sec / Speedup: 2.50 / Efficiency: 50% / LogL: -1699229
+BEST NUMBER OF THREADS: 4
+
+Estimate model parameters (epsilon = 0.50)
+1. Initial log-likelihood: -1071621.79
+2. Current log-likelihood: -898338.47
+3. Current log-likelihood: -895139.02
+4. Current log-likelihood: -894776.97
+WARNING: Numerical underflow for lh-branch, use `-safe` option to avoid this warning
+Pattern 1230 likelihood is underflown
+5. Current log-likelihood: -894731.78
+6. Current log-likelihood: -894723.32
+7. Current log-likelihood: -894719.71
+8. Current log-likelihood: -894718.84
+Optimal log-likelihood: -894718.62
+Gamma shape alpha: 2.66
+Parameters optimization took 8 rounds (223.11 sec)
+Wrote distance file to... 
+Computing ML distances based on estimated model parameters...
+Calculating distance matrix: done in 46.2996 secs using 399.1% CPU
+Computing ML distances took 46.310384 sec (of wall-clock time) 184.811950 sec (of CPU time)
+WARNING: Some pairwise ML distances are too long (saturated)
+Setting up auxiliary I and S matrices: done in 0.0121358 secs using 402.1% CPU
+Computing RapidNJ tree took 0.586633 sec (of wall-clock time) 1.081911 sec (of CPU time)
+Log-likelihood of RapidNJ tree: -898128.761
+--------------------------------------------------------------------
+|             INITIALIZING CANDIDATE TREE SET                      |
+--------------------------------------------------------------------
+
+Do NNI search on 2 best initial trees
+Estimate model parameters (epsilon = 0.500)
+BETTER TREE FOUND at iteration 1: -893303.941
+Finish initializing candidate tree set (4)
+Current best tree score: -893303.941 / CPU time: 411.445
+Number of iterations: 2
+TREE SEARCH COMPLETED AFTER 2 ITERATIONS / Time: 0h:14m:49s
+
+--------------------------------------------------------------------
+|                    FINALIZING TREE SEARCH                        |
+--------------------------------------------------------------------
+Performs final model parameters optimization
+Estimate model parameters (epsilon = 0.050)
+1. Initial log-likelihood: -893303.941
+Optimal log-likelihood: -893303.924
+Gamma shape alpha: 2.657
+Parameters optimization took 1 rounds (16.419 sec)
+BEST SCORE FOUND : -893303.924
+Total tree length: 710.538
+
+Total number of iterations: 2
+CPU time used for tree search: 1640.509 sec (0h:27m:20s)
+Wall-clock time used for tree search: 411.448 sec (0h:6m:51s)
+Total CPU time used: 3420.662 sec (0h:57m:0s)
+Total wall-clock time used: 905.804 sec (0h:15m:5s)
+
+Analysis results written to: 
+  IQ-TREE report:                outputs/martsdb/phylogeny/iqtree.iqtree
+  Maximum-likelihood tree:       outputs/martsdb/phylogeny/iqtree.treefile
+  Likelihood distances:          outputs/martsdb/phylogeny/iqtree.mldist
+  Screen log file:               outputs/martsdb/phylogeny/iqtree.log
+
+Date and Time: Mon Jul 13 00:03:35 2026

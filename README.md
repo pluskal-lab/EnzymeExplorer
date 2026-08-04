@@ -1,9 +1,6 @@
 [![Code style:black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
-
 [![Checks for coding standard, code smells and typing](https://github.com/pluskal-lab/EnzymeExplorer/actions/workflows/ci.yml/badge.svg)](https://github.com/pluskal-lab/EnzymeExplorer/actions/workflows/ci.yml)
-
 [![DOI:10.1101/2024.01.29.577750](http://img.shields.io/badge/DOI-10.1101/2024.01.29.577750-B31B1B.svg)](https://doi.org/10.1101/2024.01.29.577750)
-
 [![](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/pluskal-lab/EnzymeExplorer/blob/main/notebooks/EnzymeExplorer_(input_UniProt_ID).ipynb)
 
 <div align="center">
@@ -15,842 +12,441 @@
 
 -----------------------------------------
 
-# 🚀 Quick Start: Get Predictions with Colab Notebooks
+## 🚀 Try it in a Colab notebook
 
-| Required input | Colab Notebook  |
-|-----------|--------------|
-| Uniprot ID    | [![](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/pluskal-lab/EnzymeExplorer/blob/main/notebooks/EnzymeExplorer_(input_UniProt_ID).ipynb) |
-| Structure  | [![](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/pluskal-lab/EnzymeExplorer/blob/main/notebooks/EnzymeExplorer_(upload_your_structure).ipynb) |
-| Sequence (structure will be predicted in Colab)  | [![](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/pluskal-lab/EnzymeExplorer/blob/main/notebooks/EnzymeExplorer_%2B_ColabFold_(input_sequence).ipynb)|
+| Input                                     | Colab Notebook                                                                                                                                                                                                                                       |
+|-------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| UniProt ID                                | [![](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/pluskal-lab/EnzymeExplorer/blob/main/notebooks/EnzymeExplorer_(input_UniProt_ID).ipynb)                                                     |
+| Protein structure                         | [![](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/pluskal-lab/EnzymeExplorer/blob/main/notebooks/EnzymeExplorer_(upload_your_structure).ipynb)                                                |
+| Sequence (structure folded via ColabFold) | [![](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/pluskal-lab/EnzymeExplorer/blob/main/notebooks/EnzymeExplorer_%2B_ColabFold_(input_sequence).ipynb)                                         |
 
+-----------------------------------------
 
-Table of contents
-=================
+## Contents
 
-<!--ts-->
 - [Introduction](#introduction)
-- [Installation](#installation)
-- [Quick start locally](#quick-start-locally)
-- [Workflow](#workflow)
-  - [Data Preparation](#data-preparation)
-    - [1 - Sampling negative examples from Swiss-Prot](#1---sampling-negative-examples-from-swiss-prot)
-    - [2 - Raw Data Preprocessing](#2---raw-data-preprocessing)
-    - [3 - Computing a phylogenetic tree and clade-based sequence groups](#3---computing-a-phylogenetic-tree-and-clade-based-sequence-groups)
-    - [4 - Preparing validation schema](#4---preparing-validation-schema)
-  - [Structural analysis](#structural-analysis)
-    - [1 - Segmentation of a TPS structure into TPS-specific domains](#1---segmentation-of-a-tps-structure-into-tps-specific-domains)
-    - [2 - Pairwise comparison of the detected domains](#2---pairwise-comparison-of-the-detected-domains)
-    - [3 - Clustering of the detected domains](#3---clustering-of-the-detected-domains)
-  - [Predictive Modeling](#predictive-modeling)
-    - [1 - Extracting numerical embeddings](#1---extracting-numerical-embeddings)
-    - [2 - Training all models (with optional hyperparameter optimization)](#2---training-all-models-with-optional-hyperparameter-optimization)
-    - [3 - Training a single model](#3---training-a-single-model)
-    - [4 - Descriminative structural domains selection](#4---descriminative-structural-domains-selection)
-    - [5 - Parallelized hyperparameter optimization](#5---parallelized-hyperparameter-optimization)
-    - [6 - Evaluating performance](#6---evaluating-performance)
-    - [7 - Visualization of performance](#7---visualization-of-performance)
-  - [Screening large databases](#screening-large-databases)
-  - [EnzymeExplorer deployment as a backend service](#enzymeexplorer-deployment-as-a-backend-service)
+- [Installing EnzymeExplorer](#installing-enzymeexplorer)
+  - [Prerequisites](#prerequisites)
+  - [Prediction-only host (lean install)](#prediction-only-host-lean-install)
+  - [Full developer host (training + evaluation + screening)](#full-developer-host-training--evaluation--screening)
+  - [Google Drive URLs (`drive/bundles.json`)](#google-drive-urls-drivebundlesjson)
+- [Local prediction](#local-prediction)
+- [Reproducing the paper end-to-end](#reproducing-the-paper-end-to-end)
+  - [Preparing the training corpus](#preparing-the-training-corpus)
+  - [Detecting TPS-family structural domains](#detecting-tps-family-structural-domains)
+  - [Clustering the detected domains + identifying subtypes](#clustering-the-detected-domains--identifying-subtypes)
+  - [Extracting per-protein features](#extracting-per-protein-features)
+  - [Training the classifiers](#training-the-classifiers)
+  - [Evaluating classifier performance](#evaluating-classifier-performance)
+  - [Calibrating classifier scores](#calibrating-classifier-scores)
+- [Discovery pipelines](#discovery-pipelines)
+  - [Curated candidate showcases](#curated-candidate-showcases)
+  - [Screening the dark proteome](#screening-the-dark-proteome)
+  - [Screening the GTDB archaeal proteomes](#screening-the-gtdb-archaeal-proteomes)
+- [Rebuttal-only analyses](#rebuttal-only-analyses)
+- [Deploying as a backend service](#deploying-as-a-backend-service)
 - [Reference](#reference)
-    
-<!--te-->
+
+-----------------------------------------
 
 ## Introduction
 
-Did you know that Terpene Synthases (TPSs) are responsible for the most natural scents humans have ever
-experienced [[1]](https://pubmed.ncbi.nlm.nih.gov/21114471/)? Among other invaluable molecules, TPSs are also
-responsible for the Nobel-prize-winning antimalarial treatment
-artemisinin [[2]](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4966551/) with a market size projected to reach USD 697.9
-million by 2025 [[3]](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7309871/), or TPSs are accountable for the first-line
-anticancer medicine taxol with billion-dollar pick annual sales [[4]](https://pubmed.ncbi.nlm.nih.gov/33348838/).
+Terpene Synthases (TPSs) generate the scaffolds of the largest class of natural products (more than 96,000 compounds), including several first-line medicines. They are responsible for most of the natural scents humans have ever encountered [[1]](https://pubmed.ncbi.nlm.nih.gov/21114471/), and for the Nobel-prize-winning antimalarial artemisinin [[2]](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4966551/) and the anticancer drug taxol [[4]](https://pubmed.ncbi.nlm.nih.gov/33348838/).
 
-Welcome to the GitHub repository showcasing state-of-the-art computational methods for Terpene Synthase (TPS) discovery
-and characterization. The pipeline can be easily repurposed for other enzyme families, by simply changing the config files.
+This repository accompanies **[*Structure-enabled enzyme function prediction unveils elusive terpenoid biosynthesis in archaea*](https://www.biorxiv.org/content/10.1101/2024.01.29.577750)**. It contains the full ML pipeline — from raw MARTS-DB curation to the trained model, calibration, and dark-proteome screening — reorganised so every step is reproducible from a single command.
 
-TPSs generate the scaffolds of the largest class of natural products (more than 96.000 compounds), including several
-first-line
-medicines [[5]](https://pubs.acs.org/doi/pdf/10.1021/acs.accounts.1c00296?casa_token=OzB4p1Y4nLoAAAAA:h85bm9CC10o33CQCMnhF1Th63mVD23YnnOGau7qhTjVhR7233XPV2-GS0LBDbIeQg-_LqjCS7ciCi7g).
-Our research, outlined in **[the accompanying paper *Highly accurate discovery of terpene synthases powered by machine learning reveals functional
-terpene cyclization in Archaea*](https://www.biorxiv.org/content/10.1101/2024.01.29.577750)**, addresses the challenge
-of accurately detecting TPS activity in sequence databases.
+Highlights:
 
-Our approach significantly outperforms existing methods for TPS detection and substrate prediction. Using it, we
-identified and experimentally confirmed the activity of seven previously unknown TPS enzymes undetected by all
-state-of-the-art protein signatures integrated into InterProScan.
+- Substantially outperforms every published TPS-detection baseline (BLAST, HMM, Foldseek, CLEAN, Pfam+SUPFAM signatures).
+- Identified and experimentally validated seven previously-unknown TPS enzymes that InterProScan misses.
+- First demonstration of functional terpene cyclization in Archaea, revealing a hitherto-hidden branch of TPS biology.
+- New TPS structural domain plus refined subtypes of the known α/β/γ/δ/ε/ζ folds.
 
-Notably, our method is the first to reveal functional terpene cyclization in the Archaea, one of the major domains of
-life [[6]](https://www.nature.com/articles/nrmicro.2017.133).
-Before our work, it was believed that Archaea can form prenyl monomers but cannot perform terpene
-cyclization [[7]](https://academic.oup.com/femsre/article/47/2/fuad008/7081307). Thanks to the cyclization, terpenoids
-are the largest and most diverse class of natural products. Our predictive pipeline sheds light on the ancient history
-of TPS biosynthesis, which "is deeply intertwined with the establishment of biochemistry in its present
-form" [[7]](https://academic.oup.com/femsre/article/47/2/fuad008/7081307).
-
-Furthermore, the presented research unveiled a new TPS structural domain and identified distinct subtypes of known
-domains, enhancing our understanding of TPS diversity and function.
-
-This repository provides access to our approach's source codes. We invite researchers to explore, contribute, and apply
-our approach to other enzyme families, accelerating biological discoveries.
+Although the paper is TPS-focused, the pipeline is enzyme-family-agnostic: replacing the input CSV + domain templates repurposes it for any other family.
 
 -----------------------------------------
 
-## Installation
+## Installing EnzymeExplorer
+
+Two setup scripts cover the two most common host types. Both are self-contained and safe to re-run.
+
+### Prerequisites
+
+- Linux with `conda` (Miniconda or Mambaforge) on `PATH`.
+- ~5 GB free for a prediction-only install; ~50 GB for the full developer install (data + trained-model checkpoints).
+- CUDA-capable GPU is optional but strongly recommended for anything beyond one-off inference.
+
+### Prediction-only host (lean install)
 
 ```bash
 git clone https://github.com/pluskal-lab/EnzymeExplorer.git
-
 cd EnzymeExplorer
-. scripts/setup_env.sh
-conda activate enzyme_explorer
-pip install -e .
+scripts/setup_prod.sh                    # default: --env-name enzyme_explorer_prod --cuda cu124
+# scripts/setup_prod.sh --cpu            # CPU-only wheels for PyTorch
+# scripts/setup_prod.sh --force          # rebuild env + re-download bundles
+conda activate enzyme_explorer_prod
 ```
+
+`setup_prod.sh` provisions a minimal conda environment with PyMOL + foldseek + USalign, installs the runtime pip dependencies, and downloads every Google-Drive artifact tagged `prod` in `drive/bundles.json`:
+
+- deploy-side prediction bundles (`enzyme_explorer_checkpoints.pkl`, `enzyme_explorer_plm_checkpoints.pkl`, `calibration_fit_summary.csv`)
+- MARTS-DB reference domains + prebuilt foldseek DB cache
+- Pinned `foldseek` and `USalign` binaries
+- Curated AlphaFold-DB structures for the discovered dark- and Pfam/SUPFAM-selected candidates.
+
+**Try it immediately on the shipped candidate sets.** After `setup_prod.sh` finishes, both curated candidate sets live in the repo — the FASTAs are committed, and the AF-DB structures came in via the `candidate-structures` Drive bundle. Predict on them with a single command each:
+
+```bash
+# Pfam+SUPFAM-selected candidates (9 sequences)
+enzyme_explorer_main predict \
+    --sequences        data/pfam_supfam_candidates/candidates.fasta \
+    --structures-dir   data/pfam_supfam_candidates/afdb \
+    --output-dir       outputs/candidates/pfam_supfam_candidates
+
+# Dark-proteome-selected candidates (11 sequences)
+enzyme_explorer_main predict \
+    --sequences        data/dark_candidates/candidates.fasta \
+    --structures-dir   data/dark_candidates/afdb \
+    --output-dir       outputs/candidates/dark_candidates
+```
+
+The one-line wrappers `scripts/run_pfam_supfam_candidates.sh` and `scripts/run_dark_candidates.sh` are exactly these calls, pre-baked — either the wrappers or the raw commands above work.
+
+**Files produced.** Each `predict` invocation writes two CSVs into `--output-dir`:
+
+- **`predictions_plm_domains.csv`** — proteins whose AF-DB structure yielded a meaningful match to the training-time reference domains and were routed through the domain-aware PlmDomainsRandomForest ensemble. This is the primary output; for the two candidate sets above, every protein ends up here.
+- **`predictions_plm_only_fallback.csv`** — proteins whose domain features were empty or below the foldseek meaningfulness threshold; the pipeline falls them back to the sequence-only PlmRandomForest ensemble instead. Empty in the two candidate examples above because every candidate has meaningful domains.
+
+Both files share the same wide-form schema, in this fixed column order:
+
+| Column block | Columns |
+|---|---|
+| id | `id` |
+| Calibrated per-class probabilities (`<class>_p`) | `TPS_p`, `GPP_p`, `FPP_p`, `GGPP_p`, `GFPP_p`, `CPP_p`, `EDSQ_p`, `2xFPP_p`, `2xGGPP_p`, `IDS_p` |
+| Raw per-class scores (`<class>_raw`, uncalibrated) | `TPS_raw`, `GPP_raw`, `FPP_raw`, `GGPP_raw`, `GFPP_raw`, `CPP_raw`, `EDSQ_raw`, `2xFPP_raw`, `2xGGPP_raw`, `IDS_raw` |
+| sequence | `sequence` |
+
+Class-order rationale: `TPS` first because it's the overall Class-I/II TPS-vs-non-TPS gate; the substrates follow ordered by carbon count (mono → sesq → di → sester → tri → tetra) with the two "2x" homo-dimers grouped last, and `IDS` (isoprenyl diphosphate synthase, i.e. non-cyclising) at the very end. The two blocks (`_p` then `_raw`) are separated so downstream consumers can pick the calibrated column contiguously.
+
+Each `<class>_p` value is a probability in `[0, 1]` produced by a per-class beta calibrator fitted at deployment time (see `data/calibration_fit_summary.csv`). A class whose calibrator was skipped at training time (insufficient positives) will show `NaN` in its `_p` column — the raw score is still populated.
+
+### Full developer host (training + evaluation + screening)
+
+```bash
+scripts/setup_dev.sh                     # default: --env-name enzyme_explorer_dev --cuda cu124
+# scripts/setup_dev.sh --skip-drive      # env only, no downloads
+# scripts/setup_dev.sh --skip-pdbs       # skip the ~48k AF-DB PDB pull
+# scripts/setup_dev.sh --skip-gtdb       # skip the GTDB archaeal-tree fetch
+# scripts/setup_dev.sh --skip-clean      # skip cloning + building CLEAN in-tree
+conda activate enzyme_explorer_dev
+```
+
+Adds to the prod install:
+
+- Development toolchain (`mmseqs2`, `mafft`, `iqtree2`, rdkit pinned to `2022.9.5`, jupyter, seaborn, plotly, umap-learn, HDBSCAN, GOATools 1.6.5, dynamicTreeCut, ProFun, fair-esm).
+- Every Google-Drive artifact tagged `dev`: PLM checkpoints, pre-gathered PLM embeddings (`.h5`), structural-features matrix, SwissProt export, MARTS-DB PDBs, domain-clustering all-vs-all USalign cache, additional detected-domain sets, dark-proteome screening result, per-family trained-fold checkpoints (`outputs/models/*`), and the pinned GO ontology.
+- `data/enzyme_explorer_pdbs/` — populated by copying `marts_*` PDBs out of the extracted MARTS-DB set and downloading every other UniProt ID via the AlphaFold-DB v6 URL (with a REST-API fallback for older-version entries). Missing entries are logged in `data/enzyme_explorer_pdbs/_download_manifest.csv` and skipped.
+- `data/archaeal_screening/{ar53,ar53_clean}.tree` — pulled from GTDB and post-processed for iTOL compatibility by `scripts/archaeal_screening/download_gtdb_ar53_tree.sh`.
+
+Optional convenience download — **not required by any script**, only useful if you want to skip the MMseqs2 CLEAN dataprep step: the CLEAN retraining datasets (per-fold train CSVs + test FASTAs, ~511 MB) are hosted on [Google Drive](https://drive.google.com/file/d/1TfxtmZCeWgqD6gkOp3n0P7V3yXdf280f/view?usp=sharing). Download the zip file yourself and drop the archive at `data/clean_datasets/` (see `enzymeexplorer/src/data_preparation/clean_dataset_prep.py` for the schema).
+
+### Google Drive URLs (`drive/bundles.json`)
+
+Every downloadable artifact lives at a Drive URL declared in a single JSON file. The setup scripts read it via `scripts/drive_helper.py`, which handles both `type: zip` (with per-entry `MANIFEST.txt` sha256 verification) and `type: raw` (single-file downloads). To inspect or drive downloads manually:
+
+```bash
+python -m scripts.drive_helper list --required-by prod          # or dev / all
+python -m scripts.drive_helper install-all --required-by prod   # download+verify+extract
+python -m scripts.drive_helper install <bundle_name>            # a single bundle
+python -m scripts.drive_helper verify <bundle_name>             # run only sanity_checks
+```
+
+To (re)produce the zips locally from your data tree before uploading a fresh copy to Drive, `scripts/build_drive_bundles.py` reads the same JSON and writes zips into `drive/`.
+
 -----------------------------------------
 
-## Quick start locally
+## Local prediction
 
-### Running full TPS detection and classification
-To predict using the full EnzymeExplorer model (PLM + structural domain features), put the sequences and their structures on disk and run
+After `setup_prod.sh` (or `setup_dev.sh`) finishes, `enzyme_explorer_main predict` is on `$PATH`.
+
+**Structure-aware (recommended when AlphaFold-DB predictions are available):**
 
 ```bash
-cd EnzymeExplorer
-conda activate enzyme_explorer
-python -m enzymeexplorer.src.prediction.predict_with_structures \
-    --sequences path/to/input_sequences.fasta \
-    --structures-dir path/to/structures \
-    --output-dir path/to/output
+enzyme_explorer_main predict \
+    --sequences path/to/input.fasta \
+    --structures-dir path/to/pdbs/ \
+    --output-dir path/to/output/
 ```
 
-### Running sequence-based TPS detection and classification
-To predict using the PLM-only model (no structures required), run
+This writes two CSVs to `--output-dir`:
+
+- `predictions_plm_domains.csv` — hits routed through the domain-aware PlmDomainsRandomForest ensemble.
+- `predictions_plm_only_fallback.csv` — proteins whose domain features weren't meaningful; scored by the sequence-only PLM ensemble instead.
+
+Column schema of both files: `id`, per-class calibrated probabilities in the fixed order **TPS, GPP, FPP, GGPP, GFPP, CPP, EDSQ, 2xFPP, 2xGGPP, IDS** (`<class>_p`), followed by the raw per-class scores in the same order (`<class>_raw`), followed by the sequence.
+
+**Sequence-only (no structures required):**
 
 ```bash
-cd EnzymeExplorer
-conda activate enzyme_explorer
-python -m enzymeexplorer.src.prediction.predict_sequences_only \
-    --sequences path/to/input_sequences.fasta \
+enzyme_explorer_main predict \
+    --no-structures \
+    --sequences path/to/input.fasta \
     --output-csv predictions.csv
 ```
 
------------------------------------------
+**Domain-detection defaults**: no pre- or post-filtering, one domain per iteration. If you're deliberately hunting multi-domain proteins, opt in via `--detect-multiple-domains-in-each-iteration`. Similarly, `--prefilter-pdbs-by-foldseek` and `--postfilter-domains-by-foldseek` are available.
 
-## Workflow
-
-### Data Preparation
-
-#### 1 - Sampling negative examples from Swiss-Prot
-
-We sample negative (non-TPS) sequences from [Swiss-Prot](https://www.expasy.org/resources/uniprotkb-swiss-prot), the
-expertly curated UniProtKB component produced by the UniProt consortium.
-For reproducibility, we share the sampled sequences in `data/sampled_id_2_seq.pkl`.
-
-If you want to sample Swiss-Prot entries on your own, download Swiss-Prot `.fasta` file
-from [UniProt.org Downloads](https://www.uniprot.org/help/downloads) to the data folder and then run
-
-```bash
-cd EnzymeExplorer
-conda activate enzyme_explorer
-mkdir -p outputs/logs
-if [ ! -f data/sampled_id_2_seq.pkl ]; then
-    get_uniprot_sample \
-        --uniprot-fasta-path data/uniprot_sprot.fasta \
-        --output-path "data/sampled_id_2_seq.pkl" \
-        --sample-size 10000 > outputs/logs/swissprot_sampling.log 2>&1
-else
-    echo "data/sampled_id_2_seq.pkl exists already. You might want to stash it before re-writing the file by the sampling script."
-fi
-```
-Also, for experimental (wet-lab) validation, we sample Swiss-Prot for negative examples with the same script, while ensuring that the sampled sequences are not present in the training set.
-
-```bash
-cd EnzymeExplorer
-conda activate enzyme_explorer
-if [ ! -f data/sampled_id_2_seq_experimental.pkl ]; then
-    get_uniprot_sample \
-        --uniprot-fasta-path data/uniprot_sprot.fasta \
-        --output-path "data/sampled_id_2_seq_experimental.pkl" \
-        --blacklist-path "data/sampled_id_2_seq.pkl" \
-        --sample-size 1000 > outputs/logs/swissprot_sampling_experimental.log 2>&1
-else
-    echo "data/sampled_id_2_seq_experimental.pkl exists already. You might want to stash it before re-writing the file by the sampling script."
-fi
-```
-
-#### 2 - Raw Data Preprocessing
-
-```bash
-cd EnzymeExplorer
-conda activate enzyme_explorer
-python -m enzymeexplorer.src.data_preparation.cleaning_data_from_raw_tps_table
-```
-This data preprocessing script is application-specific. It would require a separate implementation for other enzyme families. 
-For that reason, the script is not configurable via command line arguments.
-
-#### 3 - Computing a phylogenetic tree and clade-based sequence groups
-
-To check the generalization of our models to novel TPS sequences,
-we need to ensure that groups of similar sequences always stay either in train or in test fold.
-We construct a phylogenetic tree of our cleaned TPS dataset to compute groups of similar sequences.
-Clades of the tree define the groups of similar sequences. E.g., in the following visualization of our TPS phylogenetic
-subtree, the clade-based groups have the same color:
-
-<div align="center">
-
-![](data/readme_figures/fig_phylogenetic_tree.png)
-
-</div>
-
-We share the computed phylogenetic groups in `data/phylogenetic_clusters.pkl` for reproducibility.
-
-To compute a clade-based sequence group on your own, run
-
-```bash
-cd EnzymeExplorer
-conda activate enzyme_explorer
-if [ ! -f data/phylogenetic_clusters.pkl ]; then
-    get_phylogeny_based_clusters \
-        --tps-cleaned-csv-path data/TPS-Nov19_2023_verified_all_reactions.csv \
-        --n-workers 64 > outputs/logs/phylogenetic_clusters.log 2>&1
-else
-    echo "data/phylogenetic_clusters.pkl exists already. You might want to stash it before re-writing the file using the script for phylogenetic-tree-based sequence clustering."
-fi
-```
-
-#### 4 - Preparing validation schema
-
-We use 5-fold cross-validation (CV) for performance assessment. As described above, we ensure that similar sequences end
-up
-the same fold. Technically, we validate via group 5-fold CV. To ensure stable validation scores across folds,
-we stratify based on the TPS substrate. As default `StratifiedGroupKFold` implementation from `sklearn.model_selection`
-can result in class imbalance, we implement an iterative splitting procedure by varying random seeds and selecting the
-one with the best correspondence of class proportions between folds (the proportion correspondence is compared using
-Jensen–Shannon divergence).
-
-
-<div align="center">
-
-![](data/readme_figures/fig_stratification.png)
-
-</div>
-
-We share the computed folds in `data/tps_folds_nov2023.h5` for reproducibility.
-
-To compute the folds on your own, run
-
-```bash
-cd EnzymeExplorer
-conda activate enzyme_explorer
-if [ ! -f data/tps_folds_nov2023.h5 ]; then
-    python -m enzymeexplorer.src.data_preparation.get_balanced_stratified_group_kfolds \
-        --negative-samples-path data/sampled_id_2_seq.pkl \
-        --tps-cleaned-csv-path data/TPS-Nov19_2023_verified_all_reactions.csv \
-        --n-folds 5 \
-        --split-description stratified_phylogeny_based_split_with_minor_products \
-        > outputs/logs/kfold_with_minors.log 2>&1
-else
-    echo "data/tps_folds_nov2023.h5 exists already. You might want to stash it before re-writing the file using the script for stratified group k-fold computation."
-fi
-
-```
-
-Then, to store the folds in corresponding CSVs, run
-
-```bash
-cd EnzymeExplorer
-conda activate enzyme_explorer
-python -m enzymeexplorer.src.data_preparation.store_folds_into_csv \
-    --negative-samples-path data/sampled_id_2_seq.pkl \
-    --tps-cleaned-csv-path data/TPS-Nov19_2023_verified_all_reactions.csv \
-    --kfolds-path data/tps_folds_nov2023.h5 \
-    --split-description stratified_phylogeny_based_split_with_minor_products \
-    > outputs/logs/kfold_with_minors_to_csv.log 2>&1
-```
-
-To compute BLAST identities for each fold, run
-
-```bash
-cd EnzymeExplorer
-conda activate terpene_miner
-python -m enzymeexplorer.src.data_preparation.get_blast_identities_per_split \
-    --csv-with-folds-path data/TPS-Nov19_2023_verified_all_reactions_with_neg_with_folds.csv
-```
------------------------------------------
-
-### Structural analysis
-
-For the majority of proteins, AlphaFold2(AF2)-predicted structures can be downloaded
-using [the following script](https://github.com/SamusRam/ProFun/blob/main/profun/utils/alphafold_struct_downloader.py)
-from my [ProFun library](https://github.com/SamusRam/ProFun). If you ran the installation steps, then the ProFun library is already installed and you can use the following command: 
-```bash
-cd EnzymeExplorer
-conda activate enzyme_explorer
-awk -F, '$1 != "" && $1 != "\"" && $1 != "ID" {print $1}' "data/TPS-Nov19_2023_verified_all_reactions_with_neg_with_folds.csv" | sort | uniq > tps_ids.txt
-alphafold_struct_downloader \
-    --path-to-file-with-ids tps_ids.txt \
-    --structures-output-path "data/alphafold_structs" \
-    --n-jobs 64
-rm tps_ids.txt
-```
-
-The downloaded structures will be stored in the `data/alphafold_structs` folder. For the remaining few without precomputed AF2 prediction,
-one of the easiest ways to run AF2 is by
-using [ColabFold](https://github.com/sokrypton/ColabFold) [[5]](https://www.nature.com/articles/s41592-022-01488-1) by
-Mirdita M, Schütze K, Moriwaki Y, Heo L, Ovchinnikov S and Steinegger M.).
-For reproducibility, we share the AF2 predictions for the sequences without DeepMind-precomputed AF2 predictions on [zenodo](https://zenodo.org/records/10567437) as `alphafold_additional.zip`. You can simply add its contents to the `data/alphafold_structs`
-folder and run the consequent evaluation steps.
-
-
-Also, for illustration purposes, we store AF2 predictions for the archaeal TPSs we discovered in the
-folder `data/alphafold_structs` on GitHub. There, we also put there a randomly selected TPS with UniProt accession B9GSM9, and PDBe structures we used for domain
-standards.
-
-#### 1 - Segmentation of a TPS structure into TPS-specific domains
-
-A high-level overview of our pipeline for TPS structure segmentation into domains is depicted in the following figure:
-<div align="center">
-
-![](data/readme_figures/fig_segmentation_into_domains.png)
-
-</div>
-
-To use the algorithms for segmenting AF2 structures into TPS-specific domains, run
-
-```bash
-cd EnzymeExplorer
-conda activate enzyme_explorer
-python -m enzymeexplorer.src.structure_processing.domain_detections \
-    --needed-proteins-csv-path "data/TPS-Nov19_2023_verified_all_reactions_with_neg_with_folds.csv" \
-    --csv-id-column "ID" \
-    --input-directory-with-structures "data/alphafold_structs/" \
-    --is-bfactor-confidence \
-    --recompute-existing-secondary-structure-residues \
-    --n-jobs 16 --detections-output-path "data/filename_2_detected_domains_completed_confident.pkl" \
-    --store-domains --domains-output-path "data/detected_domains" > outputs/logs/tps_structures_segmentation.log 2>&1
-```
-
-#### 2 - Pairwise comparison of the detected domains
-
-To perform pairwise comparison of the detected domains with the use our alignment-based
-algorithms, run
-
-```bash
-cd EnzymeExplorer
-conda activate enzyme_explorer
-python -m enzymeexplorer.src.structure_processing.compute_pairwise_similarities_of_domains \
-    --name all \
-    --needed-proteins-csv-path "data/TPS-Nov19_2023_verified_all_reactions_with_neg_with_folds.csv" \
-    --csv-id-column "ID" \
-    --n-jobs 64 > outputs/logs/pairwise_comparisons.log 2>&1
-```
-Note the `--precomputed-scores-path` argument. It is used to store the previously computed TM-scores. 
-For the efficiency of any future extensions of the project, we share the precomputed TM-scores in `data/precomputed_tmscores.pkl` on GitHub.
-
-Also note, that if you have access to more servers,
-you might want to load-balance the pairwise comparison computation across your machines as shown below:
-
-```python
-# Number of machines to split the workload across
-n_machines = 15
-
-# Total number of regions, i.e. the detected structural domains, to process
-regions_total = len(regions_completed_confident_all)
-
-# Calculate the delta value, which determines how many pairs each machine will process
-# Overall, we need to fill an upper-triangular distance matrix of size regions_total x regions_total
-delta = regions_total**2 / 2 // n_machines + 1
-
-# Initialize counters
-start_i = 0  # Keeps track of the current index in the pairwise comparison
-start_prev = 0  # Keeps track of the previous start index for comparison
-split_indices = [0]  # List to hold the indices where splits across machines will occur
-
-# Loop over each region to calculate the split indices
-for i in range(regions_total):
-    for j in range(i + 1, regions_total):
-        start_i += 1  # Increment start_i for each pair (i, j)
-
-    # If the difference between the current and previous start index exceeds delta, record a split
-    if start_i - start_prev >= delta:
-        split_indices.append(i)
-        start_prev = start_i
-
-# Append the total number of regions to the split indices to cover the last segment
-split_indices.append(regions_total)
-
-def print_script(i: int, split_indices: list[int]=split_indices):
-    """
-    Print the command to process a segment of the regions.
-    
-    Parameters:
-    - i (int): The index in split_indices that determines the start and end of the segment.
-    - split_indices (list of int): The list of indices where the workload is split.
-    """
-    print(
-        f"""python -m enzymeexplorer.src.structure_processing.compute_pairwise_similarities_of_domains --start-i {split_indices[i]} --end-i {split_indices[i + 1]} --n-jobs 64 --name all 
-    """
-    )
-
-# Loop over each segment and print the corresponding script command
-for i in range(len(split_indices) - 1):
-    print_script(i)
-```
-
-For convenience, we share all the raw pairwise comparison results in `data/tps_domains_and_comparisons.zip`, which are
-subsequently used for domain clustering.
-
-#### 3 - Clustering of the detected domains
-
-For clustering, run
-
-```bash
-cd EnzymeExplorer
-jupyter notebook
-```
-
-Then, execute the notebook `notebooks/notebook_3_clustering_domains.ipynb`.
-
-#### 4 - Train classifiers of domain types and novel-domain detectors
-```bash
-cd EnzymeExplorer
-conda activate terpene_miner
-python -m enzymeexplorer.src.structure_processing.train_domain_type_classifiers > outputs/logs/domain_type_classifier_training.log 2>&1
-```
+The dedicated `predict_with_structures` and `predict_sequences_only` console scripts remain available for backwards compatibility.
 
 -----------------------------------------
 
-### Predictive Modeling
+## Reproducing the paper end-to-end
 
-#### 1 - Extracting numerical embeddings
+The steps below use the `enzyme_explorer` dev environment. Everything writes into `outputs/…/`; every step is idempotent.
 
-First, we extract protein-language-model's (PLM's) embeddings.
+### Preparing the training corpus
+
+MARTS-DB reactions are cleaned + deduplicated, negative examples are sampled from SwissProt, and the resulting dataset is clustered by MMseqs2 into a group-stratified 5-fold split.
 
 ```bash
-cd EnzymeExplorer
-conda activate enzyme_explorer
-. scripts/extract_all_embeddings.sh > outputs/logs/embeddings_extraction.log 2>&1
+# Clean the raw MARTS-DB reactions table (family-specific — output is
+# data/EnzymeExplorer_Dataset.csv + data/EnzymeExplorer_Dataset_TPS.csv).
+python -m enzymeexplorer.src.data_preparation.prepare_dataset
+
+# Optional — sample fresh negatives from SwissProt.
+get_uniprot_sample \
+    --uniprot-fasta-path data/uniprot_sprot.fasta \
+    --output-path data/sampled_id_2_seq.pkl \
+    --sample-size 10000
+
+# 50%-identity clusters used everywhere as leakage-preventing groups.
+# Produces data/EnzymeExplorer_Dataset_clusters_50.tsv.
+python scripts/build_dataset_clusters.py
 ```
 
-#### 2 - Training all models (with optional hyperparameter optimization)
+The three key inputs (`data/EnzymeExplorer_Dataset.csv`, `EnzymeExplorer_Dataset_TPS.csv`, `EnzymeExplorer_Dataset_clusters_50.tsv`) are also committed to the repo for convenience.
 
-Parameters of the models and/or hyperparameter search can be modified in `configs`.
+### Detecting TPS-family structural domains
+
+Segments each AlphaFold structure into TPS-family domains (α, β, γ, ids, δ, ε, ζ). The default policy is **no heuristic filtering, one domain per iteration**; opt in to multi-domain detection via the flag when running on a curated set where you want every match.
 
 ```bash
-cd EnzymeExplorer
-conda activate enzyme_explorer
-enzyme_explorer_main run > outputs/logs/models_training.log 2>&1
+enzyme_explorer_main detect_domains \
+    -c enzymeexplorer/configs/enzyme_explorer_domain_detection_config.yaml \
+    --detections-output-path data/detected_domains/enzyme_explorer_detected_domains/martsDB_detected_domains.pkl \
+    --detected-regions-root-path data/detected_domains/enzyme_explorer_detected_domains/detections \
+    --domains-output-path data/detected_domains/enzyme_explorer_detected_domains/domains \
+    --n-jobs 16 \
+    --input-directory-with-structures data/enzyme_explorer_pdbs/
 ```
 
-This command will automatically retrieve all models specified in the `configs` folder.
-If you want to exclude some model, put `.ignore` suffix to the corresponding folder in `configs`.
+The `configs/*_domain_detection_config.yaml` files bundle the seven template PDBs and their per-domain TM-score / min-align-length thresholds. See `enzymeexplorer/configs/dark_candidates_domain_detection_config.yaml` for a variant that turns multi-domain-per-iteration ON — useful when characterising a small curated set.
 
-#### 3 - Training a single model
-If you want to run a single model, run
+### Clustering the detected domains + identifying subtypes
+
+Hierarchical agglomerative clustering (HAC) of the pairwise USalign TM-scores, followed by dynamicTreeCut for automatic cluster-cutoff selection, then subtype-labelling driven by `data/domain_subtype_label_overrides.json`.
 
 ```bash
-cd EnzymeExplorer
-conda activate enzyme_explorer
+bash scripts/run_domain_clustering.sh
+```
+
+Products land under `outputs/domain_clustering/` (intermediate all-vs-all + linkage matrices) and `outputs/martsdb/phylogeny/` (iTOL annotations for the MARTS-DB TPS phylogeny). The USalign all-vs-all cache lives in `data/domain_clustering/all_vs_all/` — precomputed and shipped via Drive.
+
+### Extracting per-protein features
+
+**PLM embeddings** (one file per PLM under `data/gathered_embs_*_embs_avg.h5`):
+
+```bash
+bash scripts/extract_all_embeddings.sh
+```
+
+Covers the six PLMs used in the paper: `ankh_base`, `ankh_large`, `ankh_tps` (finetuned), `esm-1v`, `esm-1v-finetuned-subseq`, `esm-2-t36-L36`. Pre-computed `.h5` files are shipped via Drive.
+
+**Foldseek structural features** (per-protein × per-template TM-score matrix — `data/enzyme_explorer_structural_features/`):
+
+```bash
+python -m enzymeexplorer.src.structure_processing.get_structural_features \
+    --query-domains-file-path data/detected_domains/enzyme_explorer_detected_domains/martsDB_detected_domains.pkl \
+    --reference-domains-file-path data/detected_domains/martsDB_detected_domains/martsDB_detected_domains.pkl \
+    --query-domains-structures-directory data/detected_domains/enzyme_explorer_detected_domains/domains \
+    --reference-domains-structures-directory data/detected_domains/martsDB_detected_domains/domains \
+    --output-directory data/enzyme_explorer_structural_features
+```
+
+### Training the classifiers
+
+Every family × PLM combination is described by a YAML config under `enzymeexplorer/configs/<Family>/<Version>/config.yaml`. Trained fold checkpoints go to `outputs/models/<Family>/<Version>/…/model_fold_<N>.pkl`.
+
+```bash
+# All configured models (a config with .ignore suffix is skipped).
+bash scripts/run_training.sh --families all
+
+# One family at a time (subset one or many).
+bash scripts/run_training.sh --families PlmDomainsRandomForest
+bash scripts/run_training.sh --families Blastp,HMM,Foldseek,PfamSUPFAM,CLEAN
+
+# Or the low-level single-experiment flow (interactive picker).
 enzyme_explorer_main --select-single-experiment run
 ```
 
-On headless servers, you would be prompted to select one of the available configs via the command line:
-![](data/readme_figures/cli_modeling_demo.gif)
+Baseline sweeps (Pfam+SUPFAM bit-score, Foldseek e-value, BLAST e-value, HMM cross-validation) live at `enzymeexplorer/configs/{Blastp,HMM,Foldseek,PfamSUPFAM}/*_bitscore*/config.yaml`; each sweep config inherits from the family's `main_config.yaml` via `include:`.
 
+### Evaluating classifier performance
 
-Otherwise, you can select a model via a simple GUI.
-
-![](data/readme_figures/gui_demo.gif)
-
-#### 4 - Descriminative structural domains selection
-After training a `PlmDomainsRandomForest`, to select the most important domains for the best-performing model, run
+The evaluation pipeline runs cluster-block paired bootstrap (BCa CIs) across the resolved-per-class classifier set. Configs are under `enzymeexplorer/configs/evaluation/`.
 
 ```bash
-cd EnzymeExplorer
-conda activate enzyme_explorer
-python -m enzymeexplorer.src.models.plm_domain_faster.get_domains_feature_importances \
-    --top-most-important-domain-features-per-model 200 --output-path "data/domains_subset.pkl" 
+# One-shot all four canonical eval configs + the homology sweep.
+bash scripts/run_evaluation.sh --all
+
+# Or one config at a time.
+enzyme_explorer_main evaluate \
+    --config enzymeexplorer/configs/evaluation/all_methods_comparison/main.yaml \
+    --output-name all_methods_comparison
+enzyme_explorer_main visualize --eval-output-name all_methods_comparison
 ```
 
+Outputs land under `outputs/evaluation_results/<output_name>/`:
 
-###### Troubleshooting
- - Please note, that if you run into error `FileNotFoundError: [Errno 2] No such file or directory: '<path>/model_fold_0.pkl'`, 
-you might need to re-run the training of the model while specifying the  `save_trained_model: true` in the config. 
+- `summary_ap.csv`, `summary_delta.csv`, `pvalues.csv` — per-class + per-aggregate BCa CIs, Holm-adjusted p-values.
+- `bootstrap_long_ap.csv`, `bootstrap_long_delta.csv` — per-draw records (for reproducing the paper CIs).
+- `plots/…` — the paper-facing bar-charts + macro-averaged PR/ROC curves.
 
-  - In case of troubles, download outputs of the hyperparameter optimization
-from [zenodo](https://zenodo.org/records/10567437) as `outputs.zip` and unzip its contents to the `outputs`
-folder. Then the end-to-end derivation of the most important domains can be achieved with the following commands:
+The bootstrap cache (`outputs/evaluation_results/_bootstrap_cache/`) is keyed by the classifier fingerprints × RNG params × cluster-map hash + a bumpable algorithm version — subsequent runs with the same set reuse the same draws.
 
-```bash
-cd EnzymeExplorer
-conda activate enzyme_explorer
+### Calibrating classifier scores
 
-# training the model using pre-computed hyperparameters: select PlmDomainsRandomForest
-enzyme_explorer_main --select-single-experiment run --load-hyperparameters
-
-# gather the most important domains
-python -m enzymeexplorer.src.models.plm_domain_faster.get_domains_feature_importances \
-    --top-most-important-domain-features-per-model 200 --output-path "data/domains_subset.pkl" --use-all-folds
-``` 
-
-Also, for the sake of reproducibility, we share the selected domains in `data/domains_subset.pkl` on GitHub.
+Per-(classifier, class) beta calibrators fitted on pooled OOF predictions with LOFO family selection and cluster-bootstrap CIs.
 
 ```bash
-
-#### 5 - Parallelized hyperparameter optimization
-If you want to run hyperparameter optimization in parallel, you can use the following:
-
-```bash
-cd EnzymeExplorer
-conda activate enzyme_explorer
-bash scripts/tps_tune.sh # see the script for more details and accommodate to your use case
+bash scripts/run_calibration.sh                     # canonical
+bash scripts/run_calibration.sh --sanity <suffix>   # side-by-side rerun without clobbering data/
 ```
 
-For reproducability, we share outputs of the hyperparameter optimization
-on [here](https://zenodo.org/records/10567437). You can simply unzip its contents to the `outputs`
-folder and run the consequent evaluation steps.
+Products at `outputs/evaluation_results/calibration/`:
 
-If you want to train a single model using the best hyperparameters found during the previously run optimization, then set `optimize_hyperparams: false` in the config and run
-
-```bash
-cd EnzymeExplorer
-conda activate enzyme_explorer
-enzyme_explorer_main --select-single-experiment run --load-hyperparameters
-```
-
-If you then want to gather the corresponding checkpoints into an easy-to-use pickle file, run
-
-```bash
-python -m enzymeexplorer.src.screening.gather_classifier_checkpoints --output-path data/classifier_domain_and_plm_checkpoints.pkl --use-all-folds
-```
-
-
-#### 6 - Evaluating performance
-
-To evaluate all configured models, run
-
-```bash
-cd EnzymeExplorer
-conda activate enzyme_explorer
-enzyme_explorer_main evaluate
-```
-
-Next, to evaluate detection of the TPSs, run
-
-```bash
-enzyme_explorer_main evaluate --classes "isTPS" --output-filename tps_detection
-enzyme_explorer_main evaluate --classes "isTPS" --id-2-category-path data/id_2_kingdom_dataset.pkl --output-filename tps_detection_per_kingdom
-
-```
-
-To evaluate separately for individual kingdoms, run
-
-```bash
-enzyme_explorer_main evaluate --id-2-category-path data/id_2_kingdom_dataset.pkl --output-filename per_kingdom
-```
-
-Finally, to evaluate results separately per entries with and without Pfam/SUPFAM/InterPro protein signatures, run
-
-```bash
-enzyme_explorer_main evaluate --id-2-category-path data/id_2_domains_presence.pkl --output-filename per_interpro_signatures
-```
-
-Again, if you want to evaluate a single model, run
-
-```bash
-cd EnzymeExplorer
-conda activate terpene_miner
-terpene_miner_main --select-single-experiment evaluate --output-filename single_model_specific_name
-```
-
-and select the experiment you are interested in.
-
-#### 7 - Visualization of performance
-
-Once the performance evaluation is done, you can visualize the results.
-
-- To visualize main evaluation results, run
-
-```bash
-enzyme_explorer_main visualize
-```
-
-It will generate the following set of plots in the `outputs/evaluation_results`
-folder (`all_results_Mean Average Precision.png, all_results_ROC-AUC.png, all_results_MCC-F1 summary.png`):
-
-<p align="middle">
-  <img src="outputs/evaluation_results/all_results_Mean Average Precision.png" width="350" />
-  <img src="outputs/evaluation_results/all_results_ROC-AUC.png" width="350" /> 
-  <img src="outputs/evaluation_results/all_results_MCC-F1 summary.png" width="350" />
-</p>
-
-- To see the isolated importance of domain-comparison features, of PLM embeddings, and PLM fine-tuning, run
-
-```bash
-enzyme_explorer_main visualize --models  \
-        DomainsRandomForest__with_minor_reactions_global_tuning PlmRandomForest__esm-1v_with_minor_reactions_global_tuning PlmRandomForest__tps_esm-1v-subseq_with_minor_reactions_global_tuning PlmDomainsRandomForest__tps_esm-1v-subseq_with_minor_reactions_global_tuning_domains_subset \
-        --model-names  "Domain comparisons only" "PLM only" "Finetuned PLM only" "Finetuned PLM + Domain comparisons"\
-        --subset-name "ablation_study"
-```
-
-Then, the following plots will be generated in the `outputs/evaluation_results`
-folder (`ablation_study_Mean Average Precision.png, ablation_study_ROC-AUC.png, ablation_study_MCC-F1 summary.png`):
-<p align="middle">
-  <img src="outputs/evaluation_results/ablation_study_Mean Average Precision.png" width="350" />
-  <img src="outputs/evaluation_results/ablation_study_ROC-AUC.png" width="350" /> 
-  <img src="outputs/evaluation_results/ablation_study_MCC-F1 summary.png" width="350" />
-</p>
-
-- To compare different downstream classifiers on top of the same features (PLM embeddings + domain comparisons), run
-
-```bash
-enzyme_explorer_main visualize --models  \
-            PlmDomainsMLP__tps_esm-1v-subseq_with_minor_reactions_global_tuning PlmDomainsLogisticRegression__tps_esm-1v_with_minor_reactions_global_tuning PlmDomainsRandomForest__tps_esm-1v-subseq_with_minor_reactions_global_tuning\
-        --model-names  "Feed-Forward Neural Net" "Logistic Regression" "Random Forest"\
-        --subset-name "different_models_best_feats"
-```
-
-Then, the following plots will be generated in the `outputs/evaluation_results`
-folder (`different_models_best_feats_Mean Average Precision.png, different_models_best_feats_ROC-AUC.png, different_models_best_feats_MCC-F1 summary.png`):
-<p align="middle">
-  <img src="outputs/evaluation_results/different_models_best_feats_Mean Average Precision.png" width="350" />
-  <img src="outputs/evaluation_results/different_models_best_feats_ROC-AUC.png" width="350" /> 
-  <img src="outputs/evaluation_results/different_models_best_feats_MCC-F1 summary.png" width="350" />
-</p>
-
-- To see the performance for different PLMs, run
-
-```bash
-enzyme_explorer_main visualize --models  \
-         PlmDomainsRandomForest__ankh_large_with_minor_reactions_global_tuning PlmDomainsRandomForest__ankh_base_with_minor_reactions PlmDomainsRandomForest__tps_ankh_base_with_minor_reactions PlmDomainsRandomForest__esm-2_with_minor_reactions_global_tuning PlmDomainsRandomForest__esm-1v_with_minor_reactions_global_tuning PlmDomainsRandomForest__tps_esm-1v_with_minor_reactions_global_tuning PlmDomainsRandomForest__tps_esm-1v-subseq_with_minor_reactions_global_tuning_domains_subset\
-        --model-names Ankh-large Ankh Ankh-finetuned ESM-2 ESM-1v ESM-1v-finetuned ESM-1v-finetuned-subseq \
-        --subset-name "random_forest_different_plm"
-```
-
-Then, the following plots will be generated in the `outputs/evaluation_results`
-folder (`random_forest_different_plm_Mean Average Precision.png, random_forest_different_plm_ROC-AUC.png, random_forest_different_plm_MCC-F1 summary.png`):
-
-<p align="middle">
-  <img src="outputs/evaluation_results/random_forest_different_plm_Mean Average Precision.png" width="350" />
-  <img src="outputs/evaluation_results/random_forest_different_plm_ROC-AUC.png" width="350" /> 
-  <img src="outputs/evaluation_results/random_forest_different_plm_MCC-F1 summary.png" width="350" />
-</p>
-
-The following plots will be generated in the `outputs/evaluation_results`
-folder (`all_results_Average Precision_per_type.png, all_results_ROC AUC_per_type.png, all_results_MCC-F1 summary_per_type.png`):
-
-<p align="middle">
-  <img src="outputs/evaluation_results/all_results_Average Precision_per_type.png" width="850" />
-  <img src="outputs/evaluation_results/all_results_ROC AUC_per_type.png" width="850" /> 
-  <img src="outputs/evaluation_results/all_results_MCC-F1 summary_per_type.png" width="850" />
-</p>
-
-- Similarly, to visualize performance separately per each kingdom, run
-
-```bash
-enzyme_explorer_main visualize --plot-barplots-per-category --models  \
-            CLEAN__with_minor_reactions HMM__with_minor_reactions Foldseek__with_minor_reactions Blastp__with_minor_reactions PlmDomainsRandomForest__tps_esm-1v-subseq_with_minor_reactions_global_tuning_domains_subset\
-        --model-names "CLEAN*" HMM Foldseek Blastp Ours \
-        --category-name Taxon --id-2-category-path data/id_2_kingdom_dataset.pkl --eval-output-filename per_kingdom \
-        --categories-order Bacteria Fungi Plants Animals Protists Viruses
-```
-
-The following plots will be generated in the `outputs/evaluation_results`
-folder (`per_kingdom_Average Precision_per_kingdom.png, per_kingdom_ROC AUC_per_kingdom.png, per_kingdom_MCC-F1 summary_per_kingdom.png`):
-<p align="middle">
-  <img src="outputs/evaluation_results/per_kingdom_Average Precision_per_kingdom.png" width="850" />
-  <img src="outputs/evaluation_results/per_kingdom_ROC AUC_per_kingdom.png" width="850" /> 
-  <img src="outputs/evaluation_results/per_kingdom_MCC-F1 summary_per_kingdom.png" width="850" />
-</p>
-
-Analogously, to visualize evaluation results as barplots separately per entries with and without Pfam/SUPFAM/InterPro
-protein signatures, run
-
-```bash
-enzyme_explorer_main visualize --eval-output-filename all_results --plot-barplots-per-category --models  \
-            CLEAN__with_minor_reactions HMM__with_minor_reactions Foldseek__with_minor_reactions Blastp__with_minor_reactions PlmDomainsRandomForest__tps_esm-1v-subseq_with_minor_reactions_global_tuning_domains_subset\
-        --model-names "CLEAN*" HMM Foldseek Blastp Ours \
-        --category-name "Protein signature" --id-2-category-path data/id_2_domains_presence.pkl --eval-output-filename per_interpro_signatures \
-        --categories-order With Without
-
-```
-
-The following plots will be generated in the `outputs/evaluation_results`
-folder (
-<p align="middle">
-  <img src="outputs/evaluation_results/per_interpro_signatures_Average Precision_per_protein signature.png" width="850" />
-  <img src="outputs/evaluation_results/per_interpro_signatures_ROC AUC_per_protein signature.png" width="850" /> 
-  <img src="outputs/evaluation_results/per_interpro_signatures_MCC-F1 summary_per_protein signature.png" width="850" />
-</p>
-
-##### Visualization of TPS detection performance
-
-```bash
-enzyme_explorer_main visualize --eval-output-filename tps_detection --plot-tps-detection --models  \
-            CLEAN__with_minor_reactions Foldseek__with_minor_reactions Blastp__with_minor_reactions HMM__with_minor_reactions PfamSUPFAM__supfam PfamSUPFAM__pfam PlmDomainsRandomForest__tps_esm-1v-subseq_with_minor_reactions_global_tuning_domains_subset\
-        --model-names "CLEAN*" Foldseek Blastp HMM SUPFAM Pfam Ours
-```
-
-```bash
-enzyme_explorer_main visualize --plot-barplots-per-category --models  \
-            CLEAN__with_minor_reactions Foldseek__with_minor_reactions Blastp__with_minor_reactions HMM__with_minor_reactions PfamSUPFAM__supfam PfamSUPFAM__pfam PlmDomainsRandomForest__tps_esm-1v-subseq_with_minor_reactions_global_tuning_domains_subset\
-        --model-names "CLEAN*" Foldseek Blastp HMM SUPFAM Pfam Ours --category-name Taxon --id-2-category-path data/id_2_kingdom_dataset.pkl --eval-output-filename tps_detection_per_kingdom \
-        --categories-order Bacteria Fungi Plants Animals Protists Viruses
-```
-
-- To visualize performance per different TPS types, run
-
-```bash
-enzyme_explorer_main visualize --eval-output-filename tps_detection --plot-boxplots-per-type --models  \
-            CLEAN__with_minor_reactions Foldseek__with_minor_reactions HMM__with_minor_reactions Blastp__with_minor_reactions PfamSUPFAM__supfam PfamSUPFAM__pfam PlmDomainsRandomForest__tps_esm-1v-subseq_with_minor_reactions_global_tuning_domains_subset\
-        --model-names "CLEAN*" Foldseek Blastp HMM SUPFAM Pfam Ours         
-```
-
-This will generate the following plots `outputs/evaluation_results/tps_detection_*`:
-
-![](outputs/evaluation_results/tps_detection_PR_TPS.png)
-
-<p align="middle">
-  <img src="outputs/evaluation_results/tps_detection_Average Precision_TPS.png" width="350" />
-  <img src="outputs/evaluation_results/tps_detection_ROC-AUC_TPS.png" width="350" /> 
-  <img src="outputs/evaluation_results/tps_detection_MCC-F1 summary_TPS.png" width="350" />
-</p>
-
-This is a global mean across all TPSs. So basically, it is mainly the performance on major classes.
-To see the performance for different TPS types, run commands like the following:
-
-```bash
-enzyme_explorer_main visualize --eval-output-filename all_results --plot-tps-detection --models  \
-            CLEAN__with_minor_reactions HMM__with_minor_reactions Foldseek__with_minor_reactions Blastp__with_minor_reactions PlmDomainsRandomForest__tps_esm-1v-subseq_with_minor_reactions_global_tuning_domains_subset\
-        --model-names "CLEAN*" HMM Foldseek Blastp Ours \
-        --subset-name "di_detection" --type-detected di
-        
-```
-
-![](outputs/evaluation_results/di_detection_PR_diTPS.png)
-
-<p align="middle">
-  <img src="outputs/evaluation_results/di_detection_Average Precision_diTPS.png" width="350" />
-  <img src="outputs/evaluation_results/di_detection_ROC-AUC_diTPS.png" width="350" /> 
-  <img src="outputs/evaluation_results/di_detection_MCC-F1 summary_diTPS.png" width="350" />
-</p>
-
-```bash
-enzyme_explorer_main visualize --eval-output-filename all_results --plot-tps-detection --models  \
-            CLEAN__with_minor_reactions HMM__with_minor_reactions Foldseek__with_minor_reactions Blastp__with_minor_reactions PlmDomainsRandomForest__tps_esm-1v-subseq_with_minor_reactions_global_tuning_domains_subset\
-        --model-names "CLEAN*" HMM Foldseek Blastp Ours \
-        --subset-name "sester_detection" --type-detected sester
-        
-```
-
-![](outputs/evaluation_results/sester_detection_PR_sesterTPS.png)
-
-<p align="middle">
-  <img src="outputs/evaluation_results/sester_detection_Average Precision_sesterTPS.png" width="350" />
-  <img src="outputs/evaluation_results/sester_detection_ROC-AUC_sesterTPS.png" width="350" /> 
-  <img src="outputs/evaluation_results/sester_detection_MCC-F1 summary_sesterTPS.png" width="350" />
-</p>
+- `calibration/fit_summary.csv` — deployable calibrator per (classifier, class) with grade (`fit`, `fit_borderline`, `fit_caveat`, `fit_fold_drift`, `skipped_low_n_pos`).
+- `plots/calibration/` — reliability diagrams, per-fold parameter drift, hard-error inspection panels.
+- After a successful run the fit summary is auto-published to `data/calibration_fit_summary.csv` (the file the prediction pipeline reads by default). Use `--sanity` to run without publishing.
 
 -----------------------------------------
 
-### Screening large databases
+## Discovery pipelines
 
-Before screening large databases, you need to gather the trained models. To do so, run
+### Curated candidate showcases
 
-```bash
-cd EnzymeExplorer
-conda activate enzyme_explorer
-python -m enzymeexplorer.src.screening.gather_classifier_checkpoints --output-path data/classifier_checkpoints.pkl
-```
-Depending on the way you trained the models for individual folds, you might need to set `--use-all-folds` flag.
+Two hand-picked candidate sets act as end-to-end sanity checks of the release model.
 
-Next, to estimate the required number of workers for the screening, run
+**Pfam+SUPFAM-selected candidates** (nine sequences — the highest-phylogenetic-distance hits from a Pfam PF01397 + PF03936 / SUPFAM sf48239 + sf48576 screen of ~5.1 B sequences across BFD, UniParc, MGnify, 1KP, Phytozome, and NCBI TSA):
 
 ```bash
-cd EnzymeExplorer
-conda activate enzyme_explorer
-python -m enzymeexplorer.src.screening.estimate_number_of_workers --fasta-path data/uniprot_trembl.fasta --delta 40000 --n-gpus 8
+bash scripts/run_pfam_supfam_candidates.sh
+# → outputs/candidates/pfam_supfam_candidates/predictions_plm_domains.csv
 ```
 
-Note that `delta` stands for the number of sequences to be processed by a single GPU on a worker.
-
-To screen large databases, then run
+**Dark-proteome-selected candidates** (eleven sequences — sampled by hand from clades of the dark-proteome phylogenetic tree; see the next subsection for how they were produced):
 
 ```bash
-sbatch --array=0-<number_of_workers> scripts/tps_screening.sh "data/uniprot_trembl.fasta" "trembl_screening_output" 0.4
+bash scripts/run_dark_candidates.sh
+# → outputs/candidates/dark_candidates/predictions_plm_domains.csv
 ```
 
-where `<number_of_workers>` is the number of workers estimated in the previous step. Please note, that you might have no
-slurm on your cluster,
-and you would need to set up the cluster environment yourself.
+### Screening the dark proteome
 
-This will store individual hits as separate files. To merge them into a single CSV file, run
+The dark proteome (UniProt entries without any InterPro annotation) was screened *outside* this repo — the resulting 307,077-row scored CSV is shipped via Drive as `data/dark_proteome_screening/dark_proteome_screening.csv` and is `.gitignore`'d. What the repo contains is the downstream pipeline:
+
+1. **Filter** at `TPS_p > 0.95` → 1,056 dark putatives (`data/dark_proteome_screening/dark_putatives.csv`, kept in-tree).
+2. **Phylogeny** of dark putatives + MARTS-DB TPSs (MAFFT `--auto` + IQ-TREE `-fast LG+G4`) — see `scripts/dark_proteome_screening/build_tree.sh` and its outputs under `data/dark_proteome_screening/candidate_selection/phylo_tree/`.
+3. **Candidate selection** — clade-based sampling from the tree (results in `data/dark_candidates/{candidates.fasta,afdb/}`).
+4. **Structure-aware re-evaluation** on the final candidates — `scripts/run_dark_candidates.sh`.
+
+iTOL annotations for the selection tree (kingdom colorstrip, source colorstrip, hard-candidate triangles, patristic-distance bars) are regenerated by:
 
 ```bash
-cd EnzymeExplorer
-conda activate enzyme_explorer
-python -m enzymeexplorer.src.screening.gather_detections_to_csv --screening-results-root "trembl_screening/detections_plm" --output-path "trembl_screening/detections_plm/detections_first_batch.csv" --delete-individual-files
-``` 
-
------------------------------------------
-
-## EnzymeExplorer deployment as a backend service
-
-Prepare models for deployment:
-```bash
-cd EnzymeExplorer
-conda activate terpene_miner
-terpene_miner_main --select-single-experiment run --model PlmDomainsRandomForest --model-version tps_esm-1v-subseq_foldseek_with_minor_reactions_global_tuning 
-python -m enzymeexplorer.src.models.plm_domain_faster.get_domains_feature_importances \
-    --model PlmDomainsRandomForest --model-version tps_esm-1v-subseq_foldseek_with_minor_reactions_global_tuning \
-    --top-most-important-domain-features-per-model 50 --use-all-folds \
-    --domain-features-path data/clustering__domain_dist_based_features_foldseek.pkl
-python -m enzymeexplorer.src.models.plm_domain_faster.get_plm_feature_importances \
-    --model PlmDomainsRandomForest --model-version tps_esm-1v-subseq_foldseek_with_minor_reactions_global_tuning \
-    --top-most-important-plm-features-per-model 400 --use-all-folds \
-    --domain-features-path data/clustering__domain_dist_based_features_foldseek.pkl
-terpene_miner_main --select-single-experiment run --model PlmDomainsRandomForest --model-version tps_esm-1v-subseq_foldseek_with_minor_reactions_global_tuning_domains_subset_plm_subset
-python -m enzymeexplorer.src.screening.gather_classifier_checkpoints --output-path data/classifier_domain_and_plm_checkpoints.pkl --use-all-folds \
-    --model PlmDomainsRandomForest --model-version tps_esm-1v-subseq_foldseek_with_minor_reactions_global_tuning_domains_subset_plm_subset \
-    --domain-features-path data/clustering__domain_dist_based_features_foldseek.pkl
-python -m enzymeexplorer.src.structure_processing.train_domain_type_classifiers
+python -m scripts.dark_proteome_screening.compute_distances
+python -m scripts.dark_proteome_screening.build_itol_annotations
 ```
-Start backend:
-```bash
-# specify port
-# check if _temp directory exists, and delete if yes
-rm -rf _temp
 
-export PORT=<..>
-nohup uvicorn app_faster_with_foldseek:app --host 0.0.0.0 --port $PORT &> webserver_app.log &
-```
-For significantly slower but slightly more accurate predictions:
+### Screening the GTDB archaeal proteomes
+
+The archaeal proteome screening was also done outside the repo; shipped products are:
+
+- `data/archaeal_screening/gtdb_genome_TPS_hits.csv` — per-genome TPS-hit counts across three calibrated-probability tiers (`C95_count`, `C99_count`, `C99.95_count`).
+- `data/archaeal_screening/archaeal_putatives.csv` — per-protein hit list.
+- The GTDB ar53 phylogeny (raw `ar53.tree` + iTOL-loadable `ar53_clean.tree`) is auto-downloaded by `scripts/archaeal_screening/download_gtdb_ar53_tree.sh` (invoked from `setup_dev.sh`).
+
+iTOL annotations (phylum colorstrip + three simplebars at `p ≥ {0.95, 0.99, 0.9995}`):
+
 ```bash
-cd EnzymeExplorer
-conda activate terpene_miner
-terpene_miner_main --select-single-experiment run --model PlmDomainsRandomForest --model-version tps_esm-1v-subseq_with_minor_reactions_global_tuning 
-python -m enzymeexplorer.src.models.plm_domain_faster.get_domains_feature_importances \
-    --model PlmDomainsRandomForest --model-version tps_esm-1v-subseq_with_minor_reactions_global_tuning \
-    --top-most-important-domain-features-per-model 50 --use-all-folds 
-python -m enzymeexplorer.src.models.plm_domain_faster.get_plm_feature_importances \
-    --model PlmDomainsRandomForest --model-version tps_esm-1v-subseq_with_minor_reactions_global_tuning \
-    --top-most-important-plm-features-per-model 400 --use-all-folds 
-terpene_miner_main --select-single-experiment run --model PlmDomainsRandomForest --model-version tps_esm-1v-subseq_with_minor_reactions_global_tuning_domains_subset_plm_subset
-python -m enzymeexplorer.src.screening.gather_classifier_checkpoints --output-path data/classifier_domain_and_plm_checkpoints.pkl --use-all-folds \
-    --model PlmDomainsRandomForest --model-version tps_esm-1v-subseq_with_minor_reactions_global_tuning_domains_subset_plm_subset
-python -m enzymeexplorer.src.structure_processing.train_domain_type_classifiers
-```
-and then start the backend:
-```bash
-# specify port
-export PORT=<..>
-nohup uvicorn app:app --host 0.0.0.0 --port $PORT &> webserver_app.log &
+python -m scripts.archaeal_screening.build_iTOL_annotations
+# → outputs/archaeal_screening/itol_archaea_*.txt
 ```
 
 -----------------------------------------
 
-# Reference
+## Rebuttal-only analyses
+
+Everything under `scripts/rebuttal_only/` targets reviewer questions on the manuscript — nothing here is part of the paper's main-figure pipeline.
+
+**Baseline evaluation on the dark candidates** (BLAST, Foldseek, HMM, Pfam, SUPFAM, CLEAN — per-fold predictions on the same 11 sequences the paper uses to sanity-check the release model):
+
+```bash
+bash scripts/rebuttal_only/dark_candidates_baselines/run_all.sh
+# → outputs/rebuttal/dark_candidates_baselines/<Method>/{fold_0..4,mean}.csv
+```
+
+**Alpha-domain analysis of the three archaeal candidates** (A0A0E3NXY0, A0A5E4I9B1, A0A537EJD0 — cross-similarity + subtype PCA + novelty ridgeline panels):
+
+```bash
+python -m scripts.rebuttal_only.analyze_hard_domain A0A0E3NXY0 A0A5E4I9B1 A0A537EJD0
+python -m scripts.rebuttal_only.analyze_three_cross_similarity
+python -m scripts.rebuttal_only.plot_novelty_panels
+python -m scripts.rebuttal_only.plot_A0A5E4I9B1_pca
+python -m scripts.rebuttal_only.plot_three_pca
+# → outputs/rebuttal/archaeal_alpha_domains/
+```
+
+**Pfam/SUPFAM screening of the dark proteome** — full reviewer-facing pipeline (HMM scan against the 1,056 dark putatives + full 307,077-sequence proteome, per-HMM-group analysis, AF-DB structure download + domain detection, δ-domain TM-score distribution, SUPFAM-only Foldseek clustering + t-SNE):
+
+```bash
+bash scripts/rebuttal_only/pfam_supfam_screening/run_all.sh
+# → outputs/rebuttal/pfam_supfam_screening/
+```
+
+The thresholds live in one place — `scripts/rebuttal_only/pfam_supfam_screening/thresholds.py`. Current values: Pfam `loose = 10`, `optimized = 15` (from the corrected cross-validation sweep); SUPFAM `loose = 40`, `optimized = 50`. The scan scripts support `--skip-scan` so you can iterate on the summarisation without re-running the ~20-minute hmmscan against 307k sequences.
+
+Supplementary CSVs — Pfam hits per HMM group with mean-pLDDT and (for SQHop_cyclase) domain composition — are produced by:
+
+```bash
+python -m scripts.rebuttal_only.pfam_supfam_screening.rebuttal_pfam_group_reports
+```
+
+-----------------------------------------
+
+## Deploying as a backend service
+
+Start the FastAPI service backed by the prod bundles:
+
+```bash
+conda activate enzyme_explorer_prod
+export PORT=8000
+nohup uvicorn app_faster_with_foldseek:app --host 0.0.0.0 --port "$PORT" &> webserver_app.log &
+```
+
+For a slower but slightly more accurate variant (no foldseek-based domain preselection):
+
+```bash
+nohup uvicorn app:app --host 0.0.0.0 --port "$PORT" &> webserver_app.log &
+```
+
+Both apps read the calibration table at `data/calibration_fit_summary.csv` and load the prediction bundles from `data/enzyme_explorer_{,plm_}checkpoints.pkl` — everything the prod install already put in place.
+
+-----------------------------------------
+
+## Reference
 
 > Samusevich, R., Hebra, T. et al. Highly accurate discovery of terpene synthases powered by machine learning reveals
-> functional terpene cyclization in Archaea. bioRxiv (
-> 2024). [https://doi.org/10.1101/2024.01.29.577750](https://doi.org/10.1101/2024.01.29.577750)
+> functional terpene cyclization in Archaea. bioRxiv (2024). [https://doi.org/10.1101/2024.01.29.577750](https://doi.org/10.1101/2024.01.29.577750)
 
 ```
 @article{samusevich2024tps,
@@ -860,5 +456,5 @@ nohup uvicorn app:app --host 0.0.0.0 --port $PORT &> webserver_app.log &
   pages={2024--01},
   year={2024},
   publisher={Cold Spring Harbor Laboratory}
+}
 ```
-

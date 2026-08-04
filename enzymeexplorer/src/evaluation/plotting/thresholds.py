@@ -1,6 +1,6 @@
 """Threshold-sweep diagnostic plots.
 
-For HBI baselines whose optimal e-value (or bitscore) differs by class, plot
+For homology baselines whose optimal e-value (or bitscore) differs by class, plot
 the per-class metric across the candidate versions to visualise where each
 class peaks. The argmax per class is highlighted; the per-class best version
 is exactly the one ``selection.pick_best_versions_per_class`` would pick.

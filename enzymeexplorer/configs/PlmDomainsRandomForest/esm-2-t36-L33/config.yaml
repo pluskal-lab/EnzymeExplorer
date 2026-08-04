@@ -1,5 +1,0 @@
-include: ../main_config.yaml
-representations_path: "data/gathered_embs_esm-2-t36-L33_embs_avg.h5"
-per_class_optimization: false
-optimize_hyperparams: true
-domain_dist_path: "data/enzyme_explorer_structural_features/domain_dist_based_features.pkl"

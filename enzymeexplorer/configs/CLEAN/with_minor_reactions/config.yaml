@@ -17,12 +17,17 @@ random_state: 0
 hyperparam_dimensions: none
 seq_col_name: "Aminoacid_sequence"
 n_calls_hyperparams_opt: 0
-clean_installation_root: "/home/akmese/CLEAN"
-ec_2_substrates_json_path: "/home/akmese/EnzymeExplorer/data/ec_to_substrate_mapping_2026_03_14.json"
-is_halo: false
+# CLEAN is installed by scripts/setup_dev.sh into <repo>/CLEAN/ so
+# ``python build.py install`` runs against a stable in-tree location
+# (see https://github.com/tttianhao/CLEAN#1-install). The path is
+# repo-relative — every training / eval entry point runs from the repo
+# root, so a relative "CLEAN" resolves correctly without home-dir
+# assumptions.
+clean_installation_root: "CLEAN"
+ec_2_substrates_json_path: "data/ec_to_substrate_mapping_2026_03_14.json"
 neg_val: "Unknown"
-negatives_sample_path: "/home/akmese/EnzymeExplorer/data/sampled_id_2_seq.pkl"
-tps_cleaned_csv_path: "/home/akmese/EnzymeExplorer/data/EnzymeExplorer_Dataset.csv"
+negatives_sample_path: "data/sampled_id_2_seq.pkl"
+tps_cleaned_csv_path: "data/EnzymeExplorer_Dataset.csv"
 per_class_optimization: false
 reuse_existing_partial_results: false
 load_per_class_params_from: ""

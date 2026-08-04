@@ -34,7 +34,10 @@ from enzymeexplorer.src.evaluation.plotting import theme
 # width) and the figure stays narrow. Per-bar horizontal space is sized
 # to fit a horizontal multi-line label (e.g. "EnzymeExplorer\nDomains")
 # without rotation.
-_DEFAULT_BAR_WIDTH = 0.62
+# NCB target: bars sit close together with a small gap (10-15% of the
+# bar width) — enough to keep them visually distinct without wasting
+# horizontal ink at 1/4-page-width panels.
+_DEFAULT_BAR_WIDTH = 0.85
 _BAR_X_STEP = 0.95
 _PER_BAR_WIDTH_INCHES = 0.7
 _FIGSIZE_HEIGHT = 2.7
@@ -93,17 +96,23 @@ def _nice_step(span: float) -> float:
 def compute_ci_zoom_ylim(
     ci_low_pct: list[float],
     ci_high_pct: list[float],
+    *,
+    padding_frac: float = 0.0,
+    snap_step: float | None = None,
 ) -> tuple[float, float]:
     """Compute a tight (ymin, ymax) bracketing every CI in the panel.
 
     Strategy:
       1. Compute the *raw* CI envelope ``[min(ci_low), max(ci_high)]``,
          clipped to ``[0, 100]``.
-      2. Pick a "nice" snap step proportional to the envelope span so
+      2. Add ``padding_frac × span`` on each side (default 0 — no extra
+         margin). E.g. ``padding_frac=0.25`` widens the window by 25%
+         of the CI envelope span above AND below.
+      3. Pick a "nice" snap step proportional to the padded span so
          tight envelopes (e.g. 99.4–100) zoom to a 0.1- or 0.2-unit
-         grid and wide envelopes (e.g. 30–95) snap to the 5-unit grid
-         used previously.
-      3. Floor/ceil to that step. The resulting axis is just wide
+         grid and wide envelopes (e.g. 30–95) snap to the 5-unit grid.
+         ``snap_step`` overrides the auto-picked step outright.
+      4. Floor/ceil to that step. The resulting axis is just wide
          enough to display every CI with naked-eye-comparable spacing.
 
     Falls back to ``(0, 100)`` when no CIs are finite.
@@ -115,7 +124,12 @@ def compute_ci_zoom_ylim(
     lo = max(0.0, min(los))
     hi = min(100.0, max(his))
     span = max(hi - lo, 0.05)
-    step = _nice_step(span)
+    if padding_frac > 0:
+        pad = padding_frac * span
+        lo = max(0.0, lo - pad)
+        hi = min(100.0, hi + pad)
+        span = max(hi - lo, 0.05)
+    step = float(snap_step) if snap_step else _nice_step(span)
     floor = max(0.0, math.floor(lo / step) * step)
     ceil = min(100.0, math.ceil(hi / step) * step)
     if ceil <= floor:
@@ -135,17 +149,24 @@ def _resolve_xtick_label(clf: str, overrides: Mapping[str, str] | None) -> str:
     return theme.display_name(clf)
 
 
-def _default_metric_label(metric: str, classes: list[str]) -> str:
-    """Auto-pick AP vs mAP label based on whether every class is an aggregate.
+_METRIC_DISPLAY: dict[str, tuple[str, str]] = {
+    # metric key → (single-class label, macro-mean label)
+    "ap":      ("AP",      "mAP"),
+    "roc_auc": ("ROC AUC", "Macro ROC AUC"),
+    "mcc_f1":  ("MCC-F1",  "Macro MCC-F1"),
+}
 
-    Aggregates are named ``*_mAP`` (e.g. ``Substrate_mAP``,
-    ``TPS_IDS_mAP``, ``Overall_mAP``). When every class on the panel
-    is an aggregate, the y-axis is labelled ``mAP``; otherwise plain
-    ``AP``. ``metric`` switches the label between AP / ROC-AUC.
+
+def _default_metric_label(metric: str, classes: list[str]) -> str:
+    """Y-axis label for the metric shown on the panel.
+
+    Class names ending in ``_mAP`` (e.g. ``Substrate_mAP``,
+    ``TPS_IDS_mAP``, ``Overall_mAP``) are macro-averages, so the
+    corresponding "Macro …" label is used when every class on the
+    panel is an aggregate.
     """
-    base = metric.upper() if metric != "ap" else "AP"
-    if metric == "ap" and classes and all(str(c).endswith("_mAP") for c in classes):
-        base = "mAP"
+    single, macro = _METRIC_DISPLAY.get(metric, (metric.upper(), f"Macro {metric.upper()}"))
+    base = macro if classes and all(str(c).endswith("_mAP") for c in classes) else single
     return f"{base} (%)"
 
 
@@ -205,12 +226,18 @@ def bar_classifier(
     value_label_fmt: str | None = None,
     xtick_overrides: Mapping[str, str] | None = None,
     ax: plt.Axes | None = None,
+    bar_width: float | None = None,
+    xtick_rotation: float | None = None,
+    xtick_fontsize: float | None = None,
+    ytick_fontsize: float | None = None,
+    title_fontsize: float | None = None,
 ) -> plt.Figure:
     """One bar per classifier for a single (class, metric).
 
     Bars are matplotlib ``ax.bar`` rectangles drawn at ``summary['point']
     * 100``; error bars are ``ax.errorbar`` segments using
     ``summary['ci_low'..'ci_high']`` directly (no further bootstrap).
+    ``bar_width`` overrides the module-level default when set.
     """
     df = _filter_summary(
         summary, metric=metric, target_class=target_class,
@@ -250,16 +277,17 @@ def bar_classifier(
     bar_colors = [palette[c] for c in ordered]
 
     ax.bar(
-        x_positions, point_pct, width=_DEFAULT_BAR_WIDTH,
+        x_positions, point_pct,
+        width=bar_width if bar_width is not None else _DEFAULT_BAR_WIDTH,
         color=bar_colors, edgecolor="none", linewidth=0,
     )
     ax.errorbar(
         x_positions, point_pct,
         yerr=yerr, fmt="none",
         ecolor="0.15",
-        elinewidth=theme.scale_stroke(0.7),
+        elinewidth=theme.scale_stroke(0.35),
         capsize=theme.scale_stroke(2.0),
-        capthick=theme.scale_stroke(0.7),
+        capthick=theme.scale_stroke(0.35),
     )
     ax.yaxis.grid(
         True, color=theme.grid_color(),
@@ -312,8 +340,25 @@ def bar_classifier(
     # _PER_BAR_WIDTH_INCHES was bumped. Poster mode rotates instead so
     # long single-line names ("EnzymeExplorer") still fit in the
     # smaller 15 cm × 8 cm tile.
-    rot, ha = theme.xtick_rotation(len(display_labels))
-    ax.set_xticklabels(display_labels, rotation=rot, ha=ha)
+    if xtick_rotation is not None:
+        # Right-anchor when tilted CCW (positive rotation) so the right
+        # edge of the label sits at the tick — matplotlib idiom.
+        rot = float(xtick_rotation)
+        if rot == 0:
+            ha = "center"
+        elif rot > 0:
+            ha = "right"
+        else:
+            ha = "left"
+    else:
+        rot, ha = theme.xtick_rotation(len(display_labels))
+    ax.set_xticklabels(
+        display_labels, rotation=rot, ha=ha,
+        rotation_mode="anchor" if rot != 0 else "default",
+        fontsize=xtick_fontsize if xtick_fontsize is not None else None,
+    )
+    if ytick_fontsize is not None:
+        ax.tick_params(axis="y", labelsize=float(ytick_fontsize))
     if ylim is None:
         # Default unzoomed range. ymax=102 leaves a 2-pp gap above the
         # CI clip at 100 so whiskers fit cleanly inside the axis frame.
@@ -323,7 +368,8 @@ def bar_classifier(
         ylabel if ylabel is not None
         else _default_metric_label(metric, list(df["class"].astype(str).unique()))
     )
-    ax.set_title(title, loc="left")
+    ax.set_title(title, loc="left",
+                 fontsize=title_fontsize if title_fontsize is not None else None)
     if ylim is not None:
         ax.set_ylim(*ylim)
     fig.tight_layout()
@@ -451,6 +497,12 @@ def bar_per_class(
     legend_bbox: tuple[float, float] = (1.02, 1.0),
     xtick_overrides: Mapping[str, str] | None = None,
     ax: plt.Axes | None = None,
+    cluster_width: float = 0.8,
+    bar_width_frac: float = 0.92,
+    xtick_rotation: float | None = None,
+    xtick_fontsize: float | None = None,
+    ytick_fontsize: float | None = None,
+    title_fontsize: float | None = None,
 ) -> plt.Figure:
     """Clustered bars: x = ``classes``, hue = ``classifier``.
 
@@ -481,7 +533,6 @@ def bar_per_class(
         fig = ax.figure
 
     n_clf = len(classifier_order)
-    cluster_width = 0.8
     bar_width = cluster_width / n_clf if n_clf > 0 else cluster_width
     x_centers = np.arange(len(classes))
 
@@ -521,7 +572,7 @@ def bar_per_class(
         ax.bar(
             x_centers[valid] + offset,
             points_pct[valid],
-            width=bar_width * 0.92,
+            width=bar_width * bar_width_frac,
             color=palette[clf],
             edgecolor="none",
             linewidth=0,
@@ -533,9 +584,9 @@ def bar_per_class(
             yerr=yerr[:, valid],
             fmt="none",
             ecolor="0.15",
-            elinewidth=theme.scale_stroke(0.6),
+            elinewidth=theme.scale_stroke(0.3),
             capsize=theme.scale_stroke(1.5),
-            capthick=theme.scale_stroke(0.6),
+            capthick=theme.scale_stroke(0.3),
         )
     ax.yaxis.grid(
         True, color=theme.grid_color(),
@@ -544,13 +595,27 @@ def bar_per_class(
     ax.set_axisbelow(True)
 
     ax.set_xticks(x_centers)
-    ax.set_xticklabels(classes, rotation=0, ha="center")
+    rot_pc = float(xtick_rotation) if xtick_rotation is not None else 0.0
+    if rot_pc == 0:
+        ha_pc = "center"
+    elif rot_pc > 0:
+        ha_pc = "right"
+    else:
+        ha_pc = "left"
+    ax.set_xticklabels(
+        classes, rotation=rot_pc, ha=ha_pc,
+        rotation_mode="anchor" if rot_pc != 0 else "default",
+        fontsize=xtick_fontsize if xtick_fontsize is not None else None,
+    )
+    if ytick_fontsize is not None:
+        ax.tick_params(axis="y", labelsize=float(ytick_fontsize))
     ax.set_xlabel("")
     ax.set_ylabel(
         ylabel if ylabel is not None
         else _default_metric_label(metric, list(df["class"].astype(str).unique()))
     )
-    ax.set_title(title, loc="left")
+    ax.set_title(title, loc="left",
+                 fontsize=title_fontsize if title_fontsize is not None else None)
     if ylim is not None:
         # If whiskers (already clipped to ≤100) reach the requested
         # ymax, extend it by ~3% so the cap line sits visibly inside

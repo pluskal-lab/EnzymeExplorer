@@ -147,8 +147,7 @@ def parse_args() -> configargparse.Namespace:
     parser.add_argument("--n-iters", type=int, default=3)
     parser.add_argument(
         "--detect-multiple-domains-in-each-iteration",
-        action="store_true",
-        default=True,
+        action="store_true"
     )
     parser.add_argument(
         "--detections-output-path",
@@ -167,19 +166,14 @@ def parse_args() -> configargparse.Namespace:
         help="A root path for saving the detected domains to",
         type=str,
     )
-    parser.add_argument("--is-bfactor-confidence", action="store_true", default=True)
+    parser.add_argument("--is-bfactor-confidence", action="store_true")
     parser.add_argument(
-        "--do-not-store-intermediate-files", action="store_true", default=True
+        "--do-not-store-intermediate-files", action="store_true"
     )
     parser.add_argument(
         "--secondary-structure-residues-path",
         type=str,
         default="data/secondary_structure_residues.pkl",
-    )
-    parser.add_argument(
-        "--recompute-existing-secondary-structure-residues",
-        action="store_true",
-        default=True,
     )
     parser.add_argument(
         "--prefilter-pdbs-by-foldseek",
@@ -277,15 +271,12 @@ def detect_domains(args) -> dict:
     # parent has loaded any PDB.
     with pool_session(n_jobs=n_jobs, working_dir=str(input_directory)):
         secondary_structure_residues_path = Path(args.secondary_structure_residues_path)
-        if (
-            not secondary_structure_residues_path.exists()
-            or args.recompute_existing_secondary_structure_residues
-        ):
-            save_file_to_all_residues(
-                secondary_structure_residues_path=secondary_structure_residues_path,
-                pdb_files=pdb_files,
-                domain_templates=domain_templates,
-            )
+        # SSR is always recomputed for this run — cached SSR files are never reused.
+        save_file_to_all_residues(
+            secondary_structure_residues_path=secondary_structure_residues_path,
+            pdb_files=pdb_files,
+            domain_templates=domain_templates,
+        )
     
         with open(secondary_structure_residues_path, "rb") as file:
             file_2_all_residues = pickle.load(file)
@@ -526,11 +517,10 @@ def run_domain_detection(
     is_bfactor_confidence=True,
     do_not_store_intermediate_files=True,
     store_domains=True,
-    detect_multiple_domains_in_each_iteration=True,
+    detect_multiple_domains_in_each_iteration=False,
     secondary_structure_residues_path=str(
         get_data_root() / "secondary_structure_residues.pkl"
     ),
-    recompute_existing_secondary_structure_residues=True,
     prefilter_pdbs_by_foldseek=False,
     prefilter_e_value: float = 10.0,
     postfilter_domains_by_foldseek=False,
@@ -569,7 +559,6 @@ def run_domain_detection(
         store_domains=store_domains,
         detect_multiple_domains_in_each_iteration=detect_multiple_domains_in_each_iteration,
         secondary_structure_residues_path=str(secondary_structure_residues_path),
-        recompute_existing_secondary_structure_residues=recompute_existing_secondary_structure_residues,
         prefilter_pdbs_by_foldseek=prefilter_pdbs_by_foldseek,
         prefilter_e_value=prefilter_e_value,
         postfilter_domains_by_foldseek=postfilter_domains_by_foldseek,

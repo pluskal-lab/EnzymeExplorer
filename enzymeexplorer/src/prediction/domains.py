@@ -65,19 +65,27 @@ def detect_and_align_domains(
     workdir: str | Path | None = None,
     n_jobs: int = 10,
     keep_intermediate: bool = False,
-    prefilter_pdbs_by_foldseek: bool = True,
+    prefilter_pdbs_by_foldseek: bool = False,
     prefilter_e_value: float = 10.0,
+    postfilter_domains_by_foldseek: bool = False,
+    postfilter_e_value: float = 5.0,
+    detect_multiple_domains_in_each_iteration: bool = False,
     is_bfactor_confidence: bool = True,
 ) -> DomainAlignmentResult:
     """Detect domains and align them to known reference domains.
 
-    Defaults are tuned for prediction on small batches:
-    ``prefilter_pdbs_by_foldseek=True`` cuts the (query × template) USalign
-    workload by ~5-10× by skipping pairs with no plausible foldseek
-    alignment. The training pipeline keeps prefiltering off (its YAML config)
-    because at training time we want exhaustive sensitivity, but at predict
-    time the speedup is large and the recall loss negligible (a query with
-    *no* foldseek hit to a TPS-family template is essentially never a TPS).
+    Defaults follow the "maximum sensitivity, no heuristic filters" policy:
+    prefilter and postfilter are OFF, and only one domain per iteration is
+    detected. Users can opt into any of these speedups explicitly:
+
+    * ``prefilter_pdbs_by_foldseek=True`` skips (query × template) USalign
+      pairs with no plausible foldseek alignment (~5-10× speedup, small
+      recall loss).
+    * ``postfilter_domains_by_foldseek=True`` drops detected domains whose
+      foldseek e-value to any reference exceeds ``postfilter_e_value``.
+    * ``detect_multiple_domains_in_each_iteration=True`` extracts every
+      template match per iteration (higher recall on multi-domain proteins,
+      slower).
 
     A scratch directory is created under ``workdir`` (defaulting to a temp
     directory) and removed on exit unless ``keep_intermediate`` is True.
@@ -110,9 +118,12 @@ def detect_and_align_domains(
         detected_domain_structures_root = workdir / "detected_domain_structures"
 
         logger.info(
-            "Running domain detection on %d proteins (prefilter_by_foldseek=%s)",
+            "Running domain detection on %d proteins "
+            "(prefilter=%s, postfilter=%s, multi_domain_per_iter=%s)",
             len(protein_ids),
             prefilter_pdbs_by_foldseek,
+            postfilter_domains_by_foldseek,
+            detect_multiple_domains_in_each_iteration,
         )
         detected_domains = run_domain_detection(
             input_directory_with_structures=structures_dir,
@@ -125,6 +136,11 @@ def detect_and_align_domains(
             secondary_structure_residues_path=str(workdir / "secondary_structure_residues.pkl"),
             prefilter_pdbs_by_foldseek=prefilter_pdbs_by_foldseek,
             prefilter_e_value=prefilter_e_value,
+            postfilter_domains_by_foldseek=postfilter_domains_by_foldseek,
+            postfilter_e_value=postfilter_e_value,
+            detect_multiple_domains_in_each_iteration=(
+                detect_multiple_domains_in_each_iteration
+            ),
             is_bfactor_confidence=is_bfactor_confidence,
         )
 
@@ -191,7 +207,3 @@ def detect_and_align_domains(
             rmtree(workdir, ignore_errors=True)
 
 
-def load_detected_domains(path: str | Path) -> dict:
-    """Helper for callers that only have the ``detected_domains.pkl``."""
-    with Path(path).open("rb") as f:
-        return pickle.load(f)

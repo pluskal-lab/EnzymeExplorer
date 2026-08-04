@@ -64,6 +64,14 @@ output_root="$1"
 n_batches="$2"
 classifier="$3"
 results_dir="${4:-}"
+# 5th positional: cleanup_on_complete (0|1). Defaults to 0 so the cache
+# directories (structures/, embeddings_cache/, missing_csvs/) are preserved
+# unless the caller explicitly opts in. This protects externally-provided
+# --structures-dir contents (e.g. user-folded ESMFold PDBs sitting under
+# <output_root>/structures/) from being wiped when gather sees all_complete=1.
+# When EE downloads its own AF-DB PDBs into <output_root>/structures/, the
+# manager can pass "1" to enable the original auto-cleanup behaviour.
+cleanup_on_complete="${5:-0}"
 
 echo "[gather] aggregating shards under $output_root (n_batches=$n_batches, classifier=$classifier)"
 
@@ -141,14 +149,24 @@ fi
 
 # ---- cache cleanup (only when fully complete) -----------------------------
 
-if (( all_complete )); then
-    echo "[gather] run is fully complete — clearing retry caches"
+# ---- cache cleanup (only when fully complete AND cleanup_on_complete=1) ---
+# The cleanup_on_complete flag (5th positional, default 0) gates the destructive
+# rm -rf so externally-provided --structures-dir contents are never wiped
+# accidentally. The manager passes "1" only when it knows the cache is its own
+# (i.e. EE-downloaded PDBs under <output_root>/structures/).
+
+if (( all_complete && cleanup_on_complete )); then
+    echo "[gather] run is fully complete AND cleanup_on_complete=1 — clearing retry caches"
     for cache_subdir in structures embeddings_cache missing_csvs; do
         if [[ -d "$output_root/$cache_subdir" ]]; then
             echo "[gather]   removing $output_root/$cache_subdir/"
             rm -rf "$output_root/$cache_subdir"
         fi
     done
+    echo "[gather] final outputs at $output_root/{plm,plm_domains,plm_domains_fallback,no_structure}.csv"
+elif (( all_complete )); then
+    echo "[gather] run is fully complete but cleanup_on_complete=0 — caches PRESERVED"
+    echo "[gather]   pass cleanup_on_complete=1 (or --cleanup-on-complete to the manager) to enable auto-cleanup"
     echo "[gather] final outputs at $output_root/{plm,plm_domains,plm_domains_fallback,no_structure}.csv"
 else
     echo "[gather] run is INCOMPLETE — keeping shards + caches for retry"

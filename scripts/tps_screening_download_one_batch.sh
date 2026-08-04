@@ -19,7 +19,7 @@
 #SBATCH --account=project_465000660
 #SBATCH --cpus-per-task 32
 #SBATCH --mem 16GB
-#SBATCH --time 12:00:00
+#SBATCH --time 8:00:00
 
 # See manager note: cluster bashrc files may reference unbound vars;
 # keep -u off while sourcing, re-enable for our own code.

@@ -41,9 +41,9 @@ DEFAULT_SUBDIRS = (
 
 # Per-classifier preferred sort key. Skipped silently if absent.
 DEFAULT_SORT_KEYS = {
-    "plm": "isTPS_score",
-    "plm_domains": "isTPS_score",
-    "plm_domains_fallback": "isTPS_score",
+    "plm": "TPS_p",
+    "plm_domains": "TPS_p",
+    "plm_domains_fallback": "TPS_p",
     "no_structure": None,
 }
 

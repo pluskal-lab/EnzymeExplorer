@@ -196,9 +196,13 @@ def transitive_reduction_pairs(
     ``summary_delta``.
     """
     out: dict[tuple[str, str, str], set[tuple[str, str]]] = {}
+    # The on-disk long summary uses ``ci_method``; some callers rename to
+    # ``method`` before invoking. Accept either column so we don't depend
+    # on a rename step.
+    method_col = "ci_method" if "ci_method" in summary_delta.columns else "method"
     sub = summary_delta[
         (summary_delta["ap_type"] == ap_type)
-        & (summary_delta["method"] == ci_method)
+        & (summary_delta[method_col] == ci_method)
     ]
     for (cls, metric, ap), grp in sub.groupby(["class", "metric", "ap_type"]):
         sig_edges: list[tuple[str, str]] = []

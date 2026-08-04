@@ -221,10 +221,6 @@ def preprocess_negatives(
         logger.info(
             f"Filtered out sequences with Pfam/Supfam hits. Remaining non-TPS SwissProt size: {len(nontps_swissprot)}"
         )
-        
-        add_tps_substrate_accepting_negatives_based_on_rhea(
-            swissprot_df, nontps_swissprot, hard_neg_rhea_master_ids
-        )
 
         nontps_swissprot = redundancy_reduce(mmseqs=mmseqs, nontps_swissprot=nontps_swissprot)
 
@@ -233,14 +229,6 @@ def preprocess_negatives(
         )
 
     return nontps_swissprot
-
-def add_tps_substrate_accepting_negatives_based_on_rhea(
-    swissprot_df: pd.DataFrame, nontps_swissprot: pd.DataFrame, hard_neg_rhea_master_ids: set[int]
-):
-    swissprot_tmp = swissprot_df[swissprot_df["Rhea ID"].notna()].copy()
-    swissprot_tmp["Rhea ID"] = swissprot_tmp["Rhea ID"].apply(lambda x: set([int(r.strip()[5:]) for r in x.split(" ")]))
-    hard_neg_ids = set(swissprot_tmp[swissprot_tmp["Rhea ID"].apply(lambda rhea_ids: len(rhea_ids.intersection(hard_neg_rhea_master_ids)) > 0)]["Entry"].unique())
-    return pd.concat([nontps_swissprot, swissprot_df[swissprot_df["Entry"].isin(hard_neg_ids)]])
 
 
 def get_substrate_based_hard_negatives(

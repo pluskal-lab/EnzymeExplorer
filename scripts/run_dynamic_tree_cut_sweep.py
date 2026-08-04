@@ -73,7 +73,7 @@ def parse_args() -> argparse.Namespace:
     )
     p.add_argument(
         "--hac-dir",
-        default="data/domain_clustering/martsDB_hac_sweep",
+        default="outputs/domain_clustering",
     )
     p.add_argument(
         "--detected-domains-pkl",
@@ -340,6 +340,16 @@ def main() -> None:
             label_map = clade_detection.compute_clade_labels(
                 clades, member_to_canonical, parent_clusters=parent_clades,
             )
+            # Convert display labels to Greek letters (α, β, γ, δ, ε, ζ).
+            # ``clade_id`` keys stay ASCII; only the displayed value flips.
+            _GREEK = {"alpha": "α", "beta": "β", "gamma": "γ",
+                      "delta": "δ", "epsilon": "ε", "zeta": "ζ"}
+            def _to_greek(s: str) -> str:
+                for k, g in _GREEK.items():
+                    if isinstance(s, str) and s.startswith(k):
+                        return g + s[len(k):]
+                return s
+            label_map = {cid: _to_greek(v) for cid, v in label_map.items()}
             table = _per_clade_table(
                 clades, pairwise_tm, distance_matrix, member_ids,
                 metadata_df, boot_support, args.margin_threshold,

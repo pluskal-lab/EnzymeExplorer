@@ -1,2 +1,0 @@
-Extracting embeddings from model esm-1v-finetuned-subseq with batch size 8 using 1 gpus (from PLM layer 33). Input CSV: data/tpc_detection/TPC_Detection_Dataset.csv, id-column: ID seq-column: Aminoacid_sequence, output-root-path: outputs/embeddings_esm-1v-finetuned-subseq
-gpu: 0, start index: 0, end index: 11317 (count: 11317)

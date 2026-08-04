@@ -1,52 +1,118 @@
-# ML-models ablation for the PLM+Domains stack:
-# PlmDomainsLogisticRegression vs PlmDomainsMLP vs PlmDomainsRandomForest.
-
+include: ../_defaults_visualize_ablation.yaml
 classifiers:
   PLM_Domains_LR:
     model: PlmDomainsLogisticRegression
-    classes: [TPS, IDS, FPP, GPP, GGPP, EDSQ, CPP, GFPP, 2xFPP, 2xGGPP]
-    selection: {mode: fixed, version: ankh_large}
+    classes:
+    - TPS
+    - IDS
+    - FPP
+    - GPP
+    - GGPP
+    - EDSQ
+    - CPP
+    - GFPP
+    - 2xFPP
+    - 2xGGPP
+    selection:
+      mode: fixed
+      version: ankh_large
   PLM_Domains_MLP:
     model: PlmDomainsMLP
-    classes: [TPS, IDS, FPP, GPP, GGPP, EDSQ, CPP, GFPP, 2xFPP, 2xGGPP]
-    selection: {mode: fixed, version: ankh_large}
+    classes:
+    - TPS
+    - IDS
+    - FPP
+    - GPP
+    - GGPP
+    - EDSQ
+    - CPP
+    - GFPP
+    - 2xFPP
+    - 2xGGPP
+    selection:
+      mode: fixed
+      version: ankh_large
   PLM_Domains_RF:
     model: PlmDomainsRandomForest
-    classes: [TPS, IDS, FPP, GPP, GGPP, EDSQ, CPP, GFPP, 2xFPP, 2xGGPP]
-    selection: {mode: fixed, version: ankh_large}
-
+    classes:
+    - TPS
+    - IDS
+    - FPP
+    - GPP
+    - GGPP
+    - EDSQ
+    - CPP
+    - GFPP
+    - 2xFPP
+    - 2xGGPP
+    selection:
+      mode: fixed
+      version: ankh_large
 bootstrap:
   n_bootstraps: 1000
   seed: 42
   mode: cluster
   ci: 0.95
-  ci_method: normal
-  metrics: [ap, roc_auc]
-  # Delta plots reference the main PlmDomainsRF classifier (Ankh Large).
-  # Recorded deltas: (PLM_Domains_RF - other).
+  ci_method: bca
+  metrics:
+  - ap
+  - roc_auc
   target_model: PLM_Domains_RF
-
 aggregates:
-  Substrate_mAP: [FPP, GPP, GGPP, EDSQ, CPP, GFPP, 2xFPP, 2xGGPP]
-  TPS_IDS_mAP: [TPS, IDS]
-
+  Substrate_mAP:
+  - FPP
+  - GPP
+  - GGPP
+  - EDSQ
+  - CPP
+  - GFPP
+  - 2xFPP
+  - 2xGGPP
 visualize:
-  plots:
-    - tps_detection
-    - substrate_map
-    - substrate_per_class
-    - pr_curves
-    - roc_curves
-    - pr_substrate
-    - roc_substrate
-  metric: ap
-  curve_classes: [TPS]
-  classifier_order: [PLM_Domains_LR, PLM_Domains_MLP, PLM_Domains_RF]
-  fixed_classifier_order: true
-  auto_zoom:
-    enabled: true
-    delta_pct: 2.0
+  palette_mode: ablation
+  classifier_order:
+  - PLM_Domains_LR
+  - PLM_Domains_MLP
+  - PLM_Domains_RF
+  pin_last: PLM_Domains_RF
   ablation_xtick_overrides:
-    PLM_Domains_LR: Logistic Regression
+    PLM_Domains_LR: 'Logistic
+
+      Regression'
     PLM_Domains_MLP: MLP
-    PLM_Domains_RF: Random Forest
+    PLM_Domains_RF: 'Random
+
+      Forest'
+  bar_plots:
+    tps_detection:
+      figsize:
+      - 3
+      - 2.0
+      bar_width: 0.8
+      xtic_rotation: 45
+      xtick_fontsize: 8
+      ytick_fontsize: 8
+      title_fontsize: 12
+    substrate_map:
+      figsize:
+      - 3
+      - 2.0
+      bar_width: 0.5
+      xtick_fontsize: 8
+      ytick_fontsize: 8
+      title_fontsize: 12
+    substrate_per_class:
+      figsize:
+      - 6.5
+      - 2.0
+      cluster_width: 0.8
+      bar_width_frac: 0.92
+      title_fontsize: 12
+  delta_plots:
+    figsize:
+    - 2.0
+    - 2.0
+    box_width: 0.3
+    xtick_fontsize: 8
+    ytick_fontsize: 8
+    title_fontsize: 12

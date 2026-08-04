@@ -328,9 +328,12 @@ def cluster_stats(
         n_irrelevant = 0
         if has_reaction_labels:
             for labels in meta["reaction_labels"]:
-                if labels is None:
+                # Skip NaN (float from pandas missing-value handling) and
+                # anything not list-like — those correspond to domains
+                # whose parent sequence never made it into the martsDB
+                # reactions merge.
+                if labels is None or not isinstance(labels, (list, tuple, set)):
                     continue
-                # ``labels`` is a list[str]; in the worst case [irrelevant].
                 rxn_counts.update(labels)
             if has_irrelevant_flag:
                 n_irrelevant = int(meta["has_no_reactions"].sum())
@@ -499,65 +502,6 @@ def find_transitional_domains(
 
     df = pd.DataFrame(rows).sort_values("margin", ascending=True).reset_index(drop=True)
     return df
-
-
-def load_cluster_stats(csv_path: str | Path) -> pd.DataFrame:
-    """Load a cluster_stats CSV and rehydrate JSON-encoded columns."""
-    import json
-
-    df = pd.read_csv(csv_path)
-    for col in (
-        "kingdom_distribution",
-        "canonical_domain_type_distribution",
-        "reaction_label_distribution",
-        "members",
-    ):
-        if col in df.columns:
-            df[col] = df[col].apply(json.loads)
-    return df
-
-
-def rebuild_sweep_summary_from_disk(
-    analysis_dir: str | Path,
-    metadata_df: pd.DataFrame,
-) -> pd.DataFrame:
-    """Walk every ``cluster_stats_T<NN>.csv`` in ``analysis_dir`` and build
-    the cross-T summary. Augments each row with transitional metrics if the
-    matching ``transitional_domains_T<NN>.csv`` is present.
-
-    Used so re-runs that process only a subset of thresholds still emit a
-    sweep_summary.csv reflecting **every** threshold persisted on disk.
-    """
-    import re
-
-    analysis_dir = Path(analysis_dir).resolve()
-    pattern = re.compile(r"cluster_stats_T(\d+\.\d+)\.csv$")
-    rows: list[dict] = []
-    for csv_path in sorted(analysis_dir.glob("cluster_stats_T*.csv")):
-        m = pattern.search(csv_path.name)
-        if not m:
-            continue
-        T = float(m.group(1))
-        stats_df = load_cluster_stats(csv_path)
-        row = sweep_summary_row(T, stats_df, metadata_df)
-
-        trans_path = analysis_dir / f"transitional_domains_T{T:.2f}.csv"
-        if trans_path.exists():
-            trans_df = pd.read_csv(trans_path)
-            if not trans_df.empty:
-                row["transitional_frac"] = float(trans_df["is_transitional"].mean())
-                row["transitional_count"] = int(trans_df["is_transitional"].sum())
-                row["median_margin"] = float(trans_df["margin"].median())
-            else:
-                row["transitional_frac"] = float("nan")
-                row["transitional_count"] = 0
-                row["median_margin"] = float("nan")
-        else:
-            row["transitional_frac"] = float("nan")
-            row["transitional_count"] = 0
-            row["median_margin"] = float("nan")
-        rows.append(row)
-    return pd.DataFrame(rows).sort_values("tmscore_threshold").reset_index(drop=True)
 
 
 def sweep_summary_row(

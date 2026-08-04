@@ -11,9 +11,15 @@ build/
 
 /tmp
 
-outputs/
-logs/
+# large SwissProt export — download via setup_dev.sh from Google Drive (URL TBD)
+data/swissprot_with_af_2026_03_14.tsv
 
+outputs/evaluation_results/_bootstrap_cache
+outputs/embeddings_*
+outputs/models/
+outputs/rebuttal
+
+data/dark_proteome_screening/candidate_selection/phylo_tree/clean*
 .vscode
 .setup_prod_cache/
 
@@ -25,22 +31,64 @@ logs/
 data/enzyme_explorer_pdbs
 data/martsDB_pdbs
 data/detected_domains
+# PLM checkpoints (ankh_tps + esm-1v-finetuned-subseq) — Google Drive (URL TBD)
 data/plm_checkpoints
+# Foldseek-based structural feature matrix — Google Drive (URL TBD)
 data/enzyme_explorer_structural_features
 data/martsDB_structural_features
 data/martsDB_structural_features_initial
+# CLEAN training/test datasets (per-fold train CSVs + test FASTAs, + combined data)
+# — provided via Google Drive so users don't need to rerun the CLEAN dataprep pipeline
 data/clean_datasets
+# Gathered PLM embedding .h5 files — Google Drive (URL TBD)
 data/gathered_*
 data/go-basic_2026_03_14.obo
 data/rhea*
 data/enzyme_explorer_checkpoints*.pkl
 data/enzyme_explorer_plm_checkpoints*.pkl
+# Foldseek reference DB cache — first-class shipping artefact, download from Google Drive (URL TBD)
 data/foldseek_cache
+# Domain clustering all-vs-all USalign alignment cache — download from Google Drive (URL TBD)
+data/domain_clustering/all_vs_all/
 data/domain_clustering
-data/hard_candidates/predictions*
+data/dark_candidates/afdb*
 data/_seedsweep_bundles
+# Dark proteome screening — full 5.1B-seq screen result (277 MB), external
+# artefact shipped via Google Drive (URL TBD); dark_putatives.csv (the
+# TPS_p > 0.95 filter output) is kept in-tree.
+data/dark_proteome_screening/dark_proteome_screening.csv
+# Selection tree intermediates — Google Drive (URL TBD). The MAFFT
+# alignment (17 MB) and IQ-TREE ML-distance matrix (52 MB) are
+# regenerable via scripts/dark_proteome_screening/build_tree.sh from
+# combined.fasta, which stays in-tree.
+data/dark_proteome_screening/candidate_selection/phylo_tree/alignment.fasta
+data/dark_proteome_screening/candidate_selection/phylo_tree/iqtree.mldist
+data/dark_proteome_screening/candidate_selection/phylo_tree/iqtree.ckp.gz
+# GTDB ar53 archaeal phylogeny — fetched + cleaned by
+# scripts/archaeal_screening/download_gtdb_ar53_tree.sh from
+# https://data.gtdb.ecogenomic.org/. Reprovisioned at setup_dev.sh time.
+data/archaeal_screening/ar53.tree
+data/archaeal_screening/ar53_clean.tree
+# Pfam/SUPFAM rebuttal — AlphaFold-DB structures pulled from AF-DB v6 by
+# scripts/rebuttal_only/pfam_supfam_screening/download_afdb_structures.py.
+# Regenerable from the corresponding hit lists so we do not ship them.
+outputs/rebuttal/pfam_supfam_screening/afdb/
+
+scripts/rebuttal_only
+
+dist/
+data/_*
 
 .codex
 .claude/
 
+# External tool checkouts — installed by scripts/setup_dev.sh in-tree.
+# CLEAN + facebook/esm are cloned to CLEAN/ so build.py finds its
+# resources without global path juggling; not part of our source tree.
+/CLEAN/
+
 benchmarks/
+
+# Google Drive bundle staging (locally-created zips + JSON of Drive URLs)
+drive/*.zip
+drive/*.tmp

@@ -90,8 +90,10 @@ Eval YAML schema::
 from __future__ import annotations
 
 import argparse
+import contextlib
 import logging
 import re
+import time
 from pathlib import Path
 
 import numpy as np  # type: ignore
@@ -103,6 +105,7 @@ from enzymeexplorer.src.evaluation import (
     bootstrap as bs,
     cache as boot_cache,
     calibration as cal,
+    clusters as eval_clusters,
     io as eio,
     selection as sel,
 )
@@ -123,6 +126,85 @@ from enzymeexplorer.src.evaluation.significance import compute_pvalues
 from enzymeexplorer.src.utils.project_info import get_evaluations_output
 
 logger = logging.getLogger(__name__)
+
+
+@contextlib.contextmanager
+def _timed(step: str):
+    """Log start/end + wall-clock elapsed for a named eval step.
+
+    Usage::
+
+        with _timed("compute CIs"):
+            ...
+
+    Emits INFO logs so an interactive user sees which stage the pipeline is
+    on, and how long each stage took. Meant for stages that take more than
+    ~1 second — otherwise the log noise outweighs the visibility.
+    """
+    t0 = time.perf_counter()
+    logger.info("BEGIN %s", step)
+    try:
+        yield
+    finally:
+        elapsed = time.perf_counter() - t0
+        logger.info("END   %s (%.1fs)", step, elapsed)
+
+
+def _deep_merge(base: dict, override: dict) -> dict:
+    """Deep-merge two dicts. Leaf values in ``override`` win. Lists are
+    replaced (not concatenated) — matches YAML anchor semantics."""
+    out = dict(base)
+    for k, v in override.items():
+        if (
+            k in out
+            and isinstance(out[k], dict)
+            and isinstance(v, dict)
+        ):
+            out[k] = _deep_merge(out[k], v)
+        else:
+            out[k] = v
+    return out
+
+
+def _resolve_includes(node, base_dir: Path):
+    """Recursively resolve ``include:`` keys inside a YAML tree.
+
+    ``include: <path>`` OR ``include: [<p1>, <p2>, …]`` merges the listed
+    files as parent defaults (later paths override earlier ones); the
+    node's own keys then override the merged parent. Works at any
+    nesting level — e.g. a ``visualize.include: ../_defaults.yaml``
+    supplies defaults for the visualize block, and per-config overrides
+    win.
+    """
+    if isinstance(node, dict):
+        include_val = node.pop("include", None)
+        if include_val is not None:
+            includes = (
+                [include_val] if isinstance(include_val, str)
+                else list(include_val)
+            )
+            merged: dict = {}
+            for inc_path in includes:
+                inc_full = (base_dir / inc_path).resolve()
+                inc_data = _load_yaml_with_includes(inc_full)
+                merged = _deep_merge(merged, inc_data)
+            node = _deep_merge(merged, node)
+        return {k: _resolve_includes(v, base_dir) for k, v in node.items()}
+    if isinstance(node, list):
+        return [_resolve_includes(v, base_dir) for v in node]
+    return node
+
+
+def _load_yaml_with_includes(path: Path) -> dict:
+    """Load a YAML file with recursive ``include:`` resolution.
+
+    See :func:`_resolve_includes` for the merge semantics.
+    """
+    path = Path(path)
+    raw = yaml.safe_load(path.read_text())
+    if not isinstance(raw, dict):
+        return raw
+    return _resolve_includes(raw, path.parent)
 
 
 def _resolve_version_spec(label: str, spec: dict, classes: list[str]):
@@ -214,7 +296,14 @@ def _run_calibration_evaluate(
 ) -> None:
     """Compute calibration artefacts and persist them under ``<out_dir>/calibration/``.
 
-    Runs only when the eval YAML has a ``calibration:`` block. Plots are
+    Invoked from two mutually-exclusive paths in this module:
+
+    * :func:`run_calibrate` — the dedicated ``calibrate`` subcommand.
+    * :func:`run_evaluate` — the "no ``bootstrap`` block" fast-path, kept
+      for back-compat so a legacy calibration-only eval YAML still works
+      when passed to ``evaluate``.
+
+    Plots are
     NOT produced here — :func:`run_visualize` reads these CSVs/parquets
     and renders the figures.
     """
@@ -260,6 +349,23 @@ def _run_calibration_evaluate(
                 cls_map[cls], cls, clf,
             )
 
+    # Cluster-block calibration bootstrap defaults; the config can override
+    # via ``calibration.bootstrap_unit: fold|cluster|row`` and
+    # ``calibration.cluster_tsv``. Defaults mirror the eval bootstrap so
+    # both pipelines resample on the same 50%-seq-id groups.
+    cal_bootstrap_unit = str(cal_cfg.get("bootstrap_unit", "cluster"))
+    cal_cluster_tsv = cal_cfg.get(
+        "cluster_tsv", "data/EnzymeExplorer_Dataset_clusters_50.tsv",
+    )
+    cal_cluster_map: dict[str, str] | None = None
+    if cal_bootstrap_unit == "cluster":
+        cal_cluster_map = eval_clusters.load_cluster_map(cal_cluster_tsv)
+        logger.info(
+            "Calibration cluster map loaded from %s (%d IDs, %d clusters)",
+            cal_cluster_tsv, len(cal_cluster_map),
+            len(set(cal_cluster_map.values())),
+        )
+
     artefacts = cal.fit_calibration_table(
         oof_per_clf_class,
         families=families,
@@ -273,6 +379,8 @@ def _run_calibration_evaluate(
         bottom_k_fn=bottom_k_fn,
         ci=ci,
         fold_drift_threshold=fold_drift_threshold,
+        bootstrap_unit=cal_bootstrap_unit,
+        cluster_map=cal_cluster_map,
     )
 
     artefacts.fit_summary.to_csv(cal_dir / "fit_summary.csv", index=False)
@@ -288,10 +396,30 @@ def _run_calibration_evaluate(
         )
     if not artefacts.reliability.empty:
         artefacts.reliability.to_csv(cal_dir / "reliability.csv", index=False)
+    if not artefacts.reliability_per_fold.empty:
+        artefacts.reliability_per_fold.to_csv(
+            cal_dir / "reliability_per_fold.csv", index=False,
+        )
     if not artefacts.metrics.empty:
         artefacts.metrics.to_csv(cal_dir / "metrics.csv", index=False)
+    if not artefacts.metrics_per_fold.empty:
+        artefacts.metrics_per_fold.to_csv(
+            cal_dir / "metrics_per_fold.csv", index=False,
+        )
+    if not artefacts.lofo_metric_ci.empty:
+        artefacts.lofo_metric_ci.to_csv(
+            cal_dir / "lofo_metric_bootstrap_ci.csv", index=False,
+        )
+    if not artefacts.param_ci.empty:
+        artefacts.param_ci.to_csv(
+            cal_dir / "param_bootstrap_ci.csv", index=False,
+        )
     if not artefacts.ribbon.empty:
         artefacts.ribbon.to_parquet(cal_dir / "ribbon.parquet", index=False)
+    if not artefacts.ribbon_coverage.empty:
+        artefacts.ribbon_coverage.to_csv(
+            cal_dir / "ribbon_coverage.csv", index=False,
+        )
     if not artefacts.per_fold_params.empty:
         artefacts.per_fold_params.to_csv(
             cal_dir / "per_fold_params.csv", index=False,
@@ -323,7 +451,7 @@ def _x_position(version: str, mode: str) -> float | None:
 
 
 def run_evaluate(args: argparse.Namespace) -> None:
-    cfg = yaml.safe_load(Path(args.config).read_text())
+    cfg = _load_yaml_with_includes(Path(args.config))
     out_dir = get_evaluations_output() / args.output_name
     out_dir.mkdir(parents=True, exist_ok=True)
 
@@ -345,9 +473,10 @@ def run_evaluate(args: argparse.Namespace) -> None:
                 rv_path,
             )
 
-    classifier_to_dfs, classifier_to_timestamps, resolved = _build_classifier_dfs(
-        cfg, pinned_resolved=pinned_resolved,
-    )
+    with _timed(f"resolve classifier specs + load fold pickles ({len(cfg['classifiers'])} classifiers)"):
+        classifier_to_dfs, classifier_to_timestamps, resolved = _build_classifier_dfs(
+            cfg, pinned_resolved=pinned_resolved,
+        )
 
     with open(out_dir / "resolved_versions.yaml", "w", encoding="utf-8") as fh:
         yaml.safe_dump(resolved, fh, sort_keys=False)
@@ -395,10 +524,40 @@ def run_evaluate(args: argparse.Namespace) -> None:
     metrics = tuple(bcfg.get("metrics", ["ap", "roc_auc"]))
     n_boot = int(bcfg.get("n_bootstraps", 1000))
     seed = int(bcfg.get("seed", 42))
-    ap_types = tuple(bcfg.get("ap_types", ["pooled_oof", "fold_mean"]))
+    # Default to pooled_oof only under the v5 cluster-block strategy —
+    # fold_mean is unnecessary once resampling is cluster-level: the
+    # pooled draw already respects the leakage-preventing group structure,
+    # so averaging per-fold APs adds no independent information but
+    # multiplies runtime. Users can still opt fold_mean back in via
+    # ``ap_types: [pooled_oof, fold_mean]`` if they need paired per-fold
+    # variance for a specific analysis.
+    ap_types = tuple(bcfg.get("ap_types", ["pooled_oof"]))
     ci = float(bcfg.get("ci", 0.95))
     target_model = bcfg.get("target_model")
     p_adjustment = bcfg.get("p_adjustment", "holm")
+
+    # v5 cluster-block bootstrap defaults. Legacy row bootstrap is opt-in
+    # via ``bootstrap.bootstrap_unit: rows`` for reproducing pre-v5 numbers.
+    # Some historical YAMLs use ``mode: cluster|rows`` — honour that as an
+    # alias and normalise the value.
+    bootstrap_unit = str(bcfg.get("bootstrap_unit", bcfg.get("mode", "clusters")))
+    if bootstrap_unit == "cluster":
+        bootstrap_unit = "clusters"
+    if bootstrap_unit == "row":
+        bootstrap_unit = "rows"
+    cluster_tsv = bcfg.get(
+        "cluster_tsv", "data/EnzymeExplorer_Dataset_clusters_50.tsv",
+    )
+    cluster_map: dict[str, str] | None = None
+    cluster_map_hash: str | None = None
+    if bootstrap_unit == "clusters":
+        cluster_map = eval_clusters.load_cluster_map(cluster_tsv)
+        cluster_map_hash = eval_clusters.cluster_map_hash(cluster_map)
+        logger.info(
+            "Loaded cluster map from %s (%d IDs, %d clusters, hash=%s)",
+            cluster_tsv, len(cluster_map),
+            len(set(cluster_map.values())), cluster_map_hash,
+        )
 
     force_all = bool(getattr(args, "force_bootstrap", False))
 
@@ -411,52 +570,63 @@ def run_evaluate(args: argparse.Namespace) -> None:
         for label in classifier_to_dfs
     }
 
-    result, cache_hit = boot_cache.paired_bootstrap_with_cache(
-        classifier_to_dfs,
-        classifier_metadata,
-        metrics=metrics,
-        ap_types=ap_types,
-        n_bootstraps=n_boot,
-        seed=seed,
-        target_model=target_model,
-        force=force_all,
-    )
+    with _timed(
+        f"paired bootstrap ({n_boot} draws × {len(classifier_to_dfs)} classifiers, "
+        f"unit={bootstrap_unit}, includes leave-one-cluster-out jackknife)"
+    ):
+        result, cache_hit = boot_cache.paired_bootstrap_with_cache(
+            classifier_to_dfs,
+            classifier_metadata,
+            metrics=metrics,
+            ap_types=ap_types,
+            n_bootstraps=n_boot,
+            seed=seed,
+            target_model=target_model,
+            force=force_all,
+            bootstrap_unit=bootstrap_unit,
+            cluster_map=cluster_map,
+            cluster_map_hash=cluster_map_hash,
+        )
     logger.info(
-        "v4 paired bootstrap: %s (n_classifiers=%d, n_draws=%d, ap_types=%s)",
+        "%s paired bootstrap (unit=%s): %s (n_classifiers=%d, n_draws=%d, "
+        "ap_types=%s)",
+        boot_cache.BOOTSTRAP_ALGO_VERSION, bootstrap_unit,
         "cache hit" if cache_hit else "fresh",
         len(classifier_to_dfs), n_boot, ap_types,
     )
 
-    aggregates = cfg.get("aggregates")
-    if aggregates:
-        result = agg.add_aggregates(result, aggregates)
-    result.save(out_dir)
+    if aggregates := cfg.get("aggregates"):
+        with _timed(f"add per-draw aggregates ({list(aggregates)})"):
+            result = agg.add_aggregates(result, aggregates)
+    with _timed("save bootstrap draws + point estimates + jackknife tables"):
+        result.save(out_dir)
 
-    # AP summaries: one CSV per CI method, plus a unified summary with all 3.
+    # AP summaries: BCa only (the reported headline CI). The former
+    # normal/percentile methods were dropped because BCa is the only
+    # CI reported in the paper.
     ap_pieces: list[pd.DataFrame] = []
     delta_pieces: list[pd.DataFrame] = []
-    for ci_method in ("normal", "percentile", "bca"):
+    with _timed("compute AP CIs (bca)"):
         try:
             ap_summary = bs.compute_cis(
-                result.long_ap, result.point_ap, method=ci_method, ci=ci,
-                jackknife=result.jackknife_ap if ci_method == "bca" else None,
+                result.long_ap, result.point_ap, method="bca", ci=ci,
+                jackknife=result.jackknife_ap,
             )
+            ap_summary["ci_method"] = "bca"
+            ap_pieces.append(ap_summary)
         except ValueError as exc:
-            logger.warning("Skipping AP CI method %s: %s", ci_method, exc)
-            continue
-        ap_summary["ci_method"] = ci_method
-        ap_pieces.append(ap_summary)
-        if not result.long_delta.empty:
+            logger.warning("Skipping AP CI (bca): %s", exc)
+    if not result.long_delta.empty:
+        with _timed("compute delta CIs (bca)"):
             try:
                 d_summary = bs.compute_cis(
-                    result.long_delta, result.point_delta, method=ci_method, ci=ci,
-                    jackknife=result.jackknife_delta if ci_method == "bca" else None,
+                    result.long_delta, result.point_delta, method="bca", ci=ci,
+                    jackknife=result.jackknife_delta,
                 )
+                d_summary["ci_method"] = "bca"
+                delta_pieces.append(d_summary)
             except ValueError as exc:
-                logger.warning("Skipping delta CI method %s: %s", ci_method, exc)
-                continue
-            d_summary["ci_method"] = ci_method
-            delta_pieces.append(d_summary)
+                logger.warning("Skipping delta CI (bca): %s", exc)
     summary_ap = pd.concat(ap_pieces, ignore_index=True) if ap_pieces else pd.DataFrame()
     summary_delta = (
         pd.concat(delta_pieces, ignore_index=True) if delta_pieces else pd.DataFrame()
@@ -466,10 +636,11 @@ def run_evaluate(args: argparse.Namespace) -> None:
 
     # P-values per (class, metric, ap_type). Adjustment applied within
     # each family.
-    pvalues = compute_pvalues(result.long_delta, adjustment=p_adjustment)
-    pvalues.to_csv(out_dir / "pvalues.csv", index=False)
+    with _timed(f"compute paired-bootstrap p-values (adjustment={p_adjustment})"):
+        pvalues = compute_pvalues(result.long_delta, adjustment=p_adjustment)
+        pvalues.to_csv(out_dir / "pvalues.csv", index=False)
 
-    logger.info("Saved v4 evaluation artefacts to %s", out_dir)
+    logger.info("Saved bootstrap + CI + p-value artefacts to %s", out_dir)
 
     # ----------------------------------------------------------------------
     # Categorical AP (Kingdom + TPS_Type) — reuses the same draws as the
@@ -479,6 +650,10 @@ def run_evaluate(args: argparse.Namespace) -> None:
     # ----------------------------------------------------------------------
     categories_cfg = cfg.get("categories") or {}
     if categories_cfg:
+        logger.info(
+            "Running categorical AP for %d category axes: %s",
+            len(categories_cfg), list(categories_cfg),
+        )
         from enzymeexplorer.src.evaluation import categorical_bootstrap as cat_bs
 
         type_groupings: dict[str, dict[str, str]] = {}
@@ -510,29 +685,39 @@ def run_evaluate(args: argparse.Namespace) -> None:
         long_pieces: list[pd.DataFrame] = []
         point_pieces: list[pd.DataFrame] = []
         if type_groupings:
-            l, p = cat_bs.compute_type_aggregated_ap(
-                result.long_ap, result.point_ap, type_groupings=type_groupings,
-            )
-            if not l.empty:
-                long_pieces.append(l)
-            if not p.empty:
-                point_pieces.append(p)
+            with _timed(
+                f"categorical AP — type-grouped aggregates ({list(type_groupings)})"
+            ):
+                l, p = cat_bs.compute_type_aggregated_ap(
+                    result.long_ap, result.point_ap, type_groupings=type_groupings,
+                )
+                if not l.empty:
+                    long_pieces.append(l)
+                if not p.empty:
+                    point_pieces.append(p)
         if masked_categories:
-            l, p = cat_bs.compute_masked_ap_from_seed(
-                classifier_to_dfs,
-                masked_categories=masked_categories,
-                metrics=metrics,
-                ap_types=ap_types,
-                n_bootstraps=n_boot,
-                seed=seed,
-                negative_labels=negative_labels,
-            )
-            if not l.empty:
-                long_pieces.append(l)
-            if not p.empty:
-                point_pieces.append(p)
+            with _timed(
+                f"categorical AP — masked replay for {list(masked_categories)}"
+                f" ({n_boot} draws each)"
+            ):
+                l, p = cat_bs.compute_masked_ap_from_seed(
+                    classifier_to_dfs,
+                    masked_categories=masked_categories,
+                    metrics=metrics,
+                    ap_types=ap_types,
+                    n_bootstraps=n_boot,
+                    seed=seed,
+                    negative_labels=negative_labels,
+                    bootstrap_unit=bootstrap_unit,
+                    cluster_map=cluster_map,
+                )
+                if not l.empty:
+                    long_pieces.append(l)
+                if not p.empty:
+                    point_pieces.append(p)
 
         if long_pieces or point_pieces:
+          with _timed("categorical AP — CIs + persist artefacts"):
             cat_long = (
                 pd.concat(long_pieces, ignore_index=True)
                 if long_pieces else pd.DataFrame()
@@ -543,43 +728,29 @@ def run_evaluate(args: argparse.Namespace) -> None:
             )
             cat_long.to_csv(out_dir / "bootstrap_long_categorical_ap.csv", index=False)
             cat_point.to_csv(out_dir / "point_estimates_categorical_ap.csv", index=False)
-            # Per-category CIs across all (ap_type, ci_method) pairs.
+            # Per-category CIs — percentile only. The paired-bootstrap
+            # replay used for categorical AP has no jackknife (categories
+            # are masked post-hoc from the same RNG draws), so BCa
+            # acceleration isn't computable here. Percentile is the
+            # closest paired equivalent.
             cat_summary_pieces: list[pd.DataFrame] = []
             if not cat_long.empty:
                 cat_keys = ["classifier", "class", "metric", "ap_type",
                             "category_name", "category"]
-                for ci_method in ("normal", "percentile"):
-                    grouped = cat_long.groupby(cat_keys)["value"]
-                    rows = []
-                    if ci_method == "normal":
-                        from scipy.stats import norm  # type: ignore
-                        z = float(norm.ppf(1 - (1 - ci) / 2))
-                        for key, draws in grouped:
-                            arr = draws.dropna().to_numpy(dtype=float)
-                            if arr.size < 2:
-                                continue
-                            sd = float(np.std(arr, ddof=1))
-                            mean = float(np.mean(arr))
-                            rows.append({
-                                **dict(zip(cat_keys, key)),
-                                "point": mean,
-                                "ci_low": mean - z * sd,
-                                "ci_high": mean + z * sd,
-                                "ci_method": ci_method,
-                            })
-                    else:  # percentile
-                        for key, draws in grouped:
-                            arr = draws.dropna().to_numpy(dtype=float)
-                            if arr.size == 0:
-                                continue
-                            rows.append({
-                                **dict(zip(cat_keys, key)),
-                                "point": float(np.median(arr)),
-                                "ci_low": float(np.quantile(arr, (1 - ci) / 2)),
-                                "ci_high": float(np.quantile(arr, 1 - (1 - ci) / 2)),
-                                "ci_method": ci_method,
-                            })
-                    cat_summary_pieces.append(pd.DataFrame.from_records(rows))
+                grouped = cat_long.groupby(cat_keys)["value"]
+                rows = []
+                for key, draws in grouped:
+                    arr = draws.dropna().to_numpy(dtype=float)
+                    if arr.size == 0:
+                        continue
+                    rows.append({
+                        **dict(zip(cat_keys, key)),
+                        "point": float(np.median(arr)),
+                        "ci_low": float(np.quantile(arr, (1 - ci) / 2)),
+                        "ci_high": float(np.quantile(arr, 1 - (1 - ci) / 2)),
+                        "ci_method": "percentile",
+                    })
+                cat_summary_pieces.append(pd.DataFrame.from_records(rows))
             cat_summary = (
                 pd.concat(cat_summary_pieces, ignore_index=True)
                 if cat_summary_pieces else pd.DataFrame()
@@ -592,26 +763,30 @@ def run_evaluate(args: argparse.Namespace) -> None:
 
     sweep_cfg = cfg.get("threshold_sweep")
     if sweep_cfg:
+        logger.info("Running %d threshold sweeps: %s",
+                    len(sweep_cfg), [e["label"] for e in sweep_cfg])
         sweep_dir = out_dir / "threshold_sweep"
         sweep_dir.mkdir(parents=True, exist_ok=True)
         for entry in sweep_cfg:
             label = entry["label"]
-            sweep_classes = entry.get("classes", DEFAULT_PLOT_ORDER)
-            with_distractors = bool(entry.get("with_distractors", False))
-            candidates = sel.discover_versions(
-                entry["model"], prefix=entry["prefix"],
-                with_distractors=with_distractors,
-            )
-            sweep_df = thresholds.compute_threshold_sweep(
-                entry["model"], candidates, sweep_classes,
-                metric=entry.get("metric", "ap"),
-            )
-            sweep_df["x_axis"] = entry.get("x_axis", "neglog10")
-            sweep_df["x_label"] = entry.get("x_label", "")
-            sweep_df.to_csv(sweep_dir / f"{label}.csv", index=False)
-            logger.info("Saved threshold sweep '%s' (%d rows)", label, len(sweep_df))
+            with _timed(f"threshold sweep '{label}' ({entry['model']}/{entry['prefix']}*)"):
+                sweep_classes = entry.get("classes", DEFAULT_PLOT_ORDER)
+                with_distractors = bool(entry.get("with_distractors", False))
+                candidates = sel.discover_versions(
+                    entry["model"], prefix=entry["prefix"],
+                    with_distractors=with_distractors,
+                )
+                sweep_df = thresholds.compute_threshold_sweep(
+                    entry["model"], candidates, sweep_classes,
+                    metric=entry.get("metric", "ap"),
+                )
+                sweep_df["x_axis"] = entry.get("x_axis", "neglog10")
+                sweep_df["x_label"] = entry.get("x_label", "")
+                sweep_df.to_csv(sweep_dir / f"{label}.csv", index=False)
+                logger.info("Saved threshold sweep '%s' (%d rows)", label, len(sweep_df))
 
-    _run_calibration_evaluate(cfg, out_dir, classifier_to_dfs)
+    with _timed("calibration fitting (LOFO family selection + cluster bootstrap ribbon)"):
+        _run_calibration_evaluate(cfg, out_dir, classifier_to_dfs)
 
 
 def _load_classifier_dfs_for_visualize(eval_dir: Path):
@@ -713,8 +888,18 @@ def _render_v4_scenarios(
     plots_root = eval_dir / plots_subdir
     plots_root.mkdir(parents=True, exist_ok=True)
 
+    # Auto-zoom knobs (all under ``visualize.auto_zoom`` — see cli docs).
+    _az = dict((cfg.get("visualize") or {}).get("auto_zoom") or {})
+    _zoom_padding_frac = float(_az.get("padding_frac", 0.0))
+    _zoom_snap_step = _az.get("snap_step")
+    _zoom_snap_step = float(_zoom_snap_step) if _zoom_snap_step else None
+
     vcfg = cfg.get("visualize", {}) or {}
-    metric = vcfg.get("metric", "ap")
+    # Multi-metric plotting: ``visualize.metrics`` (list) wins, else fall
+    # back to legacy ``visualize.metric`` (scalar). Each metric writes to
+    # its own subfolder ``plots/<scenario>/<metric>/{bars,delta,pvalues}/``
+    # so PR-AUC / ROC-AUC / MCC-F1 can co-exist for the same scenario.
+    metrics_list = list(vcfg.get("metrics") or [vcfg.get("metric", "ap")])
     explicit_order = list(vcfg.get("classifier_order") or [])
     pin_last = vcfg.get("pin_last")
     fixed_classifier_order = bool(vcfg.get("fixed_classifier_order"))
@@ -729,44 +914,147 @@ def _render_v4_scenarios(
     sort_ap_type = "fold_mean" if "fold_mean" in ap_types_present else ap_types_present[0]
     sort_ci_method = "normal" if "normal" in ci_methods_present else ci_methods_present[0]
 
-    # Effective palette: master + YAML overrides. YAML wins per-key.
-    # Poster mode overrides both with a two-tone blue scheme: dark for
-    # the pinned classifier (typically the headline EnzymeExplorer
-    # method), light for every other bar. Only kicks in when
-    # ``pin_last`` is set so other scenarios (ablations) keep their
-    # multi-colour identification.
-    palette = dict(theme.UNIVERSAL_PALETTE)
-    if yaml_palette:
-        palette.update(yaml_palette)
-    # Any classifier name that's neither in the master palette nor
-    # overridden by the YAML gets a colour from the sequential
-    # comparison ramp so brand-new ablation variants (e.g. ESM-2 layer
-    # variants ``PLM_Esm2_T33_L31``) don't trip a ``KeyError`` deep in
-    # ``bars.bar_classifier``. The fallback only fills MISSING keys —
-    # canonical names keep their Okabe-Ito assignments.
+    # Effective palette resolution — three modes:
+    #   * ``palette_mode: all_methods`` — Nature-Chem-Biol all-methods
+    #     figure. EnzymeExplorer green, BLAST sky, Foldseek blue, rest
+    #     neutral grey. Colorblind-safe (Wong).
+    #   * ``palette_mode: ablation``   — Every bar sky-blue; the ablation
+    #     x-axis labels carry the identity, no colour coding needed.
+    #   * default / ``auto`` — legacy: master ``UNIVERSAL_PALETTE`` +
+    #     YAML overrides + comparison-ramp fallback for unknown names,
+    #     poster two-tone kicks in with ``pin_last``.
     classifiers_present = list(summary_ap["classifier"].unique())
-    missing = [c for c in classifiers_present if c not in palette]
-    if missing:
-        fallback = theme.comparison_palette(missing)
-        for c, rgb in fallback.items():
-            palette.setdefault(c, rgb)
-    if theme.is_poster() and pin_last:
-        palette = theme.poster_two_tone_palette(classifiers_present, pin_last)
+    palette_mode = vcfg.get("palette_mode", "auto")
+    if palette_mode == "all_methods":
+        palette = theme.ncb_all_methods_palette(classifiers_present)
+    elif palette_mode == "ablation":
+        # Placeholder — the real Greens ramp is recomputed per scenario
+        # below because it depends on ``scenario_order`` (which puts the
+        # pinned "final" model on the right). Uniform light-green fill
+        # here just ensures every classifier has a valid key up-front.
+        palette = {c: theme.NCB_ABLATION_LIGHT_GREEN for c in classifiers_present}
+    else:
+        palette = dict(theme.UNIVERSAL_PALETTE)
+        if yaml_palette:
+            palette.update(yaml_palette)
+        missing = [c for c in classifiers_present if c not in palette]
+        if missing:
+            fallback = theme.comparison_palette(missing)
+            for c, rgb in fallback.items():
+                palette.setdefault(c, rgb)
+        if theme.is_poster() and pin_last:
+            palette = theme.poster_two_tone_palette(classifiers_present, pin_last)
+    # YAML palette overrides always take precedence per-key, so users
+    # can pin one classifier's colour without redefining the whole map.
+    if yaml_palette and palette_mode != "auto":
+        palette.update(yaml_palette)
 
-    def _order_for(class_list: list[str]) -> list[str]:
+    # Delta forest colouring — one colour for every box across every
+    # pair. Ablation mode defaults to light green (NCB_ABLATION_LIGHT_GREEN)
+    # so the delta plots stay in the same green family as the bars/curves;
+    # all-methods (or a user override) keeps the sky-blue default.
+    uniform_delta_color = vcfg.get("uniform_delta_color")
+    if uniform_delta_color is None and palette_mode == "ablation":
+        uniform_delta_color = theme.NCB_ABLATION_LIGHT_GREEN
+
+    # Clustered-bar palette (substrate_per_class scenario). The flat
+    # bar palette would give every "grey" method the same colour inside
+    # a cluster — indistinguishable. Same for ablation: uniform sky-
+    # blue kills every method's identity when there are 5 bars in one
+    # cluster. Use the shade-distinguished curve palette instead: NCB
+    # identity colours for EE/BLAST/Foldseek, sequential grey shades
+    # for the "other" bucket in all-methods, Blues ramp across the N
+    # methods in ablation.
+    if palette_mode == "all_methods":
+        cluster_palette = theme.ncb_all_methods_curve_palette(classifiers_present)
+    elif palette_mode == "ablation":
+        # Legacy fallback; the real per-scenario ramp is recomputed below
+        # so cluster ordering respects each scenario's classifier_order.
+        shades = theme.ncb_curve_shades(classifiers_present, hue="green")
+        cluster_palette = {c: h for c, h in zip(classifiers_present, shades)}
+    else:
+        cluster_palette = palette
+
+    # Per-plot-type style overrides. The visualize schema accepts:
+    #
+    #   bar_plots:                    # bars.bar_classifier / bar_per_class
+    #     tps_detection:      {figsize: [W,H], bar_width: 0.85}
+    #     substrate_map:      {figsize: [W,H], bar_width: 0.85}
+    #     substrate_per_class: {figsize: [W,H], cluster_width: 0.8,
+    #                          bar_width_frac: 0.92}
+    #   delta_plots:                  # deltas.plot_delta_forest
+    #     figsize: [W,H]
+    #     box_width: 0.30             # non-grouped panels
+    #     cluster_width: 0.88         # substrate_per_class grouped panel
+    #     grouped_box_frac: 0.675     # per-box width fraction inside cluster
+    #   headline:                     # optional headline extras
+    #     enabled: true
+    #     methods: [PLM_Domains, Foldseek, BLAST]
+    #     bar_plots: {…}              # any subset of the above, wins over
+    #     delta_plots: {…}            # the top-level style for headline
+    #
+    # Legacy top-level ``bar_figsize`` is honoured as a default across
+    # every bar_plots.* if the per-scenario block does not set figsize.
+    bar_plot_cfg = dict(vcfg.get("bar_plots") or {})
+    delta_plot_cfg = dict(vcfg.get("delta_plots") or {})
+    headline_cfg = dict(vcfg.get("headline") or {})
+    legacy_bar_figsize = vcfg.get("bar_figsize")
+
+    def _bar_kwargs_for(scenario_name: str, *, overrides: dict | None = None):
+        """Merge (defaults ← scenario ← headline overrides) for a bar plot."""
+        cfg_here = dict(bar_plot_cfg.get(scenario_name) or {})
+        if overrides:
+            cfg_here.update(overrides)
+        fs = cfg_here.get("figsize") or legacy_bar_figsize
+        out: dict = {}
+        if fs:
+            out["figsize"] = tuple(fs)
+        if scenario_name == "substrate_per_class":
+            if "cluster_width" in cfg_here:
+                out["cluster_width"] = float(cfg_here["cluster_width"])
+            if "bar_width_frac" in cfg_here:
+                out["bar_width_frac"] = float(cfg_here["bar_width_frac"])
+        else:
+            if "bar_width" in cfg_here:
+                out["bar_width"] = float(cfg_here["bar_width"])
+        if "xtick_rotation" in cfg_here:
+            out["xtick_rotation"] = float(cfg_here["xtick_rotation"])
+        if "xtick_fontsize" in cfg_here:
+            out["xtick_fontsize"] = float(cfg_here["xtick_fontsize"])
+        if "ytick_fontsize" in cfg_here:
+            out["ytick_fontsize"] = float(cfg_here["ytick_fontsize"])
+        if "title_fontsize" in cfg_here:
+            out["title_fontsize"] = float(cfg_here["title_fontsize"])
+        return out
+
+    def _delta_kwargs(*, overrides: dict | None = None):
+        cfg_here = dict(delta_plot_cfg)
+        if overrides:
+            cfg_here.update(overrides)
+        out: dict = {}
+        fs = cfg_here.get("figsize")
+        if fs:
+            out["figsize"] = tuple(fs)
+        for k in ("box_width", "cluster_width", "grouped_box_frac", "title_fontsize"):
+            if k in cfg_here:
+                out[k] = float(cfg_here[k])
+        return out
+
+    def _order_for(class_list: list[str], metric_key: str) -> list[str]:
         """Resolve the per-scenario classifier order.
 
         * Explicit ``classifier_order`` (with ``fixed_classifier_order``)
           wins outright — used by ablation configs.
-        * Otherwise sort classifiers by mean point AP across the scenario's
-          classes (worst→best, left→right) using the canonical
-          (``fold_mean``, ``normal``) cell, then move ``pin_last`` to the
-          end if set — used by all_methods_comparison configs.
+        * Otherwise sort classifiers by mean point value across the
+          scenario's classes (worst→best, left→right) using the canonical
+          (``fold_mean``, ``normal``) cell for the given metric, then
+          move ``pin_last`` to the end if set — used by
+          all_methods_comparison configs.
         """
         if explicit_order and fixed_classifier_order:
             return list(explicit_order)
         sub = summary_ap[
-            (summary_ap["metric"] == metric)
+            (summary_ap["metric"] == metric_key)
             & (summary_ap["ap_type"] == sort_ap_type)
             & (summary_ap["ci_method"] == sort_ci_method)
             & (summary_ap["class"].isin(class_list))
@@ -783,155 +1071,62 @@ def _render_v4_scenarios(
         return order
 
     scenarios = [
-        ("tps_detection", ["TPS"], False, "TPS detection AP"),
-        ("substrate_map", ["Substrate_mAP"], False, "Substrate prediction mAP"),
+        ("tps_detection", ["TPS"], False, "TPS detection"),
+        ("substrate_map", ["Substrate_mAP"], False, "Substrate prediction"),
         ("substrate_per_class",
             [c for c in DEFAULT_PLOT_ORDER if c in SUBSTRATE_CLASSES],
-            True, "Substrate prediction AP per class"),
+            True, "Substrate prediction per class"),
     ]
     if plot_set is not None:
         scenarios = [s for s in scenarios if s[0] in plot_set]
 
+    # ``_order_for`` uses one metric to rank classifiers; we lock that
+    # to the first metric in ``metrics_list`` so the same left→right
+    # order is used for every metric of a given scenario.
+    ranking_metric = metrics_list[0] if metrics_list else "ap"
+
+    # Cache the substrate_map order so substrate_per_class can reuse it —
+    # user wants both bar figures to share left-to-right method order.
+    substrate_map_order: list[str] | None = None
+
     for scenario_name, class_list, multi_class, scenario_title in scenarios:
-        scen_dir = plots_root / scenario_name
-        ap_dir = scen_dir / "ap"
-        dlt_dir = scen_dir / "delta"
-        pv_dir = scen_dir / "pvalues"
-        for d in (ap_dir, dlt_dir, pv_dir):
-            d.mkdir(parents=True, exist_ok=True)
+        if scenario_name == "substrate_per_class" and substrate_map_order is not None:
+            scenario_order = [c for c in substrate_map_order
+                              if c in classifiers_present]
+        else:
+            scenario_order = _order_for(class_list, ranking_metric)
+        if scenario_name == "substrate_map":
+            substrate_map_order = list(scenario_order)
 
-        scenario_order = _order_for(class_list)
+        # Ablation palette resolution per scenario:
+        #   * bar_classifier (tps_detection / substrate_map) — the
+        #     rightmost (pinned "final") method takes NCB_GREEN, every
+        #     other method the same lighter green
+        #     (NCB_ABLATION_LIGHT_GREEN). Two-tone; ordering carries the
+        #     "worst → best" story.
+        #   * bar_per_class (substrate_per_class) and curves — a
+        #     full light→dark green RAMP across the classifier order so
+        #     within-cluster and within-panel lines can be told apart.
+        if palette_mode == "ablation":
+            final_method = scenario_order[-1] if scenario_order else None
+            scenario_palette = {
+                c: (theme.NCB_GREEN if c == final_method
+                    else theme.NCB_ABLATION_LIGHT_GREEN)
+                for c in scenario_order
+            }
+            scenario_cluster_palette = theme.ncb_ablation_palette(scenario_order)
+        else:
+            scenario_palette = palette
+            scenario_cluster_palette = cluster_palette
 
-        for ap_type in ap_types_present:
-            for ci_method in ci_methods_present:
-                # AP bar plot — one per (ap_type, ci_method).
-                sub = summary_ap[
-                    (summary_ap["metric"] == metric)
-                    & (summary_ap["ap_type"] == ap_type)
-                    & (summary_ap["ci_method"] == ci_method)
-                    & (summary_ap["class"].isin(class_list))
-                ].copy()
-                if sub.empty:
-                    continue
-                # Map column name back to ``method`` so bars.py can read it.
-                sub = sub.rename(columns={"ci_method": "method"})
+        for metric in metrics_list:
+            scen_dir = plots_root / scenario_name / metric
+            bar_dir = scen_dir / "bars"
+            dlt_dir = scen_dir / "delta"
+            pv_dir = scen_dir / "pvalues"
+            for d in (bar_dir, dlt_dir, pv_dir):
+                d.mkdir(parents=True, exist_ok=True)
 
-                # CI-based zoom ylim covering every CI on the panel.
-                ci_lo_pct = (sub["ci_low"].to_numpy() * 100.0).tolist()
-                ci_hi_pct = (sub["ci_high"].to_numpy() * 100.0).tolist()
-                zoom_ylim = bars.compute_ci_zoom_ylim(ci_lo_pct, ci_hi_pct)
-
-                if multi_class:
-                    fig = bars.bar_per_class(
-                        sub,
-                        classes=class_list,
-                        classifier_order=scenario_order,
-                        metric=metric,
-                        palette=palette,
-                        xtick_overrides=xtick_overrides,
-                        title=scenario_title,
-                    )
-                else:
-                    fig = bars.bar_classifier(
-                        sub, target_class=class_list[0], metric=metric,
-                        classifier_order=scenario_order,
-                        palette=palette,
-                        xtick_overrides=xtick_overrides,
-                        title=scenario_title,
-                    )
-                theme.save_figure(fig, ap_dir / f"ap_{ap_type}_{ci_method}")
-
-                # Zoomed companion: same data, ylim snapped to bracket
-                # every CI in the panel (multiples of 5).
-                if multi_class:
-                    fig_z = bars.bar_per_class(
-                        sub,
-                        classes=class_list,
-                        classifier_order=scenario_order,
-                        metric=metric,
-                        palette=palette,
-                        xtick_overrides=xtick_overrides,
-                        title=scenario_title,
-                        ylim=zoom_ylim,
-                    )
-                else:
-                    fig_z = bars.bar_classifier(
-                        sub, target_class=class_list[0], metric=metric,
-                        classifier_order=scenario_order,
-                        palette=palette,
-                        xtick_overrides=xtick_overrides,
-                        title=scenario_title,
-                        ylim=zoom_ylim,
-                    )
-                theme.save_figure(
-                    fig_z, ap_dir / f"ap_{ap_type}_{ci_method}_zoomed"
-                )
-
-                # Delta forest plot — one per (ap_type, ci_method).
-                # No transitive reduction: every pair is shown. Pair
-                # ordering on the x-axis follows ``scenario_order``: pairs
-                # are sorted by the *worst* of the two methods so the
-                # weaker-vs-everyone bars sit on the left and the
-                # strongest-vs-everyone (i.e. ``pin_last``) bars sit on
-                # the right.
-                if not summary_delta.empty:
-                    summary_delta_view = (
-                        summary_delta.rename(columns={"ci_method": "method"})
-                        if "method" not in summary_delta.columns
-                        else summary_delta
-                    )
-                    delta_title = re.sub(
-                        r"\b(m?AP)\b", r"Δ \1", scenario_title, count=1
-                    )
-                    pair_order = _delta_pair_order(
-                        summary_delta_view, classifier_rank=scenario_order,
-                    )
-                    fig = delta_plots.plot_delta_forest(
-                        long_delta,
-                        summary_delta_view,
-                        classes=class_list,
-                        metric=metric,
-                        ap_type=ap_type,
-                        ci_method=ci_method,
-                        title=delta_title,
-                        xtick_overrides=xtick_overrides,
-                        grouped=multi_class,
-                        pair_order=pair_order,
-                    )
-                    theme.save_figure(fig, dlt_dir / f"delta_{ap_type}_{ci_method}")
-
-        # P-value heatmap — one per ap_type. Every pair is shown (no
-        # transitive-reduction pruning) per the reporting spec.
-        for ap_type in ap_types_present:
-            if pvalues.empty or summary_delta.empty:
-                continue
-            fig = delta_plots.plot_pvalue_heatmap(
-                pvalues,
-                classes=class_list,
-                classifiers=scenario_order,
-                metric=metric,
-                ap_type=ap_type,
-                title=f"p-values — {scenario_title}",
-                xtick_overrides=xtick_overrides,
-            )
-            theme.save_figure(fig, pv_dir / f"pvalues_{ap_type}")
-
-    # ------------------------------------------------------------------
-    # Headline-subset extras (all_methods_comparison only): bar plots
-    # restricted to ``EnzymeExplorer + Foldseek + BLAST`` so the headline
-    # comparison is legible even when the full plot has 8+ methods.
-    # ------------------------------------------------------------------
-    headline_tuple = ("PLM_Domains", "Foldseek", "BLAST")
-    available = set(summary_ap["classifier"].unique())
-    headline_subset = (
-        list(headline_tuple) if all(c in available for c in headline_tuple) else None
-    )
-    if headline_subset is not None:
-        for scenario_name, class_list, multi_class, scenario_title in scenarios:
-            if multi_class:
-                continue  # only single-class headline scenarios
-            extras_ap_dir = plots_root / scenario_name / "ap"
-            extras_dlt_dir = plots_root / scenario_name / "delta"
             for ap_type in ap_types_present:
                 for ci_method in ci_methods_present:
                     sub = summary_ap[
@@ -939,94 +1134,272 @@ def _render_v4_scenarios(
                         & (summary_ap["ap_type"] == ap_type)
                         & (summary_ap["ci_method"] == ci_method)
                         & (summary_ap["class"].isin(class_list))
-                        & (summary_ap["classifier"].isin(headline_subset))
                     ].copy()
                     if sub.empty:
                         continue
                     sub = sub.rename(columns={"ci_method": "method"})
-                    # Sort the three subset classifiers by performance,
-                    # pinning EnzymeExplorer (PLM_Domains*) to the right.
-                    perf = (
-                        sub.groupby("classifier")["point"].mean()
-                           .sort_values(ascending=True).index.tolist()
-                    )
-                    ee_method = headline_subset[0]
-                    if ee_method in perf:
-                        perf = [c for c in perf if c != ee_method] + [ee_method]
+
                     ci_lo_pct = (sub["ci_low"].to_numpy() * 100.0).tolist()
                     ci_hi_pct = (sub["ci_high"].to_numpy() * 100.0).tolist()
-                    zoom_ylim = bars.compute_ci_zoom_ylim(ci_lo_pct, ci_hi_pct)
-                    fig = bars.bar_classifier(
-                        sub, target_class=class_list[0], metric=metric,
-                        classifier_order=perf, palette=palette,
-                        xtick_overrides=xtick_overrides,
-                        title=scenario_title,
-                    )
-                    theme.save_figure(
-                        fig, extras_ap_dir / f"ap_{ap_type}_{ci_method}_headline",
-                    )
-                    fig_z = bars.bar_classifier(
-                        sub, target_class=class_list[0], metric=metric,
-                        classifier_order=perf, palette=palette,
-                        xtick_overrides=xtick_overrides,
-                        title=scenario_title,
-                        ylim=zoom_ylim,
-                    )
-                    theme.save_figure(
-                        fig_z,
-                        extras_ap_dir / f"ap_{ap_type}_{ci_method}_headline_zoomed",
+                    zoom_ylim = bars.compute_ci_zoom_ylim(
+                        ci_lo_pct, ci_hi_pct,
+                        padding_frac=_zoom_padding_frac,
+                        snap_step=_zoom_snap_step,
                     )
 
-                    # Headline-subset delta forest — pairs restricted to
-                    # the three subset methods, ordered by ``perf``.
+                    bar_kw = _bar_kwargs_for(scenario_name)
+                    if multi_class:
+                        fig = bars.bar_per_class(
+                            sub,
+                            classes=class_list,
+                            classifier_order=scenario_order,
+                            metric=metric,
+                            palette=scenario_cluster_palette,
+                            xtick_overrides=xtick_overrides,
+                            title=scenario_title,
+                            **bar_kw,
+                        )
+                    else:
+                        fig = bars.bar_classifier(
+                            sub, target_class=class_list[0], metric=metric,
+                            classifier_order=scenario_order,
+                            palette=scenario_palette,
+                            xtick_overrides=xtick_overrides,
+                            title=scenario_title,
+                            **bar_kw,
+                        )
+                    theme.save_figure(fig, bar_dir / f"{ap_type}_{ci_method}")
+
+                    if multi_class:
+                        fig_z = bars.bar_per_class(
+                            sub,
+                            classes=class_list,
+                            classifier_order=scenario_order,
+                            metric=metric,
+                            palette=scenario_cluster_palette,
+                            xtick_overrides=xtick_overrides,
+                            title=scenario_title,
+                            ylim=zoom_ylim,
+                            **bar_kw,
+                        )
+                    else:
+                        fig_z = bars.bar_classifier(
+                            sub, target_class=class_list[0], metric=metric,
+                            classifier_order=scenario_order,
+                            palette=scenario_palette,
+                            xtick_overrides=xtick_overrides,
+                            title=scenario_title,
+                            ylim=zoom_ylim,
+                            **bar_kw,
+                        )
+                    theme.save_figure(
+                        fig_z, bar_dir / f"{ap_type}_{ci_method}_zoomed"
+                    )
+
+                    # Delta forest plot — one per (ap_type, ci_method).
                     if not summary_delta.empty:
-                        sd = (
+                        summary_delta_view = (
                             summary_delta.rename(columns={"ci_method": "method"})
                             if "method" not in summary_delta.columns
                             else summary_delta
                         )
-                        sd_sub = sd[
-                            sd["classifier_a"].isin(headline_subset)
-                            & sd["classifier_b"].isin(headline_subset)
-                        ].reset_index(drop=True)
-                        ld_sub = long_delta[
-                            long_delta["classifier_a"].isin(headline_subset)
-                            & long_delta["classifier_b"].isin(headline_subset)
-                        ].reset_index(drop=True)
-                        if not sd_sub.empty:
-                            pair_order = _delta_pair_order(
-                                sd_sub, classifier_rank=perf,
+                        delta_title = f"Δ {scenario_title}"
+                        pair_order = _delta_pair_order(
+                            summary_delta_view, classifier_rank=scenario_order,
+                        )
+                        delta_kw = _delta_kwargs()
+                        fig = delta_plots.plot_delta_forest(
+                            long_delta,
+                            summary_delta_view,
+                            classes=class_list,
+                            metric=metric,
+                            ap_type=ap_type,
+                            ci_method=ci_method,
+                            title=delta_title,
+                            xtick_overrides=xtick_overrides,
+                            grouped=multi_class,
+                            pair_order=pair_order,
+                            uniform_color=uniform_delta_color,
+                            **delta_kw,
+                        )
+                        theme.save_figure(fig, dlt_dir / f"{ap_type}_{ci_method}")
+
+            # P-value heatmap — one per ap_type per metric.
+            for ap_type in ap_types_present:
+                if pvalues.empty or summary_delta.empty:
+                    continue
+                fig = delta_plots.plot_pvalue_heatmap(
+                    pvalues,
+                    classes=class_list,
+                    classifiers=scenario_order,
+                    metric=metric,
+                    ap_type=ap_type,
+                    title=f"p-values — {scenario_title}",
+                    xtick_overrides=xtick_overrides,
+                )
+                theme.save_figure(fig, pv_dir / f"{ap_type}")
+
+    # ------------------------------------------------------------------
+    # Headline-subset extras — narrow the panel to a hand-picked set of
+    # methods (default ``PLM_Domains + Foldseek + BLAST`` for
+    # all_methods_comparison, disabled everywhere else). Configuration:
+    #
+    #   visualize:
+    #     headline:
+    #       enabled: true               # false -> skip this block entirely
+    #       methods: [PLM_Domains, Foldseek, BLAST]
+    #       bar_plots: {...}            # optional overrides
+    #       delta_plots: {...}
+    # ------------------------------------------------------------------
+    headline_enabled = bool(headline_cfg.get("enabled", True))
+    if headline_cfg:
+        headline_methods = list(headline_cfg.get("methods")
+                                or ("PLM_Domains", "Foldseek", "BLAST"))
+    else:
+        headline_methods = ["PLM_Domains", "Foldseek", "BLAST"]
+    available = set(summary_ap["classifier"].unique())
+    headline_subset = (
+        list(headline_methods)
+        if headline_enabled and all(c in available for c in headline_methods)
+        else None
+    )
+    headline_bar_overrides = dict(headline_cfg.get("bar_plots") or {})
+    headline_delta_overrides = dict(headline_cfg.get("delta_plots") or {})
+    if headline_subset is not None:
+        for scenario_name, class_list, multi_class, scenario_title in scenarios:
+            if multi_class:
+                continue  # only single-class headline scenarios
+            for metric in metrics_list:
+                extras_ap_dir = plots_root / scenario_name / metric / "bars"
+                extras_dlt_dir = plots_root / scenario_name / metric / "delta"
+                extras_ap_dir.mkdir(parents=True, exist_ok=True)
+                extras_dlt_dir.mkdir(parents=True, exist_ok=True)
+                for ap_type in ap_types_present:
+                    for ci_method in ci_methods_present:
+                        sub = summary_ap[
+                            (summary_ap["metric"] == metric)
+                            & (summary_ap["ap_type"] == ap_type)
+                            & (summary_ap["ci_method"] == ci_method)
+                            & (summary_ap["class"].isin(class_list))
+                            & (summary_ap["classifier"].isin(headline_subset))
+                        ].copy()
+                        if sub.empty:
+                            continue
+                        sub = sub.rename(columns={"ci_method": "method"})
+                        # Sort the three subset classifiers by performance,
+                        # pinning EnzymeExplorer (PLM_Domains*) to the right.
+                        perf = (
+                            sub.groupby("classifier")["point"].mean()
+                               .sort_values(ascending=True).index.tolist()
+                        )
+                        ee_method = headline_subset[0]
+                        if ee_method in perf:
+                            perf = [c for c in perf if c != ee_method] + [ee_method]
+                        ci_lo_pct = (sub["ci_low"].to_numpy() * 100.0).tolist()
+                        ci_hi_pct = (sub["ci_high"].to_numpy() * 100.0).tolist()
+                        zoom_ylim = bars.compute_ci_zoom_ylim(
+                        ci_lo_pct, ci_hi_pct,
+                        padding_frac=_zoom_padding_frac,
+                        snap_step=_zoom_snap_step,
+                    )
+                        headline_bar_kw = _bar_kwargs_for(
+                            scenario_name,
+                            overrides=dict(headline_bar_overrides.get(scenario_name) or {}),
+                        )
+                        fig = bars.bar_classifier(
+                            sub, target_class=class_list[0], metric=metric,
+                            classifier_order=perf, palette=palette,
+                            xtick_overrides=xtick_overrides,
+                            title=scenario_title,
+                            **headline_bar_kw,
+                        )
+                        theme.save_figure(
+                            fig, extras_ap_dir / f"{ap_type}_{ci_method}_headline",
+                        )
+                        fig_z = bars.bar_classifier(
+                            sub, target_class=class_list[0], metric=metric,
+                            classifier_order=perf, palette=palette,
+                            xtick_overrides=xtick_overrides,
+                            title=scenario_title,
+                            ylim=zoom_ylim,
+                            **headline_bar_kw,
+                        )
+                        theme.save_figure(
+                            fig_z,
+                            extras_ap_dir / f"{ap_type}_{ci_method}_headline_zoomed",
+                        )
+
+                        # Headline-subset delta forest — pairs restricted to
+                        # the three subset methods, ordered by ``perf``.
+                        if not summary_delta.empty:
+                            sd = (
+                                summary_delta.rename(columns={"ci_method": "method"})
+                                if "method" not in summary_delta.columns
+                                else summary_delta
                             )
-                            delta_title = re.sub(
-                                r"\b(m?AP)\b", r"Δ \1", scenario_title, count=1,
-                            )
-                            fig_d = delta_plots.plot_delta_forest(
-                                ld_sub, sd_sub,
-                                classes=class_list,
-                                metric=metric,
-                                ap_type=ap_type,
-                                ci_method=ci_method,
-                                title=delta_title,
-                                xtick_overrides=xtick_overrides,
-                                grouped=False,
-                                pair_order=pair_order,
-                            )
-                            theme.save_figure(
-                                fig_d,
-                                extras_dlt_dir / f"delta_{ap_type}_{ci_method}_headline",
-                            )
+                            sd_sub = sd[
+                                sd["classifier_a"].isin(headline_subset)
+                                & sd["classifier_b"].isin(headline_subset)
+                            ].reset_index(drop=True)
+                            ld_sub = long_delta[
+                                long_delta["classifier_a"].isin(headline_subset)
+                                & long_delta["classifier_b"].isin(headline_subset)
+                            ].reset_index(drop=True)
+                            if not sd_sub.empty:
+                                pair_order = _delta_pair_order(
+                                    sd_sub, classifier_rank=perf,
+                                )
+                                delta_title = f"Δ {scenario_title}"
+                                headline_delta_kw = _delta_kwargs(
+                                    overrides=headline_delta_overrides,
+                                )
+                                fig_d = delta_plots.plot_delta_forest(
+                                    ld_sub, sd_sub,
+                                    classes=class_list,
+                                    metric=metric,
+                                    ap_type=ap_type,
+                                    ci_method=ci_method,
+                                    title=delta_title,
+                                    xtick_overrides=xtick_overrides,
+                                    grouped=False,
+                                    pair_order=pair_order,
+                                    uniform_color=uniform_delta_color,
+                                    **headline_delta_kw,
+                                )
+                                theme.save_figure(
+                                    fig_d,
+                                    extras_dlt_dir / f"{ap_type}_{ci_method}_headline",
+                                )
 
     logger.info("Wrote v4 scenario plots to %s", plots_root)
 
 
 def _resolve_visualize_cfg(eval_dir: Path, args: argparse.Namespace) -> dict:
-    """Merge the YAML ``visualize:`` block with CLI args. CLI overrides YAML."""
+    """Merge the YAML ``visualize:`` block with CLI args. CLI overrides YAML.
+
+    When ``--config`` is passed on the CLI, the ``visualize:`` block is
+    re-read from that source YAML instead of the ``eval_config.yaml``
+    snapshot saved during ``evaluate`` — this lets users iterate on
+    styling (bar widths, headline, etc.) without re-running bootstrap.
+    Non-visualize sections (classifier definitions, bootstrap params)
+    are always taken from the snapshot so cached draws stay valid.
+    """
     cfg = yaml.safe_load((eval_dir / "eval_config.yaml").read_text())
     vcfg = dict(cfg.get("visualize", {}) or {})
+    if getattr(args, "config", None):
+        src = yaml.safe_load(Path(args.config).read_text())
+        src_vcfg = dict((src or {}).get("visualize", {}) or {})
+        if src_vcfg:
+            vcfg = src_vcfg
+            logger.info("Using visualize block from --config %s (bootstrap "
+                        "artefacts + classifier definitions still come from "
+                        "the eval_config.yaml snapshot).", args.config)
     if args.plots is not None:
         vcfg["plots"] = list(args.plots)
     if args.metric is not None:
         vcfg["metric"] = args.metric
+    if getattr(args, "metrics", None):
+        vcfg["metrics"] = list(args.metrics)
     if args.classifier_order:
         vcfg["classifier_order"] = list(args.classifier_order)
     if args.pin_last:
@@ -1054,6 +1427,73 @@ def _resolve_visualize_cfg(eval_dir: Path, args: argparse.Namespace) -> dict:
     return vcfg
 
 
+def run_calibrate(args: argparse.Namespace) -> None:
+    """Dedicated calibration entry point.
+
+    Resolves classifier versions, loads fold prediction pickles, then
+    fits the per-(classifier, class) calibrators via
+    :func:`_run_calibration_evaluate`. Writes to the same output tree as
+    ``evaluate`` (``outputs/evaluation_results/<output_name>/``) so
+    ``visualize --eval-output-name <name>`` renders the calibration
+    plots from these artefacts unchanged.
+    """
+    cfg = _load_yaml_with_includes(Path(args.config))
+    if not cfg.get("calibration"):
+        raise ValueError(
+            f"Config {args.config} has no ``calibration:`` block. "
+            "Use ``evaluate`` for bootstrap-only configs."
+        )
+    out_dir = get_evaluations_output() / args.output_name
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    with _timed(
+        f"resolve classifier specs + load fold pickles "
+        f"({len(cfg['classifiers'])} classifiers)"
+    ):
+        classifier_to_dfs, _, resolved = _build_classifier_dfs(cfg)
+
+    with open(out_dir / "resolved_versions.yaml", "w", encoding="utf-8") as fh:
+        yaml.safe_dump(resolved, fh, sort_keys=False)
+    with open(out_dir / "eval_config.yaml", "w", encoding="utf-8") as fh:
+        yaml.safe_dump(cfg, fh, sort_keys=False)
+
+    with _timed(
+        "calibration fitting (LOFO family selection + cluster bootstrap ribbon)"
+    ):
+        _run_calibration_evaluate(cfg, out_dir, classifier_to_dfs)
+
+    # Publish the fresh fit_summary to ``data/calibration_fit_summary.csv``
+    # — the default path the prediction pipeline reads (see
+    # ``prediction/pipeline.DEFAULT_CALIBRATION_CSV``). This is what makes
+    # ``calibrate`` a one-shot: after it succeeds the deployed prediction
+    # entry points pick up the new calibrators without any manual copy.
+    # ``--no-publish`` opts out — sanity re-runs write a side-by-side
+    # ``_rerun_*`` output dir and MUST NOT clobber the canonical deploy
+    # table with numbers that are only meant for diff-vs-canonical.
+    fit_summary_src = out_dir / "calibration" / "fit_summary.csv"
+    if getattr(args, "no_publish", False):
+        logger.info(
+            "--no-publish set — leaving data/calibration_fit_summary.csv "
+            "untouched (fit_summary still saved under %s).",
+            fit_summary_src,
+        )
+    elif fit_summary_src.exists():
+        from enzymeexplorer.src.utils.project_info import get_data_root
+        published = get_data_root() / "calibration_fit_summary.csv"
+        published.parent.mkdir(parents=True, exist_ok=True)
+        published.write_bytes(fit_summary_src.read_bytes())
+        logger.info(
+            "Published fit_summary to %s (%d bytes) — prediction pipeline "
+            "will now use these calibrators by default.",
+            published, published.stat().st_size,
+        )
+    else:
+        logger.warning(
+            "No fit_summary.csv at %s — nothing to publish to data/.",
+            fit_summary_src,
+        )
+
+
 def run_visualize(args: argparse.Namespace) -> None:
     eval_dir = get_evaluations_output() / args.eval_output_name
     if not eval_dir.exists():
@@ -1068,30 +1508,19 @@ def run_visualize(args: argparse.Namespace) -> None:
     long_ap = pd.read_csv(long_ap_path) if long_ap_path.exists() else pd.DataFrame()
     long_delta = pd.read_csv(long_delta_path) if long_delta_path.exists() else pd.DataFrame()
 
-    # Backwards-compatible view: legacy run_visualize body downstream
-    # expects a single ``summary`` DataFrame with columns
-    # ``classifier, class, metric, point, ci_low, ci_high``. Derive it
-    # from summary_ap by selecting one (ap_type, ci_method) — defaults
-    # to the canonical (fold_mean, normal) pairing the user reports as
-    # the headline statistic.
-    if not summary_ap.empty:
-        legacy_view = summary_ap[
+    # Downstream plotting expects a ``summary`` DataFrame with
+    # ``classifier, class, metric, point, ci_low, ci_high`` columns.
+    # Derive it from summary_ap by pinning (ap_type, ci_method) to the
+    # canonical headline statistic (fold_mean, normal).
+    if summary_ap.empty:
+        summary = pd.DataFrame()
+    else:
+        summary = summary_ap[
             (summary_ap["ap_type"] == "fold_mean")
             & (summary_ap["ci_method"] == "normal")
         ].copy()
-        # The legacy summary used ``method`` not ``ci_method``; the bar
-        # functions only read ``point/ci_low/ci_high`` so this rename is
-        # a no-op for them, but kept for callers that depend on it.
-        legacy_view = legacy_view.rename(columns={"ci_method": "method"})
-        summary = legacy_view
-    else:
-        # Fallback: if a stale eval dir still has summary.csv, use it.
-        summary = pd.read_csv(eval_dir / "summary.csv") if (eval_dir / "summary.csv").exists() else pd.DataFrame()
 
-    bootstrap_long_path = eval_dir / "bootstrap_long.csv"
-    bootstrap_long = (
-        pd.read_csv(bootstrap_long_path) if bootstrap_long_path.exists() else None
-    )
+    bootstrap_long = None
     poster = bool(getattr(args, "poster", False))
     plots_subdir = "plots_poster" if poster else "plots"
     plots_dir = eval_dir / plots_subdir
@@ -1118,6 +1547,13 @@ def run_visualize(args: argparse.Namespace) -> None:
         and not summary_ap.empty
         and not long_ap.empty
     ):
+        # Feed the RESOLVED visualize block into the renderer so
+        # ``--config`` overrides propagate; other cfg sections come
+        # from the snapshot (unchanged by --config on purpose).
+        _cfg_for_render = yaml.safe_load(
+            (eval_dir / "eval_config.yaml").read_text()
+        )
+        _cfg_for_render["visualize"] = dict(vcfg)
         _render_v4_scenarios(
             eval_dir=eval_dir,
             summary_ap=summary_ap,
@@ -1125,7 +1561,7 @@ def run_visualize(args: argparse.Namespace) -> None:
             long_ap=long_ap,
             long_delta=long_delta,
             pvalues=pvalues,
-            cfg=yaml.safe_load((eval_dir / "eval_config.yaml").read_text()),
+            cfg=_cfg_for_render,
             plot_set=v4_scenarios_in_plot_set,
             plots_subdir=plots_subdir,
         )
@@ -1134,6 +1570,64 @@ def run_visualize(args: argparse.Namespace) -> None:
     xtick_overrides = dict(vcfg.get("ablation_xtick_overrides") or {})
     yaml_palette = dict(vcfg.get("palette") or {}) or None
     fixed_order = bool(vcfg.get("fixed_classifier_order")) or bool(vcfg.get("classifier_order"))
+    # NCB curve/palette knobs (see visualize schema in module docstring).
+    palette_mode = vcfg.get("palette_mode", "auto")
+    curve_figsize = vcfg.get("curve_figsize")
+    curve_figsize = tuple(curve_figsize) if curve_figsize else None
+
+    # Per-curve-type overrides: figsize + linewidth. Keys:
+    #   pr_curves, roc_curves, pr_per_class, pr_substrate, roc_substrate
+    # Fallback: legacy ``curve_figsize`` (top-level scalar) applies to any
+    # curve without an explicit figsize; linewidth default is 1.6.
+    curve_plot_cfg = dict(vcfg.get("curves") or {})
+
+    def _curve_kwargs(name: str, *, overrides: dict | None = None) -> dict:
+        cfg_here = dict(curve_plot_cfg.get(name) or {})
+        if overrides:
+            cfg_here.update(overrides)
+        fs = cfg_here.get("figsize") or curve_figsize
+        out: dict = {}
+        if fs:
+            out["figsize"] = tuple(fs)
+        if "linewidth" in cfg_here:
+            out["linewidth"] = float(cfg_here["linewidth"])
+        if "title_fontsize" in cfg_here:
+            out["title_fontsize"] = float(cfg_here["title_fontsize"])
+        return out
+
+    # Per-category-plot overrides. Keys:
+    #   category_plots:
+    #     boxplot: {figsize: [W,H], box_width: 0.66, linewidth: 0.5,
+    #               edge_linewidth: 0.45, flier_size: 1.5, showfliers: true}
+    #     heatmap: {figsize: [W,H]}
+    category_plot_cfg = dict(vcfg.get("category_plots") or {})
+
+    def _cat_kwargs(kind: str) -> dict:
+        cfg_here = dict(category_plot_cfg.get(kind) or {})
+        out: dict = {}
+        fs = cfg_here.get("figsize")
+        if fs:
+            out["figsize"] = tuple(fs)
+        if kind == "boxplot":
+            for k in ("box_width", "linewidth", "edge_linewidth", "flier_size",
+                      "xtick_fontsize", "ytick_fontsize", "title_fontsize",
+                      "intra_box_gap"):
+                if k in cfg_here:
+                    out[k] = float(cfg_here[k])
+            if "showfliers" in cfg_here:
+                out["showfliers"] = bool(cfg_here["showfliers"])
+        elif kind == "heatmap":
+            if "title_fontsize" in cfg_here:
+                out["title_fontsize"] = float(cfg_here["title_fontsize"])
+        return out
+
+    # Headline block (defined once for the whole visualize call; reused
+    # by both bars/deltas in _render_v4_scenarios and curves below).
+    _headline_cfg = dict(vcfg.get("headline") or {})
+    _headline_enabled = bool(_headline_cfg.get("enabled", True))
+    _headline_methods = list(_headline_cfg.get("methods")
+                             or ("PLM_Domains", "Foldseek", "BLAST"))
+    _headline_curve_overrides = dict(_headline_cfg.get("curves") or {})
 
     eval_cfg_for_order = yaml.safe_load((eval_dir / "eval_config.yaml").read_text())
     classifier_order = _apply_pin_last(
@@ -1152,6 +1646,25 @@ def run_visualize(args: argparse.Namespace) -> None:
         curves_dir = plots_dir / "curves"
         curves_dir.mkdir(parents=True, exist_ok=True)
 
+        # Resolve the palette actually used for curve panels. YAML wins
+        # if the user pinned specific keys; otherwise a per-mode default
+        # (NCB all-methods: class colours with grey shades for the
+        # "everything else" bucket; NCB ablation: Blues ramp across the
+        # ordered classifier list; legacy auto: model-family palette).
+        curve_palette: dict[str, str] | None
+        if palette_mode == "all_methods":
+            curve_palette = theme.ncb_all_methods_curve_palette(classifier_order)
+        elif palette_mode == "ablation":
+            # Same rule as the ablation bars: lightest green on the left,
+            # darkest green (== NCB_GREEN) on the right where the pinned
+            # "final" model sits.
+            shades = theme.ncb_curve_shades(classifier_order, hue="green")
+            curve_palette = {c: h for c, h in zip(classifier_order, shades)}
+        else:
+            curve_palette = yaml_palette
+        if yaml_palette and curve_palette is not None:
+            curve_palette = {**curve_palette, **yaml_palette}
+
         if "pr_curves" in plot_set:
             for tgt in vcfg.get("curve_classes", ["TPS"]):
                 eligible = [c for c in classifier_order if tgt in pooled.get(c, {})]
@@ -1159,8 +1672,9 @@ def run_visualize(args: argparse.Namespace) -> None:
                     continue
                 fig = curves.plot_pr_curves(
                     pooled, target_class=tgt, classifier_order=eligible,
-                    palette=yaml_palette,
+                    palette=curve_palette,
                     title=f"{tgt} — Precision-Recall curve",
+                    **_curve_kwargs("pr_curves"),
                 )
                 theme.save_figure(fig, curves_dir / f"pr_{tgt}")
         if "roc_curves" in plot_set:
@@ -1170,8 +1684,9 @@ def run_visualize(args: argparse.Namespace) -> None:
                     continue
                 fig = curves.plot_roc_curves(
                     pooled, target_class=tgt, classifier_order=eligible,
-                    palette=yaml_palette,
+                    palette=curve_palette,
                     title=f"{tgt} — ROC curve",
+                    **_curve_kwargs("roc_curves"),
                 )
                 theme.save_figure(fig, curves_dir / f"roc_{tgt}")
         if "pr_per_class" in plot_set:
@@ -1181,6 +1696,7 @@ def run_visualize(args: argparse.Namespace) -> None:
                     pooled[tgt_clf],
                     classes=DEFAULT_PLOT_ORDER,
                     title=f"{theme.display_name(tgt_clf)} — PR curves per substrate",
+                    **_curve_kwargs("pr_per_class"),
                 )
                 theme.save_figure(fig, curves_dir / f"pr_per_class_{tgt_clf}")
         if "pr_substrate" in plot_set:
@@ -1189,11 +1705,12 @@ def run_visualize(args: argparse.Namespace) -> None:
                 if any(cls in pooled.get(c, {}) for cls in SUBSTRATE_CLASSES)
             ]
             if eligible:
-                fig = curves.plot_micro_pr_curves(
+                fig = curves.plot_macro_pr_curves(
                     pooled, classes=SUBSTRATE_CLASSES,
                     classifier_order=eligible,
-                    palette=yaml_palette,
+                    palette=curve_palette,
                     title="Substrate prediction — PR curve",
+                    **_curve_kwargs("pr_substrate"),
                 )
                 theme.save_figure(fig, curves_dir / "pr_substrate")
         if "roc_substrate" in plot_set:
@@ -1202,13 +1719,100 @@ def run_visualize(args: argparse.Namespace) -> None:
                 if any(cls in pooled.get(c, {}) for cls in SUBSTRATE_CLASSES)
             ]
             if eligible:
-                fig = curves.plot_micro_roc_curves(
+                fig = curves.plot_macro_roc_curves(
                     pooled, classes=SUBSTRATE_CLASSES,
                     classifier_order=eligible,
-                    palette=yaml_palette,
+                    palette=curve_palette,
                     title="Substrate prediction — ROC curve",
+                    **_curve_kwargs("roc_substrate"),
                 )
                 theme.save_figure(fig, curves_dir / "roc_substrate")
+
+        # --------------------------------------------------------------
+        # Headline-restricted curve companions. Same layout as the full
+        # panels but the ``classifier_order`` is filtered to
+        # ``headline.methods``. Per-curve overrides come from
+        # ``headline.curves.<name>`` and win over ``curves.<name>``.
+        # Files land next to the full panels with a ``_headline`` suffix.
+        # --------------------------------------------------------------
+        headline_curve_methods = [
+            m for m in _headline_methods if m in classifier_order
+        ]
+        if (
+            _headline_enabled
+            and len(headline_curve_methods) >= 2
+            and pooled is not None
+        ):
+            def _hl_curve_kw(name: str) -> dict:
+                return _curve_kwargs(
+                    name, overrides=_headline_curve_overrides.get(name) or {},
+                )
+
+            hl_classifier_order = [
+                c for c in classifier_order if c in headline_curve_methods
+            ]
+            if palette_mode == "all_methods":
+                hl_palette = theme.ncb_all_methods_curve_palette(hl_classifier_order)
+            elif palette_mode == "ablation":
+                shades = theme.ncb_curve_shades(hl_classifier_order, hue="green")
+                hl_palette = {c: h for c, h in zip(hl_classifier_order, shades)}
+            else:
+                hl_palette = curve_palette
+
+            if "pr_curves" in plot_set:
+                for tgt in vcfg.get("curve_classes", ["TPS"]):
+                    eligible = [c for c in hl_classifier_order
+                                if tgt in pooled.get(c, {})]
+                    if len(eligible) < 2:
+                        continue
+                    fig = curves.plot_pr_curves(
+                        pooled, target_class=tgt, classifier_order=eligible,
+                        palette=hl_palette,
+                        title=f"{tgt} — Precision-Recall curve",
+                        **_hl_curve_kw("pr_curves"),
+                    )
+                    theme.save_figure(fig, curves_dir / f"pr_{tgt}_headline")
+            if "roc_curves" in plot_set:
+                for tgt in vcfg.get("curve_classes", ["TPS"]):
+                    eligible = [c for c in hl_classifier_order
+                                if tgt in pooled.get(c, {})]
+                    if len(eligible) < 2:
+                        continue
+                    fig = curves.plot_roc_curves(
+                        pooled, target_class=tgt, classifier_order=eligible,
+                        palette=hl_palette,
+                        title=f"{tgt} — ROC curve",
+                        **_hl_curve_kw("roc_curves"),
+                    )
+                    theme.save_figure(fig, curves_dir / f"roc_{tgt}_headline")
+            if "pr_substrate" in plot_set:
+                eligible = [
+                    c for c in hl_classifier_order
+                    if any(cls in pooled.get(c, {}) for cls in SUBSTRATE_CLASSES)
+                ]
+                if len(eligible) >= 2:
+                    fig = curves.plot_macro_pr_curves(
+                        pooled, classes=SUBSTRATE_CLASSES,
+                        classifier_order=eligible,
+                        palette=hl_palette,
+                        title="Substrate prediction — PR curve",
+                        **_hl_curve_kw("pr_substrate"),
+                    )
+                    theme.save_figure(fig, curves_dir / "pr_substrate_headline")
+            if "roc_substrate" in plot_set:
+                eligible = [
+                    c for c in hl_classifier_order
+                    if any(cls in pooled.get(c, {}) for cls in SUBSTRATE_CLASSES)
+                ]
+                if len(eligible) >= 2:
+                    fig = curves.plot_macro_roc_curves(
+                        pooled, classes=SUBSTRATE_CLASSES,
+                        classifier_order=eligible,
+                        palette=hl_palette,
+                        title="Substrate prediction — ROC curve",
+                        **_hl_curve_kw("roc_substrate"),
+                    )
+                    theme.save_figure(fig, curves_dir / "roc_substrate_headline")
 
     # ------------------------------------------------------------------
     # v4 categorical plots (Kingdom + TPS_Type) → plots/categories/<name>/
@@ -1362,6 +1966,7 @@ def run_visualize(args: argparse.Namespace) -> None:
                             pin_last=pin_last,
                             title=f"{target_pretty} per {cat_pretty}",
                             xlabel="",
+                            **_cat_kwargs("boxplot"),
                         )
                         theme.save_figure(
                             fig,
@@ -1383,6 +1988,7 @@ def run_visualize(args: argparse.Namespace) -> None:
                             classifier_subset=classifier_order,
                             pin_last=pin_last,
                             title=f"{target_pretty} per {cat_pretty}",
+                            **_cat_kwargs("heatmap"),
                         )
                         theme.save_figure(
                             fig,
@@ -1415,6 +2021,8 @@ def run_visualize(args: argparse.Namespace) -> None:
 
             metrics_df = _read_csv("metrics.csv")
             reliability_df = _read_csv("reliability.csv")
+            reliability_pf_df = _read_csv("reliability_per_fold.csv")
+            ribbon_coverage_df = _read_csv("ribbon_coverage.csv")
             per_fold_df = _read_csv("per_fold_params.csv")
             drift_df = _read_csv("fold_drift_summary.csv")
             hard_df = _read_csv("hard_errors.csv")
@@ -1521,6 +2129,36 @@ def run_visualize(args: argparse.Namespace) -> None:
                         except (ValueError, KeyError) as exc:
                             logger.warning(
                                 "Skipping reliability for %s/%s: %s",
+                                clf, cls, exc,
+                            )
+
+                    # Curve-overlap plot: 5 per-fold LOFO curves +
+                    # deployment fit + seq-id cluster bootstrap ribbon.
+                    if not rib.empty or not reliability_pf_df.empty:
+                        try:
+                            rel_pf = reliability_pf_df[
+                                (reliability_pf_df["classifier"] == clf)
+                                & (reliability_pf_df["target_class"] == cls)
+                            ] if not reliability_pf_df.empty else pd.DataFrame()
+                            cov_row = ribbon_coverage_df[
+                                (ribbon_coverage_df["classifier"] == clf)
+                                & (ribbon_coverage_df["target_class"] == cls)
+                            ] if not ribbon_coverage_df.empty else pd.DataFrame()
+                            pct_outside = (
+                                float(cov_row.iloc[0]["pct_deployment_outside_ribbon"])
+                                if not cov_row.empty else None
+                            )
+                            fig = cal_plots.plot_curve_overlap(
+                                rib, rel_pf, rel,
+                                classifier=clf, target_class=cls,
+                                coverage_pct_outside=pct_outside,
+                            )
+                            theme.save_figure(
+                                fig, cal_plot_dir / f"curve_overlap_{stem}",
+                            )
+                        except (ValueError, KeyError) as exc:
+                            logger.warning(
+                                "Skipping curve-overlap for %s/%s: %s",
                                 clf, cls, exc,
                             )
 
@@ -1650,6 +2288,24 @@ def add_evaluate_subparser(subparsers: argparse._SubParsersAction) -> None:
     )
 
 
+def add_calibrate_subparser(subparsers: argparse._SubParsersAction) -> None:
+    parser = subparsers.add_parser(
+        "calibrate",
+        help="Fit per-(classifier, class) calibrators from OOF predictions",
+    )
+    parser.set_defaults(cmd="calibrate")
+    parser.add_argument("--config", required=True, type=str)
+    parser.add_argument("--output-name", required=True, type=str)
+    parser.add_argument(
+        "--no-publish", action="store_true",
+        help=(
+            "Skip copying fit_summary.csv to data/calibration_fit_summary.csv. "
+            "Used by sanity re-runs so the canonical deploy table stays "
+            "untouched."
+        ),
+    )
+
+
 def add_visualize_subparser(subparsers: argparse._SubParsersAction) -> None:
     parser = subparsers.add_parser(
         "visualize", help="Render plots from a saved evaluation run"
@@ -1657,11 +2313,24 @@ def add_visualize_subparser(subparsers: argparse._SubParsersAction) -> None:
     parser.set_defaults(cmd="visualize")
     parser.add_argument("--eval-output-name", required=True, type=str)
     parser.add_argument(
+        "--config", type=str, default=None,
+        help="Source YAML to use instead of the eval_config.yaml snapshot "
+             "saved during evaluate. Useful for iterating on visualize "
+             "styling (bar widths, headline, etc.) without re-running "
+             "bootstrap. Only ``visualize:`` keys are re-read from this "
+             "file — classifier definitions / bootstrap params still come "
+             "from the snapshot so cached draws remain valid.",
+    )
+    parser.add_argument(
         "--plots", nargs="+", choices=PLOTS_AVAILABLE, default=None,
         help="Plot names to render. Defaults to the set in the YAML "
              "visualize block, or all available."
     )
-    parser.add_argument("--metric", choices=("ap", "roc_auc"), default=None)
+    parser.add_argument("--metric", choices=("ap", "roc_auc", "mcc_f1"), default=None,
+                        help="Legacy single-metric override; use --metrics for multi.")
+    parser.add_argument("--metrics", nargs="+",
+                        choices=("ap", "roc_auc", "mcc_f1"), default=None,
+                        help="Metrics to render (bars + delta + p-values per metric).")
     parser.add_argument("--classifier-order", nargs="+", default=None)
     parser.add_argument(
         "--pin-last", type=str, default=None,

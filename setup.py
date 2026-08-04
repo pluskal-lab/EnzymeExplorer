@@ -16,22 +16,26 @@ setup(
     packages=find_packages(),
     entry_points={
         "console_scripts": [
-            "get_mmseqs_based_folds=enzymeexplorer.src.data_preparation.get_mmseqs_based_clusters:main",
-            "get_uniprot_sample=enzymeexplorer.src.data_preparation.get_uniprot_sample:main",
-            "get_phylogeny_based_clusters=enzymeexplorer.src.data_preparation.get_phylogeny_based_clusters:main",
+            "prepare_dataset=enzymeexplorer.src.data_preparation.prepare_dataset:main",
             "detect_domains=enzymeexplorer.src.structure_processing.domain_detections:main",
+            "run_hac_domain_clustering=scripts.run_hac_domain_clustering:main",
+            "run_dynamic_tree_cut_sweep=scripts.run_dynamic_tree_cut_sweep:main",
+            "run_domain_subtype_labeling=scripts.run_domain_subtype_labeling:main",
             "structural_features=enzymeexplorer.src.structure_processing.get_structural_features:main",
             "predict_with_structures=enzymeexplorer.src.prediction.predict_with_structures:main",
             "predict_sequences_only=enzymeexplorer.src.prediction.predict_sequences_only:main",
             "gather_plm_embeddings=enzymeexplorer.src.embeddings_extraction.gather_required_embs:main",
             "plm_embeddings=enzymeexplorer.src.embeddings_extraction.transformer_embs:main",
-            "enzyme_explorer_main=enzymeexplorer.src.terpene_miner_main:main",
+            "enzyme_explorer_main=enzymeexplorer.src.enzyme_explorer_main:main",
         ],
     },
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
+    ],
+    install_requires=[
+        "configargparse",
     ],
     python_requires="==3.10.0",
 )

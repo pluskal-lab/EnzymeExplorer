@@ -4,7 +4,7 @@ Centralises seaborn / matplotlib defaults and exposes palette builders so
 every chart in the evaluation pipeline draws from the same colour vocabulary.
 The default per-class palette is Wong's 8-colour set (extended to 10 via
 seaborn's ``colorblind`` palette); model-family palettes use sequential
-single-hue ramps (``Blues`` for HBI baselines, ``Greens`` for the
+single-hue ramps (``Blues`` for homology baselines, ``Greens`` for the
 EnzymeExplorer family) which remain distinguishable under deuteranopia and
 protanopia.
 """
@@ -29,7 +29,7 @@ WONG_COLORS: list[str] = [
     "#CC79A7",  # reddish purple
 ]
 
-DEFAULT_HBI_BASELINES: list[str] = [
+DEFAULT_HOMOLOGY_BASELINES: list[str] = [
     "HMM", "SUPFAM", "PFAM", "FoldSeek", "Foldseek", "BLAST", "Blastp"
 ]
 DEFAULT_EE_FAMILY: list[str] = [
@@ -37,13 +37,13 @@ DEFAULT_EE_FAMILY: list[str] = [
 ]
 
 DEFAULT_CLASSIFIER_DISPLAY: dict[str, str] = {
-    "PLM_Domains": "EnzymeExplorer",
-    "Domains": "EnzymeExplorer\nDomains",
-    "PLM": "EnzymeExplorer\nPLM",
+    "PLM_Domains": "Enzyme\nExplorer",
+    "Domains": "Enzyme\nExplorer\nDomains",
+    "PLM": "Enzyme\nExplorer\nPLM",
     "BLAST": "BLASTp",
     "Blastp": "BLASTp",
-    "FoldSeek": "FoldSeek",
-    "Foldseek": "FoldSeek",
+    "FoldSeek": "Foldseek",
+    "Foldseek": "Foldseek",
     "HMM": "pHMM",
     "PFAM": "Pfam",
     "SUPFAM": "SUPFAM",
@@ -81,10 +81,10 @@ UNIVERSAL_PALETTE: dict[str, str] = {
     # can be told apart in print, in greyscale, and by red-green
     # colorblind viewers.
     # Ablation triplet (Domains/PLM/PLM_Domains).
-    "Domains": "#0072B2",        # blue
-    "PLM": "#D55E00",            # vermillion
+    "Domains": "#A2F1DC",        # blue
+    "PLM": "#74D3BA",            # vermillion
     "PLM_Domains": "#009E73",    # green
-    # HBI baselines & comparators.
+    # homology baselines & comparators.
     "BLAST": "#0072B2",          # blue (sequence search)
     "Blastp": "#0072B2",
     "Foldseek": "#56B4E9",       # sky blue (structure search)
@@ -178,6 +178,149 @@ def grid_color() -> str:
 # user wants a single-method-vs-baselines visual story.
 POSTER_PRIMARY_BLUE: str = "#08519c"
 POSTER_SECONDARY_BLUE: str = "#9ecae1"
+
+
+# ---------------------------------------------------------------------------
+# Nature Chemical Biology palettes (colorblind-safe, Wong 2011)
+# ---------------------------------------------------------------------------
+
+# All-methods bars: EnzymeExplorer green, BLAST sky, Foldseek blue,
+# everything else neutral grey. Delta bars: uniform sky blue everywhere
+# (both all-methods and ablation).
+NCB_GREEN:      str = "#009E73"   # Wong "bluish green" — EnzymeExplorer
+NCB_SKY:        str = "#56B4E9"   # Wong "sky blue"     — BLAST + all deltas
+NCB_BLUE:       str = "#0072B2"   # Wong "blue"         — Foldseek
+NCB_GREY:       str = "#8C8C8C"   # neutral grey        — every other baseline
+
+
+def ncb_all_methods_palette(classifiers: list[str]) -> dict[str, str]:
+    """Bar palette for the all-methods NCB figure.
+
+    EnzymeExplorer (``PLM_Domains`` and its Enzyme_Explorer aliases)
+    always renders green, BLAST/BLASTp light blue, Foldseek dark blue,
+    and every other method neutral grey. Colorblind-safe (Wong).
+    """
+    ee_family  = {"PLM_Domains", "Domains", "PLM"}
+    blast_set  = {"BLAST", "Blastp"}
+    fs_set     = {"Foldseek", "FoldSeek"}
+    out: dict[str, str] = {}
+    for c in classifiers:
+        if c in ee_family:
+            out[c] = NCB_GREEN
+        elif c in blast_set:
+            out[c] = NCB_SKY
+        elif c in fs_set:
+            out[c] = NCB_BLUE
+        else:
+            out[c] = NCB_GREY
+    return out
+
+
+def ee_green_ramp(n: int, *, lightest_frac: float = 0.75) -> list[str]:
+    """Return ``n`` sequential shades ending at :data:`NCB_GREEN`.
+
+    Every shade is a lightness-only mix between ``NCB_GREEN`` (Wong
+    bluish green, ``#009E73``) and white. Because all shades share the
+    same chromatic direction and only differ in lightness, they are
+    colorblind-safe under every dichromacy — sequential single-hue
+    ramps are the standard accessibility recommendation for ordinal
+    data (ColorBrewer, Wong 2011).
+
+    ``lightest_frac`` controls how close to white the FIRST shade sits;
+    at ``0.75`` the leftmost shade is a very pale green while the
+    rightmost is ``NCB_GREEN`` itself.
+    """
+    if n <= 0:
+        return []
+    if n == 1:
+        return [NCB_GREEN]
+    base = mpl.colors.to_rgb(NCB_GREEN)
+    white = (1.0, 1.0, 1.0)
+    ramp: list[str] = []
+    for i in range(n):
+        # i = 0 → most white; i = n-1 → pure NCB_GREEN.
+        t = i / (n - 1)
+        mix = lightest_frac * (1 - t)  # fraction of white in the mix
+        rgb = tuple(base[k] * (1 - mix) + white[k] * mix for k in range(3))
+        ramp.append(mpl.colors.to_hex(rgb))
+    return ramp
+
+
+# Ablation uses shades of the same EnzymeExplorer green from the
+# all-methods plot: the darkest (== NCB_GREEN) at the RIGHT end of the
+# classifier order (typically the pinned "final" model), fading toward
+# white on the LEFT. Callers pass ``classifiers`` in plot order.
+NCB_ABLATION_LIGHT_GREEN: str = ee_green_ramp(4)[1]  # pale but distinct green
+
+
+def ncb_ablation_palette(classifiers: list[str]) -> dict[str, str]:
+    """EnzymeExplorer-green ramp for ablation bar plots.
+
+    Lightest green is assigned to the *first* classifier in the input
+    list (typically the worst-performing method), pure ``NCB_GREEN``
+    to the last (typically the pinned "final" model). Same colorblind-
+    safe accessibility guarantee as :func:`ee_green_ramp`.
+    """
+    return dict(zip(classifiers, ee_green_ramp(len(classifiers))))
+
+
+def ncb_all_methods_curve_palette(classifiers: list[str]) -> dict[str, str]:
+    """Curve palette for the NCB all-methods figure.
+
+    EnzymeExplorer green / BLAST sky / Foldseek blue keep their identity
+    colours; every OTHER method (currently grouped as neutral grey in
+    the bars) gets a distinct shade of grey so the lines can be told
+    apart on a shared-axis curve panel.
+    """
+    ee_family = {"PLM_Domains", "Domains", "PLM"}
+    blast_set = {"BLAST", "Blastp"}
+    fs_set    = {"Foldseek", "FoldSeek"}
+    out: dict[str, str] = {}
+    others: list[str] = []
+    for c in classifiers:
+        if c in ee_family:
+            out[c] = NCB_GREEN
+        elif c in blast_set:
+            out[c] = NCB_SKY
+        elif c in fs_set:
+            out[c] = NCB_BLUE
+        else:
+            others.append(c)
+    if others:
+        # Distinct shades of grey for the "everything-else" bucket.
+        grey_shades = ncb_curve_shades(others, hue="grey")
+        for c, g in zip(others, grey_shades):
+            out[c] = g
+    return out
+
+
+def ncb_curve_shades(classifiers: list[str], *, hue: str = "blue") -> list[str]:
+    """Return sequential shades of one hue for curve panels.
+
+    * ``hue="green"`` → Wong-derived ramp ending at :data:`NCB_GREEN`
+      (via :func:`ee_green_ramp`) so ablation curves use the same
+      EnzymeExplorer green family as the all-methods figure. Colorblind-
+      safe (single-hue lightness ramp, Wong 2011).
+    * Any other hue → the ColorBrewer sequential ramp for that hue
+      (still single-hue, still colorblind-safe).
+    """
+    if hue == "green":
+        return ee_green_ramp(max(1, len(classifiers)))
+    import matplotlib as _mpl
+    n = max(1, len(classifiers))
+    cmap = _mpl.colormaps.get_cmap({
+        "blue": "Blues", "green": "Greens", "orange": "Oranges", "grey": "Greys",
+    }.get(hue, "Blues"))
+    stops = _np_linspace(0.30, 0.95, n)
+    return [_mpl.colors.to_hex(cmap(t)) for t in stops]
+
+
+def _np_linspace(a: float, b: float, n: int) -> list[float]:
+    """Tiny helper to avoid a numpy import inside theme.py."""
+    if n <= 1:
+        return [b]
+    step = (b - a) / (n - 1)
+    return [a + i * step for i in range(n)]
 
 
 def poster_two_tone_palette(
@@ -317,23 +460,23 @@ def class_palette(class_names: list[str]) -> dict[str, tuple[float, float, float
 def model_family_palette(
     classifiers: list[str],
     *,
-    hbi: list[str] | None = None,
+    homology: list[str] | None = None,
     ee_family: list[str] | None = None,
 ) -> dict[str, tuple[float, float, float]]:
-    """Per-classifier palette: HBI baselines get a Blues ramp, the
+    """Per-classifier palette: homology baselines get a Blues ramp, the
     EnzymeExplorer family gets a Greens ramp, anything else falls back to
     Wong's set."""
-    hbi = list(hbi if hbi is not None else DEFAULT_HBI_BASELINES)
+    homology = list(homology if homology is not None else DEFAULT_HOMOLOGY_BASELINES)
     ee_family = list(ee_family if ee_family is not None else DEFAULT_EE_FAMILY)
 
     out: dict[str, tuple[float, float, float]] = {}
-    hbi_present = [c for c in classifiers if c in hbi]
+    homology_present = [c for c in classifiers if c in homology]
     ee_present = [c for c in classifiers if c in ee_family]
-    other_present = [c for c in classifiers if c not in hbi and c not in ee_family]
+    other_present = [c for c in classifiers if c not in homology and c not in ee_family]
 
-    if hbi_present:
-        ramp = sns.color_palette("Blues", n_colors=max(3, len(hbi_present) + 1))[1:]
-        for idx, name in enumerate(hbi_present):
+    if homology_present:
+        ramp = sns.color_palette("Blues", n_colors=max(3, len(homology_present) + 1))[1:]
+        for idx, name in enumerate(homology_present):
             out[name] = ramp[idx % len(ramp)]
     if ee_present:
         ramp = sns.color_palette("Greens", n_colors=max(3, len(ee_present) + 1))[1:]
@@ -383,28 +526,64 @@ def ee_ablation_palette(
     ablation plots share the EnzymeExplorer hue used in headline bars.
     Variants outside that list fall back to Wong's set.
     """
-    canonical = ["Domains", "PLM", "PLM_Domains"]
-    in_canonical = [c for c in canonical if c in classifiers]
-    others = [c for c in classifiers if c not in canonical]
     out: dict[str, tuple[float, float, float]] = {}
-    if in_canonical:
-        ramp = sns.color_palette(
-            "Greens", n_colors=max(3, len(in_canonical)) + 2
-        )[2:]
-        for idx, name in enumerate(in_canonical):
-            out[name] = ramp[idx]
-    for idx, name in enumerate(others):
-        out[name] = mpl.colors.to_rgb(WONG_COLORS[idx % len(WONG_COLORS)])
+    ramp = sns.color_palette(
+        "Greens", n_colors=max(3, len(classifiers)) + 2
+    )[2:]
+    for idx, name in enumerate(classifiers):
+        out[name] = ramp[idx]
     return out
+
+
+# Semantic palettes for category rings (Kingdom + TPS type) used by
+# ``plot_category_boxplot`` / ``plot_category_heatmap``. Keyed by the
+# category label as it appears in ``bootstrap_long_categorical_ap.csv``
+# (``Kingdom`` column values and ``OriginalType`` codes).
+NCB_CATEGORY_PALETTE: dict[str, str] = {
+    # Kingdoms — user-supplied RGB tuples, converted to hex.
+    "Bacteria": mpl.colors.to_hex(
+        (0.00392156862745098, 0.45098039215686275, 0.6980392156862745)),
+    "Fungi":    mpl.colors.to_hex(
+        (0.8705882352941177, 0.5607843137254902, 0.0196078431372549)),
+    "Plants":   mpl.colors.to_hex(
+        (0.00784313725490196, 0.6196078431372549, 0.45098039215686275)),
+    "Animals":  mpl.colors.to_hex((0.8352941176470589, 0.3686274509803922, 0.0)),
+    "Protists": mpl.colors.to_hex(
+        (0.8, 0.47058823529411764, 0.7372549019607844)),
+    "Viruses":  mpl.colors.to_hex((0.9254901960784314, 0.8823529411764706, 0.2)),
+    "Archaea":  mpl.colors.to_hex(
+        (0.33725490196078434, 0.7058823529411765, 0.9137254901960784)),
+    # TPS_Type — user-supplied hex. ``OriginalType`` codes in the CSV are
+    # ``mono / sesq / di / sester / tri / sqs / psy / pt / tetra / hemi``.
+    "mono":     "#de8f05",
+    "sesq":     "#016c45",   # "sesqui" in the paper text
+    "tri":      "#a23900",
+    "di":       "#be53b3",
+    "sester":   "#96a861",
+    "psy":      "#0173b2",   # phytoene synthase (raw code)
+    "phytoene": "#0173b2",   # pretty label used by the categorical bootstrap
+    "sqs":      "#1b84fe",   # squalene synthase (raw code)
+    "squalene": "#1b84fe",   # pretty label used by the categorical bootstrap
+}
 
 
 def categorical_palette(
     classifiers: list[str],
 ) -> dict[str, tuple[float, float, float]]:
-    """One distinct, colorblind-safe colour per classifier — for boxplots
-    where each method needs its own hue against the same y-axis."""
+    """One distinct, colorblind-safe colour per classifier / category.
+
+    Semantic overrides in :data:`NCB_CATEGORY_PALETTE` win for any key
+    that matches (kingdom names, TPS-type codes). Everything else falls
+    back to the seaborn ``colorblind`` ramp so brand-new categories keep
+    getting a usable distinct hue.
+    """
     base = sns.color_palette("colorblind", n_colors=max(10, len(classifiers)))
-    return {clf: base[idx % len(base)] for idx, clf in enumerate(classifiers)}
+    out: dict[str, tuple[float, float, float]] = {}
+    for idx, key in enumerate(classifiers):
+        hex_override = NCB_CATEGORY_PALETTE.get(key)
+        out[key] = (mpl.colors.to_rgb(hex_override) if hex_override
+                    else base[idx % len(base)])
+    return out
 
 
 def display_name(classifier: str) -> str:
@@ -413,9 +592,15 @@ def display_name(classifier: str) -> str:
 
 
 def save_figure(
-    fig: plt.Figure, out_path: Path | str, *, formats=("png",), close: bool = True
+    fig: plt.Figure, out_path: Path | str, *,
+    formats=("png", "svg"), close: bool = True,
 ) -> None:
     """Save a figure to multiple formats using its stem as a base.
+
+    Defaults to PNG (raster preview) + SVG (post-editable in Illustrator
+    for the Nature Chemical Biology submission). The ``pdf.fonttype``
+    and ``svg.fonttype`` rc keys are set by :func:`apply_theme` so text
+    stays as editable glyphs in both.
 
     Closes the figure by default so long visualize runs don't leak memory or
     trip matplotlib's max-open-figures warning.

@@ -54,7 +54,6 @@ class EmbRandomForestConfig(EmbSklearnBaseConfig, FeaturesRandomForestConfig):
     A data class to store the corresponding model attributes
     """
     requires_multioutputwrapper_for_multilabel: bool = False
-    is_halo: bool = False
 
 @dataclass
 class EmbWithDomainsRandomForestConfig(EmbSklearnBaseConfig, DomainFeaturesRandomForestConfig):
@@ -62,7 +61,6 @@ class EmbWithDomainsRandomForestConfig(EmbSklearnBaseConfig, DomainFeaturesRando
     A data class to store the corresponding model attributes
     """
     requires_multioutputwrapper_for_multilabel: bool = False
-    is_halo: bool = False
 
 
 @dataclass

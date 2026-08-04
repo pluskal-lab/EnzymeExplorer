@@ -1,0 +1,1375 @@
+marts_id,uniprot,kingdom,domain_configuration
+marts_E00000,W6HUT3,Plants,β + α1D
+marts_E00001,,Animals,α1E
+marts_E00002,X5AIS9,Plants,γ + β + α1D
+marts_E00003,X5AHD9,Plants,β + α1D
+marts_E00004,X5A4D6,Plants,γ + β + α1D
+marts_E00005,X5A2Z7,Plants,β + α1D
+marts_E00006,X4ZWN5,Plants,γ + β + α1D
+marts_E00007,A0A6P6W6H5,Plants,β + α1D
+marts_E00008,,Bacteria,α1G
+marts_E00009,,Bacteria,α1G
+marts_E00010,,Fungi,α1G
+marts_E00011,,Fungi,α3B
+marts_E00012,,Animals,α1F
+marts_E00013,,Animals,α1F
+marts_E00014,,Animals,α1F
+marts_E00015,,Animals,α1F
+marts_E00016,W8QMF8,Plants,β + α1D
+marts_E00017,W8QEG7,Plants,β + α1D
+marts_E00018,W8NXF3,Plants,β + α1D
+marts_E00019,W6QAE7,Fungi,α1B + α3B
+marts_E00020,W6Q4Q9,Fungi,α1G
+marts_E00021,W4JX79,Fungi,α1G
+marts_E00022,W0FFD7,Plants,β + α1D
+marts_E00023,V6RG22,Fungi,α3B
+marts_E00024,UTU07507,Plants,ε + δ2
+marts_E00025,UTU07506,Plants,ε + δ2
+marts_E00026,,Animals,α1E
+marts_E00027,,Animals,α1E
+marts_E00029,U5PZT6,Plants,β + α1D
+marts_E00030,U5N1F1,Plants,β + α1D
+marts_E00031,U5N0S4,Plants,β + α1D
+marts_E00032,U3LW50,Plants,β + α1D
+marts_E00033,U3LVZ7,Plants,β + α1D
+marts_E00034,U3LVL5,Plants,β + α1D
+marts_E00035,U3KYL2,Plants,β + α1D
+marts_E00036,,Plants,γ + β + α1D
+marts_E00037,,Plants,γ + β + α1D
+marts_E00038,,Plants,γ + β + α1D
+marts_E00039,,Animals,α1E
+marts_E00040,,Animals,α1E
+marts_E00042,T1WGD9,Plants,β + α1D
+marts_E00043,T1RRS0,Plants,β + α1D
+marts_E00044,T1RRR9,Plants,β + α1D
+marts_E00045,T1RRJ6,Plants,β + α1D
+marts_E00046,T1RRJ4,Plants,β + α1D
+marts_E00047,T1RRI8,Plants,β + α1D
+marts_E00048,T1RRI5,Plants,β + α1D
+marts_E00049,T1RR72,Plants,β + α1D
+marts_E00050,T1RR71,Plants,β + α1D
+marts_E00051,,Animals,α1F
+marts_E00052,,Fungi,α1G
+marts_E00053,S0EGZ9,Fungi,α1B
+marts_E00054,S0ECT9,Fungi,α1G
+marts_E00055,S0EA85,Fungi,γ + δ1 + α1C
+marts_E00056,S0E627,Fungi,α3B
+marts_E00057,S0DX56,Fungi,α1G
+marts_E00058,,Animals,α1E
+marts_E00059,R9WSX5,Plants,β + α1D
+marts_E00060,R9W377,Plants,β + α1D
+marts_E00061,R9UPX9,Plants,γ + β + α1D
+marts_E00062,R9UPX6,Plants,γ + β + α1D
+marts_E00063,R9UM72,Plants,γ + β + α1D
+marts_E00064,R9QMZ0,Plants,β + α1D
+marts_E00065,R9QMY9,Plants,β + α1D
+marts_E00066,R9QMY8,Plants,β + α1D
+marts_E00067,R9QMW8,Plants,β + α1D
+marts_E00068,R9QMW7,Plants,β + α1D
+marts_E00069,R9QMW5,Plants,β + α1D
+marts_E00070,R9QMW4,Plants,β + α1D
+marts_E00071,R9QMW3,Plants,β + α1D
+marts_E00072,R9QMW2,Plants,β + α1D
+marts_E00073,R9QMW1,Plants,β + α1D
+marts_E00074,R9QMR6,Plants,β + α1D
+marts_E00075,R9QMR5,Plants,β + α1D
+marts_E00076,R9QMR4,Plants,β + α1D
+marts_E00077,R9QMR3,Plants,β + α1D
+marts_E00078,R9QMR1,Plants,β + α1D
+marts_E00079,R9QMR0,Plants,β + α1D
+marts_E00080,R9QMQ9,Plants,β + α1D
+marts_E00081,R4YZC3,Plants,β + α1D
+marts_E00082,R4YXW8,Plants,β + α1D
+marts_E00083,R4JQT5,Plants,β + α1D
+marts_E00085,R4JQS2,Plants,β + α1D
+marts_E00086,R4JND9,Plants,β + α1D
+marts_E00089,R4JJJ1,Plants,β + α1D
+marts_E00092,R4JGL8,Plants,β + α1D
+marts_E00093,R4I3I0,Plants,β + α1D
+marts_E00095,A0A7G6J4K0,Plants,β + α1D
+marts_E00096,Q9ZUH4,Plants,β + α1D
+marts_E00097,Q9ZU77,Plants,α3A
+marts_E00098,Q9ZTN8,Plants,γ + β + α1D
+marts_E00099,Q9Y753,Fungi,α4A
+marts_E00101,Q9XEI0,Plants,γ + β + α1D
+marts_E00102,Q9XEH9,Plants,γ + β + α1D
+marts_E00103,Q9X839,Bacteria,α1G + α1G
+marts_E00104,Q9WTN0,Animals,α3B
+marts_E00105,Q9UWR6,Archaea,α3A
+marts_E00106,Q9UVY5,Fungi,γ + δ1 + α1C
+marts_E00107,Q9UR08,Fungi,α1G
+marts_E00108,Q9T0K1,Plants,β + α1D
+marts_E00109,Q9T0J9,Plants,β + α1D
+marts_E00110,Q9SYN1,Plants,ε + δ2
+marts_E00112,Q9SW77,Plants,β + α1D
+marts_E00113,Q9SW76,Plants,β + α1D
+marts_E00116,Q9SSU5,Plants,ε + δ2
+marts_E00117,Q9SPN1,Plants,β + α1D
+marts_E00118,Q9SPN0,Plants,β + α1D
+marts_E00119,Q9SLW3,Plants,ε + δ2
+marts_E00120,Q9SLW1,Plants,ε + δ2
+marts_E00123,Q9SLG2,Plants,α3A
+marts_E00124,Q9SDW9,Plants,α4A
+marts_E00125,Q9SAK2,Plants,γ + β + α1D
+marts_E00126,Q9P885,Fungi,α3B
+marts_E00127,Q9NH03,Protists,α3B
+marts_E00128,Q9MB42,Plants,ε + δ2
+marts_E00129,Q9M7D1,Plants,β + α1D
+marts_E00130,Q9M7D0,Plants,β + α1D
+marts_E00131,Q9M7C9,Plants,β + α1D
+marts_E00132,Q9LVY2,Plants,ε + δ2
+marts_E00134,Q9LUE2,Plants,β + α1D
+marts_E00135,Q9LUE1,Plants,α3A
+marts_E00136,Q9LUE0,Plants,β + α1D
+marts_E00137,Q9LUD9,Plants,α3A
+marts_E00138,Q9LRZ6,Plants,β + α1D
+marts_E00140,Q9LRH8,Plants,ε + δ2
+marts_E00141,Q9LRH7,Plants,ε + δ2
+marts_E00142,Q9LLR9,Plants,β + α1D
+marts_E00143,Q9LKN1,Plants,β + α1D
+marts_E00144,Q9LJY2,Plants,α3A
+marts_E00145,Q9LIA0,Plants,α3A
+marts_E00146,Q9LHR4,Plants,α3A
+marts_E00147,Q9K499,Bacteria,α1G
+marts_E00148,Q9HGZ6,Fungi,α4A
+marts_E00149,Q9FZI2,Plants,ε + δ2
+marts_E00150,Q9FXY7,Plants,β + α1D
+marts_E00151,Q9FXV8,Plants,γ + β + α1D
+marts_E00153,Q9FV72,Plants,β + α1D
+marts_E00154,Q9FUW5,Plants,β + α1D
+marts_E00155,Q9FT37,Plants,γ + β + α1D
+marts_E00156,Q9FR95,Plants,ε + δ2
+marts_E00158,Q9FQ27,Plants,β + α1D
+marts_E00159,Q9FQ26,Plants,β + α1D
+marts_E00160,Q9FJV8,Plants,ε + δ2
+marts_E00161,Q9FI37,Plants,ε + δ2
+marts_E00162,Q9F1Y6,Bacteria,α1G
+marts_E00165,Q9C5M3,Plants,ε + δ2
+marts_E00166,Q9C446,Fungi,α3B
+marts_E00167,Q9AXM7,Plants,β + α1D
+marts_E00168,Q9AR86,Plants,β + α1D
+marts_E00169,Q9AR67,Plants,β + α1D
+marts_E00170,Q9AR04,Plants,β + α1D
+marts_E00171,Q9AJE4,Bacteria,γ + δ1
+marts_E00172,Q9AJE3,Bacteria,α1G
+marts_E00175,Q96WT2,Fungi,γ + δ1 + α1C
+marts_E00176,Q96WJ0,Fungi,ε + δ2
+marts_E00177,Q96376,Plants,γ + β + α1D
+marts_E00178,Q94JS8,Plants,β + α1D
+marts_E00179,Q94ID7,Plants,α3A
+marts_E00180,Q94G53,Plants,β + α1D
+marts_E00181,Q948Z0,Plants,β + α1D
+marts_E00182,Q948R6,Plants,ε + δ2
+marts_E00183,Q947C4,Plants,γ + β + α1D
+marts_E00185,Q940E7,Plants,β + α1D
+marts_E00186,Q93YV0,Plants,γ + β + α1D
+marts_E00188,Q93X23,Plants,β + α1D
+marts_E00189,Q93WU1,Plants,ε + δ2
+marts_E00191,Q92250,Fungi,α3B
+marts_E00192,Q92236,Fungi,α3B
+marts_E00193,Q92235,Fungi,α3B
+marts_E00194,Q920E5,Animals,α3B
+marts_E00195,Q8YN85,Bacteria,α1G
+marts_E00196,Q8WMY2,Animals,α3B
+marts_E00197,Q8W3Z4,Plants,ε + δ2
+marts_E00198,Q8W3Z3,Plants,ε + δ2
+marts_E00199,Q8W3Z2,Plants,ε + δ2
+marts_E00200,Q8W3Z1,Plants,ε + δ2
+marts_E00201,Q8W3Z0,Plants,ε + δ2
+marts_E00202,Q8W1D0,Plants,β + α1D
+marts_E00203,Q8VWY4,Plants,ε + δ2
+marts_E00204,Q8VWY3,Plants,ε + δ2
+marts_E00205,Q8V9T7,Viruses,α3A
+marts_E00206,Q8SA63,Plants,β + α1D
+marts_E00207,Q8S948,Plants,α3A
+marts_E00208,Q8S3A6,Plants,β + α1D
+marts_E00209,Q8S3A5,Plants,β + α1D
+marts_E00210,Q8RWT0,Plants,ε + δ2
+marts_E00211,Q8PYS1,Archaea,α3A
+marts_E00212,Q8PW34,Archaea,α3A
+marts_E00221,Q8LSC3,Plants,β + α1D
+marts_E00222,Q8LSC2,Plants,β + α1D
+marts_E00223,Q8L5K4,Plants,β + α1D
+marts_E00224,Q8L5K3,Plants,β + α1D
+marts_E00225,Q8L5K2,Plants,β + α1D
+marts_E00226,Q8L5K1,Plants,β + α1D
+marts_E00227,Q8L5J7,Plants,β + α1D
+marts_E00228,Q8K9A0,Bacteria,α3A
+marts_E00229,Q8H2B4,Plants,β + α1D
+marts_E00230,Q8GUE4,Plants,β + α1D
+marts_E00231,Q8GSL7,Plants,ε + δ2
+marts_E00233,Q84ZW8,Plants,β + α1D
+marts_E00234,Q84UV0,Plants,β + α1D
+marts_E00235,Q84UU9,Plants,β + α1D
+marts_E00236,Q84UU4,Plants,β + α1D
+marts_E00237,Q84SM8,Plants,β + α1D
+marts_E00238,Q84PE3,Plants,ε + δ2
+marts_E00239,Q84PE1,Plants,ε + δ2
+marts_E00240,Q84ND0,Plants,β + α1D
+marts_E00241,Q84NC9,Plants,β + α1D
+marts_E00242,Q84NC8,Plants,β + α1D
+marts_E00244,Q84LF2,Plants,β + α1D
+marts_E00245,Q84LF1,Plants,β + α1D
+marts_E00246,Q84LF0,Plants,β + α1D
+marts_E00247,Q84LB2,Plants,β + α1D
+marts_E00248,Q84KL6,Plants,β + α1D
+marts_E00249,Q84KL5,Plants,β + α1D
+marts_E00250,Q84KL4,Plants,β + α1D
+marts_E00251,Q84KL3,Plants,β + α1D
+marts_E00252,Q82RR7,Bacteria,α1G
+marts_E00253,Q82IY4,Bacteria,α1G
+marts_E00254,Q7Z859,Fungi,α4B + ζ
+marts_E00255,Q7XYT0,Plants,α3B
+marts_E00256,Q7XYS9,Plants,α3B
+marts_E00257,Q7XYS8,Plants,α3B
+marts_E00258,Q7XAS7,Plants,β + α1D
+marts_E00259,Q7X9A3,Plants,β + α1D
+marts_E00263,Q796C3,Bacteria,ε + δ2
+marts_E00264,Q764T8,Plants,ε + δ2
+marts_E00266,Q758K0,Fungi,α3B
+marts_E00268,Q71MJ3,Plants,β + α1D
+marts_E00269,Q70EZ7,Plants,β + α1D
+marts_E00270,Q70EZ6,Plants,β + α1D
+marts_E00271,Q6ZJL3,Plants,β + α1D
+marts_E00272,Q6ZH94,Plants,β + α1D
+marts_E00273,Q6Z5J6,Plants,γ + β + α1D
+marts_E00274,Q6Z5I0,Plants,γ + β + α1D
+marts_E00275,Q6Z2X6,Plants,ε + δ2
+marts_E00276,Q6YN71,Plants,β + α1D
+marts_E00277,Q6XDB5,Plants,β + α1D
+marts_E00278,Q6WP50,Fungi,α1G
+marts_E00279,Q6USK1,Plants,β + α1D
+marts_E00282,Q6TBY0,Plants,γ + β + α1D
+marts_E00286,Q6Q3H3,Plants,β + α1D
+marts_E00287,Q6Q3H2,Plants,β + α1D
+marts_E00288,Q6PWU2,Plants,β + α1D
+marts_E00289,Q6N3F2,Bacteria,α4B
+marts_E00290,Q6JD73,Plants,β + α1D
+marts_E00291,Q6JD70,Plants,β + α1D
+marts_E00300,Q6F5E6,Fungi,α3B
+marts_E00301,Q6F596,Animals,α3B
+marts_E00302,Q6ET36,Plants,γ + β + α1D
+marts_E00303,Q6EJ97,Plants,β + α1D
+marts_E00304,Q6EI12,Plants,α4B
+marts_E00305,Q6E7D7,Plants,γ + β + α1D
+marts_E00306,Q6BE25,Plants,ε + δ2
+marts_E00307,Q6BE24,Plants,ε + δ2
+marts_E00308,Q6BDZ9,Plants,γ + β + α1D
+marts_E00310,Q67DX4,Plants,γ + β + α1D
+marts_E00311,Q675L6,Plants,γ + β + α1D
+marts_E00312,Q675L5,Plants,γ + β + α1D
+marts_E00313,Q675L4,Plants,γ + β + α1D
+marts_E00314,Q675L3,Plants,β + α1D
+marts_E00315,Q675L1,Plants,β + α1D
+marts_E00316,Q675L0,Plants,β + α1D
+marts_E00317,Q673F9,Plants,γ + β + α1D
+marts_E00318,Q672V6,Fungi,α3B
+marts_E00319,Q672F7,Plants,β + α1D
+marts_E00320,Q66QH3,Plants,γ + β + α1D
+marts_E00321,Q66PX8,Plants,β + α1D
+marts_E00322,Q65164,Viruses,α3A
+marts_E00323,Q64K29,Plants,β + α1D
+marts_E00325,Q5W283,Plants,β + α1D
+marts_E00326,Q5UB07,Plants,β + α1D
+marts_E00327,Q5SBP7,Plants,β + α1D
+marts_E00328,Q5SBP6,Plants,β + α1D
+marts_E00329,Q5SBP5,Plants,β + α1D
+marts_E00330,Q5SBP4,Plants,β + α1D
+marts_E00331,Q5SBP3,Plants,β + α1D
+marts_E00332,Q5SBP2,Plants,β + α1D
+marts_E00333,Q5SBP1,Plants,β + α1D
+marts_E00334,Q5SBP0,Plants,β + α1D
+marts_E00336,Q5MQ85,Plants,γ + β + α1D
+marts_E00337,Q5KSN5,Bacteria,γ + δ1
+marts_E00338,Q5KSN4,Bacteria,α1C
+marts_E00340,Q5GJ60,Plants,β + α1D
+marts_E00341,Q5GJ59,Plants,β + α1D
+marts_E00343,Q5CD82,Plants,β + α1D
+marts_E00344,Q58GE8,Animals,α3B
+marts_E00346,Q56RZ3,Fungi,α3B
+marts_E00347,Q55EU7,Protists,α3B
+marts_E00348,Q55D85,Protists,ε + δ2
+marts_E00349,Q55012,Bacteria,α1G
+marts_E00350,Q54XP1,Protists,α3B
+marts_E00352,Q54BK1,Protists,α3B
+marts_E00353,Q54BE5,Protists,α1G
+marts_E00355,Q50L36,Plants,β + α1D
+marts_E00356,Q50EK2,Plants,γ + β + α1D
+marts_E00357,Q4WR16,Fungi,ε + δ2
+marts_E00360,Q4WEB8,Fungi,α3B
+marts_E00364,Q4U3F7,Plants,β + α1D
+marts_E00365,Q4U3F6,Plants,β + α1D
+marts_E00366,Q4QSN6,Plants,β + α1D
+marts_E00367,Q4QSN4,Plants,γ + β + α1D
+marts_E00368,Q4QSN3,Plants,β + α1D
+marts_E00369,Q4KSH9,Plants,β + α1D
+marts_E00370,Q4JHN6,Plants,α3B
+marts_E00371,Q4JHG3,Plants,β + α1D
+marts_E00372,Q49SP7,Plants,β + α1D
+marts_E00373,Q49SP6,Plants,β + α1D
+marts_E00374,Q49SP5,Plants,β + α1D
+marts_E00375,Q49SP4,Plants,β + α1D
+marts_E00376,Q49SP3,Plants,β + α1D
+marts_E00377,Q45220,Bacteria,α3A
+marts_E00378,Q43714,Plants,β + α1D
+marts_E00379,Q43315,Plants,α3B
+marts_E00380,Q43133,Plants,α3A
+marts_E00381,Q42698,Plants,α3A
+marts_E00382,Q41771,Plants,γ + β + α1D
+marts_E00383,Q41594,Plants,γ + β + α1D
+marts_E00384,Q40577,Plants,β + α1D
+marts_E00385,Q40322,Plants,β + α1D
+marts_E00386,Q401R6,Plants,ε + δ2
+marts_E00388,Q3IPL1,Archaea,α3A
+marts_E00391,Q39978,Plants,β + α1D
+marts_E00392,Q39761,Plants,β + α1D
+marts_E00393,Q39760,Plants,β + α1D
+marts_E00394,Q39548,Plants,γ + β + α1D
+marts_E00395,Q38802,Plants,γ + β + α1D
+marts_E00396,Q38710,Plants,γ + β + α1D
+marts_E00397,Q32W37,Plants,β + α1D
+marts_E00399,Q308N0,Plants,β + α1D
+marts_E00400,Q2XSC6,Plants,β + α1D
+marts_E00401,Q2XSC5,Plants,β + α1D
+marts_E00402,Q2XSC4,Plants,β + α1D
+marts_E00403,Q2XPU7,Plants,ε + δ2
+marts_E00404,Q2XPU6,Plants,ε + δ2
+marts_E00405,Q2WGL8,Plants,ε + δ2
+marts_E00406,Q2WGL7,Plants,ε + δ2
+marts_E00407,Q2WGL6,Plants,ε + δ2
+marts_E00408,Q2R712,Plants,ε + δ2
+marts_E00409,Q2QQJ5,Plants,γ + β + α1D
+marts_E00410,Q2QLV9,Plants,α4B
+marts_E00411,Q2NM15,Plants,β + α1D
+marts_E00412,Q2FV59,Bacteria,α4B
+marts_E00413,Q29VN3,Plants,β + α1D
+marts_E00414,Q29VN2,Plants,β + α1D
+marts_E00415,Q20HU7,Plants,β + α1D
+marts_E00416,Q1XBU5,Plants,β + α1D
+marts_E00417,Q1XBU4,Plants,β + α1D
+marts_E00418,Q1PDD2,Plants,β + α1D
+marts_E00419,Q1G1A4,Plants,ε + δ2
+marts_E00420,Q1ERD3,Plants,ε + δ2
+marts_E00421,Q1EG72,Plants,β + α1D
+marts_E00422,Q1AHB2,Plants,γ + β + α1D
+marts_E00423,Q12051,Fungi,α3B
+marts_E00424,Q10231,Fungi,ε + δ2
+marts_E00425,Q0VHD6,Plants,β + α1D
+marts_E00426,Q0JF02,Plants,γ + β + α1D
+marts_E00427,Q0JEZ8,Plants,γ + β + α1D
+marts_E00428,Q0JA82,Plants,γ + β + α1D
+marts_E00429,Q0E088,Plants,γ + β + α1D
+marts_E00430,Q09152,Plants,α3B
+marts_E00431,Q08IT1,Plants,ε + δ2
+marts_E00432,Q08291,Bacteria,α3A
+marts_E00433,Q04782,Fungi,ε + δ2
+marts_E00436,Q00G37,Plants,γ + β + α1D
+marts_E00439,,Animals,α1F
+marts_E00440,,Animals,α1E
+marts_E00441,P9WKH1,Bacteria,α3A
+marts_E00444,P9WEY7,Protists,α1G
+marts_E00445,P9WEY4,Protists,α1G
+marts_E00446,P9WEX9,Fungi,α3B
+marts_E00447,P9WEX3,Fungi,α3B
+marts_E00448,P9WEW8,Fungi,α3B
+marts_E00449,P9WEW2,Fungi,α1G
+marts_E00450,P9WEW1,Fungi,α1G
+marts_E00451,P9WEW0,Fungi,α1G
+marts_E00452,P9WEV7,Fungi,α1B + α3B
+marts_E00453,P9WEV6,Fungi,α1B + α3B
+marts_E00454,P9WEV2,Fungi,α1B + α3B
+marts_E00455,P9WEQ2,Fungi,α3B
+marts_E00456,P9WEP0,Fungi,α1B + α3B
+marts_E00457,P95999,Archaea,α3A
+marts_E00458,P93665,Plants,β + α1D
+marts_E00460,P84466,Animals,ε + δ2
+marts_E00461,P80042,Plants,α3A
+marts_E00463,P59287,Plants,β + α1D
+marts_E00464,P57537,Bacteria,α3A
+marts_E00465,P56966,Animals,α3B
+marts_E00466,P55539,Bacteria,α3A
+marts_E00469,P54976,Bacteria,α3A
+marts_E00470,P54975,Bacteria,α4B
+marts_E00472,P54383,Bacteria,α3A
+marts_E00473,P53800,Plants,α4A
+marts_E00474,P53799,Plants,α4A
+marts_E00475,P53798,Animals,α4A
+marts_E00476,P53797,Plants,α4B
+marts_E00477,P49353,Plants,α3B
+marts_E00478,P49352,Plants,α3B
+marts_E00479,P49351,Plants,α3B
+marts_E00480,P49350,Plants,α3B
+marts_E00481,P49349,Fungi,α3B
+marts_E00482,P49085,Plants,α4B
+marts_E00483,P48450,Animals,ε + δ2
+marts_E00484,P48449,Animals,ε + δ2
+marts_E00485,P45204,Bacteria,α3A
+marts_E00486,P39464,Archaea,α3A
+marts_E00487,P38605,Plants,ε + δ2
+marts_E00488,P38604,Fungi,ε + δ2
+marts_E00489,P37295,Fungi,α4B + ζ
+marts_E00490,P37294,Bacteria,α4B
+marts_E00491,P37273,Plants,α4B
+marts_E00492,P37272,Plants,α4B
+marts_E00494,P37269,Bacteria,α4B
+marts_E00496,P36596,Fungi,α4A
+marts_E00497,P34802,Plants,α3A
+marts_E00498,P33990,Bacteria,ε + δ2
+marts_E00499,P33247,Bacteria,ε + δ2
+marts_E00500,P29704,Fungi,α4A
+marts_E00501,P27679,Fungi,α1I
+marts_E00502,P24322,Fungi,α3B
+marts_E00503,P22939,Bacteria,α3A
+marts_E00504,P22873,Bacteria,α3A
+marts_E00505,P21684,Bacteria,α3A
+marts_E00506,P21683,Bacteria,α4B
+marts_E00508,P14324,Animals,α3B
+marts_E00509,P13513,Fungi,α1I
+marts_E00510,P0DPK6,Bacteria,α1G
+marts_E00511,P0DL13,Fungi,α1G
+marts_E00512,P0DI77,Plants,β + α1D
+marts_E00515,P0CV95,Plants,β + α1D
+marts_E00516,P0CV94,Plants,β + α1D
+marts_E00517,P0CJ43,Plants,β + α1D
+marts_E00518,P0C9E2,Viruses,α3A
+marts_E00519,P0C9E1,Viruses,α3A
+marts_E00520,P0C9E0,Viruses,α3A
+marts_E00521,P0C8Y0,Plants,ε + δ2
+marts_E00522,P0C565,Plants,α3B
+marts_E00524,P08836,Animals,α3B
+marts_E00525,P08524,Fungi,α3B
+marts_E00526,P08196,Plants,α4B
+marts_E00527,P05369,Animals,α3B
+marts_E00528,O95749,Animals,α3B
+marts_E00530,O82141,Plants,ε + δ2
+marts_E00531,O82140,Plants,ε + δ2
+marts_E00532,O82139,Plants,ε + δ2
+marts_E00534,O81193,Plants,β + α1D
+marts_E00535,O81192,Plants,β + α1D
+marts_E00536,O81191,Plants,β + α1D
+marts_E00537,O81086,Plants,γ + β + α1D
+marts_E00538,O74165,Fungi,α4A
+marts_E00539,O66952,Bacteria,α3A
+marts_E00540,O66126,Bacteria,α3A
+marts_E00541,O65435,Plants,β + α1D
+marts_E00542,O65323,Plants,β + α1D
+marts_E00543,O64961,Plants,β + α1D
+marts_E00544,O64905,Plants,α3B
+marts_E00545,O64405,Plants,β + α1D
+marts_E00546,O64404,Plants,β + α1D
+marts_E00548,O59703,Fungi,α3B
+marts_E00549,O53507,Bacteria,α3B
+marts_E00550,O50410,Bacteria,α3A
+marts_E00551,O50406,Bacteria,γ + δ1
+marts_E00553,O48935,Plants,β + α1D
+marts_E00554,O48666,Plants,α4A
+marts_E00555,O24475,Plants,β + α1D
+marts_E00556,O24474,Plants,β + α1D
+marts_E00557,O24242,Plants,α3B
+marts_E00558,O24241,Plants,α3B
+marts_E00559,O23945,Plants,β + α1D
+marts_E00560,O23909,Plants,ε + δ2
+marts_E00561,O23390,Plants,ε + δ2
+marts_E00562,O22340,Plants,β + α1D
+marts_E00563,O22043,Plants,α3A
+marts_E00564,O14230,Fungi,α3B
+marts_E00566,O13284,Fungi,γ + δ1 + α1C
+marts_E00569,O06728,Bacteria,α4B
+marts_E00570,O06428,Bacteria,α3A
+marts_E00571,O05572,Bacteria,α3A
+marts_E00572,O04806,Plants,β + α1D
+marts_E00573,O04408,Plants,γ + β + α1D
+marts_E00574,O04046,Plants,α3A
+marts_E00575,N4V6D4,Fungi,α1B + α3B
+marts_E00576,,Fungi,α1B + α3B
+marts_E00578,M5AW86,Bacteria,α1A
+marts_E00579,M4HZ33,Plants,β + α1D
+marts_E00580,M4HYP3,Plants,γ + β + α1D
+marts_E00581,M4HYC8,Plants,γ + β + α1D
+marts_E00582,M4HYC6,Plants,γ + β + α1D
+marts_E00583,M4HY08,Plants,γ + β + α1D
+marts_E00584,M4HY05,Plants,γ + β + α1D
+marts_E00585,M4HXW5,Plants,γ + β + α1D
+marts_E00586,M4HXU6,Plants,γ + β + α1D
+marts_E00590,M2U578,Fungi,α1B + α3B
+marts_E00591,M1VDX3,Bacteria,α1G
+marts_E00592,M1V9Q0,Bacteria,α1G
+marts_E00593,,Fungi,α1G
+marts_E00594,,Fungi,α1G
+marts_E00595,,Fungi,α1G
+marts_E00596,,Fungi,α1G
+marts_E00597,,Fungi,α1G
+marts_E00598,L7XCQ7,Plants,β + α1D
+marts_E00599,L0I7F9,Plants,β + α1D
+marts_E00600,L0I517,Plants,β + α1D
+marts_E00601,L0HP52,Plants,β + α1D
+marts_E00602,L0HLH2,Plants,β + α1D
+marts_E00603,L0HB77,Plants,β + α1D
+marts_E00604,L0HAM7,Plants,β + α1D
+marts_E00605,,Fungi,α1B + α3B
+marts_E00608,K7TKS3,Plants,β + α1D
+marts_E00609,K7PRF2,Plants,β + α1D
+marts_E00610,K7NBZ9,Plants,ε + δ2
+marts_E00611,K4LMW2,Plants,β + α1D
+marts_E00612,K4L9M2,Plants,β + α1D
+marts_E00613,K2SUY0,Fungi,α1B + α3B
+marts_E00614,K0K750,Bacteria,α1G
+marts_E00615,J9RLZ7,Plants,β + α1D
+marts_E00616,J9R5V4,Plants,β + α1D
+marts_E00617,J9R388,Plants,γ + β + α1D
+marts_E00618,J9R1J8,Plants,α1G
+marts_E00619,J9QS25,Plants,α1G
+marts_E00620,J9QS23,Plants,γ + β + α1D
+marts_E00621,J7LQ09,Plants,β + α1D
+marts_E00622,J7LP58,Plants,β + α1D
+marts_E00623,J7LMP2,Plants,β + α1D
+marts_E00624,J7LJN5,Plants,β + α1D
+marts_E00625,J7LH11,Plants,β + α1D
+marts_E00626,J7FIX8,Fungi,α3B
+marts_E00627,J3MQP7,Plants,β + α1D
+marts_E00628,,Fungi,α1G
+marts_E00629,I7H727,Plants,β + α1D
+marts_E00630,I7GPX8,Plants,β + α1D
+marts_E00631,I6XZ73,Plants,β + α1D
+marts_E00632,I6RE61,Plants,β + α1D
+marts_E00633,I6RAQ6,Plants,β + α1D
+marts_E00634,I6R4V5,Plants,β + α1D
+marts_E00635,I6QSN0,Plants,β + α1D
+marts_E00636,I6QPS5,Plants,β + α1D
+marts_E00637,I3WEV8,Plants,β + α1D
+marts_E00638,I2N045,Bacteria,α1G
+marts_E00639,I2CM69,Plants,γ + β + α1D
+marts_E00640,I2CM59,Plants,γ + β + α1D
+marts_E00641,B8XA41,Plants,γ + β + α1D
+marts_E00643,I1ZHA5,Plants,β + α1D
+marts_E00644,I1TE91,Plants,β + α1D
+marts_E00645,I1S104,Fungi,α1I
+marts_E00646,I1RL14,Fungi,α3B
+marts_E00647,I1M2G5,Plants,β + α1D
+marts_E00648,,Animals,α1E
+marts_E00649,,Animals,α1E
+marts_E00650,,Animals,α1E
+marts_E00651,H9L9E5,Plants,β + α1D
+marts_E00653,H8ZM73,Plants,γ + β + α1D
+marts_E00654,H8ZM71,Plants,γ + β + α1D
+marts_E00655,H8ZM70,Plants,γ + β + α1D
+marts_E00656,H6WZF2,Plants,β + α1D
+marts_E00657,H6VLG5,Plants,γ + β + α1D
+marts_E00658,H6VLG0,Plants,γ + β + α1D
+marts_E00659,H2VFR7,Bacteria,α4B
+marts_E00660,H2KWF1,Plants,ε + δ2
+marts_E00661,H2ELN1,Plants,β + α1D
+marts_E00662,H1VQB1,Fungi,α3B
+marts_E00663,G9MAN7,Plants,γ + β + α1D
+marts_E00664,G9M5S9,Plants,γ + β + α1D
+marts_E00666,G9M5S5,Plants,γ + β + α1D
+marts_E00667,A0A9R1DUP4,Plants,γ + β + α1D
+marts_E00668,G8H5N2,Plants,β + α1D
+marts_E00669,G8H5N1,Plants,β + α1D
+marts_E00670,G8H5N0,Plants,β + α1D
+marts_E00671,G8H5M9,Plants,β + α1D
+marts_E00672,G8H5M8,Plants,β + α1D
+marts_E00673,G8H5M7,Plants,β + α1D
+marts_E00674,G8GJ96,Plants,γ + β + α1D
+marts_E00675,G8GJ95,Plants,γ + β + α1D
+marts_E00676,G8GJ94,Plants,β + α1D
+marts_E00679,G5CV56,Plants,β + α1D
+marts_E00680,G5CV54,Plants,β + α1D
+marts_E00681,G5CV52,Plants,β + α1D
+marts_E00682,G5CV51,Plants,γ + β + α1D
+marts_E00683,G5CV50,Plants,γ + β + α1D
+marts_E00684,G5CV48,Plants,β + α1D
+marts_E00685,G5CV46,Plants,β + α1D
+marts_E00686,G5CV45,Plants,β + α1D
+marts_E00687,G5CV44,Plants,β + α1D
+marts_E00688,G5CV43,Plants,β + α1D
+marts_E00689,G5CV42,Plants,β + α1D
+marts_E00690,G5CV40,Plants,β + α1D
+marts_E00691,G5CV38,Plants,γ + β + α1D
+marts_E00692,G5CV35,Plants,γ + β + α1D
+marts_E00693,G3E4M6,Plants,γ + β + α1D
+marts_E00694,G3E4M4,Plants,γ + β + α1D
+marts_E00695,G3CCC1,Plants,γ + β + α1D
+marts_E00696,G3CCC0,Plants,γ + β + α1D
+marts_E00697,G2P5T1,Bacteria,α1G
+marts_E00698,G1JUH5,Plants,β + α1D
+marts_E00699,G1JUH4,Plants,β + α1D
+marts_E00700,G1JUH1,Plants,β + α1D
+marts_E00701,G1DGI7,Plants,γ + β + α1D
+marts_E00702,G0Y7D3,Plants,β + α1D
+marts_E00703,G0Y7D2,Plants,β + α1D
+marts_E00704,G0Y7D1,Plants,β + α1D
+marts_E00705,G0Y288,Plants,α4A
+marts_E00706,G0Y287,Plants,α4A
+marts_E00707,G0Y286,Plants,α4A
+marts_E00709,F9XLC1,Fungi,α3B
+marts_E00710,F9WZD2,Fungi,α3B
+marts_E00711,F9WWF1,Fungi,α3B
+marts_E00712,F8WQD0,Plants,ε + δ2
+marts_E00713,F8UL81,Plants,β + α1D
+marts_E00714,F8UL80,Plants,β + α1D
+marts_E00715,F8TWC9,Plants,β + α1D
+marts_E00716,F8JSS1,Bacteria,ε + δ2
+marts_E00717,F6M8I0,Plants,β + α1D
+marts_E00719,F2XFB2,Plants,γ + β + α1D
+marts_E00720,F2XFA8,Plants,β + α1D
+marts_E00721,F2XFA6,Plants,β + α1D
+marts_E00722,F2XFA5,Plants,β + α1D
+marts_E00723,F2XFA4,Plants,β + α1D
+marts_E00724,F2XFA2,Plants,β + α1D
+marts_E00725,F2XFA1,Plants,β + α1D
+marts_E00726,F2XFA0,Plants,β + α1D
+marts_E00727,F2XF99,Plants,β + α1D
+marts_E00728,F2XF98,Plants,β + α1D
+marts_E00729,F2XF97,Plants,β + α1D
+marts_E00730,F2XF96,Plants,β + α1D
+marts_E00731,F2XF95,Plants,β + α1D
+marts_E00732,F2XF94,Plants,β + α1D
+marts_E00733,F2XF93,Plants,β + α1D
+marts_E00734,F2XF92,Plants,γ + β + α1D
+marts_E00735,F1CKJ1,Plants,β + α1D
+marts_E00736,F1CKI9,Plants,β + α1D
+marts_E00737,F1CKI8,Plants,β + α1D
+marts_E00738,F1CKI6,Plants,β + α1D
+marts_E00739,F1A1D4,Protists,α1G
+marts_E00740,F0ZPL2,Protists,α1G
+marts_E00741,F0ZLU4,Protists,α1G
+marts_E00742,F0ZL92,Protists,α1G
+marts_E00743,F0ZK52,Protists,α1G
+marts_E00744,F0ZDD0,Protists,α1G
+marts_E00745,,Animals,α1E
+marts_E00746,,Animals,α1E
+marts_E00747,E9N3U9,Plants,β + α1D
+marts_E00748,E9F8R9,Fungi,α1G
+marts_E00749,E9F5E9,Fungi,α3B
+marts_E00750,E9E766,Fungi,α1G
+marts_E00751,E8W6C7,Bacteria,α1G
+marts_E00752,E7DN64,Plants,ε + δ2
+marts_E00753,E7DN63,Plants,ε + δ2
+marts_E00755,E5L4Y4,Plants,β + α1D
+marts_E00756,E5GAG4,Plants,β + α1D
+marts_E00757,E5GAG2,Plants,β + α1D
+marts_E00758,E5GAG1,Plants,β + α1D
+marts_E00759,E5GAG0,Plants,β + α1D
+marts_E00760,E5GAF8,Plants,β + α1D
+marts_E00761,E5GAF7,Plants,β + α1D
+marts_E00762,E5GAF6,Plants,β + α1D
+marts_E00763,E5GAF5,Plants,β + α1D
+marts_E00764,E5GAF4,Plants,β + α1D
+marts_E00765,E5GAF3,Plants,β + α1D
+marts_E00766,E4V6I8,Fungi,ε + δ2
+marts_E00767,E4N7E5,Bacteria,α1G
+marts_E00768,E4MYY0,Bacteria,α1G
+marts_E00769,E3WDE2,Plants,γ + β + α1D
+marts_E00770,A0A0A0RDZ8,Plants,β + α1D
+marts_E00771,E3W208,Plants,β + α1D
+marts_E00772,E3W207,Plants,β + α1D
+marts_E00773,E3W206,Plants,β + α1D
+marts_E00774,E3W205,Plants,β + α1D
+marts_E00775,E3W204,Plants,β + α1D
+marts_E00776,E3W203,Plants,β + α1D
+marts_E00777,E3W202,Plants,β + α1D
+marts_E00779,E2IUB0,Plants,ε + δ2
+marts_E00780,E2IUA9,Plants,ε + δ2
+marts_E00781,E2IUA8,Plants,ε + δ2
+marts_E00782,E2IUA7,Plants,ε + δ2
+marts_E00783,E2IUA6,Plants,ε + δ2
+marts_E00784,E2IHE0,Plants,γ + β + α1D
+marts_E00785,E2E2P2,Plants,β + α1D
+marts_E00786,E2E2P1,Plants,β + α1D
+marts_E00787,E2E2P0,Plants,β + α1D
+marts_E00788,E2E2N8,Plants,β + α1D
+marts_E00789,E2E2N7,Plants,β + α1D
+marts_E00790,E2E2N5,Plants,β + α1D
+marts_E00791,E2E2N4,Plants,β + α1D
+marts_E00792,E2E2N3,Plants,β + α1D
+marts_E00793,,Animals,α1E
+marts_E00794,,Animals,α1E
+marts_E00795,D9XDR8,Bacteria,α1G
+marts_E00796,D9XD61,Bacteria,α1G
+marts_E00797,D9J0D5,Plants,β + α1D
+marts_E00798,D9J0D4,Plants,β + α1D
+marts_E00799,D9J0D3,Plants,β + α1D
+marts_E00800,D8RNZ9,Plants,α1G
+marts_E00801,D8RLD3,Plants,α1G
+marts_E00803,D7PHZ5,Fungi,α3B
+marts_E00805,D5SL78,Bacteria,α1G
+marts_E00806,D5SJ87,Bacteria,γ + δ1
+marts_E00807,D5KXJ0,Bacteria,α4B
+marts_E00808,D5KXD2,Plants,β + α1D
+marts_E00811,D3KYU2,Bacteria,α1G
+marts_E00812,D2YZP9,Plants,β + α1D
+marts_E00813,D2XEB3,Plants,γ + β + α1D
+marts_E00814,D2X8Y8,Plants,γ + β + α1D
+marts_E00815,D2X8G2,Plants,γ + β + α1D
+marts_E00816,D2X8G1,Plants,γ + β + α1D
+marts_E00817,D2X8G0,Plants,γ + β + α1D
+marts_E00819,D2B747,Bacteria,α1G
+marts_E00820,D1MJ52,Plants,β + α1D
+marts_E00821,D0VMR8,Plants,β + α1D
+marts_E00822,D0VMR7,Plants,β + α1D
+marts_E00823,D0VMR6,Plants,β + α1D
+marts_E00824,D0VFU8,Plants,α4A
+marts_E00825,D0UZK2,Plants,β + α1D
+marts_E00826,,Animals,α1E
+marts_E00827,,Fungi,α1B + α3B
+marts_E00828,C9K2Q3,Fungi,α1B + α3B
+marts_E00829,C9K1X5,Bacteria,α1H
+marts_E00831,C8XPS0,Plants,β + α1D
+marts_E00832,C7SCX0,Plants,ε + δ2
+marts_E00833,C7PLV2,Bacteria,α1G
+marts_E00834,C7E5W0,Plants,β + α1D
+marts_E00835,C7E5V9,Plants,β + α1D
+marts_E00836,C7E5V8,Plants,β + α1D
+marts_E00837,C7E5V7,Plants,β + α1D
+marts_E00839,C5YN30,Plants,β + α1D
+marts_E00840,C5YHZ9,Plants,β + α1D
+marts_E00841,C5YHI2,Plants,β + α1D
+marts_E00842,C5YHH7,Plants,β + α1D
+marts_E00843,C5I6F7,Plants,β + α1D
+marts_E00844,C5H3I7,Plants,β + α1D
+marts_E00845,C3RSF5,Plants,β + α1D
+marts_E00846,C1K5M3,Plants,γ + β + α1D
+marts_E00847,C0SSW7,Plants,γ + β + α1D
+marts_E00848,C0PTH8,Plants,β + α1D
+marts_E00849,C0PT35,Plants,β + α1D
+marts_E00850,C0PPR1,Plants,β + α1D
+marts_E00851,C0PPM5,Plants,β + α1D
+marts_E00852,C0KWV7,Plants,β + α1D
+marts_E00853,C0KWV6,Plants,β + α1D
+marts_E00854,C0KWV5,Plants,β + α1D
+marts_E00855,C0KWV4,Plants,β + α1D
+marts_E00856,C0KWV3,Plants,β + α1D
+marts_E00857,,Fungi,α1G
+marts_E00858,,Fungi,α1I
+marts_E00859,,Fungi,α1I
+marts_E00861,,Fungi,α1G
+marts_E00862,,Fungi,α1G
+marts_E00863,,Fungi,α1G
+marts_E00864,,Fungi,α1G
+marts_E00865,,Fungi,α1I
+marts_E00866,,Fungi,α1G
+marts_E00867,,Fungi,α1G
+marts_E00868,,Fungi,α1G
+marts_E00869,,Fungi,α1G
+marts_E00870,,Fungi,α1G
+marts_E00871,,Fungi,α1I
+marts_E00872,,Fungi,α1I
+marts_E00873,,Fungi,α1G
+marts_E00874,,Fungi,α1G
+marts_E00875,,Fungi,α1G
+marts_E00876,,Fungi,α1G
+marts_E00877,,Fungi,α1G
+marts_E00878,,Fungi,α1I
+marts_E00879,,Fungi,α1I
+marts_E00880,,Fungi,α1G
+marts_E00881,,Animals,α1E
+marts_E00882,,Animals,α1E
+marts_E00883,B9X0J1,Plants,ε + δ2
+marts_E00884,B9T625,Plants,γ + β + α1D
+marts_E00885,B9S9Z3,Plants,β + α1D
+marts_E00886,B9RXW0,Plants,β + α1D
+marts_E00887,B9RHW5,Plants,β + α1D
+marts_E00888,B9GSM9,Plants,γ + β + α1D
+marts_E00890,B8PQ84,Plants,γ + β + α1D
+marts_E00891,B8PD44,Fungi,α1G
+marts_E00892,B6UV92,Plants,α4B
+marts_E00893,B6SCF6,Plants,β + α1D
+marts_E00894,B6SCF5,Plants,β + α1D
+marts_E00895,B6SCF4,Plants,β + α1D
+marts_E00897,B6HFX8,Fungi,α1B + α3B
+marts_E00899,B6EXY6,Plants,ε + δ2
+marts_E00900,B5HDJ6,Bacteria,α1G
+marts_E00901,B5H7H3,Bacteria,α1G
+marts_E00902,B5GW45,Bacteria,α1G
+marts_E00903,B5GS26,Bacteria,α1G
+marts_E00904,B5GRC8,Bacteria,α1G
+marts_E00905,B5GMG2,Bacteria,α1G
+marts_E00906,B5A435,Plants,β + α1D
+marts_E00907,B5A434,Plants,β + α1D
+marts_E00908,B4YYR2,Plants,β + α1D
+marts_E00909,B4YA15,Fungi,α3B
+marts_E00910,B4XAK6,Plants,β + α1D
+marts_E00911,B4XAK5,Plants,β + α1D
+marts_E00912,B4XAK4,Plants,β + α1D
+marts_E00913,B3Y522,Plants,ε + δ2
+marts_E00914,B3TPQ7,Plants,β + α1D
+marts_E00915,B3TPQ6,Plants,β + α1D
+marts_E00916,B2KSJ6,Plants,β + α1D
+marts_E00917,B2KSJ5,Plants,β + α1D
+marts_E00918,B2J4A4,Bacteria,α1G
+marts_E00919,B2DBF1,Fungi,γ + δ1 + α1C
+marts_E00920,B2DBF0,Fungi,γ + δ1 + α1C
+marts_E00921,B2DBE9,Fungi,α3B
+marts_E00922,B2DBE8,Fungi,α3B
+marts_E00923,B2C4D8,Plants,β + α1D
+marts_E00924,B2C4D7,Plants,β + α1D
+marts_E00925,B2C4D6,Plants,β + α1D
+marts_E00926,B2C4D5,Plants,β + α1D
+marts_E00927,B2C4D4,Plants,β + α1D
+marts_E00928,B2C4D3,Plants,β + α1D
+marts_E00929,B2C4D0,Plants,β + α1D
+marts_E00930,B1XJV9,Bacteria,α3A
+marts_E00931,B1W019,Bacteria,α1G
+marts_E00933,B1B1U4,Plants,β + α1D
+marts_E00934,B1B1U3,Plants,β + α1D
+marts_E00936,B0Y565,Fungi,ε + δ2
+marts_E00937,B0KZ40,Plants,α4B
+marts_E00938,B0FGA9,Plants,β + α1D
+marts_E00941,A9GK58,Bacteria,α1G
+marts_E00942,A9FZ87,Bacteria,α1G
+marts_E00943,A9AWD5,Bacteria,γ + δ1
+marts_E00944,A8R7G3,Plants,ε + δ2
+marts_E00945,A8NU13,Fungi,α1G
+marts_E00946,A8NE23,Fungi,α1G
+marts_E00947,A8NCK5,Fungi,α1I
+marts_E00948,A8CDT3,Plants,ε + δ2
+marts_E00949,A8CDT2,Plants,ε + δ2
+marts_E00950,A8C981,Plants,ε + δ2
+marts_E00951,A8C980,Plants,ε + δ2
+marts_E00952,A7NH01,Bacteria,α1G
+marts_E00953,A7IZZ2,Plants,β + α1D
+marts_E00954,A7IZZ1,Plants,β + α1D
+marts_E00955,A7BJ36,Plants,ε + δ2
+marts_E00956,A7BJ35,Plants,ε + δ2
+marts_E00957,A7BG60,Plants,β + α1D
+marts_E00958,A6XH06,Plants,β + α1D
+marts_E00959,A6XH05,Plants,β + α1D
+marts_E00960,A5YZT7,Plants,β + α1D
+marts_E00961,A5Y5L5,Plants,β + α1D
+marts_E00962,A5LHW8,Plants,ε + δ2
+marts_E00963,A5BEB8,Plants,β + α1D
+marts_E00964,A5AQH7,Plants,β + α1D
+marts_E00965,A5A8G0,Plants,γ + β + α1D
+marts_E00968,A4KAG8,Plants,γ + β + α1D
+marts_E00969,A4KAG7,Plants,γ + β + α1D
+marts_E00970,A4FVP2,Plants,β + α1D
+marts_E00971,A4FG19,Bacteria,α1G
+marts_E00972,A3KI17,Bacteria,α1G
+marts_E00973,A2PZA5,Fungi,α1B + α3B
+marts_E00976,A1DN30,Fungi,α1B + α3B
+marts_E00978,A1C8C3,Fungi,α1B + α3B
+marts_E00980,Q5UBY0,Plants,β + α1D
+marts_E00981,A0RZI2,Plants,β + α1D
+marts_E00982,A0A8K1AY78,Fungi,α1B + α3B
+marts_E00983,A0A8F4SPZ5,Fungi,α1B + α3B
+marts_E00984,A0A8F4SPY9,Fungi,α1B + α3B
+marts_E00985,A0A8F4SNK9,Fungi,α1B + α3B
+marts_E00986,A0A8F4SNK4,Fungi,α1B + α3B
+marts_E00987,A0A8F4SKU0,Fungi,α1B + α3B
+marts_E00988,A0A8F4SKT7,Fungi,α1B + α3B
+marts_E00989,A0A8F4SK87,Fungi,α1B + α3B
+marts_E00991,A0A8F4SK83,Fungi,α1B + α3B
+marts_E00992,A0A8F4SK79,Fungi,α1B + α3B
+marts_E00993,A0A8F4PQP7,Fungi,α1B + α3B
+marts_E00994,A0A8F4PQI4,Fungi,α1B + α3B
+marts_E00995,A0A8F4PQH5,Fungi,α1B + α3B
+marts_E00996,A0A8F4PPJ2,Fungi,α1B + α3B
+marts_E00997,A0A8F4PPI6,Fungi,α1B + α3B
+marts_E00998,A0A8F4PPH7,Fungi,α1B + α3B
+marts_E00999,A0A8F4PP18,Fungi,α1B + α3B
+marts_E01000,A0A8F4PNT7,Fungi,α1B + α3B
+marts_E01002,A0A8F4PNJ7,Fungi,α1B + α3B
+marts_E01003,A0A8F4PMY5,Fungi,α1B + α3B
+marts_E01004,A0A8F4PMX6,Fungi,α1B + α3B
+marts_E01005,A0A8F4PMV8,Fungi,α1B + α3B
+marts_E01006,A0A7S5L3J3,Plants,β + α1D
+marts_E01007,A0A7S5L3H2,Plants,β + α1D
+marts_E01008,A0A7S5L324,Plants,β + α1D
+marts_E01009,A0A7S5GI44,Plants,β + α1D
+marts_E01010,A0A7S5GI43,Plants,α1D
+marts_E01011,A0A7L7SG75,Plants,β + α1D
+marts_E01012,A0A7L7SES4,Plants,β + α1D
+marts_E01013,A0A7L7SCQ9,Plants,β + α1D
+marts_E01014,A0A7L7S8U7,Plants,β + α1D
+marts_E01015,A0A7L7S5T2,Plants,β + α1D
+marts_E01016,A0A7G5KLV3,Plants,β + α1D
+marts_E01017,A0A7G5KLV2,Plants,β + α1D
+marts_E01018,A0A7G5KLV1,Plants,β + α1D
+marts_E01019,A0A7G5KLV0,Plants,β + α1D
+marts_E01020,A0A7D0AGU9,Animals,α3B
+marts_E01021,A0A6S6QR11,Fungi,γ + δ1 + α1C
+marts_E01022,A0A6S6QJ62,Fungi,α3B
+marts_E01023,A0A6P8ANR6,Fungi,α1B + α3B
+marts_E01026,A0A6M6CCF6,Plants,β + α1D
+marts_E01027,A0A6G7GHF5,Fungi,α1B + α3B
+marts_E01028,A0A6C0TLK1,Plants,β + α1D
+marts_E01029,A0A6C0TL59,Plants,β + α1D
+marts_E01030,A0A6C0TJK8,Plants,β + α1D
+marts_E01031,A0A6C0THV5,Plants,β + α1D
+marts_E01032,A0A6C0QES1,Plants,β + α1D
+marts_E01033,A0A6B8N4Y9,Plants,β + α1D
+marts_E01034,A0A6B8N100,Plants,β + α1D
+marts_E01035,A0A6B8MS60,Plants,β + α1D
+marts_E01036,A0A6A6W5M9,Fungi,α1B + α3B
+marts_E01037,A0A678QA10,Plants,β + α1D
+marts_E01038,A0A650A872,Plants,β + α1D
+marts_E01039,A0A650A7N9,Plants,β + α1D
+marts_E01040,A0A650A7N6,Plants,β + α1D
+marts_E01041,A0A650A7M1,Plants,β + α1D
+marts_E01043,A0A650A7I8,Plants,β + α1D
+marts_E01044,A0A650A7H3,Plants,β + α1D
+marts_E01045,A0A5S9I252,Fungi,α1G
+marts_E01046,A0A5Q0QU70,Fungi,α1G
+marts_E01047,A0A5Q0QSI8,Fungi,α1G
+marts_E01048,A0A5Q0QRJ3,Fungi,α1G
+marts_E01049,A0A5Q0QP64,Fungi,α1G
+marts_E01050,A0A5Q0QNJ2,Fungi,α1G
+marts_E01051,A0A5Q0QNH9,Fungi,α1G
+marts_E01052,A0A5Q0QN66,Fungi,α1G
+marts_E01053,A0A5Q0QMX1,Fungi,α1G
+marts_E01054,A0A5Q0QMX0,Fungi,α1G
+marts_E01055,A0A5K6WHY7,Plants,β + α1D
+marts_E01057,A0A4Y5QVX6,Plants,β + α1D
+marts_E01059,A0A4Y5L9K3,Plants,β + α1D
+marts_E01060,A0A4S8MAF3,Fungi,α1G
+marts_E01061,A0A482IC14,Plants,β + α1D
+marts_E01062,A0A482AJV9,Plants,β + α1D
+marts_E01064,A0A3S9GVB5,Plants,α1G
+marts_E01065,A0A3S9GV71,Plants,α1G
+marts_E01066,A0A3Q9FFM1,Fungi,α1B + α3B
+marts_E01069,A0A3G9F1F9,Plants,β + α1D
+marts_E01070,A0A3G9EY38,Plants,β + α1D
+marts_E01071,A0A3G9EJV0,Plants,β + α1D
+marts_E01072,A0A3G9EJT8,Plants,β + α1D
+marts_E01073,A0A3G9ED98,Plants,β + α1D
+marts_E01074,A0A3G9EAS3,Plants,β + α1D
+marts_E01075,A0A3G1QTU5,Plants,γ + β + α1D
+marts_E01076,A0A3G1QTS7,Plants,γ + β + α1D
+marts_E01077,A0A3G1HQN7,Fungi,α1G
+marts_E01080,A0A386JV86,Animals,α3B
+marts_E01081,A0A385AJN0,Protists,α1G
+marts_E01082,A0A385AJM7,Plants,α1G
+marts_E01083,A0A385AJM6,Protists,α1G
+marts_E01084,A0A385AJM4,Protists,α1G
+marts_E01085,A0A385AJM2,Protists,α1G
+marts_E01086,F4Q7D4,Protists,α1G
+marts_E01087,A0A348FUE1,Fungi,γ + δ1 + α3B
+marts_E01088,A0A348DU52,Fungi,α1B + α3B
+marts_E01089,A0A348B793,Fungi,α1I
+marts_E01090,A0A348B790,Fungi,α1G
+marts_E01091,A0A348B788,Fungi,α1G
+marts_E01092,A0A348B784,Fungi,α1G
+marts_E01093,A0A348B782,Fungi,α1G
+marts_E01094,A0A348B781,Fungi,α1G
+marts_E01095,A0A348B780,Fungi,α1G
+marts_E01096,A0A348B779,Fungi,α1G
+marts_E01097,A0A348AUW1,Plants,β + α1D
+marts_E01098,A0A348AUW0,Plants,β + α1D
+marts_E01099,A0A348AUV9,Plants,β + α1D
+marts_E01100,A0A348AUV7,Plants,β + α1D
+marts_E01101,A0A348AUV6,Plants,β + α1D
+marts_E01102,A0A348AUV5,Plants,β + α1D
+marts_E01103,A0A345ZQ22,Plants,γ + β + α1D
+marts_E01105,A0A343W970,Animals,α3B
+marts_E01106,A0A343W969,Animals,α3B
+marts_E01107,A0A2Z6FZ31,Fungi,α1B + α3B
+marts_E01108,A0A2Z6E9F0,Plants,β + α1D
+marts_E01109,A0A2Z6E967,Plants,β + α1D
+marts_E01110,A0A2Z6AQX7,Fungi,α1B + α3B
+marts_E01111,A0A2Z6AQX6,Fungi,α1B + α3B
+marts_E01112,A0A2R4QKX7,Plants,β + α1D
+marts_E01114,A0A2P2GK84,Bacteria,ε + δ2
+marts_E01115,A0A2L0VXR5,Fungi,α3B
+marts_E01116,A0A2L0VXR0,Fungi,γ + δ1 + α1C
+marts_E01117,A0A2K9RG07,Plants,γ + β + α1D
+marts_E01118,A0A2K9RFZ9,Plants,β + α1D
+marts_E01119,A0A2K9RFZ8,Plants,γ + β + α1D
+marts_E01120,A0A2K9RFZ7,Plants,γ + β + α1D
+marts_E01121,A0A2K9RFZ2,Plants,β + α1D
+marts_E01122,A0A2K9RFY0,Plants,γ + β + α1D
+marts_E01123,A0A2I6PJ05,Fungi,α3B
+marts_E01124,A0A2A2D8W5,Bacteria,α1G
+marts_E01125,A0A291SJC7,Bacteria,α1G
+marts_E01126,A0A291LSD6,Plants,β + α1D
+marts_E01127,A0A290U6P6,Plants,β + α1D
+marts_E01128,A0A290U6N1,Plants,β + α1D
+marts_E01129,A0A290U6M6,Plants,β + α1D
+marts_E01130,A0A290U6M0,Plants,β + α1D
+marts_E01131,A0A286R621,Plants,α1G
+marts_E01133,A0A1Z3GCD1,Plants,γ + β + α1D
+marts_E01134,A0A1Z3GC64,Plants,γ + β + α1D
+marts_E01135,A0A1Z3GBK8,Plants,γ + β + α1D
+marts_E01136,A0A1Y1C7Q5,Fungi,α1B + α3B
+marts_E01137,A0A1X9ISP7,Plants,γ + β + α1D
+marts_E01138,A0A1X9ISN9,Plants,γ + β + α1D
+marts_E01139,A0A1X9ISH5,Plants,γ + β + α1D
+marts_E01140,A0A1X9IRQ7,Plants,γ + β + α1D
+marts_E01141,A0A1X9IRP7,Plants,β + α1D
+marts_E01142,A0A1W6QDJ1,Plants,γ + β + α1D
+marts_E01143,A0A1W6QDI7,Plants,β + α1D
+marts_E01144,A0A1W6GW32,Plants,β + α1D
+marts_E01145,A0A1W6GW18,Plants,β + α1D
+marts_E01146,A0A1W6GW06,Plants,β + α1D
+marts_E01147,A0A1V1FVQ6,Fungi,α1B + α3B
+marts_E01148,A0A1V0QSG6,Plants,β + α1D
+marts_E01149,A0A1V0QSF6,Plants,β + α1D
+marts_E01150,A0A1V0QSF3,Plants,β + α1D
+marts_E01151,A0A7J6HK32,Plants,β + α1D
+marts_E01152,A0A1V0QSA8,Fungi,α3B
+marts_E01153,A0A1V0E4A6,Plants,β + α1D
+marts_E01154,A0A1V0E492,Plants,β + α1D
+marts_E01155,A0A1V0D8Y5,Plants,β + α1D
+marts_E01156,A0A1U8QLG8,Fungi,α3B
+marts_E01157,A0A1U8QHE3,Fungi,γ + δ1 + α1C
+marts_E01159,A0A1S5RW73,Plants,γ + β + α1D
+marts_E01169,A0A1M6RNB3,Bacteria,α1G
+marts_E01170,A0A1L9WUI2,Fungi,α1B
+marts_E01171,A0A1L9UKS1,Fungi,α1B + α3B
+marts_E01172,A0A1L7VZE7,Fungi,α1G
+marts_E01173,A0A1L7U8F2,Fungi,α1G
+marts_E01174,A0A1L7NYG3,Plants,β + α1D
+marts_E01175,A0A1L7NYG2,Plants,β + α1D
+marts_E01176,A0A1L7NYF8,Plants,β + α1D
+marts_E01177,A0A1L6Z3A5,Plants,γ + β + α1D
+marts_E01178,A0A1L6Z3A0,Plants,γ + β + α1D
+marts_E01179,A0A1L5YKS7,Plants,α1G
+marts_E01180,A0A1L2D3T3,Plants,β + α1D
+marts_E01181,A0A1L1WGF5,Plants,β + α1D
+marts_E01182,A0A1L1WGD9,Plants,β + α1D
+marts_E01183,A0A1L1WGC4,Plants,β + α1D
+marts_E01184,A0A1L1WGB8,Plants,β + α1D
+marts_E01185,A0A1J0CQA6,Plants,α1G
+marts_E01186,A0A1J0CQA2,Plants,α1G
+marts_E01187,A0A1J0CQ97,Plants,α1I
+marts_E01188,A0A1J0CQ92,Plants,α1G
+marts_E01189,A0A1J0CQ90,Plants,α1G
+marts_E01190,A0A1J0CQ86,Plants,α1G
+marts_E01192,A0A1H0BVV7,Bacteria,α1G
+marts_E01193,A0A1G9S4L4,Bacteria,α1G
+marts_E01194,A0A1F5LDE4,Fungi,α1B + α3B
+marts_E01195,A0A1D8PI71,Fungi,α4A
+marts_E01196,A0A1D8PH78,Fungi,α3B
+marts_E01197,A0A1D6LTV0,Plants,β + α1D
+marts_E01198,A0A1D6KUI6,Plants,γ + β + α1D
+marts_E01199,A0A1D6K6U5,Plants,γ + β + α1D
+marts_E01201,A0A1D6EFT8,Plants,β + α1D
+marts_E01202,A0A1C9J6A7,Plants,β + α1D
+marts_E01203,A0A1C7AAN2,Plants,γ + β + α1D
+marts_E01204,A0A1B4XBK0,Fungi,α3B
+marts_E01205,A0A1B4XBG5,Fungi,α1G
+marts_E01206,A0A178U9Y5,Plants,β + α1D
+marts_E01207,A0A177DNJ5,Fungi,α1B + α3B
+marts_E01208,A0A169T193,Fungi,α1B + α3B
+marts_E01209,A0A167V661,Plants,β + α1D
+marts_E01210,A0A167CIH5,Fungi,α1B + α3B
+marts_E01211,A0A162QA28,Fungi,α1B + α3B
+marts_E01212,A0A151ZEA6,Protists,α1G
+marts_E01213,A0A144YEA5,Plants,α4A
+marts_E01214,A0A142ZC57,Plants,α4A
+marts_E01215,A0A142F308,Plants,β + α1D
+marts_E01216,A0A142F309,Plants,β + α1D
+marts_E01217,A0A142F310,Plants,β + α1D
+marts_E01218,A0A142BX74,Plants,β + α1D
+marts_E01221,A0A142BX70,Plants,β + α1D
+marts_E01222,A0A140KFG9,Plants,β + α1D
+marts_E01223,A0A140JWS2,Fungi,α3B
+marts_E01224,A0A140AZ72,Animals,α3B
+marts_E01225,A0A140AZ69,Animals,α3B
+marts_E01226,A0A140AZ66,Animals,α3B
+marts_E01227,A0A140AZ63,Animals,α3B
+marts_E01228,A0A135LYJ9,Fungi,α1B + α3B
+marts_E01229,A0A125SXN3,Plants,ε + δ2
+marts_E01230,A0A125SXN2,Plants,ε + δ2
+marts_E01231,A0A125SXN1,Plants,ε + δ2
+marts_E01232,A0A125S8N2,Plants,β + α1D
+marts_E01233,A0A125S8N1,Plants,β + α1D
+marts_E01234,A0A100IAT3,Fungi,α1B + α3B
+marts_E01235,A0A0U5GNT1,Fungi,δ3
+marts_E01236,A0A0U5GLI1,Fungi,α1B + α3B
+marts_E01238,A0A0U4KG90,Plants,β + α1D
+marts_E01239,A0A0U4IMN4,Plants,β + α1D
+marts_E01240,A0A0U4CDK4,Plants,γ + β + α1D
+marts_E01241,A0A0U3LQ20,Plants,γ + β + α1D
+marts_E01242,A0A0U3BRC5,Plants,α3A
+marts_E01243,A0A0U2U4F3,Plants,ε + δ2
+marts_E01244,A0A0U2D9C5,Plants,γ + β + α1D
+marts_E01245,A0A0U1XRI2,Plants,β + α1D
+marts_E01246,A0A0U1XNG2,Plants,β + α1D
+marts_E01247,A0A0S2IHL6,Plants,ε + δ2
+marts_E01248,A0A0P0ZEM1,Fungi,α1B + α3B
+marts_E01249,A0A0P0ZD79,Fungi,α1B + α3B
+marts_E01250,A0A0M5L832,Plants,γ + β + α1D
+marts_E01251,A0A0M4MMY1,Plants,γ + β + α1D
+marts_E01252,A0A0M4M0T9,Plants,γ + β + α1D
+marts_E01253,A0A0M3Q1Q3,Plants,β + α1D
+marts_E01254,A0A0H5BN61,Bacteria,α1G
+marts_E01255,A0A0H5BN57,Bacteria,α1G
+marts_E01256,A0A0H5BB10,Bacteria,γ + δ1
+marts_E01257,A0A0H4U9R8,Plants,β + α1D
+marts_E01260,A0A0F4GLU2,Fungi,α1B + α3B
+marts_E01261,A0A0E3KJK7,Plants,β + α1D
+marts_E01262,A0A0E3D8P4,Fungi,α3B
+marts_E01263,A0A0E3D8M9,Fungi,α3B
+marts_E01264,A0A0E0SP71,Fungi,ε + δ2
+marts_E01265,A0A0E0LRP1,Plants,β + α1D
+marts_E01266,A0A0D4D912,Plants,β + α1D
+marts_E01267,A0A0D2L718,Fungi,α1G
+marts_E01268,A0A0C9VD04,Fungi,α1G
+marts_E01269,A0A0C3FBR2,Fungi,α1G
+marts_E01270,A0A0B5KP67,Plants,β + α1D
+marts_E01271,A0A0B4IF96,Fungi,α1G
+marts_E01272,A0A0B4GN88,Fungi,α1G
+marts_E01273,A0A0B4G504,Fungi,α1I
+marts_E01274,A0A0B4G3Q7,Fungi,α1G
+marts_E01275,A0A0B4FWC3,Fungi,α1G
+marts_E01276,A0A0B4EB91,Fungi,α1G
+marts_E01277,A0A0A7GEY4,Archaea,α3A
+marts_E01280,A0A0A0RDR2,Plants,β + α1D
+marts_E01281,A0A0A0RCB5,Plants,β + α1D
+marts_E01283,A0A097ZIE0,Plants,β + α1D
+marts_E01284,A0A097SRT3,Plants,γ + β + α1D
+marts_E01285,A0A076L784,Plants,β + α1D
+marts_E01286,A0A076L503,Plants,β + α1D
+marts_E01287,A0A076L4Z9,Plants,β + α1D
+marts_E01288,A0A076L4M0,Plants,β + α1D
+marts_E01289,A0A076KZS5,Plants,β + α1D
+marts_E01290,A0A076KZH5,Plants,β + α1D
+marts_E01291,A0A076GBT5,Plants,β + α1D
+marts_E01292,A0A076GAU9,Plants,β + α1D
+marts_E01293,A0A076GAU5,Plants,β + α1D
+marts_E01294,A0A076GAR6,Plants,β + α1D
+marts_E01295,A0A075W3D9,Plants,β + α1D
+marts_E01296,A0A075W0Z3,Plants,β + α1D
+marts_E01297,A0A075FBT3,Plants,γ + β + α1D
+marts_E01298,A0A075FBG7,Plants,β + α1D
+marts_E01299,A0A075FAK4,Plants,γ + β + α1D
+marts_E01300,A0A075FA51,Plants,γ + β + α1D
+marts_E01301,A0A068EUF6,Plants,β + α1D
+marts_E01302,A0A067SEC9,Fungi,α1G
+marts_E01304,A0A023J8Z5,Plants,β + α1D
+marts_E01305,Q7KWU0,Protists,α1G
+marts_E01306,Q54P86,Protists,α1G
+marts_E01307,Q54TW4,Protists,α1G
+marts_E01308,D5SK09,Bacteria,α1G
+marts_E01309,A0A5P2UZR8,Bacteria,α1G
+marts_E01310,,Bacteria,α1H
+marts_E01311,A0AA51BM75,Plants,γ + β + α1D
+marts_E01312,A0A561SAF2,Bacteria,α1G
+marts_E01313,A0A7W5F0P0,Bacteria,α1G
+marts_E01314,A0A1M3U1M9,Fungi,α1G
+marts_E01315,A0A3M8F3X6,Bacteria,α1G
+marts_E01316,,Bacteria,α1G
+marts_E01317,C7QAD7,Bacteria,α1G
+marts_E01318,C9Z4F7,Bacteria,α1G
+marts_E01319,A0A5P1ZG13,Bacteria,α1G
+marts_E01320,B5GTQ6,Bacteria,α1G
+marts_E01321,,Viruses,α1G
+marts_E01322,A0A101T124,Bacteria,α1G
+marts_E01323,A0A117RG81,Bacteria,α1G
+marts_E01324,A0A5N5W9J0,Bacteria,α1G
+marts_E01325,,Bacteria,α1G
+marts_E01326,,Animals,α3B
+marts_E01327,O34707,Bacteria,α1A
+marts_E01328,A0A318P116,Bacteria,α1G
+marts_E01329,,Bacteria,α1G
+marts_E01330,,Bacteria,α1G
+marts_E01331,,Plants,α1G
+marts_E01332,D5SLU6,Bacteria,α1G
+marts_E01333,,Plants,β + α1D
+marts_E01334,,Plants,β + α1D
+marts_E01335,,Fungi,α1G
+marts_E01336,A0A250IBE0,Bacteria,α1G
+marts_E01337,A0A1Z2LDZ7,Bacteria,α1G
+marts_E01338,A0A562T706,Bacteria,α1G
+marts_E01339,A0A2E1AC30,Bacteria,α1G
+marts_E01340,,Bacteria,α1G
+marts_E01341,A0A1H7UDD2,Bacteria,α1G
+marts_E01342,A0A2T0LNX7,Bacteria,α1G
+marts_E01343,A0A1N6E2E2,Bacteria,α1G
+marts_E01344,A0A2A3HMH3,Bacteria,α1G
+marts_E01345,A0A562SP41,Bacteria,γ + δ1 + α1D
+marts_E01346,A0A1I1IX82,Bacteria,α1G
+marts_E01347,A0A7M3M6K6,Bacteria,α1G
+marts_E01348,A0A5P0YYU2,Bacteria,α1G
+marts_E01349,A0A3N4M544,Bacteria,α1G
+marts_E01350,A0A139WXP3,Bacteria,α1G
+marts_E01351,A0A0N9I8A9,Bacteria,α1G
+marts_E01352,A0A097ZQD0,Bacteria,α1G
+marts_E01353,A0A4R4VDA4,Bacteria,α1G
+marts_E01354,A0A6I2FRA3,Bacteria,α1G
+marts_E01355,,Bacteria,α1G
+marts_E01356,A0A1H1T2Q7,Bacteria,α1G
+marts_E01357,J2T8D5,Bacteria,α1G
+marts_E01358,A0A495JMV3,Bacteria,α1G
+marts_E01359,A0A0M8XX89,Bacteria,α1G
+marts_E01360,A0A1Q5GJH1,Bacteria,α1G
+marts_E01361,A0A3N1A8E7,Bacteria,α1G
+marts_E01362,A0A1N7KE47,Bacteria,α1G
+marts_E01363,A0A386ZKV4,Bacteria,α1G
+marts_E01364,A0A552RHR4,Bacteria,α1G
+marts_E01365,,Bacteria,α1G
+marts_E01366,A0AA82WP13,Bacteria,α1G
+marts_E01367,A0A956YA26,Bacteria,α1G
+marts_E01368,A0A979G5X7,Bacteria,α1G
+marts_E01369,A0A979G646,Bacteria,α1G
+marts_E01370,A0A010YQZ8,Bacteria,α1G
+marts_E01371,A0A1L1WP15,Plants,β + α1D
+marts_E01372,A0A1V0QSF8,Plants,β + α1D
+marts_E01373,A0A1V0QSG0,Plants,β + α1D
+marts_E01374,A0A1V0QSG1,Plants,β + α1D
+marts_E01375,A0A1V0QSH1,Plants,β + α1D
+marts_E01376,A0A290U6M3,Plants,β + α1D
+marts_E01377,A0A2U8JPY1,Plants,β + α1D
+marts_E01378,A0A385J6X8,Plants,β + α1D
+marts_E01379,A0A385J6Y5,Plants,β + α1D
+marts_E01380,A0A385J6Y6,Plants,β + α1D
+marts_E01381,A0A385J6Y9,Plants,β + α1D
+marts_E01382,A0A3B8DU56,Plants,β + α1D
+marts_E01383,A0A3G9EWY9,Plants,β + α1D
+marts_E01384,A0A4Y5QWA6,Plants,β + α1D
+marts_E01385,A0A4Y5QWK5,Plants,β + α1D
+marts_E01386,A0A4Y5QZ62,Plants,β + α1D
+marts_E01387,A0A650A7L8,Plants,β + α1D
+marts_E01388,A0A650A8B4,Plants,β + α1D
+marts_E01389,A0A7D5HVQ3,Plants,β + α1D
+marts_E01390,A0A7D5HYM9,Plants,β + α1D
+marts_E01391,A0A7D5HYZ9,Plants,β + α1D
+marts_E01392,A0A7D5HZV8,Plants,β + α1D
+marts_E01393,A0A7S6HRZ4,Plants,β + α1D
+marts_E01394,A0A8A5RE99,Plants,β + α1D
+marts_E01395,A0A8A5XA86,Plants,β + α1D
+marts_E01396,A0A8A5XC90,Plants,β + α1D
+marts_E01397,S4SC87,Plants,β + α1D
+marts_E01398,,Plants,α1D
+marts_E01399,A0A067N7X3,Fungi,α1G
+marts_E01400,A0A067NBB1,Fungi,α1G
+marts_E01401,A0A067NY86,Fungi,α1G
+marts_E01402,A0A094YZ24,Bacteria,α1A
+marts_E01403,A0A097ZQA4,Bacteria,α1G
+marts_E01404,A0A097ZQD1,Bacteria,α1G
+marts_E01405,A0A2H3DKU3,Fungi,α1G
+marts_E01406,A0A2H3DQV4,Fungi,α1G
+marts_E01407,A0A2H3DUF9,Fungi,α1G
+marts_E01408,A0A2H3E1S5,Fungi,α1G
+marts_E01409,A0A345ZQ19,Plants,γ + β + α1D
+marts_E01410,A0A345ZQ20,Plants,γ + β + α1D
+marts_E01411,A0A345ZQ21,Plants,γ + β + α1D
+marts_E01412,A0A345ZQ23,Plants,γ + β + α1D
+marts_E01413,A0A345ZQ24,Plants,γ + β + α1D
+marts_E01414,A0A345ZQ25,Plants,γ + β + α1D
+marts_E01415,A0A345ZQ26,Plants,γ + β + α1D
+marts_E01416,A0A345ZQ29,Plants,γ + β + α1D
+marts_E01417,A0A345ZQ30,Plants,γ + β + α1D
+marts_E01418,A0A345ZQ31,Plants,γ + β + α1D
+marts_E01419,A0A8H6ZNT4,Fungi,α1G
+marts_E01420,A0A8H7DPD2,Fungi,α1G
+marts_E01421,A0A8T0VMU7,Plants,γ + β + α1D
+marts_E01422,B5H135,Bacteria,α1G
+marts_E01423,UPI0005ADA921,Bacteria,γ + δ1
+marts_E01424,UPI0005AE096B,Bacteria,α1D
+marts_E01425,,Bacteria,α1D
+marts_E01426,A0A1G9UQQ0,Bacteria,α1G
+marts_E01427,A0A1U7YTG3,Plants,β + α1D
+marts_E01428,A0A1U7Z4L4,Plants,β + α1D
+marts_E01429,A0A1U8BK57,Plants,γ + β + α1D
+marts_E01430,A0A401VY17,Bacteria,α1G
+marts_E01431,A0A822XDK0,Plants,γ + β + α1D
+marts_E01432,A0A822ZER1,Plants,β + α1D
+marts_E01433,F8JK18,Bacteria,α1G
+marts_E01434,,Bacteria,α1G
+marts_E01435,,Bacteria,α1G
+marts_E01436,,Bacteria,α1G
+marts_E01437,,Plants,α1G
+marts_E01438,,Plants,α1I
+marts_E01439,,Plants,α1G
+marts_E01440,,Plants,α1G
+marts_E01441,,Plants,α1G
+marts_E01442,,Fungi,α1G
+marts_E01443,,Plants,β + α1D
+marts_E01444,,Plants,γ + β + α1D
+marts_E01445,A0A4P2VFM9,Fungi,α1G
+marts_E01446,A0A4P2VFW6,Fungi,α1G
+marts_E01447,A0A4P2VFX4,Fungi,α1G
+marts_E01448,A0A4P2VG85,Fungi,α1G
+marts_E01449,A0A4P2VG86,Fungi,α1G
+marts_E01450,A0A4P2VIB5,Fungi,α1G
+marts_E01451,A0A4P2VIC1,Fungi,α1G
+marts_E01452,A0A4P2VJ76,Fungi,α1G
+marts_E01453,A0A4P2VJ78,Fungi,α1G
+marts_E01454,A0A4P2VK23,Fungi,α1G
+marts_E01455,A0A4P2VK29,Fungi,α1G
+marts_E01456,A0A4P2VRB6,Fungi,α1G
+marts_E01457,A0A4P2VRC2,Fungi,α1G
+marts_E01458,A0A4P2VS22,Fungi,α1G
+marts_E01459,A0A4P2VS31,Fungi,α1G
+marts_E01460,A0A4V0P208,Fungi,α1G
+marts_E01461,A0A8H5Z7W4,Fungi,α1I
+marts_E01462,A0AAW1L0L7,Plants,ε + δ2
+marts_E01463,O22667,Plants,γ + β + α1D
+marts_E01464,Q9ZTN7,Plants,γ + β + α1D
+marts_E01465,UPI000440A4B6,Fungi,α1G
+marts_E01466,UPI000440ADCF,Fungi,α1G
+marts_E01467,UPI000440C954,Fungi,α1G
+marts_E01468,UPI0004449431,Fungi,α1G
+marts_E01469,UPI0004449AEC,Fungi,α1G
+marts_E01470,UPI003468F469,Fungi,α1G
+marts_E01471,,Fungi,α1G
+marts_E01472,,Fungi,α1G
+marts_E01473,,Fungi,α1G
+marts_E01474,,Fungi,α1I
+marts_E01475,A0A075W2D6,Plants,β + α1D
+marts_E01476,A0A084SQV5,Bacteria,α2A
+marts_E01477,A0A097SRU9,Plants,γ + β + α1D
+marts_E01478,A0A0D3CK74,Plants,β + α1D
+marts_E01479,A0A0H4U599,Plants,γ + β + α1D
+marts_E01480,A0A0H4U5M2,Plants,β + α1D
+marts_E01481,A0A140KFH3,Plants,β + α1D
+marts_E01482,A0A178MLU0,Bacteria,α2A
+marts_E01483,A0A1D6DZU6,Plants,γ + β + α1D
+marts_E01484,A0A1V0QSF1,Fungi,α2A
+marts_E01485,A0A1V0QSF7,Fungi,α2A
+marts_E01486,A0A2N3Y098,Bacteria,α1G
+marts_E01487,A0A2Z6E9E7,Plants,β + α1D
+marts_E01488,A0A385AJM5,Protists,α1G
+marts_E01489,A0A482F799,Plants,ε + δ2
+marts_E01490,A0A482F7E4,Plants,ε + δ2
+marts_E01491,A0A4R8DHV7,Bacteria,α1G
+marts_E01492,A0A562SZ08,Bacteria,α1G
+marts_E01493,A0A562T0F8,Bacteria,α1G
+marts_E01494,A0A562T294,Bacteria,α1G
+marts_E01495,A0A562T659,Bacteria,α1G
+marts_E01496,A0A562TEX3,Bacteria,α1G
+marts_E01497,A0A5K6WE80,Plants,β + α1D
+marts_E01498,A0A5K6WNC8,Plants,β + α1D
+marts_E01499,A0A6P5F5Q4,Plants,β + α1D
+marts_E01500,A0A7D5UZM1,Fungi,α1G
+marts_E01501,A0A7L4XSZ2,Plants,β + α1D
+marts_E01502,A0F0B7,Plants,β + α1D
+marts_E01503,B4FYP8,Plants,β + α1D
+marts_E01504,B9SIL7,Plants,γ + β + α1D
+marts_E01505,B9SIM2,Plants,γ + β + α1D
+marts_E01506,B9SIM3,Plants,γ + β + α1D
+marts_E01507,C7SHN9,Plants,γ + β + α1D
+marts_E01508,F8TWD0,Plants,β + α1D
+marts_E01509,F8TWD1,Plants,β + α1D
+marts_E01510,F8TWD2,Plants,β + α1D
+marts_E01511,G9M5S7,Plants,γ + β + α1D
+marts_E01512,G9M5S8,Plants,β + α1D
+marts_E01513,H6KZW8,Bacteria,α2A
+marts_E01514,L0I762,Plants,β + α1D
+marts_E01515,L0I7G3,Plants,β + α1D
+marts_E01516,L0I8P4,Plants,β + α1D
+marts_E01517,L0I9I1,Plants,β + α1D
+marts_E01518,M2TEG6,Fungi,α1B + α3B
+marts_E01519,M2U3S5,Fungi,α1B + α3B
+marts_E01520,Q45221,Bacteria,γ + δ1
+marts_E01521,Q45222,Bacteria,α1G
+marts_E01522,Q4QSN5,Plants,γ + β + α1D
+marts_E01523,Q5CD81,Plants,β + α1D
+marts_E01524,Q66PX9,Plants,β + α1D
+marts_E01525,Q675K8,Plants,β + α1D
+marts_E01526,Q675K9,Plants,β + α1D
+marts_E01527,Q675L2,Plants,β + α1D
+marts_E01528,Q9C8E3,Plants,β + α1D
+marts_E01529,Q9LH31,Plants,β + α1D
+marts_E01530,Q9LIA1,Plants,β + α1D
+marts_E01531,Q9LQ27,Plants,β + α1D
+marts_E01532,R0GB30,Plants,β + α1D
+marts_E01533,UPI000045BCA6,Bacteria,α1G + α1G
+marts_E01534,UPI000173D2D8,Bacteria,α2A
+marts_E01535,UPI00032B827C,Plants,β + α1D
+marts_E01536,UPI000525E1C4,Bacteria,α1H
+marts_E01537,UPI0005D906A8,Bacteria,α2A
+marts_E01538,UPI000A5C63E0,Bacteria,α1G
+marts_E01539,UPI001460FE0B,Plants,β + α1D

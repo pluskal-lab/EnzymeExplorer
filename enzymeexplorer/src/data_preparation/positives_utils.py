@@ -7,7 +7,6 @@ from enzymeexplorer.src.data_preparation.constants import (
 from enzymeexplorer.src.utils.data import get_canonical_smiles
 from enzymeexplorer.src.data_preparation.mmseqs2_wrapper import MMSeqs2Wrapper
 from collections import defaultdict
-import pickle
 from enzymeexplorer.src.data_preparation.common_utils import (
     cluster_dataset,
     get_is_splittable,
@@ -144,42 +143,11 @@ def preprocess_martsdb(martsDB: pd.DataFrame) -> tuple[pd.DataFrame, list[list[s
 def prepare_positives_set(
     martsDB: pd.DataFrame,
     mmseqs: MMSeqs2Wrapper,
-    id_to_kingdom_output_path: str | None,
-    substrate_to_tps_type_output_path: str | None,
     min_seq_id: float,
     coverage: float,
     n_folds: int,
     final_positives_csv_path: str,
 ) -> pd.DataFrame:
-    if id_to_kingdom_output_path:
-        # computing categories per kingdom
-        id_2_kingdom_dataset = (
-            martsDB[["Enzyme_marts_ID", "Kingdom"]]
-            .set_index("Enzyme_marts_ID")
-            .to_dict()["Kingdom"]
-        )
-        with open(id_to_kingdom_output_path, "wb") as file:
-            pickle.dump(id_2_kingdom_dataset, file)
-
-        logger.info(f"Saved ID to Kingdom mapping to {id_to_kingdom_output_path}")
-
-    if substrate_to_tps_type_output_path:
-        substrate_2_tps_type = (
-            martsDB[["SMILES_substrate_canonical_no_stereo", "Type"]]
-            .drop_duplicates()
-            .groupby("SMILES_substrate_canonical_no_stereo")["Type"]
-            .apply(set)
-            .reset_index()
-        .set_index("SMILES_substrate_canonical_no_stereo")
-        .to_dict()["Type"]
-        )
-        with open(substrate_to_tps_type_output_path, "wb") as file:
-            pickle.dump(substrate_2_tps_type, file)
-
-        logger.info(
-            f"Saved substrate to TPS type mapping to {substrate_to_tps_type_output_path}"
-        )
-
     martsDB_clusters_df, _ = cluster_dataset(
         martsDB,
         id_column="Enzyme_marts_ID",

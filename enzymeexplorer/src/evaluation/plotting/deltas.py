@@ -128,17 +128,20 @@ def _style_box(bxp, colours: list, alpha: float = 0.75) -> None:
         med.set_linewidth(med_lw)
 
 
+_DELTA_METRIC_DISPLAY: dict[str, tuple[str, str]] = {
+    # metric key → (single-class label, macro-mean label)
+    "ap":      ("AP",      "mAP"),
+    "roc_auc": ("ROC AUC", "Macro ROC AUC"),
+    "mcc_f1":  ("MCC-F1",  "Macro MCC-F1"),
+}
+
+
 def _delta_metric_label(metric: str, classes: list[str]) -> str:
-    """Pick the label suffix for the y-axis. ``mAP`` if every class is a
-    per-class aggregate (suffix ``_mAP``), otherwise ``AP`` / ``ROC AUC``
-    based on the metric column."""
-    if metric == "ap" and classes and all(c.endswith("_mAP") for c in classes):
-        return "mAP"
-    if metric == "ap":
-        return "AP"
-    if metric == "roc_auc":
-        return "ROC AUC"
-    return metric.upper()
+    """Y-axis label suffix for delta forest plots."""
+    single, macro = _DELTA_METRIC_DISPLAY.get(
+        metric, (metric.upper(), f"Macro {metric.upper()}")
+    )
+    return macro if classes and all(c.endswith("_mAP") for c in classes) else single
 
 
 def _short_class_label(cls: str) -> str:
@@ -162,6 +165,11 @@ def plot_delta_forest(
     figsize: tuple[float, float] | None = None,
     grouped: bool = False,
     pair_order: list[tuple[str, str]] | None = None,
+    uniform_color: str | None = None,
+    box_width: float = 0.30,
+    cluster_width: float = 0.88,
+    grouped_box_frac: float = 0.675,
+    title_fontsize: float | None = None,
 ) -> plt.Figure:
     """Box-and-whisker plot of paired delta distributions.
 
@@ -228,7 +236,7 @@ def plot_delta_forest(
         # between consecutive pair groups). Each class gets ``bar_w``
         # within the cluster; the rendered box is half of that so
         # boxes are slim and adjacent classes leave a visible gap.
-        bar_w = 0.88 / max(n_classes, 1)
+        bar_w = cluster_width / max(n_classes, 1)
         bxp_stats: list[dict] = []
         bxp_positions: list[float] = []
         bxp_colours: list = []
@@ -272,7 +280,7 @@ def plot_delta_forest(
         if bxp_stats:
             bxp = ax.bxp(
                 bxp_stats, positions=bxp_positions,
-                widths=bar_w * 0.675,
+                widths=bar_w * grouped_box_frac,
                 patch_artist=True, showfliers=False,
             )
             _style_box(bxp, bxp_colours, alpha=0.85)
@@ -294,10 +302,16 @@ def plot_delta_forest(
             sep = "\n" if theme.is_poster() else "   "
             ax.set_title(
                 f"{full_title}{sep}({target_label} − baseline)",
-                fontsize=mpl.rcParams["axes.titlesize"], loc="left",
+                fontsize=(title_fontsize
+                          if title_fontsize is not None
+                          else mpl.rcParams["axes.titlesize"]),
+                loc="left",
             )
         else:
-            ax.set_title(full_title, loc="left")
+            ax.set_title(
+                full_title, loc="left",
+                fontsize=title_fontsize if title_fontsize is not None else None,
+            )
         # Class legend on the right.
         legend_handles = [
             mpatches.Patch(
@@ -342,6 +356,8 @@ def plot_delta_forest(
         # reads as a uniform comparison strip rather than colour-coded
         # pair identities. Pair labels on the x-axis carry the identity.
         palette = {pair: theme.POSTER_PRIMARY_BLUE for pair in all_pairs}
+    elif uniform_color is not None:
+        palette = {pair: uniform_color for pair in all_pairs}
     else:
         palette = _pair_palette(all_pairs, shared_a=shared_a)
 
@@ -375,7 +391,7 @@ def plot_delta_forest(
             colours.append(palette[pair])
         if bxp_stats:
             bxp = ax.bxp(
-                bxp_stats, positions=bxp_positions, widths=0.30,
+                bxp_stats, positions=bxp_positions, widths=box_width,
                 patch_artist=True, showfliers=False,
             )
             _style_box(bxp, colours)
@@ -410,12 +426,17 @@ def plot_delta_forest(
         # they sit close to the plot (axes.titlepad/axes.labelpad are
         # only a few points), instead of using fig.suptitle/supylabel
         # which leave a large margin to the figure edges.
-        flat_axes[0].set_title(full_title, loc="left")
+        flat_axes[0].set_title(
+            full_title, loc="left",
+            fontsize=title_fontsize if title_fontsize is not None else None,
+        )
         flat_axes[0].set_ylabel(y_label)
         fig.tight_layout()
     else:
         fig.suptitle(full_title, x=0.02, ha="left",
-                     fontsize=mpl.rcParams["axes.titlesize"])
+                     fontsize=(title_fontsize
+                               if title_fontsize is not None
+                               else mpl.rcParams["axes.titlesize"]))
         fig.supylabel(y_label)
         fig.tight_layout(rect=(0, 0, 1.0, 0.94))
     return fig
