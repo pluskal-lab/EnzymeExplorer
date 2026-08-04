@@ -5,7 +5,7 @@
 
 <div align="center">
 
-# Highly accurate discovery of terpene synthases powered by machine learning
+# Structure-enabled enzyme function prediction unveils elusive terpenoid biosynthesis in archaea
 
 ![](data/readme_figures/fig_overview.png)
 </div>
