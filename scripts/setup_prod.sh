@@ -120,9 +120,8 @@ if [[ "${SKIP_ENV_BUILD:-0}" -ne 1 ]]; then
     # ABI as the pymol-bundle 3.1.6.1 used by the dev env, so pymol-psico
     # 3.4.19 links against both interchangeably).
     conda create -y -n "$ENV_NAME" \
-        -c conda-forge -c bioconda -c speleo3 \
+        -c conda-forge -c bioconda -c speleo3 -c schrodinger \
         python=3.10.0 \
-        libstdcxx-ng \
         pymol-bundle=3.1.6.1 \
         pymol-psico=3.4.19
 

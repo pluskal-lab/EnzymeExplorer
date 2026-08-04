@@ -114,9 +114,8 @@ if [[ "${SKIP_ENV_BUILD:-0}" -ne 1 ]]; then
     # foldseek + USalign + mmseqs2 + mafft + iqtree2 land inside the env's bin/
     # so no PATH juggling is needed at runtime.
     conda create -y -n "$ENV_NAME" \
-        -c conda-forge -c bioconda -c speleo3 \
+        -c conda-forge -c bioconda -c speleo3 -c schrodinger \
         python=3.10.0 \
-        libstdcxx-ng \
         pymol-bundle=3.1.6.1 \
         pymol-psico=3.4.19 \
         foldseek==9.427df8a \
