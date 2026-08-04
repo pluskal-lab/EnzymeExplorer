@@ -420,7 +420,7 @@
       "n_files": 62
     },
     "outputs-models-plm-rf": {
-      "url": "https://drive.google.com/uc?id=",
+      "url": "https://drive.google.com/uc?id=148_iFplXNPiNfp_2VnvUnpkBemTvIUJP",
       "zip_name": "outputs-models-plm-rf.zip",
       "description": "Trained per-fold checkpoints for PlmRandomForest (PLM-only ensemble across every PLM).",
       "src_paths": [
@@ -495,7 +495,7 @@
       "n_files": 10
     },
     "outputs-models-plm-domains-rf": {
-      "url": "https://drive.google.com/uc?id=",
+      "url": "https://drive.google.com/uc?id=1cVsFhmLjbSum9sY3OFJT1KJvbPQZhxvI",
       "zip_name": "outputs-models-plm-domains-rf.zip",
       "description": "Trained per-fold checkpoints for PlmDomainsRandomForest \u2014 the largest family (~16 GB) covering every PLM \u00d7 RandomForest cell in the ablation.",
       "src_paths": [
@@ -518,6 +518,32 @@
       "size_bytes": 16181106693,
       "sha256_zip": "592374bfcc78e0c4e2a0bac097f481e9357277a2f1bdc92d3609b015ca4b17b8",
       "n_files": 334
+    },
+    "evaluation-results": {
+      "url": "https://drive.google.com/uc?id=1FlTQQwE8i4aPWG9nFrQGr2PdP9mLoPm8",
+      "zip_name": "evaluation-results.zip",
+      "description": "Persisted evaluation-run artifacts under outputs/evaluation_results/ \u2014 bootstrap draws, jackknife tables, per-fold summaries, and every paper-facing plot for the four canonical eval configs (all_methods_comparison, three ablation runs, homology_sweeps) + the calibration run. Ships as a Drive bundle rather than in-repo because two individual files exceed GitHub's 50 MB soft limit (and the tree totals ~1.2 GB).",
+      "src_paths": [
+        "outputs/evaluation_results"
+      ],
+      "extract_recipes": [
+        {
+          "patterns": [
+            "evaluation_results/*"
+          ],
+          "target_dir": "outputs/"
+        }
+      ],
+      "sanity_checks": [
+        "outputs/evaluation_results/all_methods_comparison/summary_ap.csv",
+        "outputs/evaluation_results/calibration/calibration/fit_summary.csv"
+      ],
+      "required_by": [
+        "dev"
+      ],
+      "size_bytes": 1181261778,
+      "sha256_zip": "d4ca57dc61a928480dfbed861465f12f990eeb3aac64dcf0e466535082cb9c4e",
+      "n_files": 638
     },
     "go-basic-ontology": {
       "url": "https://drive.google.com/uc?id=1vXAI0iVKUMtbFcsUdRVnVZkGUl3xcvgL",

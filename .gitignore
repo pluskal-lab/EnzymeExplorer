@@ -26,7 +26,7 @@ data/dark_proteome_screening/candidate_selection/phylo_tree/clean*
 # ML library caches (HF_HOME / TORCH_HOME / MPLCONFIGDIR / XDG_CACHE_HOME)
 # routed under <repo>/.cache by enzymeexplorer/__init__.py so model
 # downloads stay inside the EnzymeExplorer tree.
-/.cache/
+.cache/
 
 data/enzyme_explorer_pdbs
 data/martsDB_pdbs
@@ -85,7 +85,7 @@ data/_*
 # External tool checkouts — installed by scripts/setup_dev.sh in-tree.
 # CLEAN + facebook/esm are cloned to CLEAN/ so build.py finds its
 # resources without global path juggling; not part of our source tree.
-/CLEAN/
+CLEAN
 
 benchmarks/
 
