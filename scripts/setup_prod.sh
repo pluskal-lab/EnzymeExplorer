@@ -16,7 +16,7 @@
 # What it installs
 #   * conda env <ENV_NAME> with python=3.10 + libstdcxx-ng (conda-forge,
 #     supplies GLIBCXX_3.4.32+ that the bundled USalign binary needs) +
-#     pymol-open-source + pymol-psico.
+#     pymol-bundle + pymol-psico.
 #   * pip deps + EnzymeExplorer itself (editable) so the console scripts
 #     `predict_with_structures`, `predict_sequences_only`, and the
 #     unified `enzyme_explorer_main` CLI land on PATH.
@@ -116,14 +116,14 @@ fi
 
 if [[ "${SKIP_ENV_BUILD:-0}" -ne 1 ]]; then
     log "creating conda env '$ENV_NAME' (python=3.10 + pymol + psico)"
-    # pymol-open-source pinned to 3.1.6.1 (upstream PyMOL 3.1.6.1 — same
+    # pymol-bundle pinned to 3.1.6.1 (upstream PyMOL 3.1.6.1 — same
     # ABI as the pymol-bundle 3.1.6.1 used by the dev env, so pymol-psico
     # 3.4.19 links against both interchangeably).
     conda create -y -n "$ENV_NAME" \
         -c conda-forge -c bioconda -c speleo3 \
         python=3.10.0 \
         libstdcxx-ng \
-        pymol-open-source=3.1.6.1 \
+        pymol-bundle=3.1.6.1 \
         pymol-psico=3.4.19
 
     log "installing pip deps into '$ENV_NAME'"
