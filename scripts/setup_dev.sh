@@ -117,8 +117,8 @@ if [[ "${SKIP_ENV_BUILD:-0}" -ne 1 ]]; then
         -c conda-forge -c bioconda -c speleo3 \
         python=3.10.0 \
         libstdcxx-ng \
-        pymol-bundle \
-        pymol-psico==3.4.19 \
+        pymol-bundle=3.1.6.1 \
+        pymol-psico=3.4.19 \
         foldseek==9.427df8a \
         bioconda::usalign \
         bioconda::mmseqs2 \

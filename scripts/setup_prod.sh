@@ -116,12 +116,15 @@ fi
 
 if [[ "${SKIP_ENV_BUILD:-0}" -ne 1 ]]; then
     log "creating conda env '$ENV_NAME' (python=3.10 + pymol + psico)"
+    # pymol-open-source pinned to 3.1.6.1 (upstream PyMOL 3.1.6.1 — same
+    # ABI as the pymol-bundle 3.1.6.1 used by the dev env, so pymol-psico
+    # 3.4.19 links against both interchangeably).
     conda create -y -n "$ENV_NAME" \
         -c conda-forge -c bioconda -c speleo3 \
         python=3.10.0 \
         libstdcxx-ng \
-        pymol-open-source \
-        pymol-psico
+        pymol-open-source=3.1.6.1 \
+        pymol-psico=3.4.19
 
     log "installing pip deps into '$ENV_NAME'"
     PIP() { conda run -n "$ENV_NAME" --no-capture-output pip "$@"; }

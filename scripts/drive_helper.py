@@ -78,7 +78,7 @@ def _gdown(url: str, dst: Path) -> None:
     if tmp.exists():
         tmp.unlink()
     subprocess.check_call(
-        ["gdown", "--fuzzy", "--output", str(tmp), url]
+        ["gdown", "--output", str(tmp), url]
     )
     os.replace(tmp, dst)
 
