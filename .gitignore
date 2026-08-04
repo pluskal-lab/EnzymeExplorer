@@ -14,12 +14,10 @@ build/
 # large SwissProt export — download via setup_dev.sh from Google Drive (URL TBD)
 data/swissprot_with_af_2026_03_14.tsv
 
-outputs/evaluation_results/_bootstrap_cache
 outputs/embeddings_*
 outputs/models/
 outputs/rebuttal
-outputs/evaluation_results/*/*.csv
-outputs/evaluation_results/*/*/*.csv
+outputs/evaluation_results
 
 data/dark_proteome_screening/candidate_selection/phylo_tree/clean*
 .vscode
