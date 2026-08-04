@@ -18,6 +18,8 @@ outputs/evaluation_results/_bootstrap_cache
 outputs/embeddings_*
 outputs/models/
 outputs/rebuttal
+outputs/evaluation_results/*/*.csv
+outputs/evaluation_results/*/*/*.csv
 
 data/dark_proteome_screening/candidate_selection/phylo_tree/clean*
 .vscode
