@@ -216,4 +216,6 @@ Or the dedicated console scripts:
     predict_with_structures  --sequences <fasta> --structures-dir <pdbs/> --output-dir <out/>
     predict_sequences_only   --sequences <fasta> --output-csv <out.csv>
 
+Detect domains:
+    detect_domains --input-directory-with-structures data/dark_candidates/afdb --detections-output-path data/detected_domains/dark_candidates/dark_candidates_detected_domains.pkl --domains-output-path data/detected_domains/dark_candidates/domains/
 EOF
