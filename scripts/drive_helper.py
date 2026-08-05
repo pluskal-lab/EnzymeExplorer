@@ -211,6 +211,17 @@ def extract_zip(zip_path: Path, spec: dict) -> None:
                 dst.parent.mkdir(parents=True, exist_ok=True)
                 with zf.open(name) as src, open(dst, "wb") as out:
                     shutil.copyfileobj(src, out, length=1 << 20)
+                # Restore the Unix mode from the zip entry. ZipInfo stores
+                # the mode in the upper 16 bits of external_attr for
+                # entries created on Unix; if it's zero (e.g. the zip was
+                # authored on a system that didn't record permissions) we
+                # leave the default umask alone. This is what makes the
+                # foldseek + USalign binaries in binaries.zip come out
+                # executable instead of `Permission denied`.
+                info = zf.getinfo(name)
+                mode = (info.external_attr >> 16) & 0o777
+                if mode:
+                    os.chmod(dst, mode)
 
 
 def check_sanity(spec: dict, label: str) -> None:

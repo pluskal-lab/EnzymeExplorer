@@ -122,6 +122,7 @@ if [[ "${SKIP_ENV_BUILD:-0}" -ne 1 ]]; then
     conda create -y -n "$ENV_NAME" \
         -c conda-forge -c bioconda -c speleo3 -c schrodinger \
         python=3.10.0 \
+        pymol=3.1.6.1 \
         pymol-bundle=3.1.6.1 \
         pymol-psico=3.4.19
 

@@ -116,6 +116,7 @@ if [[ "${SKIP_ENV_BUILD:-0}" -ne 1 ]]; then
     conda create -y -n "$ENV_NAME" \
         -c conda-forge -c bioconda -c speleo3 -c schrodinger \
         python=3.10.0 \
+        pymol=3.1.6.1 \
         pymol-bundle=3.1.6.1 \
         pymol-psico=3.4.19 \
         foldseek==9.427df8a \
@@ -302,6 +303,6 @@ Full pipeline available:
     enzyme_explorer_main calibrate — fit per-(classifier, class) calibrators
     enzyme_explorer_main visualize — render plots from a saved evaluation
     enzyme_explorer_main predict   — inference (--no-structures for seq-only)
-    enzyme_explorer_main detect_domains — TPS-family domain detection
+    detect_domains — TPS-family domain detection
 
 EOF
