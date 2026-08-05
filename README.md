@@ -1,8 +1,4 @@
-[![Code style:black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
-[![Checks for coding standard, code smells and typing](https://github.com/pluskal-lab/EnzymeExplorer/actions/workflows/ci.yml/badge.svg)](https://github.com/pluskal-lab/EnzymeExplorer/actions/workflows/ci.yml)
 [![DOI:10.1101/2024.01.29.577750](http://img.shields.io/badge/DOI-10.1101/2024.01.29.577750-B31B1B.svg)](https://doi.org/10.1101/2024.01.29.577750)
-[![](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/pluskal-lab/EnzymeExplorer/blob/main/notebooks/EnzymeExplorer_(input_UniProt_ID).ipynb)
-
 <div align="center">
 
 # Structure-enabled enzyme function prediction unveils elusive terpenoid biosynthesis in archaea
