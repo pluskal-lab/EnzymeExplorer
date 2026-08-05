@@ -140,9 +140,8 @@ if [[ "${SKIP_ENV_BUILD:-0}" -ne 1 ]]; then
             --index-url "https://download.pytorch.org/whl/cpu"
     fi
 
-    # sklearn 1.5.1 pin must match the version that pickled the fold bundles.
     PIP install \
-        "scikit-learn==1.5.1" \
+        "scikit-learn==1.7.2" \
         "numpy==1.26.4" \
         "pandas==2.2.2" \
         "scipy==1.13.0" \

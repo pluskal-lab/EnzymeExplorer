@@ -120,7 +120,7 @@ Each `<class>_p` value is a probability in `[0, 1]` produced by a per-class cali
 
 
 #### Detect domains of given structures
-**Domain detection is also part of the production environment.** The unified CLI exposes it as `enzyme_explorer_main detect_domains`, a passthrough to the underlying configargparse tool.
+**Domain detection is also part of the production environment.** The algorithm is be available by the CLI command `detect_domains`.
 
 Two configs ship in-tree:
 
@@ -151,9 +151,9 @@ detect_domains \
 
 | Path | Contents |
 |---|---|
-| `dark_candidates_detected_domains.pkl` | Python pickle: `{uniprot_id: [MappedRegion, …]}` — one entry per protein, each region with domain type (`alpha`/`beta`/…), template TM-score, aligned residue span, alignment length, per-residue pLDDT stats. The file's basename mirrors the input dataset (`martsDB_detected_domains.pkl` for MARTS-DB, `dark_candidates_detected_domains.pkl` for the dark candidates, etc.). |
+| `dark_candidates_detected_domains.pkl` | Python pickle: `{sequence_id: [MappedRegion, …]}` — one entry per protein, each region with domain type (`alpha`/`beta`/…), template TM-score, aligned residue span, alignment length, per-residue pLDDT stats. The file's basename mirrors the input dataset (`martsDB_detected_domains.pkl` for MARTS-DB, `dark_candidates_detected_domains.pkl` for the dark candidates, etc.). |
 | `dark_candidates_detected_domains.json` | Same content, JSON-serialised for language-agnostic inspection. |
-| `domains/<uniprot_id>_<domain>_<i>.pdb` | Per-domain PDB slices (one file per detected region). Iteration index `i` is 0 for the first-iteration hit; increments only when the config allows multi-domain-per-iteration. |
+| `domains/<sequence_id>_<domain>_<i>.pdb` | Per-domain PDB slices (one file per detected region). Iteration index `i` is 0 for the first-iteration hit; increments only when the config allows multi-domain-per-iteration. |
 
 Structure-aware prediction (`enzyme_explorer_main predict`) invokes the detector internally at run time, so you never *need* to run it standalone. But running it manually is the right entry point when you want to inspect which domains got detected on a specific protein, extract the per-domain PDB slices for further analysis, or feed the JSON into your own downstream tool.
 
