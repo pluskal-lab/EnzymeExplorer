@@ -14,8 +14,8 @@
 - [Introduction](#introduction)
 - [Installing EnzymeExplorer](#installing-enzymeexplorer)
   - [Prerequisites](#prerequisites)
-  - [Prediction-only host (lean install)](#production-environment-lean-install)
-  - [Full developer host (training + evaluation + screening)](#full-developer-host-training--evaluation--screening)
+  - [Production Environment (lean install)](#production-environment-lean-install)
+  - [Development Environment (training + evaluation + screening)](#development-environment-training--evaluation--screening)
   - [Google Drive URLs (`drive/bundles.json`)](#google-drive-urls-drivebundlesjson)
 - [Local prediction](#local-prediction)
 - [Reproducing the paper end-to-end](#reproducing-the-paper-end-to-end)
@@ -157,7 +157,7 @@ detect_domains \
 
 Structure-aware prediction (`enzyme_explorer_main predict`) invokes the detector internally at run time, so you never *need* to run it standalone. But running it manually is the right entry point when you want to inspect which domains got detected on a specific protein, extract the per-domain PDB slices for further analysis, or feed the JSON into your own downstream tool.
 
-### Full developer host (training + evaluation + screening)
+### Development Environment (training + evaluation + screening)
 
 ```bash
 scripts/setup_dev.sh                     # default: --env-name enzyme_explorer_dev --cuda cu124
