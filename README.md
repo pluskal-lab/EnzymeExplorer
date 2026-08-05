@@ -18,7 +18,7 @@
   - [Development Environment (training + evaluation + screening)](#development-environment-training--evaluation--screening)
   - [Google Drive URLs (`drive/bundles.json`)](#google-drive-urls-drivebundlesjson)
 - [Local prediction](#local-prediction)
-- [Reproducing the paper end-to-end](#reproducing-the-paper-end-to-end)
+- [E2E Development Pipeline](#e2e-development-pipeline)
   - [Preparing the training corpus](#preparing-the-training-corpus)
   - [Detecting TPS-family structural domains](#detecting-tps-family-structural-domains)
   - [Clustering the detected domains + identifying subtypes](#clustering-the-detected-domains--identifying-subtypes)
@@ -227,7 +227,7 @@ The dedicated `predict_with_structures` and `predict_sequences_only` console scr
 
 -----------------------------------------
 
-## Reproducing the paper end-to-end
+## E2E Development Pipeline
 
 The steps below use the `enzyme_explorer` dev environment. Everything writes into `outputs/…/`; every step is idempotent.
 
@@ -338,7 +338,7 @@ The bootstrap cache (`outputs/evaluation_results/_bootstrap_cache/`) is keyed by
 
 ### Calibrating classifier scores
 
-Per-(classifier, class) beta calibrators fitted on pooled OOF predictions with LOFO family selection and cluster-bootstrap CIs.
+Per-(classifier, class) calibrators fitted on pooled OOF predictions with LOFO family selection and cluster-bootstrap CIs.
 
 ```bash
 bash scripts/run_calibration.sh                     # canonical
@@ -443,7 +443,7 @@ Supplementary CSVs — Pfam hits per HMM group with mean-pLDDT and (for SQHop_cy
 python -m scripts.rebuttal_only.pfam_supfam_screening.rebuttal_pfam_group_reports
 ```
 
------------------------------------------
+<!-- -----------------------------------------
 
 ## Deploying as a backend service
 
@@ -461,7 +461,7 @@ For a slower but slightly more accurate variant (no foldseek-based domain presel
 nohup uvicorn app:app --host 0.0.0.0 --port "$PORT" &> webserver_app.log &
 ```
 
-Both apps read the calibration table at `data/calibration_fit_summary.csv` and load the prediction bundles from `data/enzyme_explorer_{,plm_}checkpoints.pkl` — everything the prod install already put in place.
+Both apps read the calibration table at `data/calibration_fit_summary.csv` and load the prediction bundles from `data/enzyme_explorer_{,plm_}checkpoints.pkl` — everything the prod install already put in place. -->
 
 -----------------------------------------
 
