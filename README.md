@@ -14,7 +14,7 @@
 - [Introduction](#introduction)
 - [Installing EnzymeExplorer](#installing-enzymeexplorer)
   - [Prerequisites](#prerequisites)
-  - [Prediction-only host (lean install)](#prediction-only-host-lean-install)
+  - [Prediction-only host (lean install)](#production-environment-lean-install)
   - [Full developer host (training + evaluation + screening)](#full-developer-host-training--evaluation--screening)
   - [Google Drive URLs (`drive/bundles.json`)](#google-drive-urls-drivebundlesjson)
 - [Local prediction](#local-prediction)
@@ -467,16 +467,20 @@ Both apps read the calibration table at `data/calibration_fit_summary.csv` and l
 
 ## Reference
 
-> Samusevich, R., Hebra, T. et al. Highly accurate discovery of terpene synthases powered by machine learning reveals
-> functional terpene cyclization in Archaea. bioRxiv (2024). [https://doi.org/10.1101/2024.01.29.577750](https://doi.org/10.1101/2024.01.29.577750)
+> Samusevich, R., Hebra, T. et al. Structure-enabled enzyme function prediction unveils elusive terpenoid biosynthesis 
+> in archaea. bioRxiv (2025). [https://doi.org/10.1101/2024.01.29.577750](https://doi.org/10.1101/2024.01.29.577750)
 
 ```
-@article{samusevich2024tps,
-  title={Highly accurate discovery of terpene synthases powered by machine learning reveals functional terpene cyclization in Archaea},
-  author={Samusevich, Raman and Hebra, Teo and Bushuiev, Roman and Bushuiev, Anton and {\v{C}}alounov{\'a}, Tereza and Smr{\v{c}}kov{\'a}, Helena and Chatpatanasiri, Ratthachat and Kulh{\'a}nek, Jon{\'a}{\v{s}} and Perkovi{\'c}, Milana and Engst, Martin and Tajovsk{\'a}, Ad{\'e}la and others},
-  journal={bioRxiv},
-  pages={2024--01},
-  year={2024},
-  publisher={Cold Spring Harbor Laboratory}
+@article {Samusevich2024.01.29.577750,
+	author = {Samusevich, Raman and Hebra, T{\'e}o and Bushuiev, Roman and Engst, Martin and Kulh{\'a}nek, Jon{\'a}{\v s} and Bushuiev, Anton and Smith, Joshua D. and {\v C}alounov{\'a}, Tereza and Smr{\v c}kov{\'a}, Helena and Molineris, Marina and Schwartz, Renana and Tajovsk{\'a}, Ad{\'e}la and Perkovi{\'c}, Milana and Chatpatanasiri, Ratthachat and Kampranis, Sotirios C. and Major, Dan Thomas and Sivic, Josef and Pluskal, Tom{\'a}{\v s}},
+	title = {Structure-enabled enzyme function prediction unveils elusive terpenoid biosynthesis in archaea},
+	elocation-id = {2024.01.29.577750},
+	year = {2025},
+	doi = {10.1101/2024.01.29.577750},
+	publisher = {Cold Spring Harbor Laboratory},
+	abstract = {The exponential growth of uncharacterized enzyme sequences in genomic repositories demands novel tools for functional annotation. Here, we combined alignment-driven structural domain analysis with protein language models to create EnzymeExplorer, a machine-learning pipeline for enzyme function prediction. We applied this approach to terpene synthases, which present an ideal model case because they catalyze complex carbocationic rearrangements whose product outcomes cannot be predicted from active site residues alone. We detected new structural domains and achieved state-of-the-art performance on function prediction. By analyzing the UniRef90 database, we identified terpene synthases overlooked by current computational methods. Remarkably, we uncovered and experimentally validated the widespread biosynthesis of terpenoids in archaea. Our approach offers a powerful framework for characterizing enzyme {\textquotedblleft}dark matter{\textquotedblright} in the rapidly expanding genomic and metagenomic datasets.Competing Interest StatementThe authors have declared no competing interest.e-INFRA CZe-INFRA CZ, , ID:90140European Union{\textquoteright}s Horizon Europe research and innovation programEuropean Union{\textquoteright}s Horizon Europe research and innovation program, , Marie Sk{\l}odowska-Curie grant agreement No. 101130799IOCB Postdoctoral Fellowship programIOCB Postdoctoral Fellowship program, , Czech Science FoundationCzech Science Foundation, , 21-11563MEuropean UnionEuropean Union, , ERC, FRONTIER, 101097822, ELIAS, 101120237},
+	URL = {https://www.biorxiv.org/content/early/2025/04/29/2024.01.29.577750},
+	eprint = {https://www.biorxiv.org/content/early/2025/04/29/2024.01.29.577750.full.pdf},
+	journal = {bioRxiv}
 }
 ```
