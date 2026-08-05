@@ -3,7 +3,7 @@ csv-id-column: "Enzyme_marts_ID"
 input-directory-with-structures: "data/martsDB_pdbs"
 n-jobs: 20
 n-iters: 3
-detect-multiple-domains-in-each-iteration: true
+detect-multiple-domains-in-each-iteration: False
 detections-output-path: "data/detected_domains/martsDB_detected_domains/martsDB_detected_domains.pkl"
 store-domains: true
 detected-regions-root-path: "data/detected_domains/martsDB_detected_domains/detections/"

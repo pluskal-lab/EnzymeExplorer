@@ -66,22 +66,6 @@ def parse_args() -> argparse.Namespace:
     eval_cli.add_visualize_subparser(subparsers)
     predict_cli.add_predict_subparser(subparsers)
 
-    # ``detect_domains`` is a passthrough — argparse.REMAINDER is intercepted
-    # in :func:`main` before this parser runs, so we register the subcommand
-    # here only for --help visibility.
-    subparsers.add_parser(
-        "detect_domains",
-        help=(
-            "Detect TPS-family domains in a directory of PDB/CIF "
-            "structures. All args after ``detect_domains`` are passed "
-            "verbatim to the configargparse CLI in "
-            "``enzymeexplorer.src.structure_processing.domain_detections`` "
-            "(``-c/--config`` for a YAML config; see "
-            "``enzymeexplorer/configs/*_domain_detection_config.yaml``)."
-        ),
-        add_help=False,
-    )
-
     parser_tune = subparsers.add_parser(
         "tune", help="Run experiments with hyper-parameter tuning"
     )
@@ -192,21 +176,6 @@ def main():
             level=logging.INFO,
             format="%(asctime)s %(levelname)s %(name)s: %(message)s",
         )
-    # ``detect_domains`` is a full passthrough — the target CLI uses
-    # configargparse (its own -h, its own --config semantics), so we
-    # bypass argparse entirely and forward argv verbatim. Runs before
-    # ``parse_args`` so top-level ``-h/--help`` never intercepts a
-    # subcommand-level help request.
-    import sys as _sys
-    if len(_sys.argv) >= 2 and _sys.argv[1] == "detect_domains":
-        from enzymeexplorer.src.structure_processing import (
-            domain_detections as _dd,
-        )
-        _sys.argv = [
-            "enzyme_explorer_main detect_domains", *_sys.argv[2:],
-        ]
-        _dd.main()
-        return
     arguments = parse_args()
     if arguments.cmd == "run":
         run_selected_experiments(arguments)

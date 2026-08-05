@@ -2,6 +2,7 @@
 
 import os
 import tempfile
+from uuid import uuid4
 import yaml
 import configargparse
 from pathlib import Path
@@ -124,7 +125,7 @@ def parse_args() -> configargparse.Namespace:
         "--config",
         is_config_file=True,
         help="config file path",
-        default="configs/enzyme_explorer_domain_detection_config.yaml",
+        default="enzymeexplorer/configs/domain_detection_config.yaml",
     )
 
     parser.add_argument(
@@ -173,7 +174,6 @@ def parse_args() -> configargparse.Namespace:
     parser.add_argument(
         "--secondary-structure-residues-path",
         type=str,
-        default="data/secondary_structure_residues.pkl",
     )
     parser.add_argument(
         "--prefilter-pdbs-by-foldseek",
@@ -210,6 +210,11 @@ def detect_domains(args) -> dict:
     keyword-friendly entry point.
     """
     input_directory = Path(args.input_directory_with_structures).absolute()
+    
+    if args.secondary_structure_residues_path is None:
+        args.secondary_structure_residues_path = (
+            get_data_root() / f"secondary_structure_residues_{uuid4().hex}.pkl"
+        ).absolute()
 
     domain_templates = args.domain_templates
     domain_templates = [yaml.safe_load(template) for template in domain_templates]

@@ -40,21 +40,18 @@
       ],
       "extract_recipes": [
         {
-          "strip_prefix": "reference-domains/",
           "patterns": [
             "martsDB_detected_domains/*"
           ],
           "target_dir": "data/detected_domains/"
         },
         {
-          "strip_prefix": "reference-domains/",
           "patterns": [
             "foldseek_cache/*"
           ],
           "target_dir": "data/"
         }
       ],
-      "_note_strip_prefix": "The Drive-hosted reference-domains.zip is a legacy build that wraps everything in an outer reference-domains/ folder; strip_prefix removes it during extraction. If you rebuild the zip locally via scripts/build_drive_bundles.py the wrapper won't be there — drop the strip_prefix keys and the recipes still work.",
       "sanity_checks": [
         "data/detected_domains/martsDB_detected_domains/martsDB_detected_domains.pkl",
         "data/detected_domains/martsDB_detected_domains/secondary_structure_residues.pkl",
@@ -64,7 +61,10 @@
       "required_by": [
         "prod",
         "dev"
-      ]
+      ],
+      "size_bytes": 687390817,
+      "sha256_zip": "7853bda44d3863fa056637a0d2f56d6d14c96ad5bcda4a33fe17dd5e3343832d",
+      "n_files": 4873
     },
     "binaries": {
       "url": "https://drive.google.com/uc?id=1T86gt8GFS0LJI6do2o-zWB6fbVwNZwcc",
@@ -296,9 +296,9 @@
       "required_by": [
         "dev"
       ],
-      "size_bytes": 1583182826,
-      "sha256_zip": "e01a1cacc38099997f124debc2be26b6abfdbd49c7d4ec9139bc23d9aa5cdd4e",
-      "n_files": 10618
+      "size_bytes": 1582743026,
+      "sha256_zip": "c84c549366b08f913cbe96ec6157c2682fa538e2dfcc0b5110a021d75d6361a3",
+      "n_files": 10614
     },
     "dark-proteome-screening": {
       "url": "https://drive.google.com/uc?id=1sYPxaXb-9sKQhr81DxxcHkfwvV2_ku64",

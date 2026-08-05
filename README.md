@@ -67,7 +67,7 @@ Two setup scripts cover the two most common host types. Both are self-contained 
 - ~5 GB free for a prediction-only install; ~50 GB for the full developer install (data + trained-model checkpoints).
 - CUDA-capable GPU is optional but strongly recommended for anything beyond one-off inference.
 
-### Prediction-only host (lean install)
+### Production Environment (lean install)
 
 ```bash
 git clone https://github.com/pluskal-lab/EnzymeExplorer.git
@@ -81,11 +81,14 @@ conda activate enzyme_explorer_prod
 `setup_prod.sh` provisions a minimal conda environment with PyMOL + foldseek + USalign, installs the runtime pip dependencies, and downloads every Google-Drive artifact tagged `prod` in `drive/bundles.json`:
 
 - deploy-side prediction bundles (`enzyme_explorer_checkpoints.pkl`, `enzyme_explorer_plm_checkpoints.pkl`, `calibration_fit_summary.csv`)
-- MARTS-DB reference domains + prebuilt foldseek DB cache
+- MARTS-DB reference domains + prebuilt foldseek DB cache (also the reference set the standalone `detect_domains` CLI aligns against)
 - Pinned `foldseek` and `USalign` binaries
 - Curated AlphaFold-DB structures for the discovered dark- and Pfam/SUPFAM-selected candidates.
 
-**Try it immediately on the shipped candidate sets.** After `setup_prod.sh` finishes, both curated candidate sets live in the repo — the FASTAs are committed, and the AF-DB structures came in via the `candidate-structures` Drive bundle. Predict on them with a single command each:
+The six domain-template PDBs used by the detector (α/β/γ/δ/ε/ζ + IDS) are committed to `data/domain_templates/` in-tree, so no extra download is needed.
+
+#### Predict TPS activity and substrates
+`enzyme_explorer_main predict` command can be used for running predictions on a given set of sequences and structures. Exemplar prediction executions:
 
 ```bash
 # Pfam+SUPFAM-selected candidates (9 sequences)
@@ -101,8 +104,6 @@ enzyme_explorer_main predict \
     --output-dir       outputs/candidates/dark_candidates
 ```
 
-The one-line wrappers `scripts/run_pfam_supfam_candidates.sh` and `scripts/run_dark_candidates.sh` are exactly these calls, pre-baked — either the wrappers or the raw commands above work.
-
 **Files produced.** Each `predict` invocation writes two CSVs into `--output-dir`:
 
 - **`predictions_plm_domains.csv`** — proteins whose AF-DB structure yielded a meaningful match to the training-time reference domains and were routed through the domain-aware PlmDomainsRandomForest ensemble. This is the primary output; for the two candidate sets above, every protein ends up here.
@@ -117,9 +118,48 @@ Both files share the same wide-form schema, in this fixed column order:
 | Raw per-class scores (`<class>_raw`, uncalibrated) | `TPS_raw`, `GPP_raw`, `FPP_raw`, `GGPP_raw`, `GFPP_raw`, `CPP_raw`, `EDSQ_raw`, `2xFPP_raw`, `2xGGPP_raw`, `IDS_raw` |
 | sequence | `sequence` |
 
-Class-order rationale: `TPS` first because it's the overall Class-I/II TPS-vs-non-TPS gate; the substrates follow ordered by carbon count (mono → sesq → di → sester → tri → tetra) with the two "2x" homo-dimers grouped last, and `IDS` (isoprenyl diphosphate synthase, i.e. non-cyclising) at the very end. The two blocks (`_p` then `_raw`) are separated so downstream consumers can pick the calibrated column contiguously.
+Class-order rationale: `TPS` first because it's the overall Class-I/II TPS-vs-non-TPS gate; the substrates follow ordered by carbon count (mono → sesq → di → sester → tri → tetra) with the two "2x" homo-dimers grouped last, and `IDS` (isoprenyl diphosphate synthase) at the very end. The two blocks (`_p` then `_raw`) are separated so downstream consumers can pick the calibrated column contiguously.
 
-Each `<class>_p` value is a probability in `[0, 1]` produced by a per-class beta calibrator fitted at deployment time (see `data/calibration_fit_summary.csv`). A class whose calibrator was skipped at training time (insufficient positives) will show `NaN` in its `_p` column — the raw score is still populated.
+Each `<class>_p` value is a probability in `[0, 1]` produced by a per-class calibrator fitted at deployment time (see `data/calibration_fit_summary.csv`).
+
+
+#### Detect domains of given structures
+**Domain detection is also part of the production environment.** The unified CLI exposes it as `enzyme_explorer_main detect_domains`, a passthrough to the underlying configargparse tool.
+
+Two configs ship in-tree:
+
+- **`enzymeexplorer/configs/domain_detection_config.yaml`** — the generic template used as the default config. Pins the algorithm's knobs for TPSs (domain templates, per-template thresholds, iteration count, filter defaults) but declares no I/O paths. You supply `--input-directory-with-structures`, `--detections-output-path`, and `--domains-output-path` on the command line.
+
+```bash
+# Example: run detection on the dark_candidates structure set.
+detect_domains \
+    --input-directory-with-structures data/dark_candidates/afdb \
+    --detections-output-path data/detected_domains/dark_candidates/dark_candidates_detected_domains.pkl \
+    --domains-output-path data/detected_domains/dark_candidates/domains/
+```
+
+- **`enzymeexplorer/configs/dark_candidates_domain_detection_config.yaml`** — a preset variant that copies everything from the generic config and hard-codes the three path keys pointing at `data/dark_candidates/afdb/` inputs and `data/detected_domains/dark_candidates/` outputs. Convenient one-liner for reproducing the dark-candidates showcase without repeating the paths on the command line:
+
+```bash
+detect_domains \
+    -c enzymeexplorer/configs/dark_candidates_domain_detection_config.yaml
+```
+
+**Opt-in speed/precision knobs** — all three are `false` by default because they trade recall/precision for wall-time. Enable via the config or a command-line flag when the domain-detection speed becomes the bottleneck:
+
+- `--detect-multiple-domains-in-each-iteration` — every template hit inside one iteration is emitted (rather than only the best match). Speeds up multi-domain proteins by one iteration each. **Precision risk**: a low-confidence secondary hit can leak in when the highest-TM template's residues have already been consumed.
+- `--prefilter-pdbs-by-foldseek` — skip (query × template) USalign pairs whose foldseek pre-alignment gives no plausible hit. ~5–10× speedup on batches dominated by non-TPS proteins. **Precision risk**: a distant TPS with a marginal foldseek score can miss the USalign pass entirely.
+- `--postfilter-domains-by-foldseek` — drop detected domains whose foldseek e-value against any reference exceeds `--postfilter-e-value`. **Precision risk**: prunes fringe hits that USalign would have accepted; useful only when downstream code can't tolerate low-confidence domains.
+
+**Files produced by `detect_domains`** — everything lands under the `detections-output-path` + `domains-output-path` you point at. For the shipped `dark_candidates_domain_detection_config.yaml` that's `data/detected_domains/dark_candidates/`:
+
+| Path | Contents |
+|---|---|
+| `dark_candidates_detected_domains.pkl` | Python pickle: `{uniprot_id: [MappedRegion, …]}` — one entry per protein, each region with domain type (`alpha`/`beta`/…), template TM-score, aligned residue span, alignment length, per-residue pLDDT stats. The file's basename mirrors the input dataset (`martsDB_detected_domains.pkl` for MARTS-DB, `dark_candidates_detected_domains.pkl` for the dark candidates, etc.). |
+| `dark_candidates_detected_domains.json` | Same content, JSON-serialised for language-agnostic inspection. |
+| `domains/<uniprot_id>_<domain>_<i>.pdb` | Per-domain PDB slices (one file per detected region). Iteration index `i` is 0 for the first-iteration hit; increments only when the config allows multi-domain-per-iteration. |
+
+Structure-aware prediction (`enzyme_explorer_main predict`) invokes the detector internally at run time, so you never *need* to run it standalone. But running it manually is the right entry point when you want to inspect which domains got detected on a specific protein, extract the per-domain PDB slices for further analysis, or feed the JSON into your own downstream tool.
 
 ### Full developer host (training + evaluation + screening)
 
@@ -222,13 +262,8 @@ The three key inputs (`data/EnzymeExplorer_Dataset.csv`, `EnzymeExplorer_Dataset
 Segments each AlphaFold structure into TPS-family domains (α, β, γ, ids, δ, ε, ζ). The default policy is **no heuristic filtering, one domain per iteration**; opt in to multi-domain detection via the flag when running on a curated set where you want every match.
 
 ```bash
-enzyme_explorer_main detect_domains \
-    -c enzymeexplorer/configs/enzyme_explorer_domain_detection_config.yaml \
-    --detections-output-path data/detected_domains/enzyme_explorer_detected_domains/martsDB_detected_domains.pkl \
-    --detected-regions-root-path data/detected_domains/enzyme_explorer_detected_domains/detections \
-    --domains-output-path data/detected_domains/enzyme_explorer_detected_domains/domains \
-    --n-jobs 16 \
-    --input-directory-with-structures data/enzyme_explorer_pdbs/
+detect_domains \
+    -c enzymeexplorer/configs/enzyme_explorer_domain_detection_config.yaml
 ```
 
 The `configs/*_domain_detection_config.yaml` files bundle the seven template PDBs and their per-domain TM-score / min-align-length thresholds. See `enzymeexplorer/configs/dark_candidates_domain_detection_config.yaml` for a variant that turns multi-domain-per-iteration ON — useful when characterising a small curated set.
