@@ -13,6 +13,35 @@
 import os as _os_bootstrap  # noqa: E402
 import sys as _sys_bootstrap  # noqa: E402
 
+# --- BLAS / OpenMP fix (must also run before numpy is imported) ---------
+# ``predict`` (structure path) and ``detect_domains`` fork a
+# multiprocessing.Pool of PyMOL workers. If numpy / scipy / sklearn have
+# already spawned OpenMP worker threads in the parent by then, the fork
+# leaves each child with a corrupted OpenMP runtime (only the forking
+# thread survives) — the first ``np.*`` or ``cmd.*`` call in a worker
+# deadlocks silently. ``setdefault`` so a user who exported
+# ``OMP_NUM_THREADS=8`` on purpose is still respected. Scoped to the two
+# subcommands that fork; the others (evaluate/calibrate/visualize/run/tune)
+# actually benefit from multi-threaded BLAS.
+if len(_sys_bootstrap.argv) >= 2 and _sys_bootstrap.argv[1] in (
+    "predict", "detect_domains",
+):
+    # ``predict --no-structures`` skips domain detection → no pool → no
+    # OMP concern. Everything else in these two subcommands does fork.
+    _skip_pool = (
+        _sys_bootstrap.argv[1] == "predict"
+        and "--no-structures" in _sys_bootstrap.argv
+    )
+    if not _skip_pool:
+        for _omp_var in (
+            "OMP_NUM_THREADS",
+            "OPENBLAS_NUM_THREADS",
+            "MKL_NUM_THREADS",
+            "VECLIB_MAXIMUM_THREADS",
+            "NUMEXPR_NUM_THREADS",
+        ):
+            _os_bootstrap.environ.setdefault(_omp_var, "1")
+
 _CONDA_PREFIX = _os_bootstrap.environ.get("CONDA_PREFIX")
 _ALREADY_REEXECED = _os_bootstrap.environ.get("_ENZYME_EXPLORER_LDFIX") == "1"
 if _CONDA_PREFIX and not _ALREADY_REEXECED:

@@ -148,13 +148,16 @@ if [[ "${SKIP_ENV_BUILD:-0}" -ne 1 ]]; then
         "scipy==1.13.0" \
         "ankh==1.10.0" \
         "biopython==1.83" \
+        "epam.indigo==1.45.0" \
         "tqdm" \
         "pyyaml" \
+        "seaborn" \
         "dataclasses-json" \
         "configargparse" \
         "matplotlib" \
         "filelock" \
         "gdown" \
+        "inquirer" \
         "tables"
 
     PIP install -e "$REPO_ROOT"

@@ -152,6 +152,7 @@ if [[ "${SKIP_ENV_BUILD:-0}" -ne 1 ]]; then
         "ankh==1.10.0" \
         "fair-esm==2.0.0" \
         "biopython==1.83" \
+        "epam.indigo==1.45.0" \
         "tqdm" \
         "pyyaml" \
         "dataclasses-json" \
