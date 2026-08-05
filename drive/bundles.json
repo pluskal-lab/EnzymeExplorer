@@ -40,18 +40,21 @@
       ],
       "extract_recipes": [
         {
+          "strip_prefix": "reference-domains/",
           "patterns": [
             "martsDB_detected_domains/*"
           ],
           "target_dir": "data/detected_domains/"
         },
         {
+          "strip_prefix": "reference-domains/",
           "patterns": [
             "foldseek_cache/*"
           ],
           "target_dir": "data/"
         }
       ],
+      "_note_strip_prefix": "The Drive-hosted reference-domains.zip is a legacy build that wraps everything in an outer reference-domains/ folder; strip_prefix removes it during extraction. If you rebuild the zip locally via scripts/build_drive_bundles.py the wrapper won't be there — drop the strip_prefix keys and the recipes still work.",
       "sanity_checks": [
         "data/detected_domains/martsDB_detected_domains/martsDB_detected_domains.pkl",
         "data/detected_domains/martsDB_detected_domains/secondary_structure_residues.pkl",

@@ -27,6 +27,7 @@ import fnmatch
 import hashlib
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -94,25 +95,53 @@ def _sha256_file(path: Path, chunk: int = 1 << 20) -> str:
     return h.hexdigest()
 
 
+MANIFEST_LINE_RE = re.compile(
+    # <sha256>  <size>  <relpath>[  (extra-info)]
+    #                              ^ trailing parenthesised comment (optional)
+    # Legacy MANIFEST files (e.g. the pre-refactor reference-domains.zip)
+    # record directory placeholders with a ``(n_files=N)`` sidecar; the
+    # newer build_drive_bundles.py output never emits that.
+    r"^([0-9a-f]{64})\s+(\d+)\s+(.+?)(?:\s+\([^)]*\))?\s*$"
+)
+
+
 def verify_manifest(zip_path: Path) -> None:
     """Verify per-entry sha256 in ``MANIFEST.txt`` against the archive.
 
-    Every non-empty, non-``#`` MANIFEST line is ``<sha256>  <size>  <relpath>``
-    (matches the format produced by ``scripts/build_drive_bundles.py``).
+    Robust to two MANIFEST dialects:
+
+    * modern (produced by ``scripts/build_drive_bundles.py``) — pure
+      ``<sha256>  <size>  <relpath>`` lines, one per file.
+    * legacy — additionally records directory placeholders with a
+      ``(n_files=N)`` trailing comment; entries ending in ``/`` are the
+      directory summary, not a real archive entry.
+
+    Directory summaries and lines that don't match the schema are
+    skipped. Entries listed in the manifest but genuinely absent from
+    the archive cause a hard failure (that's an actual upload bug).
     """
     with zipfile.ZipFile(zip_path, "r") as zf:
         try:
             manifest_bytes = zf.read("MANIFEST.txt")
         except KeyError:
             _die(f"{zip_path.name}: MANIFEST.txt missing from zip")
+        arcnames = set(zf.namelist())
         for raw in manifest_bytes.decode("utf-8").splitlines():
             line = raw.strip()
             if not line or line.startswith("#"):
                 continue
-            parts = line.split(maxsplit=2)
-            if len(parts) < 3:
-                continue
-            expected_sha, _size, relpath = parts
+            m = MANIFEST_LINE_RE.match(line)
+            if not m:
+                continue  # malformed; skip silently
+            expected_sha, _size, relpath = m.group(1), m.group(2), m.group(3)
+            if relpath.endswith("/"):
+                continue  # directory placeholder — not a real entry
+            if relpath not in arcnames:
+                _die(
+                    f"{zip_path.name}: manifest entry '{relpath}' missing "
+                    f"from archive — zip is corrupt, delete {zip_path} "
+                    f"and re-download"
+                )
             with zf.open(relpath) as fh:
                 h = hashlib.sha256()
                 while True:
@@ -133,28 +162,52 @@ def _matches_any(name: str, patterns: list[str]) -> bool:
 
 def extract_zip(zip_path: Path, spec: dict) -> None:
     """Extract per ``spec['extract_recipes']``. Each recipe has:
-    * ``patterns`` — list of shell globs matched against arcnames
+
+    * ``patterns`` — list of shell globs matched against the arcname
+      *after* ``strip_prefix`` has been removed.
     * ``target_dir`` — where to unpack (env-vars expanded; repo-relative
       if not absolute).
+    * ``strip_prefix`` (optional) — a leading path component to remove
+      from each arcname before it's matched against ``patterns`` and
+      before it's written to ``target_dir``. Set this when the uploaded
+      zip is wrapped in an extra outer folder (e.g. the legacy
+      ``reference-domains.zip`` groups everything under
+      ``reference-domains/``, so recipes use ``strip_prefix:
+      "reference-domains/"`` and patterns like
+      ``"martsDB_detected_domains/*"``).
 
-    Extracts each matching arcname to ``target_dir / arcname``,
-    preserving the arcname path structure — exactly what the historical
-    ``unzip -q -o <zip> '<pat>' -d <target>`` invocation would produce.
+    Extracts each match to ``target_dir / (arcname - strip_prefix)`` —
+    exactly what ``unzip -q -o <zip> '<strip_prefix><pat>' -d <target>``
+    followed by moving the stripped prefix up would produce.
     """
     with zipfile.ZipFile(zip_path, "r") as zf:
         names = [n for n in zf.namelist() if n != "MANIFEST.txt"]
         for recipe in spec.get("extract_recipes", []):
             target = _expand(recipe["target_dir"])
             target.mkdir(parents=True, exist_ok=True)
-            matched = [n for n in names if _matches_any(n, recipe["patterns"])]
-            if not matched:
-                _log(f"WARN: recipe {recipe['patterns']} matched nothing in {zip_path.name}")
-                continue
-            for name in matched:
-                # ZipInfo.filename ends with '/' for directory entries; skip.
+            strip = recipe.get("strip_prefix", "")
+            matched: list[tuple[str, str]] = []  # (arcname, stripped_relpath)
+            for name in names:
                 if name.endswith("/"):
-                    continue
-                dst = target / name
+                    continue  # directory placeholder
+                if strip:
+                    if not name.startswith(strip):
+                        continue
+                    rel = name[len(strip):]
+                    if not rel:
+                        continue
+                else:
+                    rel = name
+                if _matches_any(rel, recipe["patterns"]):
+                    matched.append((name, rel))
+            if not matched:
+                _log(
+                    f"WARN: recipe patterns={recipe['patterns']} "
+                    f"strip_prefix={strip!r} matched nothing in {zip_path.name}"
+                )
+                continue
+            for name, rel in matched:
+                dst = target / rel
                 dst.parent.mkdir(parents=True, exist_ok=True)
                 with zf.open(name) as src, open(dst, "wb") as out:
                     shutil.copyfileobj(src, out, length=1 << 20)
