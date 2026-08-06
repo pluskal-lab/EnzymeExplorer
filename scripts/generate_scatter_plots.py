@@ -146,38 +146,66 @@ def alpha_parent_palette() -> dict[str, str]:
 # Embeddings
 # ---------------------------------------------------------------------------
 
-def compute_embedding(distance_matrix: np.ndarray, method: str,
-                      *, seed: int = 42) -> np.ndarray:
-    """Return an (n, 2) embedding of ``distance_matrix`` under ``method``.
+def compute_embedding(
+    distance_matrix: np.ndarray, method: str, *, seed: int = 42,
+) -> tuple[np.ndarray, tuple[float, ...] | None]:
+    """Return ``(embedding, explained_variance_ratio_or_None)``.
 
     * ``pca`` — sklearn PCA on the distance-matrix rows (each row is a
-      len(n)-dim feature vector). Fast, deterministic, linear.
-    * ``tsne`` — sklearn TSNE with metric='precomputed'.
-    * ``umap`` — umap-learn UMAP with metric='precomputed'.
+      len(n)-dim feature vector). Fast, deterministic, linear. The
+      returned second element is the untouched
+      ``PCA.explained_variance_ratio_`` used to build canonical
+      ``"PC1 (X% variance)"`` axis labels.
+    * ``tsne`` — sklearn TSNE with metric='precomputed'. Nonlinear, no
+      variance analogue → second element is ``None``.
+    * ``umap`` — umap-learn UMAP with metric='precomputed'. Same as
+      t-SNE — no variance analogue → ``None``.
     """
     method = method.lower()
     if method == "pca":
         from sklearn.decomposition import PCA
-        return PCA(n_components=2, random_state=seed).fit_transform(distance_matrix)
+        pca = PCA(n_components=2, random_state=seed)
+        emb = pca.fit_transform(distance_matrix)
+        return emb, tuple(float(v) for v in pca.explained_variance_ratio_)
     if method == "tsne":
         from sklearn.manifold import TSNE
         n = distance_matrix.shape[0]
         perplexity = min(30, max(5, (n - 1) // 4))
-        return TSNE(
+        emb = TSNE(
             n_components=2, metric="precomputed", init="random",
             random_state=seed, perplexity=perplexity, learning_rate="auto",
             max_iter=1500,
         ).fit_transform(distance_matrix)
+        return emb, None
     if method == "umap":
         import umap
         n = distance_matrix.shape[0]
         n_neighbors = min(30, max(5, n // 20))
-        return umap.UMAP(
+        emb = umap.UMAP(
             n_components=2, metric="precomputed",
             n_neighbors=n_neighbors, min_dist=0.15,
             random_state=seed,
         ).fit_transform(distance_matrix)
+        return emb, None
     raise ValueError(f"Unknown method: {method}")
+
+
+def _axis_labels(
+    method: str,
+    base_labels: tuple[str, str],
+    explained_variance_ratio: tuple[float, ...] | None,
+) -> tuple[str, str]:
+    """Format axis labels — PCA appends ``(X% variance)`` from
+    ``explained_variance_ratio``; t-SNE / UMAP fall back to the raw
+    ``base_labels`` (no variance analogue for a nonlinear projection).
+    """
+    if explained_variance_ratio is not None and len(explained_variance_ratio) >= 2:
+        vr1, vr2 = explained_variance_ratio[0], explained_variance_ratio[1]
+        return (
+            f"{base_labels[0]} ({100.0 * vr1:.1f}% variance)",
+            f"{base_labels[1]} ({100.0 * vr2:.1f}% variance)",
+        )
+    return base_labels
 
 
 # ---------------------------------------------------------------------------
@@ -330,7 +358,8 @@ def main() -> None:
 
         for method in ("pca", "tsne", "umap"):
             logger.info("  computing %s embedding …", method)
-            emb = compute_embedding(D_sub, method)
+            emb, vr = compute_embedding(D_sub, method)
+            xlbl, ylbl = _axis_labels(method, method_labels[method], vr)
 
             desc = subset_descriptor[subset_name]
             method_title = method_titles[method]
@@ -341,7 +370,7 @@ def main() -> None:
             scatter(
                 emb, sub_labels, sub_order, subtype_palette,
                 title=f"{method_title} of the {desc} resolved by subtype",
-                xlabel=method_labels[method][0], ylabel=method_labels[method][1],
+                xlabel=xlbl, ylabel=ylbl,
                 legend_title="Domain subtype",
                 out_stem=out_dir / f"scatter_{subset_name}_{method}_subtype",
             )
@@ -355,7 +384,7 @@ def main() -> None:
             scatter(
                 emb_g, group_labels_f, gcfg["order"], gcfg["palette"],
                 title=f"{method_title} of the {desc} resolved by {gcfg['kind']}",
-                xlabel=method_labels[method][0], ylabel=method_labels[method][1],
+                xlabel=xlbl, ylabel=ylbl,
                 legend_title=gcfg["legend"],
                 out_stem=out_dir / f"scatter_{subset_name}_{method}_group",
             )
@@ -395,11 +424,12 @@ def alpha_plus_zeta() -> None:
     logger.info("Subset alpha+zeta: %d domains", len(idx))
     for method in ("pca", "tsne", "umap"):
         logger.info("  computing %s embedding …", method)
-        emb = compute_embedding(D_sub, method)
+        emb, vr = compute_embedding(D_sub, method)
+        xlbl, ylbl = _axis_labels(method, method_labels[method], vr)
         scatter(
             emb, labels, order, palette,
             title=f"{method_titles[method]} of the {desc} resolved by parent group",
-            xlabel=method_labels[method][0], ylabel=method_labels[method][1],
+            xlabel=xlbl, ylabel=ylbl,
             legend_title="Parent group",
             out_stem=out_dir / f"scatter_alpha_zeta_{method}_group",
         )
@@ -436,11 +466,12 @@ def nonalpha_subtypes() -> None:
     logger.info("Subset non-alpha subtypes: %d domains", len(idx))
     for method in ("pca", "tsne", "umap"):
         logger.info("  computing %s embedding …", method)
-        emb = compute_embedding(D_sub, method)
+        emb, vr = compute_embedding(D_sub, method)
+        xlbl, ylbl = _axis_labels(method, method_labels[method], vr)
         scatter(
             emb, labels, order, palette,
             title=f"{method_titles[method]} of the {desc} resolved by subtype",
-            xlabel=method_labels[method][0], ylabel=method_labels[method][1],
+            xlabel=xlbl, ylabel=ylbl,
             legend_title="Domain subtype",
             out_stem=out_dir / f"scatter_nonalpha_sub_{method}_subtype",
         )
@@ -476,11 +507,12 @@ def nonalpha_subtypes_with_zeta() -> None:
     logger.info("Subset non-alpha subtypes + zeta: %d domains", len(idx))
     for method in ("pca", "tsne", "umap"):
         logger.info("  computing %s embedding …", method)
-        emb = compute_embedding(D_sub, method)
+        emb, vr = compute_embedding(D_sub, method)
+        xlbl, ylbl = _axis_labels(method, method_labels[method], vr)
         scatter(
             emb, labels, order, palette,
             title=f"{method_titles[method]} of the {desc} resolved by subtype",
-            xlabel=method_labels[method][0], ylabel=method_labels[method][1],
+            xlabel=xlbl, ylabel=ylbl,
             legend_title="Domain subtype",
             out_stem=out_dir / f"scatter_nonalpha_subz_{method}_subtype",
         )

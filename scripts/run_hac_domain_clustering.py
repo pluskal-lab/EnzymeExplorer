@@ -176,29 +176,36 @@ def main() -> None:
             method=args.linkage_method,
         )
 
-    # 4a) UMAP embedding (cached under the same ``--shared-aln-dir``).
-    embedding, embedding_member_ids = embedding_mod.load_or_compute_embedding(
-        cache_dir=Path(args.shared_aln_dir) / "embedding",
-        member_ids=member_ids,
-        pairwise_tm=pairwise_tm,
-        n_neighbors=args.scatter_n_neighbors,
-        min_dist=args.scatter_min_dist,
-        random_state=args.scatter_random_state,
-        force=args.force_embedding,
+    # 4a) PCA embedding for the reference metadata scatters — canonical
+    # "PC1 (X% variance)" axis labels for the paper. Cached under the same
+    # ``--shared-aln-dir`` so re-runs at different HAC thresholds render on
+    # the same (x, y).
+    embedding, embedding_member_ids, explained_variance_ratio = (
+        embedding_mod.load_or_compute_pca_embedding(
+            cache_dir=Path(args.shared_aln_dir) / "embedding",
+            member_ids=member_ids,
+            pairwise_tm=pairwise_tm,
+            random_state=args.scatter_random_state,
+            force=args.force_embedding,
+        )
     )
     plots.plot_embedding_scatter_by_metadata(
         embedding, embedding_member_ids, metadata_df,
         color_by="kingdom",
         output_path=plots_dir / "scatter_by_kingdom.png",
-        title="HAC — UMAP layout colored by kingdom",
+        title="HAC — PCA layout colored by kingdom",
         palette_name="tab10",
+        method="PC",
+        explained_variance_ratio=explained_variance_ratio,
     )
     plots.plot_embedding_scatter_by_metadata(
         embedding, embedding_member_ids, metadata_df,
         color_by="canonical_domain_type",
         output_path=plots_dir / "scatter_by_domain_type.png",
-        title="HAC — UMAP layout colored by canonical domain type",
+        title="HAC — PCA layout colored by canonical domain type",
         palette_name="Set2",
+        method="PC",
+        explained_variance_ratio=explained_variance_ratio,
     )
 
     # 4b) Dendrogram plots.

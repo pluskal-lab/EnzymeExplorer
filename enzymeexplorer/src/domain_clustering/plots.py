@@ -1497,6 +1497,44 @@ def plot_n_clusters_vs_height(
     plt.close(fig)
 
 
+def _axis_variance_labels(
+    embedding: np.ndarray,
+    method: str = "UMAP",
+    explained_variance_ratio: tuple[float, ...] | None = None,
+) -> tuple[str, str]:
+    """Return the two axis labels for a 2D embedding.
+
+    * If ``explained_variance_ratio`` is provided (the PCA path — comes
+      straight from ``sklearn.decomposition.PCA.explained_variance_ratio_``),
+      renders the canonical ``"PC1 (23.4% variance)"`` /
+      ``"PC2 (12.1% variance)"`` labels.
+    * Otherwise falls back to the fraction of the *embedded* 2D
+      coordinate variance each axis carries (the honest empirical
+      analogue for UMAP / t-SNE / other nonlinear projections, which
+      have no explained-variance ratios).
+
+    ``method`` chooses the label prefix (``"PC"``, ``"UMAP"``,
+    ``"t-SNE"``, …).
+    """
+    if explained_variance_ratio is not None and len(explained_variance_ratio) >= 2:
+        vr1, vr2 = float(explained_variance_ratio[0]), float(explained_variance_ratio[1])
+        return (
+            f"{method}1 ({100.0 * vr1:.1f}% variance)",
+            f"{method}2 ({100.0 * vr2:.1f}% variance)",
+        )
+    if embedding.size == 0:
+        return f"{method}-1", f"{method}-2"
+    vx = float(np.var(embedding[:, 0], ddof=1)) if embedding.shape[0] > 1 else 0.0
+    vy = float(np.var(embedding[:, 1], ddof=1)) if embedding.shape[0] > 1 else 0.0
+    total = vx + vy
+    if total <= 0:
+        return f"{method}-1", f"{method}-2"
+    return (
+        f"{method}-1 ({100.0 * vx / total:.1f}% of embedded variance)",
+        f"{method}-2 ({100.0 * vy / total:.1f}% of embedded variance)",
+    )
+
+
 def _cluster_color_palette(n: int) -> list:
     """Return ``n`` perceptually-distinct colors.
 
@@ -1522,6 +1560,8 @@ def plot_embedding_scatter_by_clusters(
     max_legend_clusters: int = 30,
     label_top_k: int | None = None,
     singleton_color: tuple[float, float, float, float] = (0.78, 0.78, 0.78, 0.55),
+    method: str = "UMAP",
+    explained_variance_ratio: tuple[float, ...] | None = None,
 ) -> None:
     """Scatter of every domain in 2D, colored by its cluster.
 
@@ -1606,7 +1646,11 @@ def plot_embedding_scatter_by_clusters(
         f"{len(singletons)} singletons   "
         f"(numbered markers = cluster centroids; legend keys to medoid)"
     )
-    ax.set(xlabel="UMAP-1", ylabel="UMAP-2", title=title)
+    xlbl, ylbl = _axis_variance_labels(
+        embedding, method=method,
+        explained_variance_ratio=explained_variance_ratio,
+    )
+    ax.set(xlabel=xlbl, ylabel=ylbl, title=title)
 
     # Legend on the right — numbers match the centroid markers.
     if multi_clusters or singletons:
@@ -1635,12 +1679,18 @@ def plot_embedding_scatter_by_metadata(
     *,
     title: str | None = None,
     palette_name: str = "tab10",
+    method: str = "UMAP",
+    explained_variance_ratio: tuple[float, ...] | None = None,
 ) -> None:
     """Reference scatter colored by a metadata column (kingdom or domain type).
 
     Provides an "intrinsic" view of the embedding — what the *biology*
     looks like before any clustering is applied. Useful to overlay with
     cluster scatters when picking a threshold.
+
+    Pass ``method="PC"`` and ``explained_variance_ratio=(v1, v2)`` from
+    :func:`compute_pca_embedding` to get canonical
+    ``"PC1 (23.4% variance)"`` axis labels.
     """
     metadata_index = metadata_df.set_index("module_id")
     fig, ax = plt.subplots(figsize=(10, 7))
@@ -1668,9 +1718,13 @@ def plot_embedding_scatter_by_metadata(
             edgecolors="white", linewidths=0.25,
         )
 
+    xlbl, ylbl = _axis_variance_labels(
+        embedding, method=method,
+        explained_variance_ratio=explained_variance_ratio,
+    )
     ax.set(
-        xlabel="UMAP-1", ylabel="UMAP-2",
-        title=title or f"UMAP embedding colored by {color_by}",
+        xlabel=xlbl, ylabel=ylbl,
+        title=title or f"{method} embedding colored by {color_by}",
     )
     ax.legend(loc="center left", bbox_to_anchor=(1.01, 0.5),
               fontsize=8, frameon=False)

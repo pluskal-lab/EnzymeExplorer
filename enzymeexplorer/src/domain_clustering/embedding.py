@@ -1,16 +1,18 @@
-"""2D embedding of detected domains for cluster-scatter visualisations.
+"""2D embeddings of detected domains for cluster-scatter visualisations.
 
-UMAP (with ``metric='precomputed'``) on the dense ``(1 − TM)`` distance
-matrix. Computed **once** per (pdb-set, parameter-set) and cached so every
-clustering — Foldseek and HAC, every threshold — colors points on the
-identical layout. Same domain → same (x, y), with only the colors changing
-across plots, which makes side-by-side comparison meaningful.
+Two methods are supported, both operating on the dense ``(1 − TM)``
+distance matrix and both cached per (pdb-set, method, parameter-set) so
+side-by-side comparisons keep the same (x, y) for the same domain
+across plots:
 
-Why UMAP rather than PCA / MDS / t-SNE: PCA on a TM-distance matrix is
-linear and badly distorts neighbour relationships. t-SNE is slower and
-preserves only local structure. UMAP preserves local *and* global
-structure, scales to thousands of points in seconds, and is deterministic
-when seeded.
+* **PCA** — used by the paper-facing scatter plots (kingdom, canonical
+  domain type). Standard "PC1 (X% variance)" labels — the fitted
+  estimator returns per-axis explained-variance ratios that ship
+  alongside the coords via :func:`load_or_compute_pca_embedding`.
+* **UMAP** — kept for the exploratory HAC-development scatters. UMAP
+  preserves local *and* global neighbour structure so it's better for
+  eyeballing clusters, but there's no "explained variance" analogue
+  for a nonlinear projection, which is why the paper plots stay on PCA.
 """
 from __future__ import annotations
 
@@ -67,6 +69,96 @@ def compute_umap_embedding(
     embedding = reducer.fit_transform(D)
     logger.info("UMAP embedding shape: %s", embedding.shape)
     return embedding
+
+
+def compute_pca_embedding(
+    member_ids: list[str],
+    pairwise_tm: dict[tuple[str, str], float],
+    *,
+    random_state: int = 42,
+    missing_distance: float = 1.0,
+    n_components: int = 2,
+) -> tuple[np.ndarray, tuple[float, ...]]:
+    """Fit PCA on the precomputed (1 − TM) distance matrix.
+
+    Returns ``(embedding, explained_variance_ratio)`` — ``embedding``
+    is ``(n_members, n_components)`` indexed by ``member_ids`` and
+    ``explained_variance_ratio`` is the per-axis fraction from
+    ``sklearn.decomposition.PCA.explained_variance_ratio_`` (used to
+    render "PC1 (X% variance)" axis labels on the scatter plots).
+
+    The rows of the distance matrix are used as feature vectors — the
+    same convention used for the alpha-domain rebuttal PCA. Deterministic
+    when seeded.
+    """
+    from sklearn.decomposition import PCA  # type: ignore  # local import
+
+    D = _build_distance_matrix(member_ids, pairwise_tm, missing_distance)
+    logger.info("Fitting PCA: n=%d, seed=%d", len(member_ids), random_state)
+    pca = PCA(n_components=n_components, random_state=random_state)
+    embedding = pca.fit_transform(D)
+    ratios = tuple(float(v) for v in pca.explained_variance_ratio_)
+    logger.info(
+        "PCA embedding shape: %s, explained variance ratios: %s",
+        embedding.shape, ratios,
+    )
+    return embedding, ratios
+
+
+def load_or_compute_pca_embedding(
+    cache_dir: str | Path,
+    *,
+    member_ids: list[str] | None = None,
+    pairwise_tm: dict[tuple[str, str], float] | None = None,
+    random_state: int = 42,
+    force: bool = False,
+) -> tuple[np.ndarray, list[str], tuple[float, ...]]:
+    """PCA analogue of :func:`load_or_compute_embedding`.
+
+    Same caching contract; additionally persists the
+    ``explained_variance_ratio`` so downstream plot code can quote
+    it on axis labels without re-fitting.
+    """
+    cache_dir = Path(cache_dir).resolve()
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    base = f"embedding_pca_seed{random_state}"
+    embedding_path = cache_dir / f"{base}.npy"
+    member_path = cache_dir / f"{base}.member_ids.pkl"
+    variance_path = cache_dir / f"{base}.explained_variance_ratio.pkl"
+
+    if (
+        not force
+        and embedding_path.exists()
+        and member_path.exists()
+        and variance_path.exists()
+    ):
+        with open(member_path, "rb") as f:
+            cached_ids = pickle.load(f)
+        with open(variance_path, "rb") as f:
+            ratios = pickle.load(f)
+        embedding = np.load(embedding_path)
+        logger.info(
+            "Reusing PCA embedding from %s (n=%d, var=%s)",
+            embedding_path, len(cached_ids), ratios,
+        )
+        return embedding, cached_ids, ratios
+
+    if member_ids is None or pairwise_tm is None:
+        raise FileNotFoundError(
+            f"No cached PCA embedding at {embedding_path}; pass "
+            f"member_ids and pairwise_tm to compute it."
+        )
+
+    embedding, ratios = compute_pca_embedding(
+        member_ids, pairwise_tm, random_state=random_state,
+    )
+    np.save(embedding_path, embedding)
+    with open(member_path, "wb") as f:
+        pickle.dump(list(member_ids), f)
+    with open(variance_path, "wb") as f:
+        pickle.dump(ratios, f)
+    logger.info("Saved PCA embedding → %s", embedding_path)
+    return embedding, list(member_ids), ratios
 
 
 def load_or_compute_embedding(
