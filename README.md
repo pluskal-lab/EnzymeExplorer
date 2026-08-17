@@ -88,7 +88,7 @@ The six domain-template PDBs used by the detector (α/β/γ/δ/ε/ζ + IDS) are 
 
 ```bash
 # Pfam+SUPFAM-selected candidates (9 sequences)
-# Should produce similar results as the existing files in the output directory `outputs/candidates/dark_candidates`
+# Should produce similar results as the existing files in the output directory `outputs/candidates/pfam_supfam_candidates`
 enzyme_explorer_main predict \
     --sequences        data/pfam_supfam_candidates/candidates.fasta \
     --structures-dir   data/pfam_supfam_candidates/afdb \
